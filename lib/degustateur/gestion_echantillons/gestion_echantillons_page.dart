@@ -26,6 +26,7 @@ import '../homepage/widgets/app_drawer.dart';
 import '../membres_panel/membres_panel_page.dart';
 import '../../../main.dart';
 import '../sessions_degustation/sessions_degustation_page.dart';
+import '../analyse_labo/analyse_laboratoire_page.dart';
 
 class GestionEchantillonsPage extends StatefulWidget {
   const GestionEchantillonsPage({super.key});
@@ -239,7 +240,7 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage> {
         onEvaluationEchantillons: () =>
             _goTo(const EvaluationEchantillonsPage()),
         onGestionEchantillons: () => _goTo(const GestionEchantillonsPage()),
-        onAnalyseLaboratoire: () => Navigator.pop(context),
+        onAnalyseLaboratoire: () => _goTo(const AnalyseLaboratoirePage()),
         onSessionsDegustationPage: () => _goTo(const SessionsDegustationPage()),
         onMembredupanel: () => _goTo(const MembresPanelPage()),
         onProfil: () => _goTo(const ProfilePage()),

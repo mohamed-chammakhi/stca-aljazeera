@@ -23,6 +23,7 @@ import '../../../main.dart';
 import '../gestion_echantillons/gestion_echantillons_page.dart';
 import '../formulaire_evaluation.dart';
 import '../sessions_degustation/sessions_degustation_page.dart';
+import '../analyse_labo/analyse_laboratoire_page.dart';
 
 // ── Own model ─────────────────────────────────────────────────────────────────
 import 'navigation/models/echantillon.dart';
@@ -273,7 +274,7 @@ class _EvaluationEchantillonsPageState
         onEvaluationEchantillons: () =>
             _goTo(const EvaluationEchantillonsPage()),
         onGestionEchantillons: () => _goTo(const GestionEchantillonsPage()),
-        onAnalyseLaboratoire: () => Navigator.pop(context),
+        onAnalyseLaboratoire: () => _goTo(const AnalyseLaboratoirePage()),
         onSessionsDegustationPage: () => _goTo(const SessionsDegustationPage()),
         onMembredupanel: () => _goTo(const MembresPanelPage()),
         onProfil: () => _goTo(const ProfilePage()),

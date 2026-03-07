@@ -22,6 +22,7 @@ import '../sessions_degustation/sessions_degustation_page.dart';
 import '../gestion_echantillons/gestion_echantillons_page.dart';
 import '../evaluation_echantillons/evaluation_echantillons_page.dart';
 import '../membres_panel/membres_panel_page.dart';
+import '../analyse_labo/analyse_laboratoire_page.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // MyApp
@@ -161,7 +162,7 @@ class _HomePageState extends State<HomePage> {
         //       gestion_echantillons/gestion_echantillons_page.dart ✅ done
         onGestionEchantillons: () => _goTo(const GestionEchantillonsPage()),
 
-        onAnalyseLaboratoire: () => Navigator.pop(context),
+        onAnalyseLaboratoire: () => _goTo(const AnalyseLaboratoirePage()),
         onSessionsDegustationPage: () => _goTo(const SessionsDegustationPage()),
 
         // OLD : ProfilePage from profil.dart (same level)

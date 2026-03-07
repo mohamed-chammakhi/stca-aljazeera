@@ -9,6 +9,7 @@ import '../degustateur/membres_panel/membres_panel_page.dart';
 import '../../../main.dart';
 import '../degustateur/gestion_echantillons/gestion_echantillons_page.dart';
 import '../degustateur/sessions_degustation/sessions_degustation_page.dart';
+import 'degustateur/analyse_labo/analyse_laboratoire_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -258,7 +259,7 @@ class _ProfilePageState extends State<ProfilePage> {
         //       gestion_echantillons/gestion_echantillons_page.dart ✅ done
         onGestionEchantillons: () => _goTo(const GestionEchantillonsPage()),
 
-        onAnalyseLaboratoire: () => Navigator.pop(context),
+        onAnalyseLaboratoire: () => _goTo(const AnalyseLaboratoirePage()),
         onSessionsDegustationPage: () => _goTo(const SessionsDegustationPage()),
 
         // OLD : ProfilePage from profil.dart (same level)

@@ -1,12 +1,12 @@
 // ═════════════════════════════════════════════════════════════════════════════
-// FILE    : sessions_degustation/sessions_degustation_page.dart
-// PURPOSE : THE BRAIN — owns all state, filter logic, and actions
+// FILE    : analyse_laboratoire/analyse_laboratoire_page.dart
+// PURPOSE : THE BRAIN — owns all state, filter logic, actions
 //
 // SECTIONS :
 //   1. COLORS
 //   2. STATE         — search, statut filter, date range
-//   3. NAVIGATION    — _goTo, _goToLogin
-//   4. MOCK DATA     — replace with API call later
+//   3. NAVIGATION
+//   4. MOCK DATA
 //   5. FILTER LOGIC  — _filtres getter, _parseDate, _labelToStatut
 //   6. ACTIONS       — add, edit, delete, snackbar
 //   7. BUILD         — appbar, drawer, FAB, SearchFilterBar, list
@@ -14,34 +14,31 @@
 
 import 'package:flutter/material.dart';
 
-// ── Own model + widgets ───────────────────────────────────────────────────────
-import 'models/session_degustation.dart';
-import 'widgets/session_card.dart';
-import 'widgets/dialogs/formulaire_session_dialog.dart';
-import 'widgets/dialogs/suppression_session_dialog.dart';
+import 'models/analyse_labo.dart';
+import 'widgets/analyse_card.dart';
+import 'widgets/dialogs/formulaire_analyse_dialog.dart';
+import 'widgets/dialogs/suppression_analyse_dialog.dart';
 
-// ── Shared widget — same SearchFilterBar used by gestion + evaluation pages ───
-// imported directly — no copy needed ✅
+// shared SearchFilterBar (same one used by all list pages)
 import '../gestion_echantillons/widgets/search_filter_bar.dart';
 
-// ── App-wide imports ──────────────────────────────────────────────────────────
+// app-wide imports
 import '../../../profil.dart';
 import '../homepage/widgets/app_drawer.dart';
 import '../membres_panel/membres_panel_page.dart';
 import '../gestion_echantillons/gestion_echantillons_page.dart';
 import '../evaluation_echantillons/evaluation_echantillons_page.dart';
+import '../sessions_degustation/sessions_degustation_page.dart';
 import '../../../main.dart';
-import '../analyse_labo/analyse_laboratoire_page.dart';
 
-class SessionsDegustationPage extends StatefulWidget {
-  const SessionsDegustationPage({super.key});
+class AnalyseLaboratoirePage extends StatefulWidget {
+  const AnalyseLaboratoirePage({super.key});
 
   @override
-  _SessionsDegustationPageState createState() =>
-      _SessionsDegustationPageState();
+  _AnalyseLaboratoirePageState createState() => _AnalyseLaboratoirePageState();
 }
 
-class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
+class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage> {
   // ───────────────────────────────────────────────────────────────────────────
   // 1. COLORS
   // ───────────────────────────────────────────────────────────────────────────
@@ -55,13 +52,11 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
   // ───────────────────────────────────────────────────────────────────────────
 
   final TextEditingController _searchController = TextEditingController();
-  String _recherche = '';
-  String?
-  _filtreStatutLabel; // null = show all  |  'Planifiée' / 'En cours' / 'Terminée'
-  DateTime? _dateDebut; // null = no lower date bound
-  DateTime? _dateFin; // null = no upper date bound
 
-  bool get _dateFilterActive => _dateDebut != null || _dateFin != null;
+  String _recherche = '';
+  String? _filtreStatutLabel; // null = all
+  DateTime? _dateDebut;
+  DateTime? _dateFin;
 
   // ───────────────────────────────────────────────────────────────────────────
   // 3. NAVIGATION
@@ -81,51 +76,208 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
   }
 
   // ───────────────────────────────────────────────────────────────────────────
-  // 4. MOCK DATA  —  replace with API call when backend is ready
+  // 4. MOCK DATA  —  replace with API call when backend ready
   // ───────────────────────────────────────────────────────────────────────────
 
-  final List<SessionDegustation> _sessions = [
-    SessionDegustation(
-      id: 'SES-001',
-      titre: 'Session Chemlali - Lot A',
-      date: '20/02/2026',
-      heure: '09:00',
-      lieu: 'Salle de dégustation A',
-      statut: StatutSession.terminee,
-      echantillonIds: ['OL-2024-001', 'OL-2024-005'],
-      participants: ['Ichrak C.', 'Lobna E.', 'Maha O.'],
-      notes: 'Apporter les fiches de notation',
+  final List<AnalyseLabo> _analyses = [
+    AnalyseLabo(
+      id: 'ANL-001',
+      echantillonId: 'OL-2024-001',
+      echantillonNom: 'Chemlali - Lot A - Sfax',
+      dateAnalyse: '18/02/2026',
+      technicienNom: 'Karim B.',
+      statut: StatutAnalyse.validee,
+      notes: 'Analyse conforme aux normes COI',
+      criteres: [
+        CritereAnalyse(
+          label: 'Acidité libre',
+          valeur: 0.3,
+          unite: '%',
+          seuilMin: 0.0,
+          seuilMax: 0.8,
+        ),
+        CritereAnalyse(
+          label: 'Indice de peroxyde',
+          valeur: 8.5,
+          unite: 'mEq O₂/kg',
+          seuilMin: 0.0,
+          seuilMax: 20.0,
+        ),
+        CritereAnalyse(
+          label: 'Absorbance K232',
+          valeur: 1.82,
+          unite: '',
+          seuilMin: 0.0,
+          seuilMax: 2.50,
+        ),
+        CritereAnalyse(
+          label: 'Absorbance K270',
+          valeur: 0.14,
+          unite: '',
+          seuilMin: 0.0,
+          seuilMax: 0.22,
+        ),
+        CritereAnalyse(
+          label: 'ΔK (variation UV)',
+          valeur: 0.003,
+          unite: '',
+          seuilMin: -0.01,
+          seuilMax: 0.01,
+        ),
+        CritereAnalyse(
+          label: 'Polyphénols totaux',
+          valeur: 320.0,
+          unite: 'mg/kg',
+          seuilMin: 0.0,
+          seuilMax: null,
+        ),
+        CritereAnalyse(
+          label: 'Humidité',
+          valeur: 0.09,
+          unite: '%',
+          seuilMin: 0.0,
+          seuilMax: 0.2,
+        ),
+        CritereAnalyse(
+          label: 'Impuretés',
+          valeur: 0.04,
+          unite: '%',
+          seuilMin: 0.0,
+          seuilMax: 0.1,
+        ),
+      ],
     ),
-    SessionDegustation(
-      id: 'SES-002',
-      titre: 'Session Chetoui - Lot B',
-      date: '21/02/2026',
-      heure: '10:30',
-      lieu: 'Laboratoire 2',
-      statut: StatutSession.enCours,
-      echantillonIds: ['OL-2024-002'],
-      participants: ['Nayrouz F.', 'Yosra S.'],
+    AnalyseLabo(
+      id: 'ANL-002',
+      echantillonId: 'OL-2024-002',
+      echantillonNom: 'Chetoui - Lot B - Béja',
+      dateAnalyse: '19/02/2026',
+      technicienNom: 'Karim B.',
+      statut: StatutAnalyse.envoyee,
+      criteres: [
+        CritereAnalyse(
+          label: 'Acidité libre',
+          valeur: 1.2,
+          unite: '%',
+          seuilMin: 0.0,
+          seuilMax: 0.8,
+        ), // non-conforme!
+        CritereAnalyse(
+          label: 'Indice de peroxyde',
+          valeur: 14.0,
+          unite: 'mEq O₂/kg',
+          seuilMin: 0.0,
+          seuilMax: 20.0,
+        ),
+        CritereAnalyse(
+          label: 'Absorbance K232',
+          valeur: 2.10,
+          unite: '',
+          seuilMin: 0.0,
+          seuilMax: 2.50,
+        ),
+        CritereAnalyse(
+          label: 'Absorbance K270',
+          valeur: 0.19,
+          unite: '',
+          seuilMin: 0.0,
+          seuilMax: 0.22,
+        ),
+        CritereAnalyse(
+          label: 'ΔK (variation UV)',
+          valeur: 0.005,
+          unite: '',
+          seuilMin: -0.01,
+          seuilMax: 0.01,
+        ),
+        CritereAnalyse(
+          label: 'Polyphénols totaux',
+          valeur: 180.0,
+          unite: 'mg/kg',
+          seuilMin: 0.0,
+          seuilMax: null,
+        ),
+        CritereAnalyse(
+          label: 'Humidité',
+          valeur: 0.15,
+          unite: '%',
+          seuilMin: 0.0,
+          seuilMax: 0.2,
+        ),
+        CritereAnalyse(
+          label: 'Impuretés',
+          valeur: 0.08,
+          unite: '%',
+          seuilMin: 0.0,
+          seuilMax: 0.1,
+        ),
+      ],
     ),
-    SessionDegustation(
-      id: 'SES-003',
-      titre: 'Session Zalmati',
-      date: '25/02/2026',
-      heure: '14:00',
-      lieu: 'Salle de dégustation B',
-      statut: StatutSession.planifiee,
-      echantillonIds: ['OL-2024-003', 'OL-2024-004'],
-      participants: ['Ichrak C.', 'Maha O.', 'Nayrouz F.', 'Yosra S.'],
-      notes: 'Préparer les verres ISO 3591',
-    ),
-    SessionDegustation(
-      id: 'SES-004',
-      titre: 'Session Oueslati - Kairouan',
-      date: '01/03/2026',
-      heure: '09:30',
-      lieu: 'Salle de dégustation A',
-      statut: StatutSession.planifiee,
-      echantillonIds: ['OL-2024-004'],
-      participants: ['Lobna E.', 'Yosra S.'],
+    AnalyseLabo(
+      id: 'ANL-003',
+      echantillonId: 'OL-2024-003',
+      echantillonNom: 'Zalmati - Gafsa',
+      dateAnalyse: '01/03/2026',
+      technicienNom: 'Sonia M.',
+      statut: StatutAnalyse.enAttente,
+      criteres: [
+        CritereAnalyse(
+          label: 'Acidité libre',
+          valeur: 0.0,
+          unite: '%',
+          seuilMin: 0.0,
+          seuilMax: 0.8,
+        ),
+        CritereAnalyse(
+          label: 'Indice de peroxyde',
+          valeur: 0.0,
+          unite: 'mEq O₂/kg',
+          seuilMin: 0.0,
+          seuilMax: 20.0,
+        ),
+        CritereAnalyse(
+          label: 'Absorbance K232',
+          valeur: 0.0,
+          unite: '',
+          seuilMin: 0.0,
+          seuilMax: 2.50,
+        ),
+        CritereAnalyse(
+          label: 'Absorbance K270',
+          valeur: 0.0,
+          unite: '',
+          seuilMin: 0.0,
+          seuilMax: 0.22,
+        ),
+        CritereAnalyse(
+          label: 'ΔK (variation UV)',
+          valeur: 0.0,
+          unite: '',
+          seuilMin: -0.01,
+          seuilMax: 0.01,
+        ),
+        CritereAnalyse(
+          label: 'Polyphénols totaux',
+          valeur: 0.0,
+          unite: 'mg/kg',
+          seuilMin: 0.0,
+          seuilMax: null,
+        ),
+        CritereAnalyse(
+          label: 'Humidité',
+          valeur: 0.0,
+          unite: '%',
+          seuilMin: 0.0,
+          seuilMax: 0.2,
+        ),
+        CritereAnalyse(
+          label: 'Impuretés',
+          valeur: 0.0,
+          unite: '%',
+          seuilMin: 0.0,
+          seuilMax: 0.1,
+        ),
+      ],
     ),
   ];
 
@@ -133,21 +285,19 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
   // 5. FILTER LOGIC
   // ───────────────────────────────────────────────────────────────────────────
 
-  // label → enum  (SearchFilterBar gives us a String, we need StatutSession)
-  StatutSession? _labelToStatut(String? label) {
+  StatutAnalyse? _labelToStatut(String? label) {
     switch (label) {
-      case 'Planifiée':
-        return StatutSession.planifiee;
-      case 'En cours':
-        return StatutSession.enCours;
-      case 'Terminée':
-        return StatutSession.terminee;
+      case 'En attente':
+        return StatutAnalyse.enAttente;
+      case 'Envoyée':
+        return StatutAnalyse.envoyee;
+      case 'Validée':
+        return StatutAnalyse.validee;
       default:
         return null;
     }
   }
 
-  // converts "DD/MM/YYYY" → DateTime for date comparison
   DateTime? _parseDate(String s) {
     try {
       final p = s.split('/');
@@ -158,24 +308,20 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
     }
   }
 
-  // combines text + statut + date into one filtered list
-  List<SessionDegustation> get _filtres {
-    return _sessions.where((s) {
-      // text search across titre, lieu, id
+  List<AnalyseLabo> get _filtres {
+    return _analyses.where((a) {
       final matchRecherche =
           _recherche.isEmpty ||
-          s.titre.toLowerCase().contains(_recherche.toLowerCase()) ||
-          s.lieu.toLowerCase().contains(_recherche.toLowerCase()) ||
-          s.id.toLowerCase().contains(_recherche.toLowerCase());
+          a.echantillonNom.toLowerCase().contains(_recherche.toLowerCase()) ||
+          a.id.toLowerCase().contains(_recherche.toLowerCase()) ||
+          a.technicienNom.toLowerCase().contains(_recherche.toLowerCase());
 
-      // statut filter
       final filtreEnum = _labelToStatut(_filtreStatutLabel);
-      final matchStatut = filtreEnum == null || s.statut == filtreEnum;
+      final matchStatut = filtreEnum == null || a.statut == filtreEnum;
 
-      // date range filter
       bool matchDate = true;
-      if (_dateFilterActive) {
-        final raw = _parseDate(s.date);
+      if (_dateDebut != null || _dateFin != null) {
+        final raw = _parseDate(a.dateAnalyse);
         if (raw == null) {
           matchDate = false;
         } else {
@@ -186,7 +332,6 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
           final fin = _dateFin != null
               ? DateTime(_dateFin!.year, _dateFin!.month, _dateFin!.day)
               : null;
-
           if (debut != null && fin != null) {
             matchDate = !d.isBefore(debut) && !d.isAfter(fin);
           } else if (debut != null) {
@@ -201,25 +346,25 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
     }).toList();
   }
 
-  int get _prochainNumero => _sessions.length + 1;
+  int get _prochainNumero => _analyses.length + 1;
 
   // ───────────────────────────────────────────────────────────────────────────
-  // 6. ACTIONS  —  setState always called here, never inside widgets/dialogs
+  // 6. ACTIONS
   // ───────────────────────────────────────────────────────────────────────────
 
-  void _onAjouter(SessionDegustation nouvelle) {
-    setState(() => _sessions.add(nouvelle));
-    _showSuccess('Session créée avec succès');
+  void _onAjouter(AnalyseLabo nouvelle) {
+    setState(() => _analyses.add(nouvelle));
+    _showSuccess('Analyse créée avec succès');
   }
 
-  void _onModifier(SessionDegustation modifiee) {
-    setState(() {}); // object already mutated inside formulaire_session_dialog
-    _showSuccess('Session modifiée avec succès');
+  void _onModifier(AnalyseLabo modifiee) {
+    setState(() {});
+    _showSuccess('Analyse modifiée avec succès');
   }
 
-  void _onSupprimer(SessionDegustation s) {
-    setState(() => _sessions.remove(s));
-    _showSuccess('Session "${s.titre}" supprimée');
+  void _onSupprimer(AnalyseLabo a) {
+    setState(() => _analyses.remove(a));
+    _showSuccess('Analyse "${a.echantillonNom}" supprimée');
   }
 
   void _showSuccess(String msg) {
@@ -255,22 +400,22 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
     return Scaffold(
       backgroundColor: cream,
 
-      // ── DRAWER ───────────────────────────────────────────────────────────
+      // ── DRAWER ────────────────────────────────────────────────────────────
       drawer: AppDrawer(
         onaccueil: () => Navigator.pop(context),
         onEvaluationEchantillons: () =>
             _goTo(const EvaluationEchantillonsPage()),
         onGestionEchantillons: () => _goTo(const GestionEchantillonsPage()),
-        onAnalyseLaboratoire: () => _goTo(const AnalyseLaboratoirePage()),
+        onAnalyseLaboratoire: () =>
+            _goTo(const AnalyseLaboratoirePage()), // current
         onSessionsDegustationPage: () => _goTo(const SessionsDegustationPage()),
-        // current page
         onMembredupanel: () => _goTo(const MembresPanelPage()),
         onProfil: () => _goTo(const ProfilePage()),
         onAPropos: () => Navigator.pop(context),
         onDeconnexion: _goToLogin,
       ),
 
-      // ── APPBAR ───────────────────────────────────────────────────────────
+      // ── APPBAR ────────────────────────────────────────────────────────────
       appBar: AppBar(
         backgroundColor: green,
         elevation: 0,
@@ -283,7 +428,7 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text(
-              '${_sessions.length} session(s)',
+              '${_analyses.length} analyse(s)',
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 12,
@@ -294,35 +439,32 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
         ],
       ),
 
-      // ── FAB — opens formulaire in ADD mode ───────────────────────────────
+      // ── FAB ───────────────────────────────────────────────────────────────
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => showFormulaireSessionDialog(
+        onPressed: () => showFormulaireAnalyseDialog(
           context,
-          session: null,
+          analyse: null,
           prochainNumero: _prochainNumero,
           onSave: _onAjouter,
         ),
         backgroundColor: green,
         icon: const Icon(Icons.add, color: Colors.white),
         label: const Text(
-          'Nouvelle session',
+          'Nouvelle analyse',
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
         ),
       ),
 
       body: Column(
         children: [
-          // ── SEARCH + FILTERS ─────────────────────────────────────────────
-          // same SearchFilterBar used by gestion + evaluation pages
-          // chip labels match StatutSession via _labelToStatut in section 5
+          // ── SEARCH + FILTERS ───────────────────────────────────────────
           SearchFilterBar(
             recherche: _recherche,
             controller: _searchController,
             filtreStatut: _filtreStatutLabel,
             dateDebut: _dateDebut,
             dateFin: _dateFin,
-            // chip labels for sessions (different from gestion/evaluation)
-            statutLabels: const ['Planifiée', 'En cours', 'Terminée'],
+            statutLabels: const ['En attente', 'Envoyée', 'Validée'],
             onRechercheChanged: (v) => setState(() => _recherche = v),
             onRechercheClear: () => setState(() {
               _recherche = '';
@@ -339,7 +481,7 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
             }),
           ),
 
-          // ── LIST ─────────────────────────────────────────────────────────
+          // ── LIST ──────────────────────────────────────────────────────
           Expanded(
             child: _filtres.isEmpty
                 ? Center(
@@ -347,13 +489,13 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(
-                          Icons.event_busy_outlined,
+                          Icons.biotech_outlined,
                           size: 52,
                           color: Colors.grey.shade300,
                         ),
                         const SizedBox(height: 12),
                         Text(
-                          'Aucune session trouvée',
+                          'Aucune analyse trouvée',
                           style: TextStyle(
                             color: Colors.grey.shade400,
                             fontSize: 14,
@@ -374,21 +516,19 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
                         padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
                         itemCount: _filtres.length,
                         itemBuilder: (context, index) {
-                          final s = _filtres[index];
-                          return SessionCard(
-                            session: s,
-                            // opens formulaire in EDIT mode
-                            onModifier: () => showFormulaireSessionDialog(
+                          final a = _filtres[index];
+                          return AnalyseCard(
+                            analyse: a,
+                            onModifier: () => showFormulaireAnalyseDialog(
                               context,
-                              session: s,
+                              analyse: a,
                               prochainNumero: _prochainNumero,
                               onSave: _onModifier,
                             ),
-                            // opens confirmation dialog before deleting
-                            onSupprimer: () => showSuppressionSessionDialog(
+                            onSupprimer: () => showSuppressionAnalyseDialog(
                               context,
-                              session: s,
-                              onConfirmer: () => _onSupprimer(s),
+                              analyse: a,
+                              onConfirmer: () => _onSupprimer(a),
                             ),
                           );
                         },
