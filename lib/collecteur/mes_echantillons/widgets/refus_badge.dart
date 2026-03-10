@@ -5,7 +5,7 @@
 // ═════════════════════════════════════════════════════════════════════════════
 
 import 'package:flutter/material.dart';
-import '../../../models/echantillon_collecteur.dart';
+import '../models/echantillon_collecteur.dart';
 
 class RefusBadge extends StatelessWidget {
   final TypeRefus typeRefus;
@@ -17,24 +17,18 @@ class RefusBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color:        isCEO
-            ? const Color(0xFFFFEBEE)
-            : const Color(0xFFFCE4EC),
+        color: isCEO ? const Color(0xFFFFEBEE) : const Color(0xFFFCE4EC),
         borderRadius: BorderRadius.circular(6),
         border: Border.all(
-          color: isCEO
-              ? const Color(0xFFEF9A9A)
-              : const Color(0xFFF48FB1),
+          color: isCEO ? const Color(0xFFEF9A9A) : const Color(0xFFF48FB1),
         ),
       ),
       child: Text(
         isCEO ? 'Refus panel' : 'Négociation échouée',
         style: TextStyle(
-          fontSize:   10,
+          fontSize: 10,
           fontWeight: FontWeight.w700,
-          color:      isCEO
-              ? const Color(0xFFC62828)
-              : const Color(0xFFAD1457),
+          color: isCEO ? const Color(0xFFC62828) : const Color(0xFFAD1457),
         ),
       ),
     );

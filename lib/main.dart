@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'degustateur/homepage/homepage_page.dart';
-import 'collecteur/pages/mes_echantillons/mes_echantillons_page.dart';
+import 'collecteur/mes_echantillons/mes_echantillons_page.dart';
 
 // ENTRY POINT
 void main() {
