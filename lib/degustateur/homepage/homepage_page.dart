@@ -144,32 +144,15 @@ class _HomePageState extends State<HomePage> {
         onSimulerNotification: () =>
             _addNotification('Nouveau rapport disponible'),
       ),
-
-      // AppDrawer — from widgets/app_drawer.dart
-      // all onX callbacks defined HERE — drawer never navigates itself
       drawer: AppDrawer(
         onaccueil: () => Navigator.pop(context),
-
-        // OLD : EvaluationEchantillonsPage from EvaluationEchantillonsPage.dart
-        // NEW : will be EvaluationEchantillonsPage from
-        //       evaluation_echantillons/evaluation_echantillons_page.dart
-        // TODO : replace with _goTo(const EvaluationEchantillonsPage())
         onEvaluationEchantillons: () =>
             _goTo(const EvaluationEchantillonsPage()),
-
-        // OLD : GestionEchantillonsPage from GestionEchantillon.dart
-        // NEW : GestionEchantillonsPage from
-        //       gestion_echantillons/gestion_echantillons_page.dart ✅ done
         onGestionEchantillons: () => _goTo(const GestionEchantillonsPage()),
-
         onAnalyseLaboratoire: () => _goTo(const AnalyseLaboratoirePage()),
         onSessionsDegustationPage: () => _goTo(const SessionsDegustationPage()),
-
-        // OLD : ProfilePage from profil.dart (same level)
-        // NEW : ProfilePage from ../profil.dart (one level up) ✅ done
         onMembredupanel: () => _goTo(const MembresPanelPage()),
         onProfil: () => _goTo(const ProfilePage()),
-
         onAPropos: () => Navigator.pop(context),
         onDeconnexion: _goToLogin,
       ),
