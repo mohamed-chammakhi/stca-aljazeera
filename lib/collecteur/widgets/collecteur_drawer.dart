@@ -1,25 +1,27 @@
-// ═════════════════════════════════════════════════════════════════════════════
-// FILE    : collecteur/pages/widgets/collecteur_drawer.dart
-// PURPOSE : side menu shared across all collecteur pages
-//           pages : Mes échantillons | Carte | Messagerie
-//                   Préférences CEO  | Tableau de bord | Profil
-// ═════════════════════════════════════════════════════════════════════════════
-
 import 'package:flutter/material.dart';
 
-const Color _green      = Color(0xFF38835A);
-const Color _oliveGreen = Color(0xFF6B8143);
-const Color _cream      = Color(0xFFF9F6EF);
-const Color _darkText   = Color(0xFF1A2E1F);
+const Color _green = Color(0xFF38835A);
+const Color _cream = Color(0xFFF9F6EF);
+const Color _darkText = Color(0xFF1A2E1F);
 
 class CollecteurDrawer extends StatelessWidget {
-  final String          currentPage;
-  final ValueChanged<String> onNavigate;
+  final VoidCallback onMesEchantillons;
+  final VoidCallback onCarte;
+  final VoidCallback onMessagerie;
+  final VoidCallback onPreferencesCeo;
+  final VoidCallback onTableauDeBord;
+  final VoidCallback onProfil;
+  final VoidCallback onDeconnexion;
 
   const CollecteurDrawer({
     super.key,
-    required this.currentPage,
-    required this.onNavigate,
+    required this.onMesEchantillons,
+    required this.onCarte,
+    required this.onMessagerie,
+    required this.onPreferencesCeo,
+    required this.onTableauDeBord,
+    required this.onProfil,
+    required this.onDeconnexion,
   });
 
   @override
@@ -28,176 +30,157 @@ class CollecteurDrawer extends StatelessWidget {
       backgroundColor: Colors.white,
       child: Column(
         children: [
-
-          // ── HEADER ──────────────────────────────────
-          Container(
-            width:   double.infinity,
-            padding: const EdgeInsets.fromLTRB(
-                20, 56, 20, 24),
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  Color(0xFF1B4332),
-                  Color(0xFF38835A),
-                ],
-                begin: Alignment.topLeft,
-                end:   Alignment.bottomRight,
-              ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CircleAvatar(
-                  radius:          28,
-                  backgroundColor: Colors.white
-                      .withOpacity(0.2),
-                  child: const Icon(Icons.person,
-                      color: Colors.white, size: 30),
+          // ── HEADER ──
+          DrawerHeader(
+            margin: EdgeInsets.zero,
+            padding: EdgeInsets.zero,
+            decoration: BoxDecoration(
+              color: _green,
+              boxShadow: [
+                BoxShadow(
+                  color: _green.withOpacity(0.2),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
                 ),
-                const SizedBox(height: 12),
-                const Text('Ahmed Dhahbi',
-                    style: TextStyle(
-                        color:      Colors.white,
-                        fontSize:   16,
-                        fontWeight: FontWeight.w700)),
-                const SizedBox(height: 4),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 10, vertical: 3),
-                  decoration: BoxDecoration(
-                    color:        Colors.white
-                        .withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(12),
+              ],
+            ),
+            child: Stack(
+              children: [
+                Positioned.fill(
+                  child: Opacity(
+                    opacity: 0.3,
+                    child: Image.asset(
+                      'assets/img/handolive.png',
+                      fit: BoxFit.cover,
+                    ),
                   ),
-                  child: const Text('Collecteur',
-                      style: TextStyle(
-                          color:    Colors.white,
-                          fontSize: 11)),
+                ),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(20),
+                  child: const Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [SizedBox(height: 12)],
+                  ),
                 ),
               ],
             ),
           ),
 
-          // ── MENU ITEMS ──────────────────────────────
+          // ── MENU ITEMS ──
           Expanded(
             child: ListView(
-              padding: EdgeInsets.zero,
+              padding: const EdgeInsets.only(top: 30, bottom: 20),
               children: [
-                const SizedBox(height: 8),
-                _Item(
-                  icon:      Icons.inventory_2_outlined,
-                  label:     'Mes échantillons',
-                  page:      'echantillons',
-                  current:   currentPage,
-                  onTap:     () => onNavigate('echantillons'),
+                _buildItem(
+                  icon: const Icon(
+                    Icons.inventory_2_outlined,
+                    color: _green,
+                    size: 22,
+                  ),
+                  label: 'Mes échantillons',
+                  onTap: onMesEchantillons,
                 ),
-                _Item(
-                  icon:      Icons.map_outlined,
-                  label:     'Carte géographique',
-                  page:      'carte',
-                  current:   currentPage,
-                  onTap:     () => onNavigate('carte'),
+                _buildItem(
+                  icon: const Icon(Icons.map_outlined, color: _green, size: 22),
+                  label: 'Carte géographique',
+                  onTap: onCarte,
                 ),
-                _Item(
-                  icon:      Icons.chat_bubble_outline,
-                  label:     'Messagerie CEO',
-                  page:      'messagerie',
-                  current:   currentPage,
-                  onTap:     () => onNavigate('messagerie'),
+                _buildItem(
+                  icon: const Icon(
+                    Icons.chat_bubble_outline,
+                    color: _green,
+                    size: 22,
+                  ),
+                  label: 'Messagerie CEO',
+                  onTap: onMessagerie,
                 ),
-                _Item(
-                  icon:      Icons.thumb_up_alt_outlined,
-                  label:     'Préférences du CEO',
-                  page:      'preferences',
-                  current:   currentPage,
-                  onTap:     () => onNavigate('preferences'),
+                _buildItem(
+                  icon: const Icon(
+                    Icons.thumb_up_alt_outlined,
+                    color: _green,
+                    size: 22,
+                  ),
+                  label: 'Préférences du CEO',
+                  onTap: onPreferencesCeo,
                 ),
-                _Item(
-                  icon:      Icons.bar_chart_outlined,
-                  label:     'Tableau de bord',
-                  page:      'dashboard',
-                  current:   currentPage,
-                  onTap:     () => onNavigate('dashboard'),
+                _buildItem(
+                  icon: const Icon(
+                    Icons.bar_chart_outlined,
+                    color: _green,
+                    size: 22,
+                  ),
+                  label: 'Tableau de bord',
+                  onTap: onTableauDeBord,
                 ),
-
-                Divider(
-                    color:  Colors.grey.shade100,
-                    indent: 16,
-                    endIndent: 16),
-
-                _Item(
-                  icon:    Icons.person_outline,
-                  label:   'Mon profil',
-                  page:    'profil',
-                  current: currentPage,
-                  onTap:   () => onNavigate('profil'),
+                Padding(
+                  padding: const EdgeInsets.only(top: 10, bottom: 10),
+                  child: Divider(color: Colors.grey.shade200, thickness: 1),
+                ),
+                _buildItem(
+                  icon: const Icon(
+                    Icons.person_outline,
+                    color: _green,
+                    size: 22,
+                  ),
+                  label: 'Mon profil',
+                  onTap: onProfil,
                 ),
               ],
             ),
           ),
 
-          // ── LOGOUT ──────────────────────────────────
-          Divider(color: Colors.grey.shade100),
-          ListTile(
-            leading: const Icon(Icons.logout,
-                color: Colors.red, size: 20),
-            title: const Text('Déconnexion',
-                style: TextStyle(
-                    color:    Colors.red,
-                    fontSize: 14)),
-            onTap: () => onNavigate('logout'),
+          // ── FOOTER — Logout ──
+          Padding(
+            padding: const EdgeInsets.all(15),
+            child: SizedBox(
+              width: 180,
+              height: 40,
+              child: ElevatedButton.icon(
+                onPressed: onDeconnexion,
+                icon: const Icon(Icons.logout, size: 18),
+                label: const Text('Déconnexion'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color.fromARGB(255, 85, 117, 94),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 5),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              ),
+            ),
           ),
-          const SizedBox(height: 16),
         ],
       ),
     );
   }
-}
 
-class _Item extends StatelessWidget {
-  final IconData icon;
-  final String   label;
-  final String   page;
-  final String   current;
-  final VoidCallback onTap;
-
-  const _Item({
-    required this.icon,
-    required this.label,
-    required this.page,
-    required this.current,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final isActive = current == page;
-    return Container(
-      margin: const EdgeInsets.symmetric(
-          horizontal: 10, vertical: 2),
-      decoration: BoxDecoration(
-        color:        isActive
-            ? _green.withOpacity(0.08)
-            : Colors.transparent,
-        borderRadius: BorderRadius.circular(10),
+  Widget _buildItem({
+    required Widget icon,
+    required String label,
+    required VoidCallback onTap,
+    double fontSize = 14,
+  }) {
+    return ListTile(
+      leading: icon,
+      title: Text(
+        label,
+        style: TextStyle(
+          fontSize: fontSize,
+          fontWeight: FontWeight.w500,
+          color: _darkText,
+          letterSpacing: 0.3,
+        ),
       ),
-      child: ListTile(
-        leading: Icon(icon,
-            color:  isActive ? _green : Colors.grey.shade400,
-            size:   20),
-        title: Text(label,
-            style: TextStyle(
-                fontSize:   14,
-                fontWeight: isActive
-                    ? FontWeight.w700
-                    : FontWeight.w400,
-                color:      isActive
-                    ? _green
-                    : _darkText)),
-        onTap: onTap,
-        shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10)),
+      trailing: Icon(
+        Icons.arrow_forward_ios_outlined,
+        size: 14,
+        color: Colors.grey.shade400,
       ),
+      onTap: onTap,
+      hoverColor: _cream,
     );
   }
 }

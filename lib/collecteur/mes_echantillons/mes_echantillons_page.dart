@@ -1,16 +1,10 @@
-// ═════════════════════════════════════════════════════════════════════════════
-// FILE    : collecteur/pages/mes_echantillons/mes_echantillons_page.dart
-// PURPOSE : THE BRAIN — owns all state, filter chips, actions
-//
-// STATUT FILTER CHIPS : Tous | En traitement | Approuvé — En négociation
-//                       Achat confirmé | Refusés | Archivés
-// ═════════════════════════════════════════════════════════════════════════════
-
 import 'package:flutter/material.dart';
 import 'models/echantillon_collecteur.dart';
 import 'widgets/echantillon_collecteur_card.dart';
 import 'widgets/dialogs/collecteur_dialogs.dart';
 import '../widgets/collecteur_drawer.dart';
+import '../../../main.dart';
+import '../../../profil.dart';
 
 const Color _green = Color(0xFF38835A);
 const Color _cream = Color(0xFFF9F6EF);
@@ -18,18 +12,30 @@ const Color _gray = Color.fromARGB(255, 81, 82, 81);
 
 class MesEchantillonsPage extends StatefulWidget {
   const MesEchantillonsPage({super.key});
-
   @override
   State<MesEchantillonsPage> createState() => _MesEchantillonsPageState();
 }
 
 class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
-  // ── STATE ──────────────────────────────────────────────
   final TextEditingController _searchCtrl = TextEditingController();
   String _recherche = '';
-  StatutCollecteur? _filtreStatut; // null = tous
+  StatutCollecteur? _filtreStatut;
 
-  // ── MOCK DATA ──────────────────────────────────────────
+  // ── Navigation helpers ────────────────────────────────────────────────────
+  void _goTo(Widget page) {
+    Navigator.pop(context);
+    Navigator.push(context, MaterialPageRoute(builder: (_) => page));
+  }
+
+  void _goToLogin() {
+    Navigator.pop(context);
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => const LoginPage()),
+    );
+  }
+
+  // ── Mock data ─────────────────────────────────────────────────────────────
   final List<EchantillonCollecteur> _echantillons = [
     EchantillonCollecteur(
       id: 'ECH-COL-001',
@@ -101,7 +107,7 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
     ),
   ];
 
-  // ── FILTER LOGIC ───────────────────────────────────────
+  // ── Filter logic ──────────────────────────────────────────────────────────
   List<EchantillonCollecteur> get _filtres {
     return _echantillons.where((e) {
       final matchRecherche =
@@ -109,14 +115,12 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
           e.reference.toLowerCase().contains(_recherche.toLowerCase()) ||
           e.fournisseurNom.toLowerCase().contains(_recherche.toLowerCase()) ||
           e.region.toLowerCase().contains(_recherche.toLowerCase());
-
       final matchStatut = _filtreStatut == null || e.statut == _filtreStatut;
-
       return matchRecherche && matchStatut;
     }).toList();
   }
 
-  // ── ACTIONS ────────────────────────────────────────────
+  // ── Actions ───────────────────────────────────────────────────────────────
   void _onModifier(EchantillonCollecteur e) {
     // TODO: open formulaire dialog in edit mode
     _showSuccess('Échantillon modifié');
@@ -173,7 +177,7 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
     );
   }
 
-  // ── FILTER CHIPS ───────────────────────────────────────
+  // ── Filter chips data ─────────────────────────────────────────────────────
   static const List<_ChipData> _chips = [
     _ChipData(null, 'Tous'),
     _ChipData(StatutCollecteur.enTraitement, 'En traitement'),
@@ -189,17 +193,22 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
     super.dispose();
   }
 
-  // ── BUILD ──────────────────────────────────────────────
+  // ── Build ─────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: _cream,
       drawer: CollecteurDrawer(
-        currentPage: 'echantillons',
-        onNavigate: (page) {
-          Navigator.pop(context);
-          // navigation handled in drawer
-        },
+        onMesEchantillons: () => Navigator.pop(context),
+        onCarte: () => _goTo(const Placeholder()), // TODO: CartePage()
+        onMessagerie: () =>
+            _goTo(const Placeholder()), // TODO: MessageriePage()
+        onPreferencesCeo: () =>
+            _goTo(const Placeholder()), // TODO: PreferencesCeoPage()
+        onTableauDeBord: () =>
+            _goTo(const Placeholder()), // TODO: TableauDeBordPage()
+        onProfil: () => _goTo(const ProfilePage()),
+        onDeconnexion: _goToLogin,
       ),
       appBar: AppBar(
         backgroundColor: _green,
@@ -244,7 +253,7 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
       ),
       body: Column(
         children: [
-          // ── SEARCH BAR ──────────────────────────────
+          // ── Search bar ───────────────────────────────────────────────────
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
             child: TextField(
@@ -286,7 +295,7 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
             ),
           ),
 
-          // ── FILTER CHIPS ────────────────────────────
+          // ── Filter chips ─────────────────────────────────────────────────
           SizedBox(
             height: 44,
             child: ListView.builder(
@@ -332,7 +341,7 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
 
           const SizedBox(height: 8),
 
-          // ── LIST ────────────────────────────────────
+          // ── List ─────────────────────────────────────────────────────────
           Expanded(
             child: _filtres.isEmpty
                 ? Center(

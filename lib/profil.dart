@@ -69,12 +69,14 @@ class _ProfilePageState extends State<ProfilePage> {
   late TextEditingController _nomController;
   late TextEditingController _prenomController;
   late TextEditingController _emailController;
+  late TextEditingController _numeroController;
   late TextEditingController _roleController;
 
   // ── Per-field editing booleans ────────────────────────────────────────────
   bool _editingNom = false;
   bool _editingPrenom = false;
   bool _editingEmail = false;
+  bool _editingnumero = false;
   bool _editingRole = false;
 
   // ── Displayed header values ───────────────────────────────────────────────
@@ -86,6 +88,8 @@ class _ProfilePageState extends State<ProfilePage> {
   final FocusNode _nomFocus = FocusNode();
   final FocusNode _prenomFocus = FocusNode();
   final FocusNode _emailFocus = FocusNode();
+  final FocusNode _numeroFocus = FocusNode();
+
   final FocusNode _roleFocus = FocusNode();
 
   // ── initState ─────────────────────────────────────────────────────────────
@@ -98,6 +102,8 @@ class _ProfilePageState extends State<ProfilePage> {
     _nomController = TextEditingController(text: '');
     _prenomController = TextEditingController(text: '');
     _emailController = TextEditingController(text: '');
+    _numeroController = TextEditingController(text: '');
+
     _roleController = TextEditingController(text: '');
   }
 
@@ -107,9 +113,11 @@ class _ProfilePageState extends State<ProfilePage> {
     _nomController.dispose();
     _prenomController.dispose();
     _emailController.dispose();
+    _numeroController.dispose();
     _roleController.dispose();
     _nomFocus.dispose();
     _prenomFocus.dispose();
+    _emailFocus.dispose();
     _emailFocus.dispose();
     _roleFocus.dispose();
     super.dispose();
@@ -156,6 +164,17 @@ class _ProfilePageState extends State<ProfilePage> {
             );
           } else {
             _showSuccess('Email mis à jour');
+          }
+          break;
+        case 'numero':
+          _editingnumero = !_editingnumero;
+          if (_editingnumero) {
+            Future.delayed(
+              const Duration(milliseconds: 50),
+              () => _numeroFocus.requestFocus(),
+            );
+          } else {
+            _showSuccess('numero mis à jour');
           }
           break;
 
@@ -428,7 +447,19 @@ class _ProfilePageState extends State<ProfilePage> {
                     keyboardType: TextInputType.emailAddress,
                   ),
                   const SizedBox(height: 20),
-
+                  // ── Email ──
+                  _buildField(
+                    label: 'Numéro de Téléphone',
+                    controller: _numeroController,
+                    focusNode: _numeroFocus,
+                    icon: Icons.phone_outlined,
+                    isEditing: _editingnumero,
+                    fieldKey: 'numero',
+                    hint:
+                        'Votre Numéro de Téléphone', // ✅ hint instead of default value
+                    keyboardType: TextInputType.emailAddress,
+                  ),
+                  const SizedBox(height: 20),
                   Divider(color: Colors.grey.shade200),
                   const SizedBox(height: 20),
 

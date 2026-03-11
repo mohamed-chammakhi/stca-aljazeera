@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'degustateur/homepage/homepage_page.dart';
 import 'collecteur/mes_echantillons/mes_echantillons_page.dart';
+import 'collecteur/tableau_de_bord/tableau_de_bord_collecteur_page.dart';
 
 // ENTRY POINT
 void main() {
@@ -343,7 +344,7 @@ class _LoginPageState extends State<LoginPage> {
                       _debugBtn('Dégustateur', () => _goTo(const HomePage())),
                       _debugBtn(
                         'Collecteur',
-                        () => _goTo(const MesEchantillonsPage()),
+                        () => _goTo(const TableauDeBordCollecteurPage()),
                       ),
                       _debugBtn(
                         'Technicien labo',
