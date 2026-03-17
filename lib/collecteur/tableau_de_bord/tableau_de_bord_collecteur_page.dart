@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../widgets/collecteur_drawer.dart';
 import '../../../main.dart';
-import '../../../profil.dart';
+import '../profilcom.dart';
+
 import '../mes_echantillons/mes_echantillons_page.dart';
 
 const Color _green = Color(0xFF38835A);
@@ -39,7 +40,7 @@ class TableauDeBordCollecteurPage extends StatelessWidget {
         onPreferencesCeo: () =>
             _goTo(context, const Placeholder()), // TODO: PreferencesCeoPage()
         onTableauDeBord: () => Navigator.pop(context),
-        onProfil: () => _goTo(context, const ProfilePage()),
+        onProfil: () => _goTo(context, const ProfileCollecteurPage()),
         onDeconnexion: () => _goToLogin(context),
       ),
       appBar: AppBar(

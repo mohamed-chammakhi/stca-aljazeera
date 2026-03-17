@@ -1,9 +1,5 @@
 // ═════════════════════════════════════════════════════════════════════════════
 // FILE    : collecteur/pages/mes_echantillons/widgets/echantillon_collecteur_card.dart
-// PURPOSE : card displaying one sample for the collector
-//           — archived samples shown in greyscale with lock icon
-//           — refused samples show refus badge
-//           — confirmed samples show delivery planning button
 // ═════════════════════════════════════════════════════════════════════════════
 
 import 'package:flutter/material.dart';
@@ -15,21 +11,24 @@ import 'refus_badge.dart';
 const Color _green = Color(0xFF38835A);
 const Color _oliveGreen = Color(0xFF6B8143);
 const Color _darkText = Color(0xFF1A2E1F);
+const Color _orange = Color(0xFFF57C00);
 
-class EchantillonCollecteurCard extends StatelessWidget {
+class EchantillonComCard extends StatelessWidget {
   final EchantillonCollecteur echantillon;
   final VoidCallback? onModifier;
   final VoidCallback? onSupprimer;
   final VoidCallback? onConfirmerAchat;
   final VoidCallback? onPlanifierLivraison;
+  final VoidCallback? onEchecNegociation; // ← NEW
 
-  const EchantillonCollecteurCard({
+  const EchantillonComCard({
     super.key,
     required this.echantillon,
     this.onModifier,
     this.onSupprimer,
     this.onConfirmerAchat,
     this.onPlanifierLivraison,
+    this.onEchecNegociation, // ← NEW
   });
 
   @override
@@ -38,231 +37,256 @@ class EchantillonCollecteurCard extends StatelessWidget {
     final isArchive = e.isArchive;
     final isRefus = e.isRefus;
 
-    // archived cards are greyscale
-    Widget card = Container(
-      margin: const EdgeInsets.only(bottom: 14),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: isArchive ? const Color(0xFFF5F5F5) : Colors.white,
+        color: isArchive ? const Color(0xFFF7F7F7) : Colors.white,
         borderRadius: BorderRadius.circular(14),
-        border: isArchive ? Border.all(color: Colors.grey.shade300) : null,
         boxShadow: isArchive
             ? null
             : [
                 BoxShadow(
-                  color: _green.withOpacity(0.07),
+                  color: _green.withValues(alpha: 0.07),
                   blurRadius: 10,
                   offset: const Offset(0, 3),
                 ),
               ],
+        border: isArchive ? Border.all(color: Colors.grey.shade200) : null,
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // ── HEADER ────────────────────────────────────────────────
-          Padding(
-            padding: const EdgeInsets.fromLTRB(14, 14, 14, 0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ── ROW 1 : Photo + Référence + Statut badge ──────────────────
+            Row(
               children: [
-                // row 1: reference + statut badge + lock if archived
-                Row(
-                  children: [
-                    if (isArchive)
-                      Padding(
-                        padding: const EdgeInsets.only(right: 6),
-                        child: Icon(
-                          Icons.lock_outline,
-                          size: 14,
-                          color: Colors.grey.shade400,
-                        ),
-                      ),
-                    const Icon(
-                      Icons.science_outlined,
-                      color: _oliveGreen,
-                      size: 16,
-                    ),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text(
-                        e.reference,
-                        style: GoogleFonts.domine(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                          color: isArchive ? Colors.grey.shade500 : _darkText,
-                        ),
-                      ),
-                    ),
-                    StatutCollecteurBadge(statut: e.statut),
-                  ],
-                ),
-
-                const SizedBox(height: 6),
-
-                // refus badge — only shown when refused
-                if (isRefus && e.typeRefus != null) ...[
-                  RefusBadge(typeRefus: e.typeRefus!),
-                  const SizedBox(height: 6),
-                ],
-
-                // refus reason
-                if (isRefus &&
-                    e.raisonRefus != null &&
-                    e.raisonRefus!.isNotEmpty)
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(8),
-                    margin: const EdgeInsets.only(bottom: 6),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFFFEBEE),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      e.raisonRefus!,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: Color(0xFFC62828),
-                      ),
-                    ),
-                  ),
-
-                // meta row
-                Wrap(
-                  spacing: 16,
-                  runSpacing: 4,
-                  children: [
-                    _Meta(
-                      icon: Icons.calendar_today_outlined,
-                      label: e.dateAjout,
-                      grey: isArchive,
-                    ),
-                    _Meta(
-                      icon: Icons.store_outlined,
-                      label: e.fournisseurNom,
-                      grey: isArchive,
-                    ),
-                    _Meta(
-                      icon: Icons.location_on_outlined,
-                      label: e.region,
-                      grey: isArchive,
-                    ),
-                    if (e.variete != null)
-                      _Meta(
-                        icon: Icons.eco_outlined,
-                        label: e.variete!,
-                        grey: isArchive,
-                      ),
-                  ],
-                ),
-
-                const SizedBox(height: 10),
-
-                // bottle image if available
-                if (e.imageUrl != null) ...[
-                  ClipRRect(
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: _green.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(10),
-                    child: Image.network(
-                      e.imageUrl!,
-                      height: 120,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                      color: isArchive ? Colors.grey : null,
-                      colorBlendMode: isArchive ? BlendMode.saturation : null,
+                    border: Border.all(color: _green.withValues(alpha: 0.25)),
+                  ),
+                  child: e.imageUrl != null
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(9),
+                          child: Image.network(e.imageUrl!, fit: BoxFit.cover),
+                        )
+                      : Icon(
+                          Icons.image_outlined,
+                          size: 22,
+                          color: isArchive
+                              ? Colors.grey.shade400
+                              : _green.withValues(alpha: 0.5),
+                        ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    e.referenceBouteille,
+                    style: GoogleFonts.domine(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: isArchive ? Colors.grey.shade500 : _darkText,
                     ),
                   ),
-                  const SizedBox(height: 10),
-                ],
-
-                // delivery planning info
-                if (e.canPlanifier || e.isArchive)
-                  if (e.livraison != null && e.livraison!.isComplete)
-                    _LivraisonInfo(livraison: e.livraison!, grey: isArchive)
-                  else if (!isArchive)
-                    _LivraisonManquante(),
-
-                // notes
-                if (e.notes != null && e.notes!.isNotEmpty)
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(10),
-                    margin: const EdgeInsets.only(bottom: 6),
-                    decoration: BoxDecoration(
-                      color: isArchive
-                          ? Colors.grey.shade100
-                          : _green.withOpacity(0.05),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      e.notes!,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: isArchive
-                            ? Colors.grey.shade500
-                            : Colors.grey.shade600,
-                      ),
-                    ),
-                  ),
-
-                const SizedBox(height: 6),
+                ),
+                StatutCollecteurBadge(statut: e.statut),
               ],
             ),
-          ),
 
-          // archived label band
-          if (isArchive) ...[
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 14),
-              decoration: const BoxDecoration(
-                color: Color(0xFFEEEEEE),
-                borderRadius: BorderRadius.vertical(
-                  bottom: Radius.circular(14),
+            const SizedBox(height: 12),
+            Divider(color: Colors.grey.shade100, height: 1),
+            const SizedBox(height: 12),
+
+            // ── Bordereau N° chip + refus badge ───────────────────────────
+            Row(
+              children: [
+                _RefChip(label: e.ref, grey: isArchive),
+                if (isRefus && e.typeRefus != null) ...[
+                  const SizedBox(width: 8),
+                  RefusBadge(typeRefus: e.typeRefus!),
+                ],
+              ],
+            ),
+
+            const SizedBox(height: 10),
+
+            // ── Gouvernorat + Fournisseur ──────────────────────────────────
+            Row(
+              children: [
+                Expanded(
+                  child: _InfoItem(
+                    icon: Icons.location_on_outlined,
+                    label: 'Gouvernorat',
+                    value: e.gouvernorat,
+                    grey: isArchive,
+                  ),
+                ),
+                Expanded(
+                  child: _InfoItem(
+                    icon: Icons.storefront_outlined,
+                    label: 'Fournisseur',
+                    value: e.codeFournisseur,
+                    grey: isArchive,
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 10),
+
+            // ── Variété + Quantité ─────────────────────────────────────────
+            Row(
+              children: [
+                Expanded(
+                  child: _InfoItem(
+                    icon: Icons.eco_outlined,
+                    label: 'Variété',
+                    value: e.variete ?? '—',
+                    grey: isArchive,
+                  ),
+                ),
+                Expanded(
+                  child: _InfoItem(
+                    icon: Icons.water_drop_outlined,
+                    label: 'Quantité estimée',
+                    value: e.quantiteEstimee ?? '—',
+                    valueColor: isArchive ? null : _oliveGreen,
+                    grey: isArchive,
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 10),
+
+            // ── Scellage + Camion ──────────────────────────────────────────
+            Row(
+              children: [
+                Expanded(
+                  child: _InfoItem(
+                    icon: Icons.verified_outlined,
+                    label: 'Scellage',
+                    value: e.scellage ?? '—',
+                    grey: isArchive,
+                  ),
+                ),
+                Expanded(
+                  child: _InfoItem(
+                    icon: Icons.local_shipping_outlined,
+                    label: 'Camion réservée',
+                    value: e.camionReservee ?? '—',
+                    grey: isArchive,
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 10),
+
+            // ── Achat confirmé + Date ──────────────────────────────────────
+            Row(
+              children: [
+                Expanded(
+                  child: _InfoItem(
+                    icon: e.achatConfirme
+                        ? Icons.check_circle_outline
+                        : Icons.radio_button_unchecked,
+                    label: 'Achat confirmé',
+                    value: e.achatConfirme ? 'Oui' : 'Non',
+                    valueColor: isArchive
+                        ? null
+                        : (e.achatConfirme
+                              ? const Color(0xFF059669)
+                              : const Color.fromARGB(255, 239, 83, 80)),
+                    grey: isArchive,
+                  ),
+                ),
+                Expanded(
+                  child: _InfoItem(
+                    icon: Icons.calendar_today_outlined,
+                    label: "Date d'ajout",
+                    value: e.dateAjout,
+                    grey: isArchive,
+                  ),
+                ),
+              ],
+            ),
+
+            // ── Livraison block ────────────────────────────────────────────
+            if (e.canPlanifier || isArchive) ...[
+              const SizedBox(height: 10),
+              if (e.livraison != null && e.livraison!.isComplete)
+                _LivraisonBox(livraison: e.livraison!, grey: isArchive)
+              else if (!isArchive)
+                const _LivraisonManquante(),
+            ],
+
+            // ── Remarques ──────────────────────────────────────────────────
+            if (e.remarques != null && e.remarques!.isNotEmpty) ...[
+              const SizedBox(height: 10),
+              _RemarquesBox(text: e.remarques!, grey: isArchive),
+            ],
+
+            // ── Refus reason ───────────────────────────────────────────────
+            if (isRefus &&
+                e.raisonRefus != null &&
+                e.raisonRefus!.isNotEmpty) ...[
+              const SizedBox(height: 10),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFEBEE),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  e.raisonRefus!,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Color(0xFFC62828),
+                    height: 1.4,
+                  ),
                 ),
               ),
-              child: Row(
-                children: [
-                  Icon(Icons.lock, size: 13, color: Colors.grey.shade500),
-                  const SizedBox(width: 6),
-                  Text(
-                    'Dossier archivé — lecture seule',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.grey.shade500,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ]
-          // action buttons — only shown when NOT archived
-          else ...[
+            ],
+
+            const SizedBox(height: 12),
             Divider(color: Colors.grey.shade100, height: 1),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(14, 10, 14, 14),
-              child: _ActionButtons(
+            const SizedBox(height: 10),
+
+            // ── FOOTER : action buttons ────────────────────────────────────
+            if (isArchive)
+              _ArchiveFooter()
+            else
+              _ActionButtons(
                 echantillon: e,
                 onModifier: onModifier,
                 onSupprimer: onSupprimer,
                 onConfirmerAchat: onConfirmerAchat,
                 onPlanifierLivraison: onPlanifierLivraison,
+                onEchecNegociation: onEchecNegociation, // ← NEW
               ),
-            ),
           ],
-        ],
+        ),
       ),
     );
-
-    return card;
   }
 }
 
-// ── Action buttons based on statut ────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// ACTION BUTTONS
+// ─────────────────────────────────────────────────────────────────────────────
 class _ActionButtons extends StatelessWidget {
   final EchantillonCollecteur echantillon;
   final VoidCallback? onModifier;
   final VoidCallback? onSupprimer;
   final VoidCallback? onConfirmerAchat;
   final VoidCallback? onPlanifierLivraison;
+  final VoidCallback? onEchecNegociation; // ← NEW
 
   const _ActionButtons({
     required this.echantillon,
@@ -270,146 +294,306 @@ class _ActionButtons extends StatelessWidget {
     this.onSupprimer,
     this.onConfirmerAchat,
     this.onPlanifierLivraison,
+    this.onEchecNegociation,
   });
 
   @override
   Widget build(BuildContext context) {
     final e = echantillon;
 
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
+    // enTraitement: Modifier + Supprimer
+    if (e.canModify) {
+      return Row(
+        children: [
+          Expanded(
+            child: _OutlineBtn(
+              label: 'Modifier',
+              icon: Icons.edit_outlined,
+              color: _oliveGreen,
+              onTap: onModifier ?? () {},
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: _OutlineBtn(
+              label: 'Supprimer',
+              icon: Icons.delete_outline,
+              color: Colors.red.shade400,
+              bgColor: Colors.red.shade50,
+              borderColor: Colors.red.shade200,
+              onTap: onSupprimer ?? () {},
+            ),
+          ),
+        ],
+      );
+    }
+
+    // approuveEnNegociation: "Confirmer l'achat" + "Négociation non aboutie"
+    if (e.cansignalerEchecNegociation) {
+      return Column(
+        children: [
+          // Primary action — confirm purchase
+          if (onConfirmerAchat != null)
+            _FilledBtn(
+              label: "Confirmer l'achat",
+              icon: Icons.check_circle_outline,
+              onTap: onConfirmerAchat!,
+            ),
+          if (onConfirmerAchat != null && onEchecNegociation != null)
+            const SizedBox(height: 8),
+          // Secondary action — signal failed negotiation
+          if (onEchecNegociation != null)
+            _OutlineBtn(
+              label: 'Négociation non aboutie',
+              icon: Icons.handshake_outlined,
+              color: _orange,
+              bgColor: _orange.withValues(alpha: 0.07),
+              borderColor: _orange.withValues(alpha: 0.35),
+              onTap: onEchecNegociation!,
+            ),
+        ],
+      );
+    }
+
+    // achatConfirme: Planifier livraison
+    if (e.canPlanifier && onPlanifierLivraison != null) {
+      return _FilledBtn(
+        label: 'Planifier la livraison',
+        icon: Icons.local_shipping_outlined,
+        onTap: onPlanifierLivraison!,
+      );
+    }
+
+    return const SizedBox.shrink();
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ARCHIVE FOOTER
+// ─────────────────────────────────────────────────────────────────────────────
+class _ArchiveFooter extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) => Row(
+    children: [
+      Icon(Icons.lock_outline, size: 13, color: Colors.grey.shade400),
+      const SizedBox(width: 6),
+      Text(
+        'Dossier archivé — lecture seule',
+        style: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: Colors.grey.shade400,
+        ),
+      ),
+    ],
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// BUTTON HELPERS
+// ─────────────────────────────────────────────────────────────────────────────
+class _OutlineBtn extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final Color color;
+  final Color? bgColor;
+  final Color? borderColor;
+  final VoidCallback onTap;
+
+  const _OutlineBtn({
+    required this.label,
+    required this.icon,
+    required this.color,
+    required this.onTap,
+    this.bgColor,
+    this.borderColor,
+  });
+
+  @override
+  Widget build(BuildContext context) => GestureDetector(
+    onTap: onTap,
+    child: Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 9),
+      decoration: BoxDecoration(
+        color: bgColor ?? color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(9),
+        border: Border.all(color: borderColor ?? color.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, size: 15, color: color),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 13,
+              color: color,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+class _FilledBtn extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final VoidCallback onTap;
+
+  const _FilledBtn({
+    required this.label,
+    required this.icon,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) => GestureDetector(
+    onTap: onTap,
+    child: Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 11),
+      decoration: BoxDecoration(
+        color: _green,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, size: 16, color: Colors.white),
+          const SizedBox(width: 7),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 13,
+              color: Colors.white,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// INFO ITEM
+// ─────────────────────────────────────────────────────────────────────────────
+class _InfoItem extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+  final Color? valueColor;
+  final bool grey;
+
+  const _InfoItem({
+    required this.icon,
+    required this.label,
+    required this.value,
+    this.valueColor,
+    this.grey = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final labelCol = grey ? Colors.grey.shade400 : Colors.grey.shade500;
+    final valueCol = grey
+        ? Colors.grey.shade400
+        : (valueColor ?? const Color(0xFF1A2E1F));
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // modifier — only in enTraitement
-        if (e.canModify && onModifier != null)
-          _Btn(
-            label: 'Modifier',
-            icon: Icons.edit_outlined,
-            color: _oliveGreen,
-            onTap: onModifier!,
+        Icon(icon, size: 13, color: labelCol),
+        const SizedBox(width: 5),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(label, style: TextStyle(fontSize: 10, color: labelCol)),
+              const SizedBox(height: 1),
+              Text(
+                value,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: valueCol,
+                ),
+              ),
+            ],
           ),
-
-        // supprimer — only in enTraitement
-        if (e.canDelete && onSupprimer != null)
-          _Btn(
-            label: 'Supprimer',
-            icon: Icons.delete_outline,
-            color: Colors.red.shade400,
-            onTap: onSupprimer!,
-          ),
-
-        // confirmer achat — only in approuveEnNegociation
-        if (e.canConfirm && onConfirmerAchat != null)
-          _Btn(
-            label: 'Confirmer l\'achat',
-            icon: Icons.check_circle_outline,
-            color: _green,
-            onTap: onConfirmerAchat!,
-            filled: true,
-          ),
-
-        // planifier livraison — only in achatConfirme
-        if (e.canPlanifier && onPlanifierLivraison != null)
-          _Btn(
-            label: 'Planifier livraison',
-            icon: Icons.local_shipping_outlined,
-            color: _green,
-            onTap: onPlanifierLivraison!,
-            filled: true,
-          ),
+        ),
       ],
     );
   }
 }
 
-class _Btn extends StatelessWidget {
+// ─────────────────────────────────────────────────────────────────────────────
+// REF CHIP
+// ─────────────────────────────────────────────────────────────────────────────
+class _RefChip extends StatelessWidget {
   final String label;
-  final IconData icon;
-  final Color color;
-  final VoidCallback onTap;
-  final bool filled;
-
-  const _Btn({
-    required this.label,
-    required this.icon,
-    required this.color,
-    required this.onTap,
-    this.filled = false,
-  });
+  final bool grey;
+  const _RefChip({required this.label, required this.grey});
 
   @override
-  Widget build(BuildContext context) {
-    final shape = RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(10),
-    );
-
-    if (filled) {
-      return ElevatedButton.icon(
-        onPressed: onTap,
-        icon: Icon(icon, size: 15),
-        label: Text(
-          label,
-          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-        ),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: color,
-          foregroundColor: Colors.white,
-          elevation: 0,
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
-          shape: shape,
-        ),
-      );
-    }
-
-    return OutlinedButton.icon(
-      onPressed: onTap,
-      icon: Icon(icon, size: 15),
-      label: Text(
-        label,
-        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+    decoration: BoxDecoration(
+      color: grey ? Colors.grey.shade100 : _green.withValues(alpha: 0.08),
+      borderRadius: BorderRadius.circular(6),
+      border: Border.all(
+        color: grey ? Colors.grey.shade300 : _green.withValues(alpha: 0.2),
       ),
-      style: OutlinedButton.styleFrom(
-        foregroundColor: color,
-        side: BorderSide(color: color.withOpacity(0.5)),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
-        shape: shape,
+    ),
+    child: Text(
+      '# ${label.isNotEmpty ? label : "—"}',
+      style: TextStyle(
+        fontSize: 12,
+        color: grey ? Colors.grey.shade400 : _green,
+        fontWeight: FontWeight.w600,
+        letterSpacing: 0.5,
       ),
-    );
-  }
+    ),
+  );
 }
 
-// ── Delivery info box ─────────────────────────────────────────────────────────
-class _LivraisonInfo extends StatelessWidget {
+// ─────────────────────────────────────────────────────────────────────────────
+// LIVRAISON BOX
+// ─────────────────────────────────────────────────────────────────────────────
+class _LivraisonBox extends StatelessWidget {
   final LivraisonInfo livraison;
   final bool grey;
-  const _LivraisonInfo({required this.livraison, required this.grey});
+  const _LivraisonBox({required this.livraison, required this.grey});
 
   @override
   Widget build(BuildContext context) {
+    final color = grey ? Colors.grey.shade400 : _green;
+    final bg = grey ? Colors.grey.shade100 : const Color(0xFFE8F5E9);
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(10),
-      margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
-        color: grey ? Colors.grey.shade100 : const Color(0xFFE8F5E9),
+        color: bg,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
         children: [
-          Icon(
-            Icons.local_shipping_outlined,
-            size: 14,
-            color: grey ? Colors.grey : _green,
-          ),
-          const SizedBox(width: 6),
+          Icon(Icons.local_shipping_outlined, size: 14, color: color),
+          const SizedBox(width: 7),
           Expanded(
             child: Text(
-              'Livraison : ${livraison.date?.day}/${livraison.date?.month}/${livraison.date?.year}'
-              '  ${livraison.heure}  —  ${livraison.lieu}',
+              '${livraison.date!.day}/${livraison.date!.month}/${livraison.date!.year}'
+              '  ·  ${livraison.heure}'
+              '  ·  ${livraison.lieu}',
               style: TextStyle(
                 fontSize: 12,
-                color: grey ? Colors.grey.shade500 : _green,
                 fontWeight: FontWeight.w600,
+                color: color,
               ),
             ),
           ),
@@ -420,62 +604,69 @@ class _LivraisonInfo extends StatelessWidget {
 }
 
 class _LivraisonManquante extends StatelessWidget {
+  const _LivraisonManquante();
+
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(10),
-      margin: const EdgeInsets.only(bottom: 8),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFFF8E1),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        children: [
-          const Icon(
-            Icons.warning_amber_outlined,
-            size: 14,
+  Widget build(BuildContext context) => Container(
+    width: double.infinity,
+    padding: const EdgeInsets.all(10),
+    decoration: BoxDecoration(
+      color: const Color(0xFFFFF8E1),
+      borderRadius: BorderRadius.circular(8),
+    ),
+    child: const Row(
+      children: [
+        Icon(Icons.warning_amber_outlined, size: 14, color: Color(0xFFF57C00)),
+        SizedBox(width: 7),
+        Text(
+          'Livraison non planifiée',
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
             color: Color(0xFFF57C00),
           ),
-          const SizedBox(width: 6),
-          Text(
-            'Livraison non planifiée',
-            style: const TextStyle(
-              fontSize: 12,
-              color: Color(0xFFF57C00),
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+        ),
+      ],
+    ),
+  );
 }
 
-// ── Meta chip ────────────────────────────────────────────────────────────────
-class _Meta extends StatelessWidget {
-  final IconData icon;
-  final String label;
+// ─────────────────────────────────────────────────────────────────────────────
+// REMARQUES BOX
+// ─────────────────────────────────────────────────────────────────────────────
+class _RemarquesBox extends StatelessWidget {
+  final String text;
   final bool grey;
-  const _Meta({required this.icon, required this.label, this.grey = false});
+  const _RemarquesBox({required this.text, required this.grey});
 
   @override
-  Widget build(BuildContext context) => Row(
-    mainAxisSize: MainAxisSize.min,
-    children: [
-      Icon(
-        icon,
-        size: 12,
-        color: grey ? Colors.grey.shade400 : Colors.grey.shade400,
-      ),
-      const SizedBox(width: 4),
-      Text(
-        label,
-        style: TextStyle(
-          fontSize: 11,
+  Widget build(BuildContext context) => Container(
+    width: double.infinity,
+    padding: const EdgeInsets.all(10),
+    decoration: BoxDecoration(
+      color: grey ? Colors.grey.shade100 : _green.withValues(alpha: 0.05),
+      borderRadius: BorderRadius.circular(8),
+    ),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(
+          Icons.notes_rounded,
+          size: 13,
           color: grey ? Colors.grey.shade400 : Colors.grey.shade500,
         ),
-      ),
-    ],
+        const SizedBox(width: 6),
+        Expanded(
+          child: Text(
+            text,
+            style: TextStyle(
+              fontSize: 12,
+              color: grey ? Colors.grey.shade400 : Colors.grey.shade600,
+              height: 1.4,
+            ),
+          ),
+        ),
+      ],
+    ),
   );
 }

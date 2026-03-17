@@ -10,7 +10,7 @@ import 'widgets/membre_card.dart';
 import '../../../main.dart';
 import '../gestion_echantillons/gestion_echantillons_page.dart';
 import '../evaluation_echantillons/evaluation_echantillons_page.dart';
-import '../../../profil.dart';
+import '../profil.dart';
 import '../homepage/widgets/app_drawer.dart';
 import '../sessions_degustation/sessions_degustation_page.dart';
 import '../analyse_labo/analyse_laboratoire_page.dart';

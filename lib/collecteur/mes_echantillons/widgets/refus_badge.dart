@@ -2,6 +2,9 @@
 // FILE    : collecteur/pages/mes_echantillons/widgets/refus_badge.dart
 // PURPOSE : secondary badge showing WHY the sample was refused
 //           shown only when statut == StatutCollecteur.refus
+//
+//   TypeRefus.refusPanel         → "Refus panel"       (panel + CEO refusal)
+//   TypeRefus.negociationEchouee → "Accord non conclu" (negotiation failed)
 // ═════════════════════════════════════════════════════════════════════════════
 
 import 'package:flutter/material.dart';
@@ -13,22 +16,27 @@ class RefusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isCEO = typeRefus == TypeRefus.refusCEO;
+    final isRefusPanel = typeRefus == TypeRefus.refusPanel;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: isCEO ? const Color(0xFFFFEBEE) : const Color(0xFFFCE4EC),
+        color: isRefusPanel ? const Color(0xFFFFEBEE) : const Color(0xFFFCE4EC),
         borderRadius: BorderRadius.circular(6),
         border: Border.all(
-          color: isCEO ? const Color(0xFFEF9A9A) : const Color(0xFFF48FB1),
+          color: isRefusPanel
+              ? const Color(0xFFEF9A9A)
+              : const Color(0xFFF48FB1),
         ),
       ),
       child: Text(
-        isCEO ? 'Refus panel' : 'Négociation échouée',
+        isRefusPanel ? 'Refus panel' : 'Accord non conclu',
         style: TextStyle(
           fontSize: 10,
           fontWeight: FontWeight.w700,
-          color: isCEO ? const Color(0xFFC62828) : const Color(0xFFAD1457),
+          color: isRefusPanel
+              ? const Color(0xFFC62828)
+              : const Color(0xFFAD1457),
         ),
       ),
     );

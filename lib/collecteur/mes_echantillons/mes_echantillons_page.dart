@@ -1,10 +1,16 @@
+// ═════════════════════════════════════════════════════════════════════════════
+// FILE    : collecteur/pages/mes_echantillons/mes_echantillons_page.dart
+// ═════════════════════════════════════════════════════════════════════════════
+
 import 'package:flutter/material.dart';
 import 'models/echantillon_collecteur.dart';
 import 'widgets/echantillon_collecteur_card.dart';
 import 'widgets/dialogs/collecteur_dialogs.dart';
+import 'widgets/dialogs/formulaire_collecteur_dialog.dart';
 import '../widgets/collecteur_drawer.dart';
 import '../../../main.dart';
-import '../../../profil.dart';
+import '../profilcom.dart';
+import '../carte_geo/carte_geo_page.dart';
 
 const Color _green = Color(0xFF38835A);
 const Color _cream = Color(0xFFF9F6EF);
@@ -20,6 +26,9 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
   final TextEditingController _searchCtrl = TextEditingController();
   String _recherche = '';
   StatutCollecteur? _filtreStatut;
+
+  // ── Monotonically increasing counter — never decremented on delete ────────
+  int _compteur = 5;
 
   // ── Navigation helpers ────────────────────────────────────────────────────
   void _goTo(Widget page) {
@@ -38,38 +47,51 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
   // ── Mock data ─────────────────────────────────────────────────────────────
   final List<EchantillonCollecteur> _echantillons = [
     EchantillonCollecteur(
-      id: 'ECH-COL-001',
-      reference: 'REF-2026-CHEMLALI-A',
+      id: 'ECH-001',
+      ref: '2026/0001',
+      gouvernorat: 'Sfax',
+      codeFournisseur: 'SF-42',
+      referenceBouteille: 'CHEMLALI-C1',
+      scellage: 'Z1',
+      achatConfirme: false,
+      camionReservee: null,
+      remarques: null,
       dateAjout: '01/03/2026',
-      fournisseurNom: 'Ben Salah Huiles',
-      fournisseurId: 'FOUR-001',
-      region: 'Sfax',
+      quantiteEstimee: '10L',
       variete: 'Chemlali',
-      quantiteEstimee: '500L',
       statut: StatutCollecteur.enTraitement,
       collecteurId: 'COL-001',
       collecteurNom: 'Ahmed D.',
-      notes: 'Récolte précoce, couleur verte',
     ),
     EchantillonCollecteur(
-      id: 'ECH-COL-002',
-      reference: 'REF-2026-CHETOUI-B',
+      id: 'ECH-002',
+      ref: '2026/0002',
+      gouvernorat: 'Béja',
+      codeFournisseur: 'BJ-15',
+      referenceBouteille: 'CHETOUI-C3',
+      scellage: 'Z2',
+      achatConfirme: false,
+      camionReservee: null,
+      remarques: 'Récolte précoce',
       dateAjout: '28/02/2026',
-      fournisseurNom: 'Ferme Trabelsi',
-      fournisseurId: 'FOUR-002',
-      region: 'Béja',
+      quantiteEstimee: '10L',
       variete: 'Chetoui',
       statut: StatutCollecteur.approuveEnNegociation,
       collecteurId: 'COL-001',
       collecteurNom: 'Ahmed D.',
     ),
     EchantillonCollecteur(
-      id: 'ECH-COL-003',
-      reference: 'REF-2026-ZALMATI-C',
+      id: 'ECH-003',
+      ref: '2026/0003',
+      gouvernorat: 'Gafsa',
+      codeFournisseur: 'GF-08',
+      referenceBouteille: 'ZALMATI-C7',
+      scellage: 'Z1',
+      achatConfirme: true,
+      camionReservee: 'CAM-03',
+      remarques: null,
       dateAjout: '20/02/2026',
-      fournisseurNom: 'Coopérative Gafsa',
-      fournisseurId: 'FOUR-003',
-      region: 'Gafsa',
+      quantiteEstimee: '30L',
       variete: 'Zalmati',
       statut: StatutCollecteur.achatConfirme,
       collecteurId: 'COL-001',
@@ -81,25 +103,35 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
       ),
     ),
     EchantillonCollecteur(
-      id: 'ECH-COL-004',
-      reference: 'REF-2026-OUESLATI-D',
+      id: 'ECH-004',
+      ref: '2026/0004',
+      gouvernorat: 'Kairouan',
+      codeFournisseur: 'KR-22',
+      referenceBouteille: 'OUESLATI-C2',
+      scellage: 'Z3',
+      achatConfirme: false,
+      camionReservee: null,
+      remarques: 'Acidité trop élevée',
       dateAjout: '15/02/2026',
-      fournisseurNom: 'Domaine Kairouan',
-      fournisseurId: 'FOUR-004',
-      region: 'Kairouan',
+      quantiteEstimee: '10L',
       statut: StatutCollecteur.refus,
-      typeRefus: TypeRefus.refusCEO,
+      typeRefus: TypeRefus.refusPanel,
       raisonRefus: 'Acidité trop élevée — hors norme COI',
       collecteurId: 'COL-001',
       collecteurNom: 'Ahmed D.',
     ),
     EchantillonCollecteur(
-      id: 'ECH-COL-005',
-      reference: 'REF-2025-CHEMLALI-Z',
+      id: 'ECH-005',
+      ref: '2026/0005',
+      gouvernorat: 'Sfax',
+      codeFournisseur: 'SF-42',
+      referenceBouteille: 'CHEMLALI-C9',
+      scellage: 'Z1',
+      achatConfirme: true,
+      camionReservee: 'CAM-01',
+      remarques: null,
       dateAjout: '10/01/2026',
-      fournisseurNom: 'Ben Salah Huiles',
-      fournisseurId: 'FOUR-001',
-      region: 'Sfax',
+      quantiteEstimee: '10L',
       variete: 'Chemlali',
       statut: StatutCollecteur.archive,
       collecteurId: 'COL-001',
@@ -110,11 +142,13 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
   // ── Filter logic ──────────────────────────────────────────────────────────
   List<EchantillonCollecteur> get _filtres {
     return _echantillons.where((e) {
+      final q = _recherche.toLowerCase();
       final matchRecherche =
           _recherche.isEmpty ||
-          e.reference.toLowerCase().contains(_recherche.toLowerCase()) ||
-          e.fournisseurNom.toLowerCase().contains(_recherche.toLowerCase()) ||
-          e.region.toLowerCase().contains(_recherche.toLowerCase());
+          e.referenceBouteille.toLowerCase().contains(q) ||
+          e.codeFournisseur.toLowerCase().contains(q) ||
+          e.gouvernorat.toLowerCase().contains(q) ||
+          (e.variete?.toLowerCase().contains(q) ?? false);
       final matchStatut = _filtreStatut == null || e.statut == _filtreStatut;
       return matchRecherche && matchStatut;
     }).toList();
@@ -122,8 +156,15 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
 
   // ── Actions ───────────────────────────────────────────────────────────────
   void _onModifier(EchantillonCollecteur e) {
-    // TODO: open formulaire dialog in edit mode
-    _showSuccess('Échantillon modifié');
+    showFormulaireCollecteurDialog(
+      context,
+      echantillon: e,
+      prochainNumero: _compteur,
+      onSave: (updated) {
+        setState(() {});
+        _showSuccess('"${e.referenceBouteille}" modifié');
+      },
+    );
   }
 
   void _onSupprimer(EchantillonCollecteur e) {
@@ -132,7 +173,7 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
       echantillon: e,
       onConfirmer: () {
         setState(() => _echantillons.remove(e));
-        _showSuccess('"${e.reference}" supprimé');
+        _showSuccess('"${e.referenceBouteille}" supprimé');
       },
     );
   }
@@ -142,8 +183,11 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
       context,
       echantillon: e,
       onConfirmer: () {
-        setState(() => e.statut = StatutCollecteur.achatConfirme);
-        _showSuccess('Achat confirmé pour "${e.reference}"');
+        setState(() {
+          e.statut = StatutCollecteur.achatConfirme;
+          e.achatConfirme = true;
+        });
+        _showSuccess('Achat confirmé pour "${e.referenceBouteille}"');
       },
     );
   }
@@ -155,6 +199,24 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
       onSave: (livraison) {
         setState(() => e.livraison = livraison);
         _showSuccess('Livraison planifiée');
+      },
+    );
+  }
+
+  /// Collector signals that negotiation failed.
+  /// statut → refus | typeRefus → negociationEchouee
+  /// TODO: send push notification to CEO when backend is connected.
+  void _onEchecNegociation(EchantillonCollecteur e) {
+    showEchecNegociationDialog(
+      context,
+      echantillon: e,
+      onConfirmer: (raison) {
+        setState(() {
+          e.statut = StatutCollecteur.refus;
+          e.typeRefus = TypeRefus.negociationEchouee;
+          e.raisonRefus = raison; // null if collector left field empty
+        });
+        _showWarning('Négociation non aboutie signalée — le CEO a été notifié');
       },
     );
   }
@@ -177,7 +239,25 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
     );
   }
 
-  // ── Filter chips data ─────────────────────────────────────────────────────
+  void _showWarning(String msg) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          msg,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        backgroundColor: const Color(0xFFF57C00),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        margin: const EdgeInsets.all(20),
+      ),
+    );
+  }
+
+  // ── Filter chips ──────────────────────────────────────────────────────────
   static const List<_ChipData> _chips = [
     _ChipData(null, 'Tous'),
     _ChipData(StatutCollecteur.enTraitement, 'En traitement'),
@@ -200,14 +280,11 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
       backgroundColor: _cream,
       drawer: CollecteurDrawer(
         onMesEchantillons: () => Navigator.pop(context),
-        onCarte: () => _goTo(const Placeholder()), // TODO: CartePage()
-        onMessagerie: () =>
-            _goTo(const Placeholder()), // TODO: MessageriePage()
-        onPreferencesCeo: () =>
-            _goTo(const Placeholder()), // TODO: PreferencesCeoPage()
-        onTableauDeBord: () =>
-            _goTo(const Placeholder()), // TODO: TableauDeBordPage()
-        onProfil: () => _goTo(const ProfilePage()),
+        onCarte: () => _goTo(const CarteGeoPage()),
+        onMessagerie: () => _goTo(const Placeholder()),
+        onPreferencesCeo: () => _goTo(const Placeholder()),
+        onTableauDeBord: () => _goTo(const Placeholder()),
+        onProfil: () => _goTo(const ProfileCollecteurPage()),
         onDeconnexion: _goToLogin,
       ),
       appBar: AppBar(
@@ -226,7 +303,7 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
             margin: const EdgeInsets.only(right: 12),
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
+              color: Colors.white.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text(
@@ -242,7 +319,17 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
-          // TODO: open formulaire with scan
+          showFormulaireCollecteurDialog(
+            context,
+            prochainNumero: _compteur + 1,
+            onSave: (nouveau) {
+              setState(() {
+                _compteur++;
+                _echantillons.insert(0, nouveau);
+              });
+              _showSuccess('"${nouveau.referenceBouteille}" ajouté');
+            },
+          );
         },
         backgroundColor: _green,
         icon: const Icon(Icons.add_a_photo_outlined, color: Colors.white),
@@ -367,7 +454,7 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
                 : Theme(
                     data: Theme.of(context).copyWith(
                       scrollbarTheme: ScrollbarThemeData(
-                        thumbColor: MaterialStateProperty.all(_gray),
+                        thumbColor: WidgetStateProperty.all(_gray),
                       ),
                     ),
                     child: Scrollbar(
@@ -377,7 +464,7 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
                         itemCount: _filtres.length,
                         itemBuilder: (_, i) {
                           final e = _filtres[i];
-                          return EchantillonCollecteurCard(
+                          return EchantillonComCard(
                             echantillon: e,
                             onModifier: e.canModify
                                 ? () => _onModifier(e)
@@ -390,6 +477,10 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
                                 : null,
                             onPlanifierLivraison: e.canPlanifier
                                 ? () => _onPlanifierLivraison(e)
+                                : null,
+                            // ← NEW: only passed when negotiation is active
+                            onEchecNegociation: e.cansignalerEchecNegociation
+                                ? () => _onEchecNegociation(e)
                                 : null,
                           );
                         },

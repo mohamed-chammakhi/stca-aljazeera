@@ -183,7 +183,7 @@ void showFormulaireDialog(
                       ),
                       items:
                           const [
-                                'Unknown',
+                                'Non précisé',
                                 'Ariana',
                                 'Béja',
                                 'Ben Arous',
@@ -249,7 +249,7 @@ void showFormulaireDialog(
                           color: _green,
                           size: 20,
                         ),
-                        suffixText: 'kg',
+                        suffixText: 'T',
                         suffixStyle: const TextStyle(
                           color: _green,
                           fontWeight: FontWeight.w700,

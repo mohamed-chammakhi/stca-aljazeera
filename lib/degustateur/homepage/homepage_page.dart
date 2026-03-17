@@ -14,7 +14,7 @@ import 'widgets/app_drawer.dart';
 import 'widgets/home_body.dart';
 import 'models/notification_item.dart';
 
-import '../../../profil.dart';
+import '../profil.dart';
 
 import '../../../main.dart';
 import '../sessions_degustation/sessions_degustation_page.dart';

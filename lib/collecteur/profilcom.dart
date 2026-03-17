@@ -1,50 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'degustateur/homepage/homepage_page.dart';
-//import 'degustateur/homepage/homepage_page.dart';
-import '../degustateur/evaluation_echantillons/evaluation_echantillons_page.dart';
-//import '../../../profil.dart';
-import '../degustateur/homepage/widgets/app_drawer.dart';
-import '../degustateur/membres_panel/membres_panel_page.dart';
-import '../../../main.dart';
-import '../degustateur/gestion_echantillons/gestion_echantillons_page.dart';
-import '../degustateur/sessions_degustation/sessions_degustation_page.dart';
-import 'degustateur/analyse_labo/analyse_laboratoire_page.dart';
+import 'mes_echantillons/mes_echantillons_page.dart';
+import 'tableau_de_bord/tableau_de_bord_collecteur_page.dart';
+import 'widgets/collecteur_drawer.dart';
+import '../../main.dart';
 
-void main() {
-  runApp(const MyApp());
-}
-
-class MyApp extends StatefulWidget {
-  const MyApp({super.key});
+class ProfileCollecteurPage extends StatefulWidget {
+  const ProfileCollecteurPage({super.key});
 
   @override
-  State<MyApp> createState() => _MyAppState();
+  _ProfileCollecteurPageState createState() => _ProfileCollecteurPageState();
 }
 
-class _MyAppState extends State<MyApp> {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Votre Profil',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primaryColor: const Color(0xFF38835A),
-        scaffoldBackgroundColor: const Color(0xFFF9F6EF),
-      ),
-      home: const ProfilePage(),
-    );
-  }
-}
-
-class ProfilePage extends StatefulWidget {
-  const ProfilePage({super.key});
-
-  @override
-  _ProfilePageState createState() => _ProfilePageState();
-}
-
-class _ProfilePageState extends State<ProfilePage> {
+class _ProfileCollecteurPageState extends State<ProfileCollecteurPage> {
   void _goTo(Widget page) {
     Navigator.pop(context); // close drawer
     Navigator.push(context, MaterialPageRoute(builder: (_) => page));
@@ -80,7 +48,6 @@ class _ProfilePageState extends State<ProfilePage> {
   bool _editingRole = false;
 
   // ── Displayed header values ───────────────────────────────────────────────
-  // Empty by default — will be filled when user saves or data loads from API
   String _displayedFullName = '';
   String _displayedRole = '';
 
@@ -89,21 +56,16 @@ class _ProfilePageState extends State<ProfilePage> {
   final FocusNode _prenomFocus = FocusNode();
   final FocusNode _emailFocus = FocusNode();
   final FocusNode _numeroFocus = FocusNode();
-
   final FocusNode _roleFocus = FocusNode();
 
   // ── initState ─────────────────────────────────────────────────────────────
   @override
   void initState() {
     super.initState();
-    // ✅ Empty controllers — no default values
-    // Later: populate from Spring Boot API response
-    // Example: GET /api/user/profile → _nomController.text = response.nom
     _nomController = TextEditingController(text: '');
     _prenomController = TextEditingController(text: '');
     _emailController = TextEditingController(text: '');
     _numeroController = TextEditingController(text: '');
-
     _roleController = TextEditingController(text: '');
   }
 
@@ -118,7 +80,7 @@ class _ProfilePageState extends State<ProfilePage> {
     _nomFocus.dispose();
     _prenomFocus.dispose();
     _emailFocus.dispose();
-    _emailFocus.dispose();
+    _numeroFocus.dispose(); // ✅ fixed — was _emailFocus duplicated
     _roleFocus.dispose();
     super.dispose();
   }
@@ -166,6 +128,7 @@ class _ProfilePageState extends State<ProfilePage> {
             _showSuccess('Email mis à jour');
           }
           break;
+
         case 'numero':
           _editingnumero = !_editingnumero;
           if (_editingnumero) {
@@ -263,37 +226,18 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: cream,
-      drawer: AppDrawer(
-        onaccueil: () => _goTo(const HomePage()),
-
-        // OLD : EvaluationEchantillonsPage from EvaluationEchantillonsPage.dart
-        // NEW : will be EvaluationEchantillonsPage from
-        //       evaluation_echantillons/evaluation_echantillons_page.dart
-        // TODO : replace with _goTo(const EvaluationEchantillonsPage())
-        onEvaluationEchantillons: () =>
-            _goTo(const EvaluationEchantillonsPage()),
-
-        // OLD : GestionEchantillonsPage from GestionEchantillon.dart
-        // NEW : GestionEchantillonsPage from
-        //       gestion_echantillons/gestion_echantillons_page.dart ✅ done
-        onGestionEchantillons: () => _goTo(const GestionEchantillonsPage()),
-
-        onAnalyseLaboratoire: () => _goTo(const AnalyseLaboratoirePage()),
-        onSessionsDegustationPage: () => _goTo(const SessionsDegustationPage()),
-
-        // OLD : ProfilePage from profil.dart (same level)
-        // NEW : ProfilePage from ../profil.dart (one level up) ✅ done
-        onMembredupanel: () => _goTo(const MembresPanelPage()),
-        onProfil: () => _goTo(const ProfilePage()),
-
-        onAPropos: () => Navigator.pop(context),
+      drawer: CollecteurDrawer(
+        onMesEchantillons: () => _goTo(const MesEchantillonsPage()),
+        onCarte: () => _goTo(const Placeholder()),
+        onMessagerie: () => _goTo(const Placeholder()),
+        onPreferencesCeo: () => _goTo(const Placeholder()),
+        onTableauDeBord: () => _goTo(const TableauDeBordCollecteurPage()),
+        onProfil: () => Navigator.pop(context), // ✅ fixed — was missing
         onDeconnexion: _goToLogin,
       ),
       appBar: AppBar(
         backgroundColor: green,
         elevation: 0,
-
-        // ✅ Back arrow — navigates to HomePage in homepage.dart
         title: Text(
           'Votre Profil',
           style: GoogleFonts.domine(
@@ -417,7 +361,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     icon: Icons.person_outline,
                     isEditing: _editingPrenom,
                     fieldKey: 'prenom',
-                    hint: 'Votre prénom', // ✅ hint instead of default value
+                    hint: 'Votre prénom',
                     keyboardType: TextInputType.name,
                   ),
                   const SizedBox(height: 16),
@@ -430,7 +374,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     icon: Icons.person_outline,
                     isEditing: _editingNom,
                     fieldKey: 'nom',
-                    hint: 'Votre nom', // ✅ hint instead of default value
+                    hint: 'Votre nom',
                     keyboardType: TextInputType.name,
                   ),
                   const SizedBox(height: 16),
@@ -443,11 +387,12 @@ class _ProfilePageState extends State<ProfilePage> {
                     icon: Icons.email_outlined,
                     isEditing: _editingEmail,
                     fieldKey: 'email',
-                    hint: 'Votre email', // ✅ hint instead of default value
+                    hint: 'Votre email',
                     keyboardType: TextInputType.emailAddress,
                   ),
                   const SizedBox(height: 20),
-                  // ── Email ──
+
+                  // ── Numéro ──
                   _buildField(
                     label: 'Numéro de Téléphone',
                     controller: _numeroController,
@@ -455,9 +400,9 @@ class _ProfilePageState extends State<ProfilePage> {
                     icon: Icons.phone_outlined,
                     isEditing: _editingnumero,
                     fieldKey: 'numero',
-                    hint:
-                        'Votre Numéro de Téléphone', // ✅ hint instead of default value
-                    keyboardType: TextInputType.emailAddress,
+                    hint: 'Votre Numéro de Téléphone',
+                    keyboardType:
+                        TextInputType.phone, // ✅ fixed — was emailAddress
                   ),
                   const SizedBox(height: 20),
                   Divider(color: Colors.grey.shade200),
@@ -474,7 +419,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     icon: Icons.badge_outlined,
                     isEditing: _editingRole,
                     fieldKey: 'role',
-                    hint: 'Votre rôle', // ✅ hint instead of default value
+                    hint: 'Votre rôle',
                   ),
                   const SizedBox(height: 16),
 
@@ -524,7 +469,7 @@ class _ProfilePageState extends State<ProfilePage> {
     required IconData icon,
     required bool isEditing,
     required String fieldKey,
-    required String hint, // ✅ hint is now required
+    required String hint,
     TextInputType keyboardType = TextInputType.text,
   }) {
     return Column(
@@ -543,7 +488,7 @@ class _ProfilePageState extends State<ProfilePage> {
             fontWeight: isEditing ? FontWeight.w500 : FontWeight.w400,
           ),
           decoration: InputDecoration(
-            hintText: hint, // ✅ shows hint when field is empty
+            hintText: hint,
             hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
             prefixIcon: Icon(icon, color: green, size: 20),
             suffixIcon: IconButton(

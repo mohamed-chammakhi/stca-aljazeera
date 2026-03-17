@@ -21,7 +21,7 @@ import '../../degustateur/gestion_echantillons/widgets/search_filter_bar.dart';
 import '../gestion_echantillons/widgets/dialogs/formulaire_dialog.dart';
 import '../gestion_echantillons/widgets/dialogs/suppression_dialog.dart';
 import '../evaluation_echantillons/evaluation_echantillons_page.dart';
-import '../../../profil.dart';
+import '../profil.dart';
 import '../homepage/widgets/app_drawer.dart';
 import '../membres_panel/membres_panel_page.dart';
 import '../../../main.dart';

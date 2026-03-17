@@ -33,6 +33,10 @@ dependencies:
     sdk: flutter
   google_fonts: ^6.1.0
   font_awesome_flutter: ^10.7.0
+  flutter_map: ^7.0.2
+  latlong2: ^0.9.1
+  flutter_map_cancellable_tile_provider: ^3.0.0
+  cached_network_image: ^3.3.1
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
@@ -64,6 +68,9 @@ flutter:
     - assets/img/blue_glass.png
     - assets/img/glass.png
     - assets/img/handolive.png
+    - assets/img/delegations.geojson
+    - assets/img/cities_fixed.json
+    - assets/img/tunisie_villes.csv
 
 
 

@@ -25,7 +25,7 @@ import 'widgets/dialogs/suppression_session_dialog.dart';
 import '../gestion_echantillons/widgets/search_filter_bar.dart';
 
 // ── App-wide imports ──────────────────────────────────────────────────────────
-import '../../../profil.dart';
+import '../profil.dart';
 import '../homepage/widgets/app_drawer.dart';
 import '../membres_panel/membres_panel_page.dart';
 import '../gestion_echantillons/gestion_echantillons_page.dart';

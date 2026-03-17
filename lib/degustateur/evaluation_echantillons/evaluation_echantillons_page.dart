@@ -19,7 +19,7 @@ import 'package:flutter/material.dart';
 import '../homepage/widgets/app_drawer.dart';
 import '../membres_panel/membres_panel_page.dart';
 import '../../../main.dart';
-import '../../../profil.dart';
+import '../profil.dart';
 
 import '../gestion_echantillons/gestion_echantillons_page.dart';
 import '../formulaire_evaluation.dart';

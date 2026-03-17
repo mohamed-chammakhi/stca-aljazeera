@@ -1,11 +1,12 @@
 // ═════════════════════════════════════════════════════════════════════════════
-// FILE    : collecteur/pages/mes_echantillons/widgets/dialogs/confirmation_achat_dialog.dart
+// FILE    : collecteur/pages/mes_echantillons/widgets/dialogs/collecteur_dialogs.dart
 // ═════════════════════════════════════════════════════════════════════════════
 
 import 'package:flutter/material.dart';
 import '../../models/echantillon_collecteur.dart';
 
 const Color _green = Color(0xFF38835A);
+const Color _orange = Color(0xFFF57C00);
 
 // ── Confirmation achat ────────────────────────────────────────────────────────
 Future<void> showConfirmationAchatDialog(
@@ -22,14 +23,14 @@ Future<void> showConfirmationAchatDialog(
           const Icon(Icons.check_circle_outline, color: _green, size: 22),
           const SizedBox(width: 8),
           const Text(
-            'Confirmer l\'achat',
+            "Confirmer l'achat",
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
           ),
         ],
       ),
       content: Text(
         'Confirmez-vous l\'achat de l\'échantillon\n'
-        '"${echantillon.reference}" ?\n\n'
+        '"${echantillon.ref}" ?\n\n'
         'Cette action indique que la négociation\na abouti avec le fournisseur.',
         style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
       ),
@@ -60,6 +61,156 @@ Future<void> showConfirmationAchatDialog(
           child: const Text(
             'Confirmer',
             style: TextStyle(fontWeight: FontWeight.w600),
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+// ── Échec de négociation ──────────────────────────────────────────────────────
+/// Shown when the collector signals that negotiation with the supplier failed.
+/// Raison is optional. On confirm: statut → refus, typeRefus → negociationEchouee,
+/// and a notification is sent to the CEO (handled by the caller via [onConfirmer]).
+Future<void> showEchecNegociationDialog(
+  BuildContext context, {
+  required EchantillonCollecteur echantillon,
+  required Function(String? raison) onConfirmer,
+}) {
+  final raisonCtrl = TextEditingController();
+
+  return showDialog(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      titlePadding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+      contentPadding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+      actionsPadding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+      title: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(7),
+            decoration: BoxDecoration(
+              color: _orange.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: const Icon(
+              Icons.handshake_outlined,
+              color: _orange,
+              size: 20,
+            ),
+          ),
+          const SizedBox(width: 10),
+          const Expanded(
+            child: Text(
+              'Négociation non aboutie',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+            ),
+          ),
+        ],
+      ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 12),
+          // Info banner
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: _orange.withValues(alpha: 0.07),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: _orange.withValues(alpha: 0.25)),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Icon(Icons.info_outline, color: _orange, size: 16),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Le CEO sera notifié que la négociation pour "${echantillon.ref}" n\'a pas abouti.',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.orange.shade800,
+                      height: 1.4,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          // Raison field (optional)
+          Text(
+            'Raison (optionnel)',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey.shade600,
+            ),
+          ),
+          const SizedBox(height: 6),
+          TextField(
+            controller: raisonCtrl,
+            maxLines: 3,
+            minLines: 2,
+            style: const TextStyle(fontSize: 13, color: Color(0xFF1A2E1F)),
+            decoration: InputDecoration(
+              hintText: 'Ex: Prix trop élevé, fournisseur indisponible...',
+              hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 12),
+              filled: true,
+              fillColor: const Color(0xFFF7FAF8),
+              contentPadding: const EdgeInsets.all(12),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(color: Colors.grey.shade200),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(color: Colors.grey.shade200),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(color: _orange, width: 1.5),
+              ),
+            ),
+          ),
+          const SizedBox(height: 4),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(ctx),
+          child: Text(
+            'Annuler',
+            style: TextStyle(
+              color: Colors.grey.shade500,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+        ElevatedButton.icon(
+          onPressed: () {
+            final raison = raisonCtrl.text.trim().isEmpty
+                ? null
+                : raisonCtrl.text.trim();
+            Navigator.pop(ctx);
+            onConfirmer(raison);
+          },
+          icon: const Icon(Icons.send_outlined, size: 15),
+          label: const Text(
+            'Signaler au CEO',
+            style: TextStyle(fontWeight: FontWeight.w600),
+          ),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: _orange,
+            foregroundColor: Colors.white,
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           ),
         ),
       ],
@@ -112,7 +263,6 @@ Future<void> showPlanificationLivraisonDialog(
                   ),
                 ),
                 const SizedBox(height: 16),
-
                 const Text(
                   'Planifier la livraison',
                   style: TextStyle(
@@ -122,8 +272,6 @@ Future<void> showPlanificationLivraisonDialog(
                   ),
                 ),
                 const SizedBox(height: 20),
-
-                // date picker
                 _Label('Date de livraison *'),
                 GestureDetector(
                   onTap: () async {
@@ -139,9 +287,7 @@ Future<void> showPlanificationLivraisonDialog(
                         child: child!,
                       ),
                     );
-                    if (picked != null) {
-                      setState(() => selectedDate = picked);
-                    }
+                    if (picked != null) setState(() => selectedDate = picked);
                   },
                   child: Container(
                     padding: const EdgeInsets.symmetric(
@@ -176,9 +322,7 @@ Future<void> showPlanificationLivraisonDialog(
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 14),
-
                 Row(
                   children: [
                     Expanded(
@@ -209,9 +353,7 @@ Future<void> showPlanificationLivraisonDialog(
                     ),
                   ],
                 ),
-
                 const SizedBox(height: 24),
-
                 Row(
                   children: [
                     Expanded(
@@ -307,13 +449,13 @@ Future<void> showSuppressionCollecteurDialog(
           ),
           const SizedBox(width: 8),
           const Text(
-            'Supprimer l\'échantillon',
+            "Supprimer l'échantillon",
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
           ),
         ],
       ),
       content: Text(
-        'Voulez-vous supprimer\n"${echantillon.reference}" ?\n\n'
+        'Voulez-vous supprimer\n"${echantillon.ref}" ?\n\n'
         'Cette action est irréversible.',
         style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
       ),
