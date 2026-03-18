@@ -1,5 +1,5 @@
 // ═════════════════════════════════════════════════════════════════════════════
-// FILE    : collecteur/pages/mes_echantillons/widgets/dialogs/collecteur_dialogs.dart
+// FILE : collecteur/pages/mes_echantillons/widgets/dialogs/collecteur_dialogs.dart
 // ═════════════════════════════════════════════════════════════════════════════
 
 import 'package:flutter/material.dart';
@@ -69,9 +69,6 @@ Future<void> showConfirmationAchatDialog(
 }
 
 // ── Échec de négociation ──────────────────────────────────────────────────────
-/// Shown when the collector signals that negotiation with the supplier failed.
-/// Raison is optional. On confirm: statut → refus, typeRefus → negociationEchouee,
-/// and a notification is sent to the CEO (handled by the caller via [onConfirmer]).
 Future<void> showEchecNegociationDialog(
   BuildContext context, {
   required EchantillonCollecteur echantillon,
@@ -114,7 +111,6 @@ Future<void> showEchecNegociationDialog(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SizedBox(height: 12),
-          // Info banner
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
@@ -129,7 +125,8 @@ Future<void> showEchecNegociationDialog(
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'Le CEO sera notifié que la négociation pour "${echantillon.ref}" n\'a pas abouti.',
+                    'Le PDG sera notifié que la négociation pour '
+                    '"${echantillon.ref}" n\'a pas abouti.',
                     style: TextStyle(
                       fontSize: 12,
                       color: Colors.orange.shade800,
@@ -141,7 +138,6 @@ Future<void> showEchecNegociationDialog(
             ),
           ),
           const SizedBox(height: 16),
-          // Raison field (optional)
           Text(
             'Raison (optionnel)',
             style: TextStyle(
@@ -172,7 +168,7 @@ Future<void> showEchecNegociationDialog(
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
-                borderSide: BorderSide(color: _orange, width: 1.5),
+                borderSide: const BorderSide(color: _orange, width: 1.5),
               ),
             ),
           ),
@@ -200,7 +196,7 @@ Future<void> showEchecNegociationDialog(
           },
           icon: const Icon(Icons.send_outlined, size: 15),
           label: const Text(
-            'Signaler au CEO',
+            'Signaler au PDG',
             style: TextStyle(fontWeight: FontWeight.w600),
           ),
           style: ElevatedButton.styleFrom(
@@ -226,7 +222,12 @@ Future<void> showPlanificationLivraisonDialog(
 }) {
   final livraisonExistante = echantillon.livraison;
 
+  // ── FIX: selectedDate is non-nullable after validation. ───────────────────
+  // We keep it nullable during editing so the "no date chosen" state is
+  // representable, but we guard before calling onSave so the compiler is
+  // satisfied that the DateTime passed to LivraisonInfo is never null.
   DateTime? selectedDate = livraisonExistante?.date;
+
   final heureCtrl = TextEditingController(
     text: livraisonExistante?.heure ?? '',
   );
@@ -252,6 +253,7 @@ Future<void> showPlanificationLivraisonDialog(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Drag handle
                 Center(
                   child: Container(
                     width: 40,
@@ -272,6 +274,8 @@ Future<void> showPlanificationLivraisonDialog(
                   ),
                 ),
                 const SizedBox(height: 20),
+
+                // ── Date ────────────────────────────────────────────────
                 _Label('Date de livraison *'),
                 GestureDetector(
                   onTap: () async {
@@ -287,7 +291,9 @@ Future<void> showPlanificationLivraisonDialog(
                         child: child!,
                       ),
                     );
-                    if (picked != null) setState(() => selectedDate = picked);
+                    if (picked != null) {
+                      setState(() => selectedDate = picked);
+                    }
                   },
                   child: Container(
                     padding: const EdgeInsets.symmetric(
@@ -323,6 +329,8 @@ Future<void> showPlanificationLivraisonDialog(
                   ),
                 ),
                 const SizedBox(height: 14),
+
+                // ── Heure + Lieu ─────────────────────────────────────────
                 Row(
                   children: [
                     Expanded(
@@ -354,6 +362,8 @@ Future<void> showPlanificationLivraisonDialog(
                   ],
                 ),
                 const SizedBox(height: 24),
+
+                // ── Buttons ──────────────────────────────────────────────
                 Row(
                   children: [
                     Expanded(
@@ -377,6 +387,7 @@ Future<void> showPlanificationLivraisonDialog(
                     Expanded(
                       child: ElevatedButton(
                         onPressed: () {
+                          // Validate all three fields
                           if (selectedDate == null ||
                               heureCtrl.text.trim().isEmpty ||
                               lieuCtrl.text.trim().isEmpty) {
@@ -395,10 +406,14 @@ Future<void> showPlanificationLivraisonDialog(
                             );
                             return;
                           }
+
+                          // ── FIX: selectedDate is guaranteed non-null
+                          // here because we returned early above if null.
+                          // Cast with ! so LivraisonInfo receives DateTime.
                           Navigator.pop(ctx);
                           onSave(
                             LivraisonInfo(
-                              date: selectedDate,
+                              date: selectedDate!, // non-null after guard
                               heure: heureCtrl.text.trim(),
                               lieu: lieuCtrl.text.trim(),
                             ),
@@ -430,7 +445,7 @@ Future<void> showPlanificationLivraisonDialog(
   );
 }
 
-// ── Suppression echantillon ───────────────────────────────────────────────────
+// ── Suppression échantillon ───────────────────────────────────────────────────
 Future<void> showSuppressionCollecteurDialog(
   BuildContext context, {
   required EchantillonCollecteur echantillon,
@@ -497,6 +512,7 @@ Future<void> showSuppressionCollecteurDialog(
 class _Label extends StatelessWidget {
   final String text;
   const _Label(this.text);
+
   @override
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.only(bottom: 6),
@@ -515,11 +531,13 @@ class _Field extends StatelessWidget {
   final TextEditingController controller;
   final String hint;
   final TextInputType keyboardType;
+
   const _Field({
     required this.controller,
     required this.hint,
     this.keyboardType = TextInputType.text,
   });
+
   @override
   Widget build(BuildContext context) => TextField(
     controller: controller,

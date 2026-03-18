@@ -1,10 +1,13 @@
 // ═════════════════════════════════════════════════════════════════════════════
-// FILE    : collecteur/pages/mes_echantillons/mes_echantillons_page.dart
+// FILE : collecteur/pages/mes_echantillons/mes_echantillons_page.dart
 // ═════════════════════════════════════════════════════════════════════════════
 
 import 'package:flutter/material.dart';
 import 'models/echantillon_collecteur.dart';
-import 'widgets/echantillon_collecteur_card.dart';
+// `show` restricts the import to only the widget class —
+// prevents StatutCollecteur / EchantillonCollecteur from being
+// pulled in a second time and causing an ambiguous_import error.
+import 'widgets/card/echantillon_collecteur_card.dart' show EchantillonComCard;
 import 'widgets/dialogs/collecteur_dialogs.dart';
 import 'widgets/dialogs/formulaire_collecteur_dialog.dart';
 import '../widgets/collecteur_drawer.dart';
@@ -27,10 +30,10 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
   String _recherche = '';
   StatutCollecteur? _filtreStatut;
 
-  // ── Monotonically increasing counter — never decremented on delete ────────
+  // Monotonically increasing — incremented by the number of bottles added.
   int _compteur = 5;
 
-  // ── Navigation helpers ────────────────────────────────────────────────────
+  // ── Navigation ────────────────────────────────────────────────────────────
   void _goTo(Widget page) {
     Navigator.pop(context);
     Navigator.push(context, MaterialPageRoute(builder: (_) => page));
@@ -57,7 +60,7 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
       camionReservee: null,
       remarques: null,
       dateAjout: '01/03/2026',
-      quantiteEstimee: '10L',
+      quantiteEstimee: '10T',
       variete: 'Chemlali',
       statut: StatutCollecteur.enTraitement,
       collecteurId: 'COL-001',
@@ -74,9 +77,9 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
       camionReservee: null,
       remarques: 'Récolte précoce',
       dateAjout: '28/02/2026',
-      quantiteEstimee: '10L',
+      quantiteEstimee: '10T',
       variete: 'Chetoui',
-      statut: StatutCollecteur.approuveEnNegociation,
+      statut: StatutCollecteur.valideANegocier, // ← was approuveEnNegociation
       collecteurId: 'COL-001',
       collecteurNom: 'Ahmed D.',
     ),
@@ -91,7 +94,7 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
       camionReservee: 'CAM-03',
       remarques: null,
       dateAjout: '20/02/2026',
-      quantiteEstimee: '30L',
+      quantiteEstimee: '30T',
       variete: 'Zalmati',
       statut: StatutCollecteur.achatConfirme,
       collecteurId: 'COL-001',
@@ -113,33 +116,16 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
       camionReservee: null,
       remarques: 'Acidité trop élevée',
       dateAjout: '15/02/2026',
-      quantiteEstimee: '10L',
-      statut: StatutCollecteur.refus,
+      quantiteEstimee: '10T',
+      statut: StatutCollecteur.refuse, // ← was refus
       typeRefus: TypeRefus.refusPanel,
       raisonRefus: 'Acidité trop élevée — hors norme COI',
       collecteurId: 'COL-001',
       collecteurNom: 'Ahmed D.',
     ),
-    EchantillonCollecteur(
-      id: 'ECH-005',
-      ref: '2026/0005',
-      gouvernorat: 'Sfax',
-      codeFournisseur: 'SF-42',
-      referenceBouteille: 'CHEMLALI-C9',
-      scellage: 'Z1',
-      achatConfirme: true,
-      camionReservee: 'CAM-01',
-      remarques: null,
-      dateAjout: '10/01/2026',
-      quantiteEstimee: '10L',
-      variete: 'Chemlali',
-      statut: StatutCollecteur.archive,
-      collecteurId: 'COL-001',
-      collecteurNom: 'Ahmed D.',
-    ),
   ];
 
-  // ── Filter logic ──────────────────────────────────────────────────────────
+  // ── Filter ────────────────────────────────────────────────────────────────
   List<EchantillonCollecteur> get _filtres {
     return _echantillons.where((e) {
       final q = _recherche.toLowerCase();
@@ -160,7 +146,7 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
       context,
       echantillon: e,
       prochainNumero: _compteur,
-      onSave: (updated) {
+      onSaveMultiple: (_) {
         setState(() {});
         _showSuccess('"${e.referenceBouteille}" modifié');
       },
@@ -203,68 +189,61 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
     );
   }
 
-  /// Collector signals that negotiation failed.
-  /// statut → refus | typeRefus → negociationEchouee
-  /// TODO: send push notification to CEO when backend is connected.
   void _onEchecNegociation(EchantillonCollecteur e) {
     showEchecNegociationDialog(
       context,
       echantillon: e,
       onConfirmer: (raison) {
         setState(() {
-          e.statut = StatutCollecteur.refus;
+          e.statut = StatutCollecteur.refuse;
           e.typeRefus = TypeRefus.negociationEchouee;
-          e.raisonRefus = raison; // null if collector left field empty
+          e.raisonRefus = raison;
         });
-        _showWarning('Négociation non aboutie signalée — le CEO a été notifié');
+        _showWarning('Négociation non aboutie signalée — le PDG a été notifié');
       },
     );
   }
 
-  void _showSuccess(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          msg,
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
-          ),
+  void _showSuccess(String msg) => ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Text(
+        msg,
+        style: const TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.w600,
         ),
-        backgroundColor: _green,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        margin: const EdgeInsets.all(20),
       ),
-    );
-  }
+      backgroundColor: _green,
+      behavior: SnackBarBehavior.floating,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      margin: const EdgeInsets.all(20),
+    ),
+  );
 
-  void _showWarning(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          msg,
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
-          ),
+  void _showWarning(String msg) => ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Text(
+        msg,
+        style: const TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.w600,
         ),
-        backgroundColor: const Color(0xFFF57C00),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        margin: const EdgeInsets.all(20),
       ),
-    );
-  }
+      backgroundColor: const Color(0xFFF57C00),
+      behavior: SnackBarBehavior.floating,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      margin: const EdgeInsets.all(20),
+    ),
+  );
 
   // ── Filter chips ──────────────────────────────────────────────────────────
+  // "Archivés" chip removed — archive status no longer exists for collectors.
   static const List<_ChipData> _chips = [
     _ChipData(null, 'Tous'),
     _ChipData(StatutCollecteur.enTraitement, 'En traitement'),
-    _ChipData(StatutCollecteur.approuveEnNegociation, 'En négociation'),
+    _ChipData(StatutCollecteur.valideANegocier, 'À négocier'),
     _ChipData(StatutCollecteur.achatConfirme, 'Achat confirmé'),
-    _ChipData(StatutCollecteur.refus, 'Refusés'),
-    _ChipData(StatutCollecteur.archive, 'Archivés'),
+    _ChipData(StatutCollecteur.refuse, 'Refusés'),
   ];
 
   @override
@@ -322,12 +301,15 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
           showFormulaireCollecteurDialog(
             context,
             prochainNumero: _compteur + 1,
-            onSave: (nouveau) {
+            onSaveMultiple: (nouveaux) {
               setState(() {
-                _compteur++;
-                _echantillons.insert(0, nouveau);
+                for (final s in nouveaux) _echantillons.insert(0, s);
+                _compteur += nouveaux.length;
               });
-              _showSuccess('"${nouveau.referenceBouteille}" ajouté');
+              final label = nouveaux.length == 1
+                  ? '"${nouveaux.first.referenceBouteille}" ajouté'
+                  : '${nouveaux.length} échantillons ajoutés';
+              _showSuccess(label);
             },
           );
         },
@@ -340,7 +322,7 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
       ),
       body: Column(
         children: [
-          // ── Search bar ───────────────────────────────────────────────────
+          // ── Search ────────────────────────────────────────────────────────
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
             child: TextField(
@@ -382,7 +364,7 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
             ),
           ),
 
-          // ── Filter chips ─────────────────────────────────────────────────
+          // ── Filter chips ──────────────────────────────────────────────────
           SizedBox(
             height: 44,
             child: ListView.builder(
@@ -428,7 +410,7 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
 
           const SizedBox(height: 8),
 
-          // ── List ─────────────────────────────────────────────────────────
+          // ── List ──────────────────────────────────────────────────────────
           Expanded(
             child: _filtres.isEmpty
                 ? Center(
@@ -478,7 +460,6 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
                             onPlanifierLivraison: e.canPlanifier
                                 ? () => _onPlanifierLivraison(e)
                                 : null,
-                            // ← NEW: only passed when negotiation is active
                             onEchecNegociation: e.cansignalerEchecNegociation
                                 ? () => _onEchecNegociation(e)
                                 : null,

@@ -32,10 +32,6 @@ class LivraisonInfo {
   String lieu;
 
   LivraisonInfo({required this.date, required this.heure, required this.lieu});
-
-  /// True when all fields are filled — used by the card to decide whether to
-  /// show the delivery summary box or the "non planifiée" warning banner.
-  bool get isComplete => heure.trim().isNotEmpty && lieu.trim().isNotEmpty;
 }
 
 // ── Main model ────────────────────────────────────────────────────────────────
