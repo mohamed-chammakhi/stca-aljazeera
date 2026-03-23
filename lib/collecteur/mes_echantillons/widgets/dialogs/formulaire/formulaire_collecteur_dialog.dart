@@ -1,31 +1,17 @@
 // ═════════════════════════════════════════════════════════════════════════════
 // FILE : collecteur/mes_echantillons/widgets/dialogs/formulaire_collecteur_dialog.dart
-//
-// Entry point — the ONLY file other pages need to import.
-// Sub-files live in the `formulaire-collecteur/` folder next to this file:
-//
-//   formulaire-collecteur/bouteille_row.dart
-//   formulaire-collecteur/formulaire_decorations.dart
-//   formulaire-collecteur/formulaire_sections.dart
-//   formulaire-collecteur/formulaire_state.dart
 // ═════════════════════════════════════════════════════════════════════════════
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../models/echantillon_collecteur.dart';
-import 'formulaire-collecteur/formulaire_decorations.dart';
-import 'formulaire-collecteur/formulaire_sections.dart';
-import 'formulaire-collecteur/formulaire_state.dart';
+import '../../../models/echantillon_collecteur.dart';
+import 'formulaire_decorations.dart';
+import 'formulaire_sections.dart';
+import 'formulaire_state.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PUBLIC ENTRY POINT
 // ─────────────────────────────────────────────────────────────────────────────
-
-/// Opens the formulaire dialog.
-///
-/// [onSaveMultiple] receives:
-///   • one updated sample  — when modifying an existing échantillon
-///   • one sample per row  — when adding (one per bottle row filled in)
 void showFormulaireCollecteurDialog(
   BuildContext context, {
   EchantillonCollecteur? echantillon,
@@ -135,17 +121,16 @@ class _FormulaireCollecteurDialogState
               const FormDivider(),
               const SizedBox(height: 14),
 
+              // Two-level cascade: gouvernorat → délégation
+              // City level removed — geojson does not have that data
               LocationCascadeSection(
                 geoLoaded: geoLoaded,
                 gouvernorat: gouvernorat,
                 delegation: delegation,
-                cite: cite,
-                gouvernorats: geo.gouvernorats,
+                gouvernorats: gouvernoratOptions,
                 delegationOptions: delegationOptions,
-                citeOptions: citeOptions,
                 onGouvernoratChanged: onGouvernoratChanged,
                 onDelegationChanged: onDelegationChanged,
-                onCiteChanged: onCiteChanged,
               ),
 
               const SizedBox(height: 12),
@@ -179,13 +164,9 @@ class _FormulaireCollecteurDialogState
               ),
 
               const SizedBox(height: 12),
-
               const StatutSection(),
-
               const SizedBox(height: 12),
-
               RemarquesSection(controller: remarquesCtrl),
-
               const SizedBox(height: 4),
             ],
           ),

@@ -1,9 +1,6 @@
 // ═════════════════════════════════════════════════════════════════════════════
 // FILE : collecteur/pages/mes_echantillons/widgets/statut_collecteur_badge.dart
 // ═════════════════════════════════════════════════════════════════════════════
-// ═════════════════════════════════════════════════════════════════════════════
-// FILE : collecteur/pages/mes_echantillons/widgets/statut_collecteur_badge.dart
-// ═════════════════════════════════════════════════════════════════════════════
 
 import 'package:flutter/material.dart';
 import '../models/echantillon_collecteur.dart';
@@ -52,19 +49,19 @@ class _Cfg {
 
 _Cfg _cfg(StatutCollecteur s) {
   switch (s) {
-    case StatutCollecteur.enTraitement:
+    case StatutCollecteur.receptionne:
       return const _Cfg(
         Color(0xFFE3F2FD),
         Color(0xFF1E88E5),
         Color(0xFF1E88E5),
-        'En traitement',
+        'Réceptionné',
       );
-    case StatutCollecteur.valideANegocier:
+    case StatutCollecteur.enNegociation:
       return const _Cfg(
         Color(0xFFFFF3E0),
         Color(0xFFF57C00),
         Color(0xFFF57C00),
-        'Validé — À négocier',
+        'En négociation',
       );
     case StatutCollecteur.achatConfirme:
       return const _Cfg(
@@ -72,13 +69,6 @@ _Cfg _cfg(StatutCollecteur s) {
         Color(0xFF38835A),
         Color(0xFF38835A),
         'Achat confirmé',
-      );
-    case StatutCollecteur.refuse:
-      return const _Cfg(
-        Color(0xFFFFEBEE),
-        Color(0xFFC62828),
-        Color(0xFFC62828),
-        'Refusé',
       );
   }
 }

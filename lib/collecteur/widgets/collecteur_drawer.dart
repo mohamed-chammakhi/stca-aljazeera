@@ -8,7 +8,6 @@ class CollecteurDrawer extends StatelessWidget {
   final VoidCallback onMesEchantillons;
   final VoidCallback onCarte;
   final VoidCallback onMessagerie;
-  final VoidCallback onPreferencesCeo;
   final VoidCallback onTableauDeBord;
   final VoidCallback onProfil;
   final VoidCallback onDeconnexion;
@@ -18,7 +17,6 @@ class CollecteurDrawer extends StatelessWidget {
     required this.onMesEchantillons,
     required this.onCarte,
     required this.onMessagerie,
-    required this.onPreferencesCeo,
     required this.onTableauDeBord,
     required this.onProfil,
     required this.onDeconnexion,
@@ -96,15 +94,7 @@ class CollecteurDrawer extends StatelessWidget {
                   label: 'Messagerie CEO',
                   onTap: onMessagerie,
                 ),
-                _buildItem(
-                  icon: const Icon(
-                    Icons.thumb_up_alt_outlined,
-                    color: _green,
-                    size: 22,
-                  ),
-                  label: 'Préférences du CEO',
-                  onTap: onPreferencesCeo,
-                ),
+
                 _buildItem(
                   icon: const Icon(
                     Icons.bar_chart_outlined,

@@ -4,16 +4,14 @@
 
 import 'package:flutter/material.dart';
 import 'models/echantillon_collecteur.dart';
-// `show` restricts the import to only the widget class —
-// prevents StatutCollecteur / EchantillonCollecteur from being
-// pulled in a second time and causing an ambiguous_import error.
 import 'widgets/card/echantillon_collecteur_card.dart' show EchantillonComCard;
 import 'widgets/dialogs/collecteur_dialogs.dart';
-import 'widgets/dialogs/formulaire_collecteur_dialog.dart';
+import 'widgets/dialogs/formulaire/formulaire_collecteur_dialog.dart';
 import '../widgets/collecteur_drawer.dart';
 import '../../../main.dart';
 import '../profilcom.dart';
 import '../carte_geo/carte_geo_page.dart';
+import '../carte_geo/services/geo_service.dart';
 
 const Color _green = Color(0xFF38835A);
 const Color _cream = Color(0xFFF9F6EF);
@@ -29,8 +27,6 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
   final TextEditingController _searchCtrl = TextEditingController();
   String _recherche = '';
   StatutCollecteur? _filtreStatut;
-
-  // Monotonically increasing — incremented by the number of bottles added.
   int _compteur = 5;
 
   // ── Navigation ────────────────────────────────────────────────────────────
@@ -62,7 +58,7 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
       dateAjout: '01/03/2026',
       quantiteEstimee: '10T',
       variete: 'Chemlali',
-      statut: StatutCollecteur.enTraitement,
+      statut: StatutCollecteur.receptionne,
       collecteurId: 'COL-001',
       collecteurNom: 'Ahmed D.',
     ),
@@ -79,7 +75,7 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
       dateAjout: '28/02/2026',
       quantiteEstimee: '10T',
       variete: 'Chetoui',
-      statut: StatutCollecteur.valideANegocier, // ← was approuveEnNegociation
+      statut: StatutCollecteur.enNegociation,
       collecteurId: 'COL-001',
       collecteurNom: 'Ahmed D.',
     ),
@@ -105,25 +101,17 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
         lieu: 'Entrepôt principal Sfax',
       ),
     ),
-    EchantillonCollecteur(
-      id: 'ECH-004',
-      ref: '2026/0004',
-      gouvernorat: 'Kairouan',
-      codeFournisseur: 'KR-22',
-      referenceBouteille: 'OUESLATI-C2',
-      scellage: 'Z3',
-      achatConfirme: false,
-      camionReservee: null,
-      remarques: 'Acidité trop élevée',
-      dateAjout: '15/02/2026',
-      quantiteEstimee: '10T',
-      statut: StatutCollecteur.refuse, // ← was refus
-      typeRefus: TypeRefus.refusPanel,
-      raisonRefus: 'Acidité trop élevée — hors norme COI',
-      collecteurId: 'COL-001',
-      collecteurNom: 'Ahmed D.',
-    ),
   ];
+
+  // ── Rebuild map visited set from the current list ─────────────────────────
+  // Called after every add / modify / delete so the map is always in sync.
+  void _rebuildMap() {
+    GeoService.instance.rebuildFromEchantillons(
+      _echantillons
+          .map((e) => (gouvernorat: e.gouvernorat, delegation: e.delegation))
+          .toList(),
+    );
+  }
 
   // ── Filter ────────────────────────────────────────────────────────────────
   List<EchantillonCollecteur> get _filtres {
@@ -148,6 +136,7 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
       prochainNumero: _compteur,
       onSaveMultiple: (_) {
         setState(() {});
+        _rebuildMap(); // old location removed, new one added
         _showSuccess('"${e.referenceBouteille}" modifié');
       },
     );
@@ -159,6 +148,7 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
       echantillon: e,
       onConfirmer: () {
         setState(() => _echantillons.remove(e));
+        _rebuildMap(); // removed sample's delegation may no longer be visited
         _showSuccess('"${e.referenceBouteille}" supprimé');
       },
     );
@@ -189,21 +179,6 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
     );
   }
 
-  void _onEchecNegociation(EchantillonCollecteur e) {
-    showEchecNegociationDialog(
-      context,
-      echantillon: e,
-      onConfirmer: (raison) {
-        setState(() {
-          e.statut = StatutCollecteur.refuse;
-          e.typeRefus = TypeRefus.negociationEchouee;
-          e.raisonRefus = raison;
-        });
-        _showWarning('Négociation non aboutie signalée — le PDG a été notifié');
-      },
-    );
-  }
-
   void _showSuccess(String msg) => ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
       content: Text(
@@ -220,30 +195,12 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
     ),
   );
 
-  void _showWarning(String msg) => ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(
-      content: Text(
-        msg,
-        style: const TextStyle(
-          color: Colors.white,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-      backgroundColor: const Color(0xFFF57C00),
-      behavior: SnackBarBehavior.floating,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      margin: const EdgeInsets.all(20),
-    ),
-  );
-
   // ── Filter chips ──────────────────────────────────────────────────────────
-  // "Archivés" chip removed — archive status no longer exists for collectors.
   static const List<_ChipData> _chips = [
     _ChipData(null, 'Tous'),
-    _ChipData(StatutCollecteur.enTraitement, 'En traitement'),
-    _ChipData(StatutCollecteur.valideANegocier, 'À négocier'),
+    _ChipData(StatutCollecteur.receptionne, 'Réceptionné'),
+    _ChipData(StatutCollecteur.enNegociation, 'En négociation'),
     _ChipData(StatutCollecteur.achatConfirme, 'Achat confirmé'),
-    _ChipData(StatutCollecteur.refuse, 'Refusés'),
   ];
 
   @override
@@ -259,9 +216,8 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
       backgroundColor: _cream,
       drawer: CollecteurDrawer(
         onMesEchantillons: () => Navigator.pop(context),
-        onCarte: () => _goTo(const CarteGeoPage()),
+        onCarte: () => _goTo(CarteGeoPage(echantillons: _echantillons)),
         onMessagerie: () => _goTo(const Placeholder()),
-        onPreferencesCeo: () => _goTo(const Placeholder()),
         onTableauDeBord: () => _goTo(const Placeholder()),
         onProfil: () => _goTo(const ProfileCollecteurPage()),
         onDeconnexion: _goToLogin,
@@ -303,9 +259,12 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
             prochainNumero: _compteur + 1,
             onSaveMultiple: (nouveaux) {
               setState(() {
-                for (final s in nouveaux) _echantillons.insert(0, s);
+                for (final s in nouveaux) {
+                  _echantillons.insert(0, s);
+                }
                 _compteur += nouveaux.length;
               });
+              _rebuildMap(); // new delegations added to visited set
               final label = nouveaux.length == 1
                   ? '"${nouveaux.first.referenceBouteille}" ajouté'
                   : '${nouveaux.length} échantillons ajoutés';
@@ -459,9 +418,6 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
                                 : null,
                             onPlanifierLivraison: e.canPlanifier
                                 ? () => _onPlanifierLivraison(e)
-                                : null,
-                            onEchecNegociation: e.cansignalerEchecNegociation
-                                ? () => _onEchecNegociation(e)
                                 : null,
                           );
                         },

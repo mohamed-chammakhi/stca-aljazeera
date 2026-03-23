@@ -37,8 +37,7 @@ class TableauDeBordCollecteurPage extends StatelessWidget {
         onCarte: () => _goTo(context, const Placeholder()), // TODO: CartePage()
         onMessagerie: () =>
             _goTo(context, const Placeholder()), // TODO: MessageriePage()
-        onPreferencesCeo: () =>
-            _goTo(context, const Placeholder()), // TODO: PreferencesCeoPage()
+
         onTableauDeBord: () => Navigator.pop(context),
         onProfil: () => _goTo(context, const ProfileCollecteurPage()),
         onDeconnexion: () => _goToLogin(context),

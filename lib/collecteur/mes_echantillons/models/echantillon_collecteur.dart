@@ -3,26 +3,23 @@
 //
 // STATUS WORKFLOW (non-reversible, strictly sequential):
 //
-//   enTraitement       → sample registered, panel/lab evaluation in progress
-//   valideANegocier    → CEO approved; collector must negotiate with supplier
-//   achatConfirme      → negotiation succeeded; collector must plan delivery
-//   refuse             → CEO/panel rejection OR negotiation failed
+//   receptionne    → sample registered and received, evaluation in progress
+//   enNegociation  → CEO validated; collector negotiating with supplier
+//   achatConfirme  → negotiation succeeded; collector must plan delivery
 //
-// "archive" has been removed — it is not relevant to the collector's workflow.
+// Notes:
+//   • There is no "refuse" status. If the CEO rejects a sample it simply
+//     never moves to enNegociation — it stays at receptionne on the
+//     collector's side with no action available.
+//   • If negotiation fails the sample stays frozen at enNegociation
+//     with no action available. No status change occurs.
 // ═════════════════════════════════════════════════════════════════════════════
 
-// ── Status enum ──────────────────────────────────────────────────────────────
+// ── Status enum ───────────────────────────────────────────────────────────────
 enum StatutCollecteur {
-  enTraitement,
-  valideANegocier, // was: approuveEnNegociation
+  receptionne, // was: enTraitement
+  enNegociation, // was: valideANegocier
   achatConfirme,
-  refuse, // was: refus
-}
-
-// ── Refusal sub-type ─────────────────────────────────────────────────────────
-enum TypeRefus {
-  refusPanel, // panel or CEO rejected the sample on quality grounds
-  negociationEchouee, // collector could not reach a commercial agreement
 }
 
 // ── Delivery info ─────────────────────────────────────────────────────────────
@@ -71,8 +68,6 @@ class EchantillonCollecteur {
 
   // Status
   StatutCollecteur statut;
-  TypeRefus? typeRefus;
-  String? raisonRefus;
 
   EchantillonCollecteur({
     required this.id,
@@ -94,26 +89,17 @@ class EchantillonCollecteur {
     required this.collecteurId,
     required this.collecteurNom,
     required this.statut,
-    this.typeRefus,
-    this.raisonRefus,
   });
 
-  // ── Permission helpers used by the card and the page ──────────────────────
+  // ── Permission helpers ────────────────────────────────────────────────────
 
-  /// Edit is allowed only while evaluation is still in progress.
-  bool get canModify => statut == StatutCollecteur.enTraitement;
+  /// Edit and delete allowed only while evaluation is still in progress.
+  bool get canModify => statut == StatutCollecteur.receptionne;
+  bool get canDelete => statut == StatutCollecteur.receptionne;
 
-  /// Free delete within 30 min; after that a CEO-approved request is needed.
-  /// Blocked once the sample has been evaluated (any status beyond enTraitement).
-  bool get canDelete => statut == StatutCollecteur.enTraitement;
+  /// Confirm purchase available only once CEO has sent to negotiation.
+  bool get canConfirm => statut == StatutCollecteur.enNegociation;
 
-  /// Confirm purchase is available only after CEO validation.
-  bool get canConfirm => statut == StatutCollecteur.valideANegocier;
-
-  /// Delivery planning becomes available once the purchase is confirmed.
+  /// Delivery planning available once purchase is confirmed.
   bool get canPlanifier => statut == StatutCollecteur.achatConfirme;
-
-  /// Collector can signal a failed negotiation only while in valideANegocier.
-  bool get cansignalerEchecNegociation =>
-      statut == StatutCollecteur.valideANegocier;
 }

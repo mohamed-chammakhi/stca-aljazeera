@@ -230,7 +230,6 @@ class _ProfileCollecteurPageState extends State<ProfileCollecteurPage> {
         onMesEchantillons: () => _goTo(const MesEchantillonsPage()),
         onCarte: () => _goTo(const Placeholder()),
         onMessagerie: () => _goTo(const Placeholder()),
-        onPreferencesCeo: () => _goTo(const Placeholder()),
         onTableauDeBord: () => _goTo(const TableauDeBordCollecteurPage()),
         onProfil: () => Navigator.pop(context), // ✅ fixed — was missing
         onDeconnexion: _goToLogin,
