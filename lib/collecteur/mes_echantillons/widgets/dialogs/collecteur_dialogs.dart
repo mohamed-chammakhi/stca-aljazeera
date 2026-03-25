@@ -4,6 +4,7 @@
 
 import 'package:flutter/material.dart';
 import '../../models/echantillon_collecteur.dart';
+import 'formulaire/planification_livraison.dart';
 
 const Color _green = Color(0xFF38835A);
 const Color _orange = Color(0xFFF57C00);
@@ -218,20 +219,17 @@ Future<void> showEchecNegociationDialog(
 Future<void> showPlanificationLivraisonDialog(
   BuildContext context, {
   required EchantillonCollecteur echantillon,
-  required ValueChanged<LivraisonInfo> onSave,
+  required ValueChanged<PlanificationLivraison> onSave,
 }) {
-  final livraisonExistante = echantillon.livraison;
+  final existing = echantillon.livraison;
 
-  // ── FIX: selectedDate is non-nullable after validation. ───────────────────
-  // We keep it nullable during editing so the "no date chosen" state is
-  // representable, but we guard before calling onSave so the compiler is
-  // satisfied that the DateTime passed to LivraisonInfo is never null.
-  DateTime? selectedDate = livraisonExistante?.date;
+  DateTime? selectedDate = existing?.dateExacte;
+  TimeOfDay? selectedTime = existing != null
+      ? _parseTimeOfDay(existing.heure)
+      : null;
 
-  final heureCtrl = TextEditingController(
-    text: livraisonExistante?.heure ?? '',
-  );
-  final lieuCtrl = TextEditingController(text: livraisonExistante?.lieu ?? '');
+  final lieuCtrl = TextEditingController(text: existing?.lieu ?? '');
+  final camionCtrl = TextEditingController(text: existing?.camion ?? '');
 
   return showModalBottomSheet(
     context: context,
@@ -275,8 +273,8 @@ Future<void> showPlanificationLivraisonDialog(
                 ),
                 const SizedBox(height: 20),
 
-                // ── Date ────────────────────────────────────────────────
-                _Label('Date de livraison *'),
+                // ── Date ──────────────────────────────────────────────────
+                const _Label('Date de livraison *'),
                 GestureDetector(
                   onTap: () async {
                     final picked = await showDatePicker(
@@ -291,57 +289,57 @@ Future<void> showPlanificationLivraisonDialog(
                         child: child!,
                       ),
                     );
-                    if (picked != null) {
-                      setState(() => selectedDate = picked);
-                    }
+                    if (picked != null) setState(() => selectedDate = picked);
                   },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 13,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF7FAF8),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: Colors.grey.shade200),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(
-                          Icons.calendar_today_outlined,
-                          size: 16,
-                          color: _green,
-                        ),
-                        const SizedBox(width: 10),
-                        Text(
-                          selectedDate != null
-                              ? '${selectedDate!.day}/${selectedDate!.month}/${selectedDate!.year}'
-                              : 'Sélectionner une date',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: selectedDate != null
-                                ? const Color(0xFF1A2E1F)
-                                : Colors.grey.shade400,
-                          ),
-                        ),
-                      ],
-                    ),
+                  child: _PickerTile(
+                    icon: Icons.calendar_today_outlined,
+                    text: selectedDate != null
+                        ? '${selectedDate!.day.toString().padLeft(2, '0')}/'
+                              '${selectedDate!.month.toString().padLeft(2, '0')}/'
+                              '${selectedDate!.year}'
+                        : 'Sélectionner une date',
+                    hasValue: selectedDate != null,
                   ),
                 ),
                 const SizedBox(height: 14),
 
-                // ── Heure + Lieu ─────────────────────────────────────────
+                // ── Heure ─────────────────────────────────────────────────
+                const _Label('Heure de livraison *'),
+                GestureDetector(
+                  onTap: () async {
+                    final picked = await showTimePicker(
+                      context: ctx,
+                      initialTime: selectedTime ?? TimeOfDay.now(),
+                      builder: (context, child) => Theme(
+                        data: Theme.of(context).copyWith(
+                          colorScheme: const ColorScheme.light(primary: _green),
+                        ),
+                        child: child!,
+                      ),
+                    );
+                    if (picked != null) setState(() => selectedTime = picked);
+                  },
+                  child: _PickerTile(
+                    icon: Icons.access_time_outlined,
+                    text: selectedTime != null
+                        ? _formatTime(selectedTime!)
+                        : 'Sélectionner une heure',
+                    hasValue: selectedTime != null,
+                  ),
+                ),
+                const SizedBox(height: 14),
+
+                // ── Lieu + Camion ─────────────────────────────────────────
                 Row(
                   children: [
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _Label('Heure *'),
+                          const _Label('Lieu *'),
                           _Field(
-                            controller: heureCtrl,
-                            hint: 'ex: 09:00',
-                            keyboardType: TextInputType.datetime,
+                            controller: lieuCtrl,
+                            hint: 'Adresse ou ville',
                           ),
                         ],
                       ),
@@ -351,11 +349,8 @@ Future<void> showPlanificationLivraisonDialog(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _Label('Lieu *'),
-                          _Field(
-                            controller: lieuCtrl,
-                            hint: 'Adresse ou ville',
-                          ),
+                          const _Label('Camion (optionnel)'),
+                          _Field(controller: camionCtrl, hint: 'Ex: CAM-03'),
                         ],
                       ),
                     ),
@@ -363,7 +358,7 @@ Future<void> showPlanificationLivraisonDialog(
                 ),
                 const SizedBox(height: 24),
 
-                // ── Buttons ──────────────────────────────────────────────
+                // ── Buttons ───────────────────────────────────────────────
                 Row(
                   children: [
                     Expanded(
@@ -387,14 +382,13 @@ Future<void> showPlanificationLivraisonDialog(
                     Expanded(
                       child: ElevatedButton(
                         onPressed: () {
-                          // Validate all three fields
                           if (selectedDate == null ||
-                              heureCtrl.text.trim().isEmpty ||
+                              selectedTime == null ||
                               lieuCtrl.text.trim().isEmpty) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: const Text(
-                                  'Tous les champs sont obligatoires',
+                                  'Date, heure et lieu sont obligatoires',
                                 ),
                                 backgroundColor: Colors.red.shade400,
                                 behavior: SnackBarBehavior.floating,
@@ -406,16 +400,15 @@ Future<void> showPlanificationLivraisonDialog(
                             );
                             return;
                           }
-
-                          // ── FIX: selectedDate is guaranteed non-null
-                          // here because we returned early above if null.
-                          // Cast with ! so LivraisonInfo receives DateTime.
                           Navigator.pop(ctx);
                           onSave(
-                            LivraisonInfo(
-                              date: selectedDate!, // non-null after guard
-                              heure: heureCtrl.text.trim(),
+                            PlanificationLivraison.exact(
+                              date: selectedDate!,
+                              heure: _formatTime(selectedTime!),
                               lieu: lieuCtrl.text.trim(),
+                              camion: camionCtrl.text.trim().isEmpty
+                                  ? null
+                                  : camionCtrl.text.trim(),
                             ),
                           );
                         },
@@ -508,7 +501,65 @@ Future<void> showSuppressionCollecteurDialog(
   );
 }
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// ── Time helpers ──────────────────────────────────────────────────────────────
+String _formatTime(TimeOfDay t) {
+  final hour = t.hourOfPeriod == 0 ? 12 : t.hourOfPeriod;
+  final minute = t.minute.toString().padLeft(2, '0');
+  final period = t.period == DayPeriod.am ? 'AM' : 'PM';
+  return '$hour:$minute $period';
+}
+
+TimeOfDay? _parseTimeOfDay(String s) {
+  try {
+    final parts = s.split(' ');
+    final hm = parts[0].split(':');
+    int hour = int.parse(hm[0]);
+    final minute = int.parse(hm[1]);
+    final isPm = parts.length > 1 && parts[1].toUpperCase() == 'PM';
+    if (isPm && hour != 12) hour += 12;
+    if (!isPm && hour == 12) hour = 0;
+    return TimeOfDay(hour: hour, minute: minute);
+  } catch (_) {
+    return null;
+  }
+}
+
+// ── Widget helpers ────────────────────────────────────────────────────────────
+class _PickerTile extends StatelessWidget {
+  final IconData icon;
+  final String text;
+  final bool hasValue;
+
+  const _PickerTile({
+    required this.icon,
+    required this.text,
+    required this.hasValue,
+  });
+
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+    decoration: BoxDecoration(
+      color: const Color(0xFFF7FAF8),
+      borderRadius: BorderRadius.circular(10),
+      border: Border.all(color: Colors.grey.shade200),
+    ),
+    child: Row(
+      children: [
+        Icon(icon, size: 16, color: _green),
+        const SizedBox(width: 10),
+        Text(
+          text,
+          style: TextStyle(
+            fontSize: 14,
+            color: hasValue ? const Color(0xFF1A2E1F) : Colors.grey.shade400,
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
 class _Label extends StatelessWidget {
   final String text;
   const _Label(this.text);

@@ -163,7 +163,31 @@ class _FormulaireCollecteurDialogState
                 onPickDate: () => pickDate(context),
               ),
 
+              const SizedBox(height: 16),
+              const FormDivider(),
+              const SizedBox(height: 14),
+
+              // ── Planification de l'arrivage (optionnel) ──────────────────
+              PlanificationArrivageSection(
+                active: planificationActive,
+                onToggle: togglePlanification,
+                mode: planificationMode,
+                onModeChanged: onPlanificationModeChanged,
+                dateExacte: arrivageDateExacte,
+                periodeDebut: arrivagePeriodeDebut,
+                periodeFin: arrivagePeriodeFin,
+                onDateExacteChanged: (d) =>
+                    setState(() => arrivageDateExacte = d),
+                onPeriodeDebutChanged: (d) =>
+                    setState(() => arrivagePeriodeDebut = d),
+                onPeriodeFinChanged: (d) =>
+                    setState(() => arrivagePeriodeFin = d),
+              ),
+
+              const SizedBox(height: 16),
+              const FormDivider(),
               const SizedBox(height: 12),
+
               const StatutSection(),
               const SizedBox(height: 12),
               RemarquesSection(controller: remarquesCtrl),

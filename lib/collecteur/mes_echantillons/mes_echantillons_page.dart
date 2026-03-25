@@ -7,6 +7,8 @@ import 'models/echantillon_collecteur.dart';
 import 'widgets/card/echantillon_collecteur_card.dart' show EchantillonComCard;
 import 'widgets/dialogs/collecteur_dialogs.dart';
 import 'widgets/dialogs/formulaire/formulaire_collecteur_dialog.dart';
+import 'widgets/dialogs/formulaire/planification_livraison.dart';
+import 'widgets/collecteur_date_filter_sheet.dart';
 import '../widgets/collecteur_drawer.dart';
 import '../../../main.dart';
 import '../profilcom.dart';
@@ -28,8 +30,11 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
   String _recherche = '';
   StatutCollecteur? _filtreStatut;
   int _compteur = 5;
+  DateTime? _dateDebut;
+  DateTime? _dateFin;
 
-  // ── Navigation ────────────────────────────────────────────────────────────
+  bool get _dateFilterActive => _dateDebut != null || _dateFin != null;
+
   void _goTo(Widget page) {
     Navigator.pop(context);
     Navigator.push(context, MaterialPageRoute(builder: (_) => page));
@@ -43,17 +48,16 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
     );
   }
 
-  // ── Mock data ─────────────────────────────────────────────────────────────
   final List<EchantillonCollecteur> _echantillons = [
     EchantillonCollecteur(
       id: 'ECH-001',
       ref: '2026/0001',
       gouvernorat: 'Sfax',
+      delegation: 'try',
       codeFournisseur: 'SF-42',
       referenceBouteille: 'CHEMLALI-C1',
       scellage: 'Z1',
       achatConfirme: false,
-      camionReservee: null,
       remarques: null,
       dateAjout: '01/03/2026',
       quantiteEstimee: '10T',
@@ -66,11 +70,11 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
       id: 'ECH-002',
       ref: '2026/0002',
       gouvernorat: 'Béja',
+      delegation: 'try',
       codeFournisseur: 'BJ-15',
       referenceBouteille: 'CHETOUI-C3',
       scellage: 'Z2',
       achatConfirme: false,
-      camionReservee: null,
       remarques: 'Récolte précoce',
       dateAjout: '28/02/2026',
       quantiteEstimee: '10T',
@@ -83,11 +87,11 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
       id: 'ECH-003',
       ref: '2026/0003',
       gouvernorat: 'Gafsa',
+      delegation: 'try',
       codeFournisseur: 'GF-08',
       referenceBouteille: 'ZALMATI-C7',
       scellage: 'Z1',
       achatConfirme: true,
-      camionReservee: 'CAM-03',
       remarques: null,
       dateAjout: '20/02/2026',
       quantiteEstimee: '30T',
@@ -95,16 +99,15 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
       statut: StatutCollecteur.achatConfirme,
       collecteurId: 'COL-001',
       collecteurNom: 'Ahmed D.',
-      livraison: LivraisonInfo(
+      livraison: PlanificationLivraison.exact(
         date: DateTime(2026, 3, 15),
-        heure: '09:00',
+        heure: '9:00 AM',
         lieu: 'Entrepôt principal Sfax',
+        camion: 'CAM-03',
       ),
     ),
   ];
 
-  // ── Rebuild map visited set from the current list ─────────────────────────
-  // Called after every add / modify / delete so the map is always in sync.
   void _rebuildMap() {
     GeoService.instance.rebuildFromEchantillons(
       _echantillons
@@ -113,7 +116,16 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
     );
   }
 
-  // ── Filter ────────────────────────────────────────────────────────────────
+  DateTime? _parseDate(String s) {
+    try {
+      final p = s.split('/');
+      if (p.length != 3) return null;
+      return DateTime(int.parse(p[2]), int.parse(p[1]), int.parse(p[0]));
+    } catch (_) {
+      return null;
+    }
+  }
+
   List<EchantillonCollecteur> get _filtres {
     return _echantillons.where((e) {
       final q = _recherche.toLowerCase();
@@ -124,11 +136,37 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
           e.gouvernorat.toLowerCase().contains(q) ||
           (e.variete?.toLowerCase().contains(q) ?? false);
       final matchStatut = _filtreStatut == null || e.statut == _filtreStatut;
-      return matchRecherche && matchStatut;
+      bool matchDate = true;
+      if (_dateFilterActive) {
+        final raw = _parseDate(e.dateAjout);
+        if (raw == null) {
+          matchDate = false;
+        } else {
+          final d = DateTime(raw.year, raw.month, raw.day);
+          final debut = _dateDebut != null
+              ? DateTime(_dateDebut!.year, _dateDebut!.month, _dateDebut!.day)
+              : null;
+          final fin = _dateFin != null
+              ? DateTime(_dateFin!.year, _dateFin!.month, _dateFin!.day)
+              : null;
+          if (debut != null && fin != null) {
+            matchDate = !d.isBefore(debut) && !d.isAfter(fin);
+          } else if (debut != null) {
+            matchDate = !d.isBefore(debut);
+          } else if (fin != null) {
+            matchDate = !d.isAfter(fin);
+          }
+        }
+      }
+      return matchRecherche && matchStatut && matchDate;
     }).toList();
   }
 
-  // ── Actions ───────────────────────────────────────────────────────────────
+  String _fmt(DateTime d) =>
+      '${d.day.toString().padLeft(2, '0')}/'
+      '${d.month.toString().padLeft(2, '0')}/'
+      '${d.year}';
+
   void _onModifier(EchantillonCollecteur e) {
     showFormulaireCollecteurDialog(
       context,
@@ -136,7 +174,7 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
       prochainNumero: _compteur,
       onSaveMultiple: (_) {
         setState(() {});
-        _rebuildMap(); // old location removed, new one added
+        _rebuildMap();
         _showSuccess('"${e.referenceBouteille}" modifié');
       },
     );
@@ -148,7 +186,7 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
       echantillon: e,
       onConfirmer: () {
         setState(() => _echantillons.remove(e));
-        _rebuildMap(); // removed sample's delegation may no longer be visited
+        _rebuildMap();
         _showSuccess('"${e.referenceBouteille}" supprimé');
       },
     );
@@ -172,7 +210,7 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
     showPlanificationLivraisonDialog(
       context,
       echantillon: e,
-      onSave: (livraison) {
+      onSave: (PlanificationLivraison livraison) {
         setState(() => e.livraison = livraison);
         _showSuccess('Livraison planifiée');
       },
@@ -195,7 +233,6 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
     ),
   );
 
-  // ── Filter chips ──────────────────────────────────────────────────────────
   static const List<_ChipData> _chips = [
     _ChipData(null, 'Tous'),
     _ChipData(StatutCollecteur.receptionne, 'Réceptionné'),
@@ -209,7 +246,6 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
     super.dispose();
   }
 
-  // ── Build ─────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -259,12 +295,10 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
             prochainNumero: _compteur + 1,
             onSaveMultiple: (nouveaux) {
               setState(() {
-                for (final s in nouveaux) {
-                  _echantillons.insert(0, s);
-                }
+                for (final s in nouveaux) _echantillons.insert(0, s);
                 _compteur += nouveaux.length;
               });
-              _rebuildMap(); // new delegations added to visited set
+              _rebuildMap();
               final label = nouveaux.length == 1
                   ? '"${nouveaux.first.referenceBouteille}" ajouté'
                   : '${nouveaux.length} échantillons ajoutés';
@@ -281,7 +315,6 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
       ),
       body: Column(
         children: [
-          // ── Search ────────────────────────────────────────────────────────
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
             child: TextField(
@@ -322,54 +355,151 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
               ),
             ),
           ),
-
-          // ── Filter chips ──────────────────────────────────────────────────
-          SizedBox(
-            height: 44,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              itemCount: _chips.length,
-              itemBuilder: (_, i) {
-                final chip = _chips[i];
-                final isSelected = _filtreStatut == chip.statut;
-                return Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: GestureDetector(
-                    onTap: () => setState(() => _filtreStatut = chip.statut),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 8,
-                      ),
-                      decoration: BoxDecoration(
-                        color: isSelected ? _green : Colors.white,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: isSelected ? _green : Colors.grey.shade200,
-                        ),
-                      ),
-                      child: Text(
-                        chip.label,
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: isSelected
-                              ? Colors.white
-                              : Colors.grey.shade600,
-                        ),
-                      ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              children: [
+                Expanded(
+                  child: SizedBox(
+                    height: 44,
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: _chips.length,
+                      itemBuilder: (_, i) {
+                        final chip = _chips[i];
+                        final isSelected = _filtreStatut == chip.statut;
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 8),
+                          child: GestureDetector(
+                            onTap: () =>
+                                setState(() => _filtreStatut = chip.statut),
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 8,
+                              ),
+                              decoration: BoxDecoration(
+                                color: isSelected ? _green : Colors.white,
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color: isSelected
+                                      ? _green
+                                      : Colors.grey.shade200,
+                                ),
+                              ),
+                              child: Text(
+                                chip.label,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: isSelected
+                                      ? Colors.white
+                                      : Colors.grey.shade600,
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
                     ),
                   ),
-                );
-              },
+                ),
+                const SizedBox(width: 8),
+                GestureDetector(
+                  onTap: () => showCollecteurDateFilterSheet(
+                    context,
+                    dateDebut: _dateDebut,
+                    dateFin: _dateFin,
+                    onApply: (debut, fin) => setState(() {
+                      _dateDebut = debut;
+                      _dateFin = fin;
+                    }),
+                    onClear: () => setState(() {
+                      _dateDebut = null;
+                      _dateFin = null;
+                    }),
+                  ),
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: _dateFilterActive
+                              ? _green.withOpacity(0.12)
+                              : Colors.white,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: _dateFilterActive
+                                ? _green
+                                : Colors.grey.shade200,
+                          ),
+                        ),
+                        child: Icon(
+                          Icons.date_range_outlined,
+                          color: _dateFilterActive
+                              ? _green
+                              : Colors.grey.shade500,
+                          size: 20,
+                        ),
+                      ),
+                      if (_dateFilterActive)
+                        Positioned(
+                          top: -4,
+                          right: -4,
+                          child: Container(
+                            width: 10,
+                            height: 10,
+                            decoration: const BoxDecoration(
+                              color: Colors.orange,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
-
+          if (_dateFilterActive) ...[
+            const SizedBox(height: 6),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.filter_alt_outlined,
+                    color: Colors.grey.shade500,
+                    size: 14,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    _dateDebut != null &&
+                            _dateFin != null &&
+                            _dateDebut!.isAtSameMomentAs(_dateFin!)
+                        ? 'Le ${_fmt(_dateDebut!)}'
+                        : 'Du ${_fmt(_dateDebut!)}  →  ${_fmt(_dateFin!)}',
+                    style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+                  ),
+                  const Spacer(),
+                  GestureDetector(
+                    onTap: () => setState(() {
+                      _dateDebut = null;
+                      _dateFin = null;
+                    }),
+                    child: Icon(
+                      Icons.close,
+                      color: Colors.grey.shade500,
+                      size: 16,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
           const SizedBox(height: 8),
-
-          // ── List ──────────────────────────────────────────────────────────
           Expanded(
             child: _filtres.isEmpty
                 ? Center(

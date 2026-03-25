@@ -13,6 +13,7 @@
 import 'package:flutter/material.dart';
 import '../../models/echantillon_collecteur.dart';
 import 'card_theme.dart';
+import '../dialogs/formulaire/planification_livraison.dart';
 
 // ── Info item ─────────────────────────────────────────────────────────────────
 class CardInfoItem extends StatelessWidget {
@@ -34,8 +35,7 @@ class CardInfoItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final labelCol = grey ? Colors.grey.shade400 : Colors.grey.shade500;
-    final valueCol =
-        grey ? Colors.grey.shade400 : (valueColor ?? kDarkText);
+    final valueCol = grey ? Colors.grey.shade400 : (valueColor ?? kDarkText);
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -46,8 +46,7 @@ class CardInfoItem extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(label,
-                  style: TextStyle(fontSize: 10, color: labelCol)),
+              Text(label, style: TextStyle(fontSize: 10, color: labelCol)),
               const SizedBox(height: 1),
               Text(
                 value,
@@ -74,34 +73,29 @@ class CardRefChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-        padding:
-            const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-        decoration: BoxDecoration(
-          color: grey
-              ? Colors.grey.shade100
-              : kGreen.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(6),
-          border: Border.all(
-            color: grey
-                ? Colors.grey.shade300
-                : kGreen.withValues(alpha: 0.2),
-          ),
-        ),
-        child: Text(
-          '# ${label.isNotEmpty ? label : "—"}',
-          style: TextStyle(
-            fontSize: 12,
-            color: grey ? Colors.grey.shade400 : kGreen,
-            fontWeight: FontWeight.w600,
-            letterSpacing: 0.5,
-          ),
-        ),
-      );
+    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+    decoration: BoxDecoration(
+      color: grey ? Colors.grey.shade100 : kGreen.withValues(alpha: 0.08),
+      borderRadius: BorderRadius.circular(6),
+      border: Border.all(
+        color: grey ? Colors.grey.shade300 : kGreen.withValues(alpha: 0.2),
+      ),
+    ),
+    child: Text(
+      '# ${label.isNotEmpty ? label : "—"}',
+      style: TextStyle(
+        fontSize: 12,
+        color: grey ? Colors.grey.shade400 : kGreen,
+        fontWeight: FontWeight.w600,
+        letterSpacing: 0.5,
+      ),
+    ),
+  );
 }
 
 // ── Livraison box ─────────────────────────────────────────────────────────────
 class CardLivraisonBox extends StatelessWidget {
-  final LivraisonInfo livraison;
+  final PlanificationLivraison livraison; // ← était LivraisonInfo
   final bool grey;
 
   const CardLivraisonBox({
@@ -113,8 +107,7 @@ class CardLivraisonBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = grey ? Colors.grey.shade400 : kGreen;
-    final bg =
-        grey ? Colors.grey.shade100 : const Color(0xFFE8F5E9);
+    final bg = grey ? Colors.grey.shade100 : const Color(0xFFE8F5E9);
 
     return Container(
       width: double.infinity,
@@ -129,9 +122,7 @@ class CardLivraisonBox extends StatelessWidget {
           const SizedBox(width: 7),
           Expanded(
             child: Text(
-              '${livraison.date!.day}/${livraison.date!.month}/${livraison.date!.year}'
-              '  ·  ${livraison.heure}'
-              '  ·  ${livraison.lieu}',
+              livraison.libelle,
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
@@ -151,28 +142,27 @@ class CardLivraisonManquante extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          color: const Color(0xFFFFF8E1),
-          borderRadius: BorderRadius.circular(8),
+    width: double.infinity,
+    padding: const EdgeInsets.all(10),
+    decoration: BoxDecoration(
+      color: const Color(0xFFFFF8E1),
+      borderRadius: BorderRadius.circular(8),
+    ),
+    child: const Row(
+      children: [
+        Icon(Icons.warning_amber_outlined, size: 14, color: kOrange),
+        SizedBox(width: 7),
+        Text(
+          'Livraison non planifiée',
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: kOrange,
+          ),
         ),
-        child: const Row(
-          children: [
-            Icon(Icons.warning_amber_outlined,
-                size: 14, color: kOrange),
-            SizedBox(width: 7),
-            Text(
-              'Livraison non planifiée',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: kOrange,
-              ),
-            ),
-          ],
-        ),
-      );
+      ],
+    ),
+  );
 }
 
 // ── Remarques box ─────────────────────────────────────────────────────────────
@@ -180,46 +170,36 @@ class CardRemarquesBox extends StatelessWidget {
   final String text;
   final bool grey;
 
-  const CardRemarquesBox({
-    super.key,
-    required this.text,
-    required this.grey,
-  });
+  const CardRemarquesBox({super.key, required this.text, required this.grey});
 
   @override
   Widget build(BuildContext context) => Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          color: grey
-              ? Colors.grey.shade100
-              : kGreen.withValues(alpha: 0.05),
-          borderRadius: BorderRadius.circular(8),
+    width: double.infinity,
+    padding: const EdgeInsets.all(10),
+    decoration: BoxDecoration(
+      color: grey ? Colors.grey.shade100 : kGreen.withValues(alpha: 0.05),
+      borderRadius: BorderRadius.circular(8),
+    ),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(
+          Icons.notes_rounded,
+          size: 13,
+          color: grey ? Colors.grey.shade400 : Colors.grey.shade500,
         ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(
-              Icons.notes_rounded,
-              size: 13,
-              color: grey
-                  ? Colors.grey.shade400
-                  : Colors.grey.shade500,
+        const SizedBox(width: 6),
+        Expanded(
+          child: Text(
+            text,
+            style: TextStyle(
+              fontSize: 12,
+              color: grey ? Colors.grey.shade400 : Colors.grey.shade600,
+              height: 1.4,
             ),
-            const SizedBox(width: 6),
-            Expanded(
-              child: Text(
-                text,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: grey
-                      ? Colors.grey.shade400
-                      : Colors.grey.shade600,
-                  height: 1.4,
-                ),
-              ),
-            ),
-          ],
+          ),
         ),
-      );
+      ],
+    ),
+  );
 }

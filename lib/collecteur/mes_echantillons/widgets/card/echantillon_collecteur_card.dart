@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../models/echantillon_collecteur.dart';
 import '../statut_collecteur_badge.dart';
+import '../dialogs/formulaire/planification_livraison.dart'; // ← ajouté
 
 const Color _green = Color(0xFF38835A);
 const Color _oliveGreen = Color(0xFF6B8143);
@@ -49,7 +50,7 @@ class EchantillonComCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── ROW 1 : Photo + Référence bouteille + Statut badge ─────────
+            // ── ROW 1 : Photo + ID + Statut badge ──────────────────────────
             Row(
               children: [
                 Container(
@@ -73,13 +74,37 @@ class EchantillonComCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: Text(
-                    e.referenceBouteille,
-                    style: GoogleFonts.domine(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                      color: _darkText,
-                    ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        e.ref,
+                        style: GoogleFonts.domine(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: _darkText,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.calendar_today_outlined,
+                            size: 11,
+                            color: Colors.grey.shade400,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            'Ajouté le ${e.dateAjout}',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: Colors.grey.shade400,
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
                 StatutCollecteurBadge(statut: e.statut),
@@ -90,12 +115,12 @@ class EchantillonComCard extends StatelessWidget {
             Divider(color: Colors.grey.shade100, height: 1),
             const SizedBox(height: 12),
 
-            // ── Ref chip ──────────────────────────────────────────────────
-            _RefChip(label: e.ref),
+            // ── Ref bouteille chip ─────────────────────────────────────────
+            _RefChip(label: e.referenceBouteille),
 
             const SizedBox(height: 10),
 
-            // ── Gouvernorat + Fournisseur ──────────────────────────────────
+            // ── Gouvernorat + Délégation ───────────────────────────────────
             Row(
               children: [
                 Expanded(
@@ -107,9 +132,9 @@ class EchantillonComCard extends StatelessWidget {
                 ),
                 Expanded(
                   child: _InfoItem(
-                    icon: Icons.storefront_outlined,
-                    label: 'Fournisseur',
-                    value: e.codeFournisseur,
+                    icon: Icons.location_on_outlined,
+                    label: 'Délégation',
+                    value: e.delegation ?? '—',
                   ),
                 ),
               ],
@@ -117,9 +142,16 @@ class EchantillonComCard extends StatelessWidget {
 
             const SizedBox(height: 10),
 
-            // ── Variété + Quantité ─────────────────────────────────────────
+            // ── Fournisseur + Variété ──────────────────────────────────────
             Row(
               children: [
+                Expanded(
+                  child: _InfoItem(
+                    icon: Icons.storefront_outlined,
+                    label: 'Fournisseur',
+                    value: e.codeFournisseur,
+                  ),
+                ),
                 Expanded(
                   child: _InfoItem(
                     icon: Icons.eco_outlined,
@@ -127,6 +159,14 @@ class EchantillonComCard extends StatelessWidget {
                     value: e.variete ?? '—',
                   ),
                 ),
+              ],
+            ),
+
+            const SizedBox(height: 10),
+
+            // ── Quantité + Scellage ────────────────────────────────────────
+            Row(
+              children: [
                 Expanded(
                   child: _InfoItem(
                     icon: Icons.water_drop_outlined,
@@ -135,53 +175,11 @@ class EchantillonComCard extends StatelessWidget {
                     valueColor: _oliveGreen,
                   ),
                 ),
-              ],
-            ),
-
-            const SizedBox(height: 10),
-
-            // ── Scellage + Camion ──────────────────────────────────────────
-            Row(
-              children: [
                 Expanded(
                   child: _InfoItem(
                     icon: Icons.verified_outlined,
                     label: 'Scellage',
                     value: e.scellage ?? '—',
-                  ),
-                ),
-                Expanded(
-                  child: _InfoItem(
-                    icon: Icons.local_shipping_outlined,
-                    label: 'Camion réservé',
-                    value: e.camionReservee ?? '—',
-                  ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 10),
-
-            // ── Achat confirmé + Date ──────────────────────────────────────
-            Row(
-              children: [
-                Expanded(
-                  child: _InfoItem(
-                    icon: e.achatConfirme
-                        ? Icons.check_circle_outline
-                        : Icons.radio_button_unchecked,
-                    label: 'Achat confirmé',
-                    value: e.achatConfirme ? 'Oui' : 'Non',
-                    valueColor: e.achatConfirme
-                        ? const Color(0xFF059669)
-                        : const Color(0xFFEF5350),
-                  ),
-                ),
-                Expanded(
-                  child: _InfoItem(
-                    icon: Icons.calendar_today_outlined,
-                    label: "Date d'ajout",
-                    value: e.dateAjout,
                   ),
                 ),
               ],
@@ -243,7 +241,6 @@ class _ActionButtons extends StatelessWidget {
   Widget build(BuildContext context) {
     final e = echantillon;
 
-    // ── receptionne → Modifier + Supprimer ───────────────────────────────
     if (e.canModify) {
       return Row(
         children: [
@@ -270,8 +267,6 @@ class _ActionButtons extends StatelessWidget {
       );
     }
 
-    // ── enNegociation → Confirmer l'achat only ────────────────────────────
-    // A failed negotiation simply leaves the card frozen here — no button.
     if (e.canConfirm && onConfirmerAchat != null) {
       return _FilledBtn(
         label: "Confirmer l'achat",
@@ -280,7 +275,6 @@ class _ActionButtons extends StatelessWidget {
       );
     }
 
-    // ── achatConfirme → Planifier la livraison ────────────────────────────
     if (e.canPlanifier && onPlanifierLivraison != null) {
       return _FilledBtn(
         label: 'Planifier la livraison',
@@ -289,7 +283,6 @@ class _ActionButtons extends StatelessWidget {
       );
     }
 
-    // ── Frozen state (enNegociation with no callback, or any unhandled) ───
     return const SizedBox.shrink();
   }
 }
@@ -461,7 +454,7 @@ class _RefChip extends StatelessWidget {
 // LIVRAISON BOX
 // ─────────────────────────────────────────────────────────────────────────────
 class _LivraisonBox extends StatelessWidget {
-  final LivraisonInfo livraison;
+  final PlanificationLivraison livraison;
   const _LivraisonBox({required this.livraison});
 
   @override
@@ -478,9 +471,7 @@ class _LivraisonBox extends StatelessWidget {
         const SizedBox(width: 7),
         Expanded(
           child: Text(
-            '${livraison.date.day}/${livraison.date.month}/${livraison.date.year}'
-            '  ·  ${livraison.heure}'
-            '  ·  ${livraison.lieu}',
+            livraison.libelle,
             style: const TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w600,
@@ -493,6 +484,9 @@ class _LivraisonBox extends StatelessWidget {
   );
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// LIVRAISON MANQUANTE
+// ─────────────────────────────────────────────────────────────────────────────
 class _LivraisonManquante extends StatelessWidget {
   const _LivraisonManquante();
 

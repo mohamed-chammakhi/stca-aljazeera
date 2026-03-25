@@ -4,9 +4,11 @@
 
 import 'package:flutter/material.dart';
 import '../../../models/echantillon_collecteur.dart';
+import 'planification_arrivage.dart';
 import '../../../../carte_geo/services/geo_service.dart';
 import 'bouteille_row.dart';
 import 'formulaire_decorations.dart';
+import 'formulaire_sections.dart' show ModePlanificationUI;
 
 mixin FormulaireStateMixin<T extends StatefulWidget> on State<T> {
   final GeoService geo = GeoService.instance;
@@ -22,6 +24,14 @@ mixin FormulaireStateMixin<T extends StatefulWidget> on State<T> {
 
   final List<BouteilleRow> bouteilles = [];
 
+  // ── Planification arrivage ─────────────────────────────────────────────────
+  bool planificationActive = false;
+  ModePlanificationUI planificationMode = ModePlanificationUI.dateExacte;
+  DateTime? arrivageDateExacte;
+  DateTime? arrivagePeriodeDebut;
+  DateTime? arrivagePeriodeFin;
+
+  // ── Geo ────────────────────────────────────────────────────────────────────
   List<String> get gouvernoratOptions {
     if (!geoLoaded) return [];
     return geo.gouvernorats;
@@ -41,6 +51,7 @@ mixin FormulaireStateMixin<T extends StatefulWidget> on State<T> {
 
   void onDelegationChanged(String? value) => setState(() => delegation = value);
 
+  // ── Init / dispose ─────────────────────────────────────────────────────────
   void initFormulaireState(EchantillonCollecteur? e) {
     geo.load().then((_) {
       if (mounted) setState(() => geoLoaded = true);
@@ -54,9 +65,24 @@ mixin FormulaireStateMixin<T extends StatefulWidget> on State<T> {
     delegation = e?.delegation;
     photoUrl = e?.imageUrl;
 
+    // Restore planification when editing an existing sample
+    if (e?.planificationArrivage != null) {
+      planificationActive = true;
+      final p = e!.planificationArrivage!;
+      if (p.mode == ModePlanification.dateExacte) {
+        planificationMode = ModePlanificationUI.dateExacte;
+        arrivageDateExacte = p.dateExacte;
+      } else {
+        planificationMode = ModePlanificationUI.periode;
+        arrivagePeriodeDebut = p.periodeDebut;
+        arrivagePeriodeFin = p.periodeFin;
+      }
+    }
+
     bouteilles.add(
       BouteilleRow.fromSample(
         ref: e?.referenceBouteille ?? '',
+        variete: e?.variete ?? '',
         scellage: e?.scellage ?? '',
         qte: e?.quantiteEstimee ?? '',
       ),
@@ -70,6 +96,45 @@ mixin FormulaireStateMixin<T extends StatefulWidget> on State<T> {
     for (final b in bouteilles) b.dispose();
   }
 
+  // ── Planification helpers ──────────────────────────────────────────────────
+  void togglePlanification() {
+    setState(() {
+      planificationActive = !planificationActive;
+      if (!planificationActive) {
+        arrivageDateExacte = null;
+        arrivagePeriodeDebut = null;
+        arrivagePeriodeFin = null;
+      }
+    });
+  }
+
+  void onPlanificationModeChanged(ModePlanificationUI mode) {
+    setState(() {
+      planificationMode = mode;
+      // Clear stale values when switching mode
+      arrivageDateExacte = null;
+      arrivagePeriodeDebut = null;
+      arrivagePeriodeFin = null;
+    });
+  }
+
+  PlanificationArrivage? _buildPlanification() {
+    if (!planificationActive) return null;
+    if (planificationMode == ModePlanificationUI.dateExacte) {
+      if (arrivageDateExacte == null) return null;
+      return PlanificationArrivage.exact(arrivageDateExacte!);
+    } else {
+      if (arrivagePeriodeDebut == null || arrivagePeriodeFin == null) {
+        return null;
+      }
+      return PlanificationArrivage.range(
+        debut: arrivagePeriodeDebut!,
+        fin: arrivagePeriodeFin!,
+      );
+    }
+  }
+
+  // ── Bottle row helpers ─────────────────────────────────────────────────────
   void addBouteilleRow() =>
       setState(() => bouteilles.add(BouteilleRow.empty()));
 
@@ -85,11 +150,14 @@ mixin FormulaireStateMixin<T extends StatefulWidget> on State<T> {
     return bouteilles.every((b) => b.refCtrl.text.trim().isNotEmpty);
   }
 
+  // ── Build samples ──────────────────────────────────────────────────────────
   List<EchantillonCollecteur> buildSamples({
     required bool isModification,
     required EchantillonCollecteur? existing,
     required int prochainNumero,
   }) {
+    final planification = _buildPlanification();
+
     if (isModification) {
       final e = existing!;
       final b = bouteilles.first;
@@ -98,11 +166,13 @@ mixin FormulaireStateMixin<T extends StatefulWidget> on State<T> {
       e.cite = null;
       e.codeFournisseur = codeFournisseurCtrl.text.trim();
       e.referenceBouteille = b.refCtrl.text.trim();
+      e.variete = _nullIfEmpty(b.varieteCtrl.text);
       e.scellage = _nullIfEmpty(b.scellageCtrl.text);
       e.remarques = _nullIfEmpty(remarquesCtrl.text);
       e.dateAjout = dateCtrl.text;
       e.quantiteEstimee = _nullIfEmpty(b.qteCtrl.text);
       e.imageUrl = photoUrl;
+      e.planificationArrivage = planification;
       return [e];
     }
 
@@ -119,9 +189,10 @@ mixin FormulaireStateMixin<T extends StatefulWidget> on State<T> {
         cite: null,
         codeFournisseur: codeFournisseurCtrl.text.trim(),
         referenceBouteille: b.refCtrl.text.trim(),
+        variete: _nullIfEmpty(b.varieteCtrl.text),
         scellage: _nullIfEmpty(b.scellageCtrl.text),
         achatConfirme: false,
-        camionReservee: null,
+        //camionReservee: null,
         remarques: _nullIfEmpty(remarquesCtrl.text),
         dateAjout: dateCtrl.text,
         quantiteEstimee: _nullIfEmpty(b.qteCtrl.text),
@@ -129,10 +200,12 @@ mixin FormulaireStateMixin<T extends StatefulWidget> on State<T> {
         collecteurId: 'COL-001',
         collecteurNom: 'Ahmed D.',
         statut: StatutCollecteur.receptionne,
+        planificationArrivage: planification,
       );
     }).toList();
   }
 
+  // ── Save handler ───────────────────────────────────────────────────────────
   // markVisited is NO LONGER called here.
   // MesEchantillonsPage calls geo.rebuildFromEchantillons() after every
   // save, which rebuilds the visited set from scratch — always correct.
@@ -171,6 +244,7 @@ mixin FormulaireStateMixin<T extends StatefulWidget> on State<T> {
     );
   }
 
+  // ── Date helpers ───────────────────────────────────────────────────────────
   Future<void> pickDate(BuildContext ctx) async {
     final picked = await showDatePicker(
       context: ctx,
