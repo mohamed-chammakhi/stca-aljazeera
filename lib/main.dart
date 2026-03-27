@@ -4,6 +4,8 @@ import 'degustateur/homepage/homepage_page.dart';
 import 'collecteur/mes_echantillons/mes_echantillons_page.dart';
 import 'collecteur/tableau_de_bord/tableau_de_bord_collecteur_page.dart';
 //import 'collecteur/mes_echantillons/widgets/dialogs/try.dart';
+import 'ceo/homepage/homepage_ceo_page.dart';
+import 'laboratoire/echantillons_labo/echantillons_labo_page.dart';
 
 // ENTRY POINT
 void main() {
@@ -341,15 +343,19 @@ class _LoginPageState extends State<LoginPage> {
                     runSpacing: 4,
                     alignment: WrapAlignment.center,
                     children: [
-                      _debugBtn('Chef de panel', () => _goTo(const HomePage())),
+                      _debugBtn(
+                        'Chef de panel',
+                        () => _goTo(const HomePageCeo()),
+                      ),
                       _debugBtn('Dégustateur', () => _goTo(const HomePage())),
                       _debugBtn(
                         'Collecteur',
                         () => _goTo(const TableauDeBordCollecteurPage()),
                       ),
+
                       _debugBtn(
                         'Technicien labo',
-                        () => _goTo(const HomePage()),
+                        () => _goTo(const EchantillonsLaboPage()),
                       ),
                       //    _debugBtn('Test', () => _goTo(const GeoTestPage())),
                     ],

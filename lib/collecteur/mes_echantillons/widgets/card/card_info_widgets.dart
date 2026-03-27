@@ -46,7 +46,7 @@ class CardInfoItem extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(label, style: TextStyle(fontSize: 10, color: labelCol)),
+              Text(label, style: TextStyle(fontSize: 13, color: labelCol)),
               const SizedBox(height: 1),
               Text(
                 value,

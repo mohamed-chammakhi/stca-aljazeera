@@ -71,7 +71,7 @@ flutter:
     - assets/img/delegations.geojson
     - assets/img/cities_fixed.json
     - assets/img/tunisie_villes.csv
-
+    - assets/img/labo.png
 
 
   # To add assets to your application, add an assets section, like this:
