@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'degustateur/homepage/homepage_page.dart';
-import 'collecteur/mes_echantillons/mes_echantillons_page.dart';
-import 'collecteur/tableau_de_bord/tableau_de_bord_collecteur_page.dart';
+import '3_degustateur/homepage/homepage_page.dart';
+import '2_collecteur/mes_echantillons/mes_echantillons_page.dart';
+import '2_collecteur/tableau_de_bord/tableau_de_bord_collecteur_page.dart';
 //import 'collecteur/mes_echantillons/widgets/dialogs/try.dart';
-import 'ceo/homepage/homepage_ceo_page.dart';
-import 'laboratoire/echantillons_labo/echantillons_labo_page.dart';
+import '1_ceo/homepage/homepage_ceo_page.dart';
+import '4_laboratoire/echantillons_labo/echantillons_labo_page.dart';
 
 // ENTRY POINT
 void main() {
