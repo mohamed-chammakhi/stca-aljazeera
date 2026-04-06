@@ -1,58 +1,60 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // FILE : gestion_echantillons/models/mock_echantillons.dart
-// PURPOSE : mock sample data for gestion page — remove when backend is ready
+// PURPOSE : mock sample data for gestion page
 // TODO: remove when backend is ready and replace with EchantillonService.fetch()
 // ─────────────────────────────────────────────────────────────────────────────
 
-import 'echantillon_gestion.dart';
+import '../../../core/models/echantillon.dart';
 
 // TODO: remove when backend is ready
-final List<EchantillonGestion> mockEchantillonsGestion = [
-  EchantillonGestion(
-    id:              '2026/0001',
-    ref:             'CHEMLALI-C1',
-    codeFournisseur: 'Domaine Bel-Air',
-    variete:         'Chemlali',
-    dateArrivee:     '01/03/2026',
-    gouvernorat:     'Sfax',
-    delegation:      'Sfax Sud',
-    quantite:        '25',
-    statut:          'En attente',
-    collecteur:      'Ahmed Dridi',
+final List<Echantillon> mockEchantillonsGestion = [
+  Echantillon(
+    id:                  '2026/0001',
+    referenceBouteille:  'CHEMLALI-C1',
+    codeFournisseur:     'Domaine Bel-Air',
+    variete:             'Chemlali',
+    dateAjout:           '01/03/2026',
+    gouvernorat:         'Sfax',
+    delegation:          'Sfax Sud',
+    quantiteEstimee:     '25',
+    statut:              'En attente',
+    collecteurNom:       'Ahmed Dridi',
+    dateLivraisonPrevue: '15/03/2026',
   ),
-  EchantillonGestion(
+  Echantillon(
     id:              '2026/0002',
-    ref:             'CHEMLALI-C4',
+    referenceBouteille: 'CHEMLALI-C4',
     codeFournisseur: 'SF-17',
     variete:         'Chemlali',
-    dateArrivee:     '05/03/2026',
+    dateAjout:       '05/03/2026',
     gouvernorat:     'Sfax',
     delegation:      'Mahres',
-    quantite:        '12',
+    quantiteEstimee: '12',
     statut:          'En cours',
-    collecteur:      'Ahmed Dridi',
+    collecteurNom:   'Ahmed Dridi',
   ),
-  EchantillonGestion(
-    id:              '2026/0003',
-    ref:             'CHETOUI-C3',
-    codeFournisseur: 'Ferme Al Jazira',
-    variete:         'Chetoui',
-    dateArrivee:     '21/02/2026',
-    gouvernorat:     'Béja',
-    delegation:      'Béja Nord',
-    quantite:        '32',
-    statut:          'Soumis',
-    collecteur:      'Rania Hammami',
+  Echantillon(
+    id:                  '2026/0003',
+    referenceBouteille:  'CHETOUI-C3',
+    codeFournisseur:     'Ferme Al Jazira',
+    variete:             'Chetoui',
+    dateAjout:           '21/02/2026',
+    gouvernorat:         'Béja',
+    delegation:          'Béja Nord',
+    quantiteEstimee:     '32',
+    statut:              'Soumis',
+    collecteurNom:       'Rania Hammami',
+    dateLivraisonPrevue: '28/02/2026',
   ),
-  EchantillonGestion(
+  Echantillon(
     id:              '2026/0004',
-    ref:             'OUESLATI-C2',
+    referenceBouteille: 'OUESLATI-C2',
     codeFournisseur: 'Green Valley',
     variete:         'Oueslati',
-    dateArrivee:     '23/02/2026',
+    dateAjout:       '23/02/2026',
     gouvernorat:     'Kairouan',
     delegation:      'Kairouan Nord',
-    quantite:        '18',
+    quantiteEstimee: '18',
     statut:          'En attente',
   ),
 ];

@@ -264,12 +264,10 @@ Future<void> showFormulaireAnalyseDialog(
                     children: [
                       StatutAnalyse.enAttente,
                       StatutAnalyse.envoyee,
-                      StatutAnalyse.validee,
                     ].map((s) {
                       final labels = {
                         StatutAnalyse.enAttente: 'En attente',
                         StatutAnalyse.envoyee:   'Envoyée',
-                        StatutAnalyse.validee:   'Validée',
                       };
                       final sel = statut == s;
                       return Padding(

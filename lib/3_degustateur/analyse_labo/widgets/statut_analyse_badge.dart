@@ -1,7 +1,7 @@
 // ═════════════════════════════════════════════════════════════════════════════
 // FILE    : analyse_laboratoire/widgets/statut_analyse_badge.dart
 // PURPOSE : colored badge for analysis status
-//           🟡 En attente / 🔵 Envoyée / 🟢 Validée
+//           🟡 En attente / 🔵 Envoyée
 // ═════════════════════════════════════════════════════════════════════════════
 
 import 'package:flutter/material.dart';
@@ -17,7 +17,7 @@ class StatutAnalyseBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: cfg.bg, borderRadius: BorderRadius.circular(20)),
+          color: cfg.bg, borderRadius: BorderRadius.circular(20)),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -49,8 +49,5 @@ _Cfg _cfg(StatutAnalyse s) {
     case StatutAnalyse.envoyee:
       return const _Cfg(Color(0xFFE3F2FD), Color(0xFF1E88E5),
           Color(0xFF1E88E5), 'Envoyée');
-    case StatutAnalyse.validee:
-      return const _Cfg(Color(0xFFE8F5E9), Color(0xFF38835A),
-          Color(0xFF38835A), 'Validée');
   }
 }

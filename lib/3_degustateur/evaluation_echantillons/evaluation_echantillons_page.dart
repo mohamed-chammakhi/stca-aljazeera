@@ -37,9 +37,10 @@ class EvaluationEchantillonsPage extends StatefulWidget {
 class _EvaluationEchantillonsPageState
     extends State<EvaluationEchantillonsPage> {
   // ── COLORS ──────────────────────────────────────────────────────────────────
-  static const Color _green = Color(0xFF38835A);
-  static const Color _cream = Color(0xFFF9F6EF);
-  static const Color _dark  = Color(0xFF1A2E1F);
+  static const Color _headerBg = Color.fromARGB(255, 220, 233, 226);
+  static const Color _green    = Color(0xFF38835A);
+  static const Color _dark     = Color(0xFF1A2E1F);
+  static const Color _bg       = Color.fromARGB(255, 255, 255, 255);
 
   // ── STATE ────────────────────────────────────────────────────────────────────
   final TextEditingController _searchController = TextEditingController();
@@ -213,7 +214,7 @@ class _EvaluationEchantillonsPageState
     final filtres = _echantillonsFiltres;
 
     return Scaffold(
-      backgroundColor: _cream,
+      backgroundColor: _bg,
 
       drawer: AppDrawer(
         onaccueil:                 () => Navigator.pop(context),
@@ -228,106 +229,178 @@ class _EvaluationEchantillonsPageState
       ),
 
       appBar: AppBar(
-        backgroundColor: _green,
+        backgroundColor: _headerBg,
         elevation: 0,
+        centerTitle: false,
+        toolbarHeight: 65,
         title: Text(
           'Évaluation des échantillons',
           style: GoogleFonts.domine(
-            fontSize: 18, fontWeight: FontWeight.w700, color: Colors.white,
+            fontSize: 18, fontWeight: FontWeight.w700, color: _dark,
           ),
         ),
+        iconTheme: const IconThemeData(color: _dark),
         actions: [
-          DateFilterButton(
-            dateDebut: _dateDebut,
-            dateFin:   _dateFin,
-            onTap:     _showDateFilter,
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              IconButton(
+                icon: Icon(
+                  Icons.calendar_today_outlined,
+                  size: 20,
+                  color: _dateFilterActive ? _green : const Color(0xFF6B8E7A),
+                ),
+                onPressed: _showDateFilter,
+                tooltip: 'Filtrer par date',
+              ),
+              if (_dateFilterActive)
+                Positioned(
+                  right: 10,
+                  top: 10,
+                  child: Container(
+                    width: 8,
+                    height: 8,
+                    decoration: const BoxDecoration(
+                      color: _green,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ),
+            ],
           ),
+          const SizedBox(width: 6),
         ],
       ),
 
       body: Column(
         children: [
 
-          // ── GREEN HEADER STRIP: search only ────────────────────────────────
+          // ── UNIFIED HEADER ZONE ────────────────────────────────────────────
           Container(
-            color:   _green,
-            padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-            child: Container(
-              height: 40,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(8),
-                boxShadow: [
-                  BoxShadow(
-                    color:      _dark.withValues(alpha: 0.08),
-                    blurRadius: 6,
-                    offset:     const Offset(0, 2),
+            color: _headerBg,
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
+            child: Column(
+              children: [
+                // Search bar
+                TextField(
+                  controller: _searchController,
+                  onChanged: (v) => setState(() => _recherche = v.trim()),
+                  style: const TextStyle(fontSize: 14, color: _dark),
+                  decoration: InputDecoration(
+                    hintText: 'Rechercher réf, fournisseur, gouvernorat…',
+                    hintStyle: const TextStyle(
+                      color: Color(0xFF6B8E7A),
+                      fontSize: 13,
+                    ),
+                    prefixIcon: const Icon(
+                      Icons.search,
+                      color: Color(0xFF6B8E7A),
+                      size: 20,
+                    ),
+                    suffixIcon: _recherche.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(
+                              Icons.close,
+                              size: 17,
+                              color: Color(0xFF6B8E7A),
+                            ),
+                            onPressed: () => setState(() {
+                              _recherche = '';
+                              _searchController.clear();
+                            }),
+                          )
+                        : null,
+                    filled: true,
+                    fillColor: Colors.white,
+                    contentPadding: const EdgeInsets.symmetric(
+                      vertical: 11,
+                      horizontal: 16,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: _green, width: 1.5),
+                    ),
                   ),
-                ],
-              ),
-              child: TextField(
-                controller: _searchController,
-                onChanged: (v) => setState(() => _recherche = v.trim()),
-                style: const TextStyle(fontSize: 13, color: _dark),
-                decoration: InputDecoration(
-                  hintText:  'Rechercher réf, fournisseur, gouvernorat…',
-                  hintStyle: const TextStyle(
-                    fontSize: 13,
-                    color: Color.fromARGB(255, 150, 149, 149),
-                  ),
-                  prefixIcon: Icon(Icons.search, size: 17, color: Colors.grey.shade400),
-                  suffixIcon: _recherche.isNotEmpty
-                      ? GestureDetector(
-                          onTap: () => setState(() {
-                            _recherche = '';
-                            _searchController.clear();
-                          }),
-                          child: Icon(Icons.close, size: 17, color: Colors.grey.shade400),
-                        )
-                      : null,
-                  border: InputBorder.none,
-                  isDense: true,
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
                 ),
-              ),
+
+                const SizedBox(height: 11),
+
+                // ── Statut filter chips ─────────────────────────────────────
+                SizedBox(
+                  height: 34,
+                  child: ListView(
+                    scrollDirection: Axis.horizontal,
+                    children: [
+                      _StatutChip(
+                        label: 'Tous',
+                        activeColor: const Color(0xFF616161),
+                        inactiveColor: const Color(0xFFF0F0F0),
+                        inactiveTextColor: const Color(0xFF757575),
+                        selected: _filtreStatutLabel == null,
+                        onTap: () => setState(() => _filtreStatutLabel = null),
+                      ),
+                      const SizedBox(width: 7),
+                      _StatutChip(
+                        label: 'En attente',
+                        activeColor: const Color(0xFF3A6EA5),
+                        inactiveColor: const Color(0xFFE8F1FB),
+                        inactiveTextColor: const Color(0xFF3A6EA5),
+                        selected: _filtreStatutLabel == 'En attente',
+                        onTap: () => setState(() => _filtreStatutLabel = 'En attente'),
+                      ),
+                      const SizedBox(width: 7),
+                      _StatutChip(
+                        label: 'En cours',
+                        activeColor: const Color(0xFFD07B2F),
+                        inactiveColor: const Color(0xFFFEF3E8),
+                        inactiveTextColor: const Color(0xFFD07B2F),
+                        selected: _filtreStatutLabel == 'En cours',
+                        onTap: () => setState(() => _filtreStatutLabel = 'En cours'),
+                      ),
+                      const SizedBox(width: 7),
+                      _StatutChip(
+                        label: 'Soumis',
+                        activeColor: const Color(0xFF38835A),
+                        inactiveColor: const Color(0xFFE6F4ED),
+                        inactiveTextColor: const Color(0xFF38835A),
+                        selected: _filtreStatutLabel == 'Soumis',
+                        onTap: () => setState(() => _filtreStatutLabel = 'Soumis'),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
 
-          // ── STATUT FILTER CHIPS (colored, outside header) ─────────────────
-          Container(
-            color:   Colors.white,
-            padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
-            child: SizedBox(
-              height: 32,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                children: [
-                  _StatutChip(label: 'Tous',       color: _dark,                       selected: _filtreStatutLabel == null,         onTap: () => setState(() => _filtreStatutLabel = null)),
-                  const SizedBox(width: 8),
-                  _StatutChip(label: 'En attente', color: const Color(0xFF3A6EA5),     selected: _filtreStatutLabel == 'En attente', onTap: () => setState(() => _filtreStatutLabel = 'En attente')),
-                  const SizedBox(width: 8),
-                  _StatutChip(label: 'En cours',   color: const Color(0xFFD07B2F),     selected: _filtreStatutLabel == 'En cours',   onTap: () => setState(() => _filtreStatutLabel = 'En cours')),
-                  const SizedBox(width: 8),
-                  _StatutChip(label: 'Soumis',     color: const Color(0xFF38835A),     selected: _filtreStatutLabel == 'Soumis',     onTap: () => setState(() => _filtreStatutLabel = 'Soumis')),
-                ],
-              ),
-            ),
-          ),
-          Divider(color: Colors.grey.shade100, height: 1),
+          // Thin separator shadow
+          Container(height: 1, color: Colors.black.withValues(alpha: 0.06)),
 
           // ── STATS STRIP ────────────────────────────────────────────────────
           Container(
-            color: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            color: _bg,
+            padding: const EdgeInsets.fromLTRB(16, 9, 16, 6),
             child: Row(
               children: [
-                Icon(Icons.inventory_2_outlined, size: 13, color: Colors.grey.shade400),
+                Icon(
+                  Icons.inventory_2_outlined,
+                  size: 13,
+                  color: const Color.fromARGB(255, 156, 156, 156),
+                ),
                 const SizedBox(width: 6),
                 Text(
                   '${filtres.length} échantillon${filtres.length > 1 ? "s" : ""}',
-                  style: TextStyle(
-                    fontSize:   12,
-                    color:      Colors.grey.shade500,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Color.fromARGB(255, 156, 156, 156),
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -335,7 +408,7 @@ class _EvaluationEchantillonsPageState
                   const Spacer(),
                   GestureDetector(
                     onTap: () => setState(() {
-                      _recherche        = '';
+                      _recherche         = '';
                       _searchController.clear();
                       _filtreStatutLabel = null;
                       _dateDebut         = null;
@@ -389,16 +462,21 @@ class _EvaluationEchantillonsPageState
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// STATUT CHIP — colored pill on white background
+// STATUT CHIP — soft pastel inactive, solid color active
 // ─────────────────────────────────────────────────────────────────────────────
 class _StatutChip extends StatelessWidget {
   final String       label;
-  final Color        color;
+  final Color        activeColor;
+  final Color        inactiveColor;
+  final Color        inactiveTextColor;
   final bool         selected;
   final VoidCallback onTap;
+
   const _StatutChip({
     required this.label,
-    required this.color,
+    required this.activeColor,
+    required this.inactiveColor,
+    required this.inactiveTextColor,
     required this.selected,
     required this.onTap,
   });
@@ -407,22 +485,33 @@ class _StatutChip extends StatelessWidget {
   Widget build(BuildContext context) => GestureDetector(
     onTap: onTap,
     child: AnimatedContainer(
-      duration: const Duration(milliseconds: 160),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+      duration: const Duration(milliseconds: 150),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
       decoration: BoxDecoration(
-        color:        selected ? color : color.withValues(alpha: 0.08),
+        color: selected ? activeColor : inactiveColor,
         borderRadius: BorderRadius.circular(20),
-        border:       Border.all(
-          color: selected ? color : color.withValues(alpha: 0.3),
-          width: selected ? 1.5 : 1.0,
+        border: Border.all(
+          color: selected
+              ? activeColor
+              : inactiveTextColor.withValues(alpha: 0.35),
+          width: 1.2,
         ),
+        boxShadow: selected
+            ? [
+                BoxShadow(
+                  color: activeColor.withValues(alpha: 0.25),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
+                ),
+              ]
+            : null,
       ),
       child: Text(
         label,
         style: TextStyle(
           fontSize:   12,
           fontWeight: FontWeight.w600,
-          color:      selected ? Colors.white : color,
+          color:      selected ? Colors.white : inactiveTextColor,
         ),
       ),
     ),

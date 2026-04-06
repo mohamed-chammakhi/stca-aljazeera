@@ -7,11 +7,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-const Color _green   = Color(0xFF38835A);
-const Color _cream   = Color(0xFFF9F6EF);
-const Color _dark    = Color(0xFF1A2E1F);
-const Color _olive   = Color(0xFF6B8143);
-const Color _iconBg  = Color(0x1A38835A); // green at 10% opacity
+const Color _headerBg = Color.fromARGB(255, 220, 233, 226);
+const Color _green    = Color(0xFF38835A);
+const Color _dark     = Color(0xFF1A2E1F);
+const Color _olive    = Color(0xFF6B8143);
+const Color _iconBg   = Color(0x1A38835A); // green at 10% opacity
 
 class AppDrawer extends StatelessWidget {
   final VoidCallback onaccueil;
@@ -40,7 +40,7 @@ class AppDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Drawer(
-      backgroundColor: _cream,
+      backgroundColor: Colors.white,
       child: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -51,7 +51,7 @@ class AppDrawer extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.fromLTRB(20, 28, 20, 24),
               decoration: const BoxDecoration(
-                color: _green,
+                color: _headerBg,
                 borderRadius: BorderRadius.only(
                   bottomRight: Radius.circular(24),
                 ),
@@ -64,12 +64,12 @@ class AppDrawer extends StatelessWidget {
                     width: 52,
                     height: 52,
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.18),
+                      color: _green.withValues(alpha: 0.12),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
                       Icons.person_outline,
-                      color: Colors.white,
+                      color: _green,
                       size: 28,
                     ),
                   ),
@@ -79,7 +79,7 @@ class AppDrawer extends StatelessWidget {
                     style: GoogleFonts.domine(
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
-                      color: Colors.white,
+                      color: _dark,
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -87,7 +87,7 @@ class AppDrawer extends StatelessWidget {
                     'STCA Aljazira',
                     style: TextStyle(
                       fontSize: 12,
-                      color: Colors.white.withValues(alpha: 0.72),
+                      color: _dark.withValues(alpha: 0.5),
                     ),
                   ),
                 ],

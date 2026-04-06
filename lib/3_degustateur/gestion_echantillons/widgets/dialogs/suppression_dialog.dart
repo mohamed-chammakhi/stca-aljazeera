@@ -6,14 +6,14 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import 'package:flutter/material.dart';
-import '../../models/echantillon_gestion.dart';
+import '../../../../core/models/echantillon.dart';
 
 const Color _green = Color(0xFF38835A);
 const Color _darkText = Color(0xFF1A2E1F);
 
 void showSuppressionDialog(
   BuildContext context, {
-  required EchantillonGestion echantillon,
+  required Echantillon echantillon,
   required VoidCallback onConfirmer, // page calls setState inside this
 }) {
   showDialog(

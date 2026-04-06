@@ -70,10 +70,11 @@ class UtilisateursCeoPage extends StatefulWidget {
 }
 
 class _UtilisateursCeoPageState extends State<UtilisateursCeoPage> {
-  // ── Brand colors — identical to ProfilceoPage ─────────────────────────────
+  // ── Brand colors ──────────────────────────────────────────────────────────
+  static const Color headerBg = Color.fromARGB(255, 220, 233, 226);
   static const Color green = Color(0xFF38835A);
   static const Color oliveGreen = Color(0xFF6B8143);
-  static const Color cream = Color(0xFFF9F6EF);
+  static const Color bg = Color.fromARGB(255, 255, 255, 255);
   static const Color darkText = Color(0xFF1A2E1F);
 
   // ── Role accent colors ─────────────────────────────────────────────────────
@@ -127,7 +128,7 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage> {
     final filtered = _filtered;
 
     return Scaffold(
-      backgroundColor: cream,
+      backgroundColor: bg,
       drawer: CeoDrawer(
         onEchantillons: () => _goTo(const EchantillonsCeoPage()),
         onAnalyseOrganoleptique: () =>
@@ -140,55 +141,98 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage> {
         onDeconnexion: () => _goTo(LoginPage()),
       ),
       appBar: AppBar(
-        backgroundColor: green,
+        backgroundColor: headerBg,
         elevation: 0,
+        centerTitle: false,
+        toolbarHeight: 65,
         title: Text(
           'Utilisateurs',
           style: GoogleFonts.domine(
             fontSize: 18,
             fontWeight: FontWeight.w700,
-            color: Colors.white,
+            color: darkText,
           ),
         ),
-        actions: [
-          // Live count badge — same style as analyse_organoleptique appbar
-          Container(
-            margin: const EdgeInsets.only(right: 12),
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Text(
-              '${filtered.length} utilisateur${filtered.length > 1 ? "s" : ""}',
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ],
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(45),
-          child: _buildSearchBar(),
-        ),
+        iconTheme: const IconThemeData(color: darkText),
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _showAddUserSheet,
-        backgroundColor: green,
-        icon: const Icon(Icons.person_add_outlined, color: Colors.white),
+        backgroundColor: const Color.fromARGB(255, 197, 206, 201),
+        elevation: 2,
+        icon: const Icon(Icons.person_add_outlined, color: darkText),
         label: Text(
           'Ajouter',
           style: GoogleFonts.domine(
-            color: Colors.white,
+            color: darkText,
             fontWeight: FontWeight.w700,
           ),
         ),
       ),
       body: Column(
         children: [
-          _buildFilterChips(),
+          // ── Unified header zone ──────────────────────────────────────
+          Container(
+            color: headerBg,
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
+            child: Column(
+              children: [
+                TextField(
+                  controller: _searchController,
+                  onChanged: (v) => setState(() => _searchQuery = v.trim()),
+                  style: const TextStyle(fontSize: 14, color: darkText),
+                  decoration: InputDecoration(
+                    hintText: 'Rechercher par nom, email, rôle…',
+                    hintStyle: const TextStyle(
+                      color: Color(0xFF6B8E7A),
+                      fontSize: 13,
+                    ),
+                    prefixIcon: const Icon(
+                      Icons.search,
+                      color: Color(0xFF6B8E7A),
+                      size: 20,
+                    ),
+                    suffixIcon: _searchQuery.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(
+                              Icons.close,
+                              size: 17,
+                              color: Color(0xFF6B8E7A),
+                            ),
+                            onPressed: () => setState(() {
+                              _searchQuery = '';
+                              _searchController.clear();
+                            }),
+                          )
+                        : null,
+                    filled: true,
+                    fillColor: Colors.white,
+                    contentPadding: const EdgeInsets.symmetric(
+                      vertical: 11,
+                      horizontal: 16,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: green, width: 1.5),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 11),
+                SizedBox(
+                  height: 34,
+                  child: _buildFilterChips(),
+                ),
+              ],
+            ),
+          ),
+          Container(height: 1, color: Colors.black.withValues(alpha: 0.06)),
           Expanded(
             child: filtered.isEmpty
                 ? _buildEmpty()
@@ -198,10 +242,10 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage> {
                     itemBuilder: (_, i) => _UserCard(
                       user: filtered[i],
                       green: green,
-                      oliveGreen: oliveGreen,
                       darkText: darkText,
                       roleColors: _roleColors,
-                      onToggleStatus: () => _confirmToggleStatus(filtered[i]),
+                      onToggleStatus: () =>
+                          _confirmToggleStatus(filtered[i]),
                       onDelete: () => _confirmDelete(filtered[i]),
                       onViewProfile: () => _showUserProfile(filtered[i]),
                     ),
@@ -212,108 +256,57 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage> {
     );
   }
 
-  // ── Search bar — green header continuation, same as organo page ───────────
-  Widget _buildSearchBar() {
-    return Container(
-      color: green,
-      padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
-      child: Container(
-        height: 40,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(8),
-          boxShadow: [
-            BoxShadow(
-              color: darkText.withValues(alpha: 0.08),
-              blurRadius: 6,
-              offset: const Offset(0, 2),
+  // ── Filter chips — embedded inside unified header zone ────────────────────
+  Widget _buildFilterChips() {
+    const chips = [
+      (label: 'Tous',         role: null,                   activeColor: Color(0xFF616161), inactiveColor: Color(0xFFF0F0F0), inactiveText: Color(0xFF757575)),
+      (label: 'CEO',          role: UserRole.ceo,            activeColor: Color(0xFF0F6E56), inactiveColor: Color(0xFFE1F5EE), inactiveText: Color(0xFF0F6E56)),
+      (label: 'Laboratoire',  role: UserRole.laboratoire,    activeColor: Color(0xFF185FA5), inactiveColor: Color(0xFFE6F1FB), inactiveText: Color(0xFF185FA5)),
+      (label: 'Dégustateur',  role: UserRole.degustateur,    activeColor: Color(0xFF854F0B), inactiveColor: Color(0xFFFAEEDA), inactiveText: Color(0xFF854F0B)),
+      (label: 'Collecteur',   role: UserRole.collecteur,     activeColor: Color(0xFF993556), inactiveColor: Color(0xFFFBEAF0), inactiveText: Color(0xFF993556)),
+    ];
+    return ListView.separated(
+      scrollDirection: Axis.horizontal,
+      itemCount: chips.length,
+      separatorBuilder: (_, __) => const SizedBox(width: 7),
+      itemBuilder: (_, i) {
+        final chip = chips[i];
+        final isActive = _activeFilter == chip.role;
+        return GestureDetector(
+          onTap: () => setState(() => _activeFilter = chip.role),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 150),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+            decoration: BoxDecoration(
+              color: isActive ? chip.activeColor : chip.inactiveColor,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: isActive
+                    ? chip.activeColor
+                    : chip.inactiveText.withValues(alpha: 0.35),
+                width: 1.2,
+              ),
+              boxShadow: isActive
+                  ? [
+                      BoxShadow(
+                        color: chip.activeColor.withValues(alpha: 0.25),
+                        blurRadius: 6,
+                        offset: const Offset(0, 2),
+                      ),
+                    ]
+                  : null,
             ),
-          ],
-        ),
-        child: TextField(
-          controller: _searchController,
-          onChanged: (v) => setState(() => _searchQuery = v.trim()),
-          style: const TextStyle(fontSize: 13, color: darkText),
-          decoration: InputDecoration(
-            hintText: 'Rechercher par nom, email, rôle…',
-            hintStyle: const TextStyle(
-              fontSize: 13,
-              color: Color.fromARGB(255, 150, 149, 149),
-            ),
-            prefixIcon: Icon(
-              Icons.search,
-              size: 17,
-              color: Colors.grey.shade400,
-            ),
-            suffixIcon: _searchQuery.isNotEmpty
-                ? GestureDetector(
-                    onTap: () {
-                      _searchController.clear();
-                      setState(() => _searchQuery = '');
-                    },
-                    child: Icon(
-                      Icons.close,
-                      size: 17,
-                      color: Colors.grey.shade400,
-                    ),
-                  )
-                : null,
-            border: InputBorder.none,
-            isDense: true,
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 10,
-              vertical: 9,
+            child: Text(
+              chip.label,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: isActive ? Colors.white : chip.inactiveText,
+              ),
             ),
           ),
-        ),
-      ),
-    );
-  }
-
-  // ── Filter chips ───────────────────────────────────────────────────────────
-  Widget _buildFilterChips() {
-    final chips = [
-      (label: 'Tous', role: null as UserRole?),
-      (label: 'CEO', role: UserRole.ceo as UserRole?),
-      (label: 'Laboratoire', role: UserRole.laboratoire as UserRole?),
-      (label: 'Dégustateur', role: UserRole.degustateur as UserRole?),
-      (label: 'Collecteur', role: UserRole.collecteur as UserRole?),
-    ];
-    return Container(
-      height: 52,
-      color: Colors.white,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        itemCount: chips.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 8),
-        itemBuilder: (_, i) {
-          final chip = chips[i];
-          final isActive = _activeFilter == chip.role;
-          return GestureDetector(
-            onTap: () => setState(() => _activeFilter = chip.role),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
-              decoration: BoxDecoration(
-                color: isActive ? green : cream,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: isActive ? green : Colors.grey.shade300,
-                ),
-              ),
-              child: Text(
-                chip.label,
-                style: TextStyle(
-                  color: isActive ? Colors.white : oliveGreen,
-                  fontSize: 12,
-                  fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
-                ),
-              ),
-            ),
-          );
-        },
-      ),
+        );
+      },
     );
   }
 
@@ -347,7 +340,7 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage> {
         title: Text(
           'Confirmer',
           style: GoogleFonts.domine(
-            fontSize: 18,
+            fontSize: 16,
             fontWeight: FontWeight.w700,
             color: darkText,
           ),
@@ -502,40 +495,6 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage> {
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
                             ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: user.actif
-                          ? const Color(0xFFE1F5EE)
-                          : Colors.grey.shade100,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        CircleAvatar(
-                          radius: 4,
-                          backgroundColor: user.actif
-                              ? const Color(0xFF1D9E75)
-                              : Colors.grey,
-                        ),
-                        const SizedBox(width: 5),
-                        Text(
-                          user.actif ? 'Actif' : 'Inactif',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: user.actif
-                                ? const Color(0xFF0F6E56)
-                                : Colors.grey.shade600,
-                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ],
@@ -864,7 +823,6 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage> {
 class _UserCard extends StatelessWidget {
   final AppUser user;
   final Color green;
-  final Color oliveGreen;
   final Color darkText;
   final Map<UserRole, ({Color bg, Color fg})> roleColors;
   final VoidCallback onToggleStatus;
@@ -874,7 +832,6 @@ class _UserCard extends StatelessWidget {
   const _UserCard({
     required this.user,
     required this.green,
-    required this.oliveGreen,
     required this.darkText,
     required this.roleColors,
     required this.onToggleStatus,
@@ -886,167 +843,136 @@ class _UserCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = roleColors[user.role]!;
 
+    // Extra-soft card bg: role color at very low opacity blended over white
+    final cardBg = Color.fromARGB(
+      255,
+      (255 - (255 - colors.bg.red) ~/ 5),
+      (255 - (255 - colors.bg.green) ~/ 5),
+      (255 - (255 - colors.bg.blue) ~/ 5),
+    );
+
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        color: cardBg,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: colors.bg, width: 1.2),
         boxShadow: [
           BoxShadow(
-            color: green.withOpacity(0.05),
-            blurRadius: 6,
+            color: colors.fg.withValues(alpha: 0.06),
+            blurRadius: 8,
             offset: const Offset(0, 2),
           ),
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        child: Row(
           children: [
-            // ── Header ────────────────────────────────────────────────
-            Row(
-              children: [
-                CircleAvatar(
-                  radius: 22,
-                  backgroundColor: colors.bg,
-                  child: Text(
-                    user.initials,
+            // ── Avatar ────────────────────────────────────────────────
+            CircleAvatar(
+              radius: 24,
+              backgroundColor: colors.bg,
+              child: Text(
+                user.initials,
+                style: TextStyle(
+                  color: colors.fg,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 15,
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+
+            // ── Name + role ───────────────────────────────────────────
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    user.fullName,
                     style: TextStyle(
-                      color: colors.fg,
-                      fontWeight: FontWeight.w700,
                       fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: darkText,
                     ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        user.fullName,
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: darkText,
-                        ),
-                      ),
-                      const SizedBox(height: 3),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: colors.bg,
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          user.roleLabel,
-                          style: TextStyle(
-                            color: colors.fg,
-                            fontSize: 10,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                // Status badge — same dot+label style as organo badges
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 3,
-                  ),
-                  decoration: BoxDecoration(
-                    color: user.actif
-                        ? const Color(0xFFE1F5EE)
-                        : Colors.grey.shade100,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      CircleAvatar(
-                        radius: 3,
-                        backgroundColor: user.actif
-                            ? const Color(0xFF1D9E75)
-                            : Colors.grey,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        user.actif ? 'Actif' : 'Inactif',
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w700,
-                          color: user.actif
-                              ? const Color(0xFF0F6E56)
-                              : Colors.grey.shade600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 10),
-            Divider(color: Colors.grey.shade100, height: 1),
-            const SizedBox(height: 8),
-
-            // ── Info rows ─────────────────────────────────────────────
-            _infoRow(Icons.email_outlined, user.email),
-            const SizedBox(height: 4),
-            _infoRow(Icons.phone_outlined, user.telephone),
-            const SizedBox(height: 4),
-            _infoRow(
-              Icons.calendar_today_outlined,
-              'Début : ${user.dateDebut}',
-            ),
-
-            const SizedBox(height: 10),
-
-            // ── Action buttons ─────────────────────────────────────────
-            Row(
-              children: [
-                Expanded(
-                  child: _actionBtn(
-                    label: 'Voir profil',
-                    color: green,
-                    onTap: onViewProfile,
-                  ),
-                ),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: _actionBtn(
-                    label: user.actif ? 'Désactiver' : 'Réactiver',
-                    color: user.actif
-                        ? Colors.orange.shade700
-                        : const Color(0xFF38835A),
-                    onTap: onToggleStatus,
-                  ),
-                ),
-                const SizedBox(width: 6),
-                GestureDetector(
-                  onTap: onDelete,
-                  child: Container(
+                  const SizedBox(height: 4),
+                  Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 8,
+                      horizontal: 8,
+                      vertical: 3,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.red.withOpacity(0.07),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.red.withOpacity(0.2)),
+                      color: colors.bg,
+                      borderRadius: BorderRadius.circular(20),
                     ),
-                    child: Icon(
-                      Icons.delete_outline,
-                      size: 16,
-                      color: Colors.red.shade600,
+                    child: Text(
+                      user.roleLabel,
+                      style: TextStyle(
+                        color: colors.fg,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                   ),
+                ],
+              ),
+            ),
+
+            // ── Action icons ──────────────────────────────────────────
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Eye — view profile
+                _IconBtn(
+                  icon: Icons.remove_red_eye_outlined,
+                  color: colors.fg,
+                  bgColor: colors.bg,
+                  onTap: onViewProfile,
+                ),
+                const SizedBox(width: 6),
+
+                // Activate / Deactivate — compact pill
+                GestureDetector(
+                  onTap: onToggleStatus,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 9,
+                      vertical: 5,
+                    ),
+                    decoration: BoxDecoration(
+                      color: user.actif
+                          ? Colors.orange.shade50
+                          : const Color(0xFFE6F7EE),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: user.actif
+                            ? Colors.orange.shade200
+                            : const Color(0xFF9DD4B4),
+                        width: 1,
+                      ),
+                    ),
+                    child: Text(
+                      user.actif ? 'Désactiver' : 'Activer',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        color: user.actif
+                            ? Colors.orange.shade700
+                            : const Color(0xFF2E7D52),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 6),
+
+                // Delete
+                _IconBtn(
+                  icon: Icons.delete_outline,
+                  color: Colors.red.shade500,
+                  bgColor: Colors.red.shade50,
+                  onTap: onDelete,
                 ),
               ],
             ),
@@ -1055,48 +981,33 @@ class _UserCard extends StatelessWidget {
       ),
     );
   }
+}
 
-  Widget _infoRow(IconData icon, String text) {
-    return Row(
-      children: [
-        Icon(icon, size: 13, color: const Color(0xFF38835A).withOpacity(0.7)),
-        const SizedBox(width: 7),
-        Expanded(
-          child: Text(
-            text,
-            style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-      ],
-    );
-  }
+// ── Small icon button ─────────────────────────────────────────────────────────
+class _IconBtn extends StatelessWidget {
+  final IconData icon;
+  final Color color;
+  final Color bgColor;
+  final VoidCallback onTap;
 
-  Widget _actionBtn({
-    required String label,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 7),
-        decoration: BoxDecoration(
-          color: color.withOpacity(0.07),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: color.withOpacity(0.2)),
-        ),
-        child: Center(
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
-              color: color,
-            ),
-          ),
-        ),
+  const _IconBtn({
+    required this.icon,
+    required this.color,
+    required this.bgColor,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) => GestureDetector(
+    onTap: onTap,
+    child: Container(
+      padding: const EdgeInsets.all(7),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withValues(alpha: 0.25)),
       ),
-    );
-  }
+      child: Icon(icon, size: 15, color: color),
+    ),
+  );
 }

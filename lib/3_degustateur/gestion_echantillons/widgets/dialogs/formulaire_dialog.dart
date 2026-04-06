@@ -1,35 +1,43 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // FILE : gestion_echantillons/widgets/dialogs/formulaire_dialog.dart
-// PURPOSE : add / edit dialog for one EchantillonGestion
-//           — CEO-style sections (BOUTEILLE, FOURNISSEUR, LOCALISATION, DATE)
+// PURPOSE : add / edit dialog for one Echantillon (degustateur module)
+//           — sections: BOUTEILLE, FOURNISSEUR, LOCALISATION, DATE
 //           — gouvernorat → delegation cascade via GeoService
 //           — statut is always read-only
 // ─────────────────────────────────────────────────────────────────────────────
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../models/echantillon_gestion.dart';
+import '../../../../core/models/echantillon.dart';
 import '../date_input_field.dart';
 import '../../../../2_collecteur/carte_geo/services/geo_service.dart';
 
-const Color _green      = Color(0xFF38835A);
-const Color _olive      = Color(0xFF6B8143);
-const Color _dark       = Color(0xFF1A2E1F);
-const Color _cream      = Color(0xFFF9F6EF);
-const Color _fieldFill  = Color(0xFFF7FAF8);
+const Color _green = Color(0xFF38835A);
+const Color _beige = Color(0xFFE9F4EE);
+
+const Color _olive = Color(0xFF6B8143);
+const Color _dark = Color(0xFF1A2E1F);
+const Color _cream = Color(0xFFF9F6EF);
+const Color _fieldFill = Color(0xFFF7FAF8);
+
+// Section accent colors
+const Color _sectionBouteille = Color(0xFF38835A); // green
+const Color _sectionFournisseur = Color(0xFF2E7D98); // teal-blue
+const Color _sectionLocalisation = Color(0xFF6D4C41); // earthy
+const Color _sectionDate = Color(0xFF5C6BC0); // muted indigo
 
 void showFormulaireDialog(
   BuildContext context, {
-  EchantillonGestion? echantillon,
+  Echantillon? echantillon,
   required int prochainNumero,
-  required Function(EchantillonGestion) onSave,
+  required Function(Echantillon) onSave,
 }) {
   showDialog(
     context: context,
     builder: (_) => _FormulaireDialog(
-      echantillon:    echantillon,
+      echantillon: echantillon,
       prochainNumero: prochainNumero,
-      onSave:         onSave,
+      onSave: onSave,
     ),
   );
 }
@@ -38,9 +46,9 @@ void showFormulaireDialog(
 // STATEFUL DIALOG WIDGET
 // ─────────────────────────────────────────────────────────────────────────────
 class _FormulaireDialog extends StatefulWidget {
-  final EchantillonGestion? echantillon;
-  final int                 prochainNumero;
-  final Function(EchantillonGestion) onSave;
+  final Echantillon? echantillon;
+  final int prochainNumero;
+  final Function(Echantillon) onSave;
 
   const _FormulaireDialog({
     required this.echantillon,
@@ -53,19 +61,19 @@ class _FormulaireDialog extends StatefulWidget {
 }
 
 class _FormulaireDialogState extends State<_FormulaireDialog> {
-  // ── GeoService ───────────────────────────────────────────────────────────────
+  // ── GeoService ────────────────────────────────────────────────────────────
   final GeoService _geo = GeoService.instance;
   bool _geoLoaded = false;
 
-  // ── Controllers ──────────────────────────────────────────────────────────────
+  // ── Controllers ──────────────────────────────────────────────────────────
   late final TextEditingController _refCtrl;
   late final TextEditingController _codeFournisseurCtrl;
   late final TextEditingController _varieteCtrl;
   late final TextEditingController _quantiteCtrl;
-  late final TextEditingController _dateCtrl;
+  late final TextEditingController _dateAjoutCtrl;
   late final TextEditingController _collecteurCtrl;
 
-  // ── Location state ────────────────────────────────────────────────────────────
+  // ── Location state ────────────────────────────────────────────────────────
   String? _gouvernorat;
   String? _delegation;
 
@@ -76,19 +84,18 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
     super.initState();
     final e = widget.echantillon;
 
-    _refCtrl             = TextEditingController(text: e?.ref             ?? '');
-    _codeFournisseurCtrl = TextEditingController(text: e?.codeFournisseur ?? '');
-    _varieteCtrl         = TextEditingController(text: e?.variete         ?? '');
-    _quantiteCtrl        = TextEditingController(text: e?.quantite        ?? '');
-    _collecteurCtrl      = TextEditingController(text: e?.collecteur      ?? '');
-    _dateCtrl            = TextEditingController(
-      text: e?.dateArrivee ?? _todayStr(),
+    _refCtrl = TextEditingController(text: e?.referenceBouteille ?? '');
+    _codeFournisseurCtrl = TextEditingController(
+      text: e?.codeFournisseur ?? '',
     );
+    _varieteCtrl = TextEditingController(text: e?.variete ?? '');
+    _quantiteCtrl = TextEditingController(text: e?.quantiteEstimee ?? '');
+    _collecteurCtrl = TextEditingController(text: e?.collecteurNom ?? '');
+    _dateAjoutCtrl = TextEditingController(text: e?.dateAjout ?? _todayStr());
 
     _gouvernorat = e?.gouvernorat.isEmpty == true ? null : e?.gouvernorat;
-    _delegation  = e?.delegation;
+    _delegation = e?.delegation;
 
-    // Load geo data for cascaded dropdowns
     _geo.load().then((_) {
       if (mounted) setState(() => _geoLoaded = true);
     });
@@ -101,7 +108,7 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
     _varieteCtrl.dispose();
     _quantiteCtrl.dispose();
     _collecteurCtrl.dispose();
-    _dateCtrl.dispose();
+    _dateAjoutCtrl.dispose();
     super.dispose();
   }
 
@@ -118,7 +125,9 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
           content: const Text('La référence est obligatoire'),
           backgroundColor: Colors.red.shade400,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
           margin: const EdgeInsets.all(16),
         ),
       );
@@ -128,41 +137,50 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
     Navigator.pop(context);
 
     final gouvernorat = _gouvernorat ?? '';
+    final collecteur = _collecteurCtrl.text.trim().isEmpty
+        ? null
+        : _collecteurCtrl.text.trim();
 
     if (_isModification) {
       final e = widget.echantillon!;
-      e.ref             = _refCtrl.text.trim();
+      e.referenceBouteille = _refCtrl.text.trim();
       e.codeFournisseur = _codeFournisseurCtrl.text.trim();
-      e.variete         = _varieteCtrl.text.trim();
-      e.gouvernorat     = gouvernorat;
-      e.delegation      = _delegation;
-      e.quantite        = _quantiteCtrl.text.trim();
-      e.dateArrivee     = _dateCtrl.text;
-      e.collecteur      = _collecteurCtrl.text.trim().isEmpty
+      e.variete = _varieteCtrl.text.trim().isEmpty
           ? null
-          : _collecteurCtrl.text.trim();
+          : _varieteCtrl.text.trim();
+      e.gouvernorat = gouvernorat;
+      e.delegation = _delegation;
+      e.quantiteEstimee = _quantiteCtrl.text.trim().isEmpty
+          ? null
+          : _quantiteCtrl.text.trim();
+      e.dateAjout = _dateAjoutCtrl.text;
+      e.collecteurNom = collecteur;
       widget.onSave(e);
     } else {
       widget.onSave(
-        EchantillonGestion(
-          id:              '${DateTime.now().year}/${widget.prochainNumero}',
-          ref:             _refCtrl.text.trim(),
+        Echantillon(
+          id: '${DateTime.now().year}/${widget.prochainNumero}',
+          referenceBouteille: _refCtrl.text.trim(),
           codeFournisseur: _codeFournisseurCtrl.text.trim(),
-          variete:         _varieteCtrl.text.trim(),
-          dateArrivee:     _dateCtrl.text,
-          gouvernorat:     gouvernorat,
-          delegation:      _delegation,
-          quantite:        _quantiteCtrl.text.trim(),
-          statut:          'En attente',
-          collecteur:      _collecteurCtrl.text.trim().isEmpty
+          variete: _varieteCtrl.text.trim().isEmpty
               ? null
-              : _collecteurCtrl.text.trim(),
+              : _varieteCtrl.text.trim(),
+          dateAjout: _dateAjoutCtrl.text,
+          gouvernorat: gouvernorat,
+          delegation: _delegation,
+          quantiteEstimee: _quantiteCtrl.text.trim().isEmpty
+              ? null
+              : _quantiteCtrl.text.trim(),
+          statut: 'En attente',
+          collecteurNom: collecteur,
+          recuPhysiquement:
+              true, // taster registers samples already present at company
         ),
       );
     }
   }
 
-  // ── Build ─────────────────────────────────────────────────────────────────────
+  // ── Build ─────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
     return Dialog(
@@ -176,47 +194,57 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-
-            // ── Dialog header ─────────────────────────────────────────────────
+            // ── Dialog header ─────────────────────────────────────────────
             Container(
               width: double.infinity,
               padding: const EdgeInsets.fromLTRB(20, 18, 16, 16),
               decoration: const BoxDecoration(
-                color: _green,
+                color: _beige,
                 borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
               ),
               child: Row(
                 children: [
                   Icon(
-                    _isModification ? Icons.edit_outlined : Icons.add_circle_outline,
-                    color: Colors.white,
+                    _isModification
+                        ? Icons.edit_outlined
+                        : Icons.add_circle_outline,
+                    color: _dark,
                     size: 20,
                   ),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      _isModification ? "Modifier l'échantillon" : 'Nouvel échantillon',
+                      _isModification
+                          ? "Modifier l'échantillon"
+                          : 'Nouvel échantillon',
                       style: GoogleFonts.domine(
-                        fontSize:   17,
+                        fontSize: 17,
                         fontWeight: FontWeight.w700,
-                        color:      Colors.white,
+                        color: _dark,
                       ),
                     ),
                   ),
-                  // ID auto-label (add mode only)
                   if (!_isModification)
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
-                        color:        Colors.white.withValues(alpha: 0.18),
+                        color: Color.fromARGB(
+                          255,
+                          26,
+                          46,
+                          31,
+                        ).withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
                         '${DateTime.now().year}/${widget.prochainNumero}',
                         style: const TextStyle(
-                          fontSize:   12,
+                          fontSize: 12,
                           fontWeight: FontWeight.w700,
-                          color:      Colors.white,
+                          color: _dark,
                         ),
                       ),
                     ),
@@ -224,125 +252,110 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
               ),
             ),
 
-            // ── Scrollable body ───────────────────────────────────────────────
+            // ── Scrollable body ───────────────────────────────────────────
             Flexible(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-
-                    // ── SECTION: BOUTEILLE ────────────────────────────────────
-                    _SectionLabel('Bouteille'),
-                    const SizedBox(height: 10),
                     _FormField(
-                      label:      'Référence bouteille',
+                      label: 'Référence bouteille',
                       controller: _refCtrl,
-                      icon:       Icons.tag,
-                      hint:       'Ex: CHEMLALI-C1',
-                      required:   true,
+                      hint: 'Ex: CHEMLALI-C1',
+                      required: true,
                     ),
                     const SizedBox(height: 12),
                     _FormField(
-                      label:      "Variété d'olive",
+                      label: "Variété d'olive",
                       controller: _varieteCtrl,
-                      icon:       Icons.eco_outlined,
-                      hint:       'Ex: Chemlali, Chetoui…',
+                      hint: 'Ex: Chemlali, Chetoui…',
+                      // optional: false,
                     ),
                     const SizedBox(height: 12),
                     _FormField(
-                      label:        'Quantité estimée',
-                      controller:   _quantiteCtrl,
-                      icon:         Icons.scale_outlined,
-                      hint:         'Ex: 5000',
+                      label: 'Quantité estimée',
+                      controller: _quantiteCtrl,
+                      hint: 'Ex: 5000',
                       keyboardType: TextInputType.number,
-                      suffixText:   'T',
+                      suffixText: 'T',
+                      // optional: true,
                     ),
 
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 12),
 
-                    // ── SECTION: FOURNISSEUR & COLLECTEUR ────────────────────
-                    _SectionLabel('Fournisseur & Collecteur'),
-                    const SizedBox(height: 10),
+                    // ── SECTION: FOURNISSEUR & COLLECTEUR ────────────────
                     _FormField(
-                      label:      'Nom / Code fournisseur',
+                      label: 'Nom / Code fournisseur',
                       controller: _codeFournisseurCtrl,
-                      icon:       Icons.store_outlined,
-                      hint:       'Ex: Domaine Bel-Air',
+                      hint: 'Ex: Domaine Bel-Air',
                     ),
                     const SizedBox(height: 12),
                     _FormField(
-                      label:    'Collecteur',
+                      label: 'Collecteur',
                       controller: _collecteurCtrl,
-                      icon:     Icons.person_outline,
-                      hint:     'Ex: Ahmed Dridi',
-                      optional: true,
+                      hint: 'Ex: Ahmed Dridi',
+                      // optional: true,
                     ),
 
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 12),
 
-                    // ── SECTION: LOCALISATION ─────────────────────────────────
-                    _SectionLabel('Localisation'),
-                    const SizedBox(height: 10),
-
-                    // Gouvernorat dropdown
                     _DropdownField(
-                      label:    'Gouvernorat',
-                      icon:     Icons.location_city_outlined,
-                      value:    _gouvernorat,
-                      items:    _geoLoaded ? _geo.gouvernorats : [],
-                      hint:     _geoLoaded ? 'Sélectionner un gouvernorat' : 'Chargement…',
+                      label: 'Gouvernorat',
+                      value: _gouvernorat,
+                      items: _geoLoaded
+                          ? _geo.gouvernorats.toSet().toList()
+                          : [],
+                      hint: _geoLoaded
+                          ? 'Sélectionner un gouvernorat'
+                          : 'Chargement…',
                       onChanged: (v) => setState(() {
                         _gouvernorat = v;
-                        _delegation  = null; // reset delegation
+                        _delegation = null;
                       }),
                     ),
                     const SizedBox(height: 12),
 
-                    // Delegation dropdown (cascades from gouvernorat)
                     _DropdownField(
                       label: 'Délégation',
-                      icon:  Icons.location_on_outlined,
                       value: _delegation,
                       items: (_geoLoaded && _gouvernorat != null)
-                          ? _geo.delegationsFor(_gouvernorat!)
+                          ? _geo.delegationsFor(_gouvernorat!).toSet().toList()
                           : [],
                       hint: _gouvernorat == null
-                          ? 'Choisir un gouvernorat d\'abord'
+                          ? "Choisir un gouvernorat d'abord"
                           : 'Sélectionner une délégation',
                       onChanged: _gouvernorat == null
                           ? null
                           : (v) => setState(() => _delegation = v),
-                      optional: true,
+                      //   optional: true,
                     ),
 
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 12),
 
-                    // ── SECTION: DATE & STATUT ────────────────────────────────
-                    _SectionLabel("Date & Statut"),
-                    const SizedBox(height: 10),
-                    DateInputField(controller: _dateCtrl),
+                    // ── SECTION: DATE & STATUT ────────────────────────────
+                    DateInputField(controller: _dateAjoutCtrl),
                     const SizedBox(height: 12),
 
                     // Statut — read-only
                     _ReadOnlyField(
                       label: 'Statut',
-                      icon:  Icons.flag_outlined,
+                      icon: Icons.flag_outlined,
                       value: _isModification
                           ? widget.echantillon!.statut
                           : 'En attente',
                     ),
 
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 12),
 
-                    // ── SECTION: PHOTO (placeholder) ──────────────────────────
-                    _SectionLabel('Photo'),
+                    // ── SECTION: PHOTO (placeholder) ──────────────────────
+                    _FieldLabel(label: 'Photo'),
                     const SizedBox(height: 10),
                     Container(
-                      width:  double.infinity,
+                      width: double.infinity,
                       height: 64,
                       decoration: BoxDecoration(
-                        color:        _green.withValues(alpha: 0.05),
+                        color: _green.withValues(alpha: 0.05),
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(
                           color: _green.withValues(alpha: 0.25),
@@ -352,11 +365,14 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.add_photo_alternate_outlined,
-                              color: _green.withValues(alpha: 0.55), size: 22),
+                          Icon(
+                            Icons.add_photo_alternate_outlined,
+                            color: _green.withValues(alpha: 0.55),
+                            size: 22,
+                          ),
                           const SizedBox(width: 8),
                           Text(
-                            'Ajouter une photo (optionnel)',
+                            'Ajouter une photo ',
                             style: TextStyle(
                               fontSize: 12,
                               color: _green.withValues(alpha: 0.55),
@@ -372,13 +388,14 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
               ),
             ),
 
-            // ── Action buttons ────────────────────────────────────────────────
+            // ── Action buttons ────────────────────────────────────────────
             Container(
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
               decoration: BoxDecoration(
                 color: _cream,
-                borderRadius:
-                    const BorderRadius.vertical(bottom: Radius.circular(16)),
+                borderRadius: const BorderRadius.vertical(
+                  bottom: Radius.circular(16),
+                ),
                 border: Border(top: BorderSide(color: Colors.grey.shade100)),
               ),
               child: Row(
@@ -397,9 +414,8 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
                       child: const Text('Annuler'),
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 20),
                   Expanded(
-                    flex: 2,
                     child: ElevatedButton.icon(
                       onPressed: _save,
                       icon: Icon(
@@ -411,8 +427,13 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
                         style: const TextStyle(fontWeight: FontWeight.w700),
                       ),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: _green,
-                        foregroundColor: Colors.white,
+                        backgroundColor: const Color.fromARGB(
+                          255,
+                          197,
+                          206,
+                          201,
+                        ),
+                        foregroundColor: _dark,
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         elevation: 0,
                         shape: RoundedRectangleBorder(
@@ -432,72 +453,84 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// SECTION LABEL  — olive uppercase caption
+// FIELD LABEL — standalone label row (used before DateInputField)
 // ─────────────────────────────────────────────────────────────────────────────
-class _SectionLabel extends StatelessWidget {
-  final String text;
-  const _SectionLabel(this.text);
+class _FieldLabel extends StatelessWidget {
+  final String label;
+  final bool optional;
+  final double fontSize;
+  const _FieldLabel({
+    required this.label,
+    this.optional = false,
+    this.fontSize = 12,
+  });
 
   @override
-  Widget build(BuildContext context) => Text(
-    text.toUpperCase(),
-    style: const TextStyle(
-      fontSize:      10,
-      fontWeight:    FontWeight.w700,
-      color:         _olive,
-      letterSpacing: 1.1,
-    ),
+  Widget build(BuildContext context) => Row(
+    children: [
+      Text(
+        label,
+        style: TextStyle(
+          fontSize: fontSize,
+          fontWeight: FontWeight.w600,
+          color: _olive,
+        ),
+      ),
+      /*     if (optional)
+        Text(
+          ' (optionnel)',
+          style: TextStyle(fontSize: 11, color: Colors.grey.shade400),
+        ),*/
+    ],
   );
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// FORM FIELD  — label + icon + text input
+// FORM FIELD
 // ─────────────────────────────────────────────────────────────────────────────
 class _FormField extends StatelessWidget {
-  final String                label;
+  final String label;
   final TextEditingController controller;
-  final IconData              icon;
-  final String                hint;
-  final TextInputType         keyboardType;
-  final String?               suffixText;
-  final bool                  required;
-  final bool                  optional;
+  final String hint;
+  final TextInputType keyboardType;
+  final String? suffixText;
+  final bool required;
+  final bool optional;
 
   const _FormField({
     required this.label,
     required this.controller,
-    required this.icon,
     required this.hint,
     this.keyboardType = TextInputType.text,
     this.suffixText,
     this.required = false,
+
     this.optional = false,
   });
 
   InputDecoration _dec() => InputDecoration(
-    hintText:  hint,
+    hintText: hint,
     hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 13),
-    prefixIcon: Icon(icon, color: _green, size: 20),
-    suffixText:  suffixText,
+    suffixText: suffixText,
     suffixStyle: const TextStyle(
-      color:      _olive,
+      color: _olive,
       fontWeight: FontWeight.w700,
-      fontSize:   14,
+      fontSize: 14,
     ),
-    filled:     true,
-    fillColor:  _fieldFill,
-    contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+    filled: true,
+    fillColor: _fieldFill,
+    contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 14),
     border: OutlineInputBorder(
       borderRadius: BorderRadius.circular(10),
-      borderSide:   BorderSide(color: Colors.grey.shade200),
+      borderSide: BorderSide(color: Colors.grey.shade200),
     ),
     enabledBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(10),
-      borderSide:   BorderSide(color: Colors.grey.shade200),
+      borderSide: BorderSide(color: Colors.grey.shade200),
     ),
     focusedBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(10),
-      borderSide:   const BorderSide(color: _green, width: 1.8),
+      borderSide: const BorderSide(color: _green, width: 1.8),
     ),
   );
 
@@ -511,26 +544,29 @@ class _FormField extends StatelessWidget {
             Text(
               label,
               style: const TextStyle(
-                fontSize:   12,
+                fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color:      _olive,
+                color: _olive,
               ),
             ),
             if (required)
-              const Text(' *', style: TextStyle(fontSize: 12, color: Colors.red)),
-            if (optional)
+              const Text(
+                ' *',
+                style: TextStyle(fontSize: 12, color: Colors.red),
+              ),
+            /*     if (optional)
               Text(
                 ' (optionnel)',
                 style: TextStyle(fontSize: 11, color: Colors.grey.shade400),
-              ),
+              ),*/
           ],
         ),
         const SizedBox(height: 6),
         TextField(
-          controller:   controller,
+          controller: controller,
           keyboardType: keyboardType,
           style: const TextStyle(fontSize: 14, color: _dark),
-          decoration:   _dec(),
+          decoration: _dec(),
         ),
       ],
     );
@@ -538,20 +574,18 @@ class _FormField extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// DROPDOWN FIELD  — label + icon + dropdown
+// DROPDOWN FIELD
 // ─────────────────────────────────────────────────────────────────────────────
 class _DropdownField extends StatelessWidget {
-  final String        label;
-  final IconData      icon;
-  final String?       value;
-  final List<String>  items;
-  final String        hint;
+  final String label;
+  final String? value;
+  final List<String> items;
+  final String hint;
   final ValueChanged<String?>? onChanged;
-  final bool          optional;
+  final bool optional;
 
   const _DropdownField({
     required this.label,
-    required this.icon,
     required this.value,
     required this.items,
     required this.hint,
@@ -569,16 +603,16 @@ class _DropdownField extends StatelessWidget {
             Text(
               label,
               style: const TextStyle(
-                fontSize:   12,
+                fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color:      _olive,
+                color: _olive,
               ),
             ),
-            if (optional)
+            /*  if (optional)
               Text(
                 ' (optionnel)',
                 style: TextStyle(fontSize: 11, color: Colors.grey.shade400),
-              ),
+              ),*/
           ],
         ),
         const SizedBox(height: 6),
@@ -587,26 +621,26 @@ class _DropdownField extends StatelessWidget {
           child: Opacity(
             opacity: onChanged == null ? 0.5 : 1.0,
             child: DropdownButtonFormField<String>(
-              value:      value,
+              value: (value != null && items.contains(value)) ? value : null,
               isExpanded: true,
               decoration: InputDecoration(
-                prefixIcon: Icon(icon, color: _green, size: 20),
-                filled:     true,
-                fillColor:  _fieldFill,
+                filled: true,
+                fillColor: _fieldFill,
                 contentPadding: const EdgeInsets.symmetric(
-                  vertical: 12, horizontal: 16,
+                  vertical: 12,
+                  horizontal: 14,
                 ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
-                  borderSide:   BorderSide(color: Colors.grey.shade200),
+                  borderSide: BorderSide(color: Colors.grey.shade200),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
-                  borderSide:   BorderSide(color: Colors.grey.shade200),
+                  borderSide: BorderSide(color: Colors.grey.shade200),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
-                  borderSide:   const BorderSide(color: _green, width: 1.8),
+                  borderSide: const BorderSide(color: _green, width: 1.8),
                 ),
               ),
               hint: Text(
@@ -626,12 +660,12 @@ class _DropdownField extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// READ-ONLY FIELD  — shows a locked value (e.g. statut)
+// READ-ONLY FIELD
 // ─────────────────────────────────────────────────────────────────────────────
 class _ReadOnlyField extends StatelessWidget {
-  final String   label;
+  final String label;
   final IconData icon;
-  final String   value;
+  final String value;
 
   const _ReadOnlyField({
     required this.label,
@@ -646,9 +680,9 @@ class _ReadOnlyField extends StatelessWidget {
       Text(
         label,
         style: const TextStyle(
-          fontSize:   12,
+          fontSize: 12,
           fontWeight: FontWeight.w600,
-          color:      _olive,
+          color: _olive,
         ),
       ),
       const SizedBox(height: 6),
@@ -656,9 +690,9 @@ class _ReadOnlyField extends StatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
         decoration: BoxDecoration(
-          color:        _fieldFill,
+          color: _fieldFill,
           borderRadius: BorderRadius.circular(10),
-          border:       Border.all(color: Colors.grey.shade200),
+          border: Border.all(color: Colors.grey.shade200),
         ),
         child: Row(
           children: [

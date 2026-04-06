@@ -129,47 +129,6 @@ class _MembresPanelPageState extends State<MembresPanelPage> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            // ── STATS BAR ──────────────────────────────────────────────────
-            Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: _green.withOpacity(0.06),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  _statItem(
-                    icon: Icons.group_outlined,
-                    label: 'Total',
-                    value: '${_membres.length}',
-                    color: _green,
-                  ),
-                  _divider(),
-                  _statItem(
-                    icon: Icons.circle,
-                    label: 'En ligne',
-                    value: '${_membres.where((m) => m.estEnLigne).length}',
-                    color: Colors.green.shade400,
-                  ),
-                  _divider(),
-                  _statItem(
-                    icon: Icons.circle_outlined,
-                    label: 'Hors ligne',
-                    value: '${_membres.where((m) => !m.estEnLigne).length}',
-                    color: Colors.grey.shade400,
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 16),
 
             // ── SEARCH BAR ─────────────────────────────────────────────────
             TextField(
@@ -287,34 +246,4 @@ class _MembresPanelPageState extends State<MembresPanelPage> {
     );
   }
 
-  // ── HELPERS ───────────────────────────────────────────────────────────────
-  Widget _statItem({
-    required IconData icon,
-    required String label,
-    required String value,
-    required Color color,
-  }) {
-    return Expanded(
-      child: Column(
-        children: [
-          Text(
-            value,
-            style: GoogleFonts.domine(
-              fontSize: 20,
-              fontWeight: FontWeight.w700,
-              color: color,
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            label,
-            style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _divider() =>
-      Container(width: 1, height: 30, color: Colors.grey.shade100);
 }

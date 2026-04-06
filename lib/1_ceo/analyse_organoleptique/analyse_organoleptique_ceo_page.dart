@@ -19,9 +19,10 @@ import '../widgets/search_date_filter_bar.dart';
 import '../widgets/sample_card_widgets.dart';
 import '../widgets/base_sample_card.dart'; // ← shared card
 
+const Color _headerBg = Color.fromARGB(255, 220, 233, 226);
 const Color _green = Color(0xFF38835A);
-const Color _cream = Color(0xFFF2EFE7);
 const Color _dark = Color(0xFF1A2E1F);
+const Color _bg = Color.fromARGB(255, 255, 255, 255);
 const Color _olive = Color(0xFF6B8143);
 
 const Color _statusGreen = Color(0xFF38835A);
@@ -361,7 +362,7 @@ class _AnalyseOrganoleptiqueCeoPageState
   Widget build(BuildContext context) {
     final echantillons = _filtered;
     return Scaffold(
-      backgroundColor: _cream,
+      backgroundColor: _bg,
       drawer: CeoDrawer(
         onEchantillons: () => _goTo(const EchantillonsCeoPage()),
         onAnalyseOrganoleptique: () =>
@@ -374,52 +375,125 @@ class _AnalyseOrganoleptiqueCeoPageState
         onDeconnexion: () => _goTo(LoginPage()),
       ),
       appBar: AppBar(
-        backgroundColor: _green,
+        backgroundColor: _headerBg,
         elevation: 0,
+        centerTitle: false,
+        toolbarHeight: 65,
         title: Text(
           'Analyse organoleptique',
           style: GoogleFonts.domine(
             fontSize: 18,
             fontWeight: FontWeight.w700,
-            color: Colors.white,
+            color: _dark,
           ),
         ),
+        iconTheme: const IconThemeData(color: _dark),
         actions: [
-          DateFilterButton(
-            dateDebut: _dateDebut,
-            dateFin: _dateFin,
-            onTap: _showDateFilter,
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              IconButton(
+                icon: Icon(
+                  Icons.calendar_today_outlined,
+                  size: 20,
+                  color: (_dateDebut != null || _dateFin != null)
+                      ? _green
+                      : const Color(0xFF6B8E7A),
+                ),
+                onPressed: _showDateFilter,
+                tooltip: 'Filtrer par date',
+              ),
+              if (_dateDebut != null || _dateFin != null)
+                Positioned(
+                  right: 10,
+                  top: 10,
+                  child: Container(
+                    width: 8,
+                    height: 8,
+                    decoration: const BoxDecoration(
+                      color: _green,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ),
+            ],
           ),
+          const SizedBox(width: 6),
         ],
       ),
       body: Column(
         children: [
-          SearchBarWidget(
-            controller: _searchController,
-            searchQuery: _searchQuery,
-            onChanged: (v) => setState(() => _searchQuery = v),
-            onClear: () {
-              _searchController.clear();
-              setState(() => _searchQuery = '');
-            },
+          // ── Unified header zone ──────────────────────────────────────
+          Container(
+            color: _headerBg,
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
+            child: TextField(
+              controller: _searchController,
+              onChanged: (v) => setState(() => _searchQuery = v.trim()),
+              style: const TextStyle(fontSize: 14, color: _dark),
+              decoration: InputDecoration(
+                hintText: 'Rechercher réf, fournisseur, gouvernorat…',
+                hintStyle: const TextStyle(
+                  color: Color(0xFF6B8E7A),
+                  fontSize: 13,
+                ),
+                prefixIcon: const Icon(
+                  Icons.search,
+                  color: Color(0xFF6B8E7A),
+                  size: 20,
+                ),
+                suffixIcon: _searchQuery.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(
+                          Icons.close,
+                          size: 17,
+                          color: Color(0xFF6B8E7A),
+                        ),
+                        onPressed: () => setState(() {
+                          _searchQuery = '';
+                          _searchController.clear();
+                        }),
+                      )
+                    : null,
+                filled: true,
+                fillColor: Colors.white,
+                contentPadding: const EdgeInsets.symmetric(
+                  vertical: 11,
+                  horizontal: 16,
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: _green, width: 1.5),
+                ),
+              ),
+            ),
           ),
+          Container(height: 1, color: Colors.black.withValues(alpha: 0.06)),
           // Stats strip
           Container(
-            color: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            color: _bg,
+            padding: const EdgeInsets.fromLTRB(16, 9, 16, 6),
             child: Row(
               children: [
-                Icon(
+                const Icon(
                   Icons.science_outlined,
                   size: 13,
-                  color: Colors.grey.shade400,
+                  color: Color.fromARGB(255, 156, 156, 156),
                 ),
                 const SizedBox(width: 6),
                 Text(
                   '${echantillons.length} échantillon${echantillons.length > 1 ? "s" : ""}',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: Colors.grey.shade500,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Color.fromARGB(255, 156, 156, 156),
                     fontWeight: FontWeight.w500,
                   ),
                 ),

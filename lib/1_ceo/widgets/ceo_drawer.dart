@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+const Color _headerBg = Color.fromARGB(255, 220, 233, 226);
 const Color _green = Color(0xFF38835A);
-const Color _cream = Color(0xFFF9F6EF);
 const Color _dark = Color(0xFF1A2E1F);
 const Color _olive = Color(0xFF6B8143);
 const Color _iconBg = Color(0x1A38835A);
@@ -32,60 +32,56 @@ class CeoDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Drawer(
-      backgroundColor: _cream,
+      backgroundColor: Colors.white,
       child: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // ── Header ──
-            Stack(
-              children: [
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.fromLTRB(20, 28, 20, 24),
-                  decoration: BoxDecoration(
-                    color: _green,
-                    borderRadius: const BorderRadius.only(
-                      bottomRight: Radius.circular(24),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(20, 28, 20, 24),
+              decoration: const BoxDecoration(
+                color: _headerBg,
+                borderRadius: BorderRadius.only(
+                  bottomRight: Radius.circular(24),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 52,
+                    height: 52,
+                    decoration: BoxDecoration(
+                      color: _green.withValues(alpha: 0.12),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.person_outline,
+                      color: _green,
+                      size: 28,
                     ),
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        width: 52,
-                        height: 52,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.18),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.person_outline,
-                          color: Colors.white,
-                          size: 28,
-                        ),
-                      ),
-                      const SizedBox(height: 14),
-                      Text(
-                        'Directeur',
-                        style: GoogleFonts.domine(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        'STCA Aljazira',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.white.withOpacity(0.72),
-                        ),
-                      ),
-                    ],
+                  const SizedBox(height: 14),
+                  Text(
+                    'Directeur',
+                    style: GoogleFonts.domine(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: _dark,
+                    ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 2),
+                  Text(
+                    'STCA Aljazira',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: _dark.withValues(alpha: 0.5),
+                    ),
+                  ),
+                ],
+              ),
             ),
 
             // ── Nav (same as before) ──

@@ -38,7 +38,6 @@ class _AnalyseCardState extends State<AnalyseCard> {
 
   Color _statutColor(StatutAnalyse s) {
     switch (s) {
-      case StatutAnalyse.validee:   return _green;
       case StatutAnalyse.envoyee:   return Colors.blue.shade500;
       case StatutAnalyse.enAttente: return Colors.orange.shade400;
     }
@@ -206,45 +205,43 @@ class _AnalyseCardState extends State<AnalyseCard> {
 
             Divider(color: Colors.grey.shade100, height: 1),
 
-            // Action buttons
+            // Action icons
             Padding(
-              padding: const EdgeInsets.fromLTRB(14, 10, 14, 14),
-              child: Row(children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: widget.onModifier,
-                    icon:  const Icon(Icons.edit_outlined, size: 15),
-                    label: const Text('Modifier',
-                        style: TextStyle(
-                            fontSize: 12, fontWeight: FontWeight.w600)),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: _oliveGreen,
-                      side:    BorderSide(
-                          color: _oliveGreen.withValues(alpha: 0.5)),
-                      padding: const EdgeInsets.symmetric(vertical: 9),
-                      shape:   RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10)),
+              padding: const EdgeInsets.fromLTRB(14, 6, 10, 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Tooltip(
+                    message: 'Modifier',
+                    child: IconButton(
+                      onPressed: widget.onModifier,
+                      icon: const Icon(Icons.edit_outlined, size: 18),
+                      color: _oliveGreen,
+                      style: IconButton.styleFrom(
+                        backgroundColor: _oliveGreen.withValues(alpha: 0.08),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10)),
+                        padding: const EdgeInsets.all(8),
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: widget.onSupprimer,
-                    icon:  const Icon(Icons.delete_outline, size: 15),
-                    label: const Text('Supprimer',
-                        style: TextStyle(
-                            fontSize: 12, fontWeight: FontWeight.w600)),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.red.shade400,
-                      side:    BorderSide(color: Colors.red.shade200),
-                      padding: const EdgeInsets.symmetric(vertical: 9),
-                      shape:   RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10)),
+                  const SizedBox(width: 6),
+                  Tooltip(
+                    message: 'Supprimer',
+                    child: IconButton(
+                      onPressed: widget.onSupprimer,
+                      icon: const Icon(Icons.delete_outline, size: 18),
+                      color: Colors.red.shade400,
+                      style: IconButton.styleFrom(
+                        backgroundColor: Colors.red.withValues(alpha: 0.06),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10)),
+                        padding: const EdgeInsets.all(8),
+                      ),
                     ),
                   ),
-                ),
-              ]),
+                ],
+              ),
             ),
           ],
         ],

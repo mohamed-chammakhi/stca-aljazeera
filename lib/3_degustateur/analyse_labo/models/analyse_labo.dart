@@ -4,7 +4,7 @@
 // ═════════════════════════════════════════════════════════════════════════════
 
 // ── Statut enum ───────────────────────────────────────────────────────────────
-enum StatutAnalyse { enAttente, envoyee, validee }
+enum StatutAnalyse { enAttente, envoyee }
 
 // ── Résultat d'un critère (label + valeur + unité + conformité) ───────────────
 class CritereAnalyse {
