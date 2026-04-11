@@ -1,14 +1,14 @@
 // ═════════════════════════════════════════════════════════════════════════════
-// FILE : mock/mock_data.dart
-// PURPOSE : Single source of truth for all mock data.
-//           Every CEO page imports from here instead of defining its own list.
-//           When you connect the real API, you delete this file and replace
+// FILE : ceo/utilisateurs/models/mock_data_patch.dart
+// PURPOSE : Single source of truth for all CEO mock data.
+//           When the real API is ready, delete this file and replace
 //           the imports with service calls — nothing else changes.
+// TODO: remove when backend is ready
 // ═════════════════════════════════════════════════════════════════════════════
 
 import 'echantillon_ceo_view.dart';
-import '../../utilisateurs/widgets/analyse_labo_sheet.dart';
-import '../../utilisateurs/widgets/utilisateurs_ceo_page.dart';
+import '../../../../core/models/user_profile.dart';
+import '../../../../core/models/enums.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ALL SAMPLES — used by echantillons_ceo_page.dart
@@ -27,14 +27,14 @@ final List<EchantillonCeoView> mockEchantillons = [
     dateArriveeEchantillon: '03/03/2026',
     collecteurNom: 'Ahmed Dridi',
     recuPhysiquement: true,
-    statut: StatutCeoView.selectionne,
+    statut: StatutCeo.selectionne,
     totalTasteurs: 5,
     evaluations: [
-      EvaluationTasteur(
+      EvaluationOrganoleptique(id: 'eval-mock-001', echantillonId: 'mock',
         tasteurId: 'D1',
         tasteurNom: 'Ali Ben Salem',
         classification: ClassificationHuile.extraVierge,
-        soumisLe: DateTime(2026, 3, 11, 10, 30),
+        soumisLe: '2026-03-11T10:30:00Z',
         fruite: 7.5,
         fruiteVert: true,
         amertume: 5.0,
@@ -46,43 +46,43 @@ final List<EchantillonCeoView> mockEchantillons = [
         rance: 0,
         commentaire: 'Bon fruité vert, bien équilibré.',
       ),
-      EvaluationTasteur(
+      EvaluationOrganoleptique(id: 'eval-mock-002', echantillonId: 'mock',
         tasteurId: 'D2',
         tasteurNom: 'Sara Mbarki',
         classification: ClassificationHuile.extraVierge,
-        soumisLe: DateTime(2026, 3, 11, 11, 15),
+        soumisLe: '2026-03-11T11:15:00Z',
         fruite: 8.0,
         fruiteVert: true,
         amertume: 4.5,
         piquant: 5.5,
       ),
-      EvaluationTasteur(
+      EvaluationOrganoleptique(id: 'eval-mock-003', echantillonId: 'mock',
         tasteurId: 'D3',
         tasteurNom: 'Hedi Rjaibi',
         classification: ClassificationHuile.vierge,
-        soumisLe: DateTime(2026, 3, 11, 14, 0),
+        soumisLe: '2026-03-11T14:00:00Z',
         fruite: 4.0,
         fruiteVert: true,
         amertume: 3.0,
         piquant: 3.5,
         chome: 1.0,
       ),
-      EvaluationTasteur(
+      EvaluationOrganoleptique(id: 'eval-mock-004', echantillonId: 'mock',
         tasteurId: 'D3',
         tasteurNom: 'rajab saye9',
         classification: ClassificationHuile.vierge,
-        soumisLe: DateTime(2026, 3, 11, 14, 0),
+        soumisLe: '2026-03-11T14:00:00Z',
         fruite: 4.0,
         fruiteVert: true,
         amertume: 3.0,
         piquant: 3.5,
         chome: 1.0,
       ),
-      EvaluationTasteur(
+      EvaluationOrganoleptique(id: 'eval-mock-005', echantillonId: 'mock',
         tasteurId: 'D3',
         tasteurNom: 'ichrak chk',
         classification: ClassificationHuile.vierge,
-        soumisLe: DateTime(2026, 3, 11, 14, 0),
+        soumisLe: '2026-03-11T14:00:00Z',
         fruite: 4.0,
         fruiteVert: true,
         amertume: 3.0,
@@ -110,14 +110,14 @@ final List<EchantillonCeoView> mockEchantillons = [
     quantiteEstimee: '12',
     dateAjout: '05/03/2026',
     collecteurNom: 'Ahmed Dridi',
-    statut: StatutCeoView.enNegociation,
+    statut: StatutCeo.enNegociation,
     totalTasteurs: 5,
     evaluations: [
-      EvaluationTasteur(
+      EvaluationOrganoleptique(id: 'eval-mock-006', echantillonId: 'mock',
         tasteurId: 'D1',
         tasteurNom: 'Ali Ben Salem',
         classification: ClassificationHuile.vierge,
-        soumisLe: DateTime(2026, 3, 10, 9, 0),
+        soumisLe: '2026-03-10T09:00:00Z',
         fruite: 5.0,
         fruiteVert: true,
         amertume: 4.0,
@@ -138,7 +138,7 @@ final List<EchantillonCeoView> mockEchantillons = [
     dateArriveeEchantillon: '23/02/2026',
     collecteurNom: 'Sami Khaled',
     recuPhysiquement: true,
-    statut: StatutCeoView.achatConfirme,
+    statut: StatutCeo.achatConfirme,
     totalTasteurs: 5,
     budgetNegociation: '8.50 TND/L',
     quantiteCibleT: '30',
@@ -146,21 +146,21 @@ final List<EchantillonCeoView> mockEchantillons = [
     stockArrive: false,
     dateLivraisonStock: '28/03/2026',
     evaluations: [
-      EvaluationTasteur(
+      EvaluationOrganoleptique(id: 'eval-mock-007', echantillonId: 'mock',
         tasteurId: 'D1',
         tasteurNom: 'Ali Ben Salem',
         classification: ClassificationHuile.extraVierge,
-        soumisLe: DateTime(2026, 2, 25, 10, 0),
+        soumisLe: '2026-02-25T10:00:00Z',
         fruite: 9.0,
         fruiteVert: false,
         amertume: 6.5,
         piquant: 7.5,
       ),
-      EvaluationTasteur(
+      EvaluationOrganoleptique(id: 'eval-mock-008', echantillonId: 'mock',
         tasteurId: 'D2',
         tasteurNom: 'Sara Mbarki',
         classification: ClassificationHuile.extraVierge,
-        soumisLe: DateTime(2026, 2, 25, 11, 0),
+        soumisLe: '2026-02-25T11:00:00Z',
         fruite: 8.5,
         fruiteVert: false,
         amertume: 6.0,
@@ -185,7 +185,7 @@ final List<EchantillonCeoView> mockEchantillons = [
     quantiteEstimee: '8',
     dateAjout: '28/02/2026',
     collecteurNom: 'Sami Khaled',
-    statut: StatutCeoView.refuse,
+    statut: StatutCeo.refuse,
     totalTasteurs: 5,
     raisonRefus: 'Qualité insuffisante',
     evaluations: [],
@@ -200,7 +200,7 @@ final List<EchantillonCeoView> mockEchantillons = [
     quantiteEstimee: '15',
     dateAjout: '18/03/2026',
     collecteurNom: 'Mounir Zouaghi',
-    statut: StatutCeoView.selectionne,
+    statut: StatutCeo.selectionne,
     totalTasteurs: 5,
     analyse: const AnalyseLaboCeoView(
       aciditeLibre: 0.55,
@@ -221,7 +221,7 @@ final List<EchantillonCeoView> mockEchantillons = [
     quantiteEstimee: '5',
     dateAjout: '10/03/2026',
     collecteurNom: null, // interne
-    statut: StatutCeoView.selectionne,
+    statut: StatutCeo.selectionne,
     totalTasteurs: 5,
   ),
 
@@ -237,7 +237,7 @@ final List<EchantillonCeoView> mockEchantillons = [
     dateArriveeEchantillon: '05/03/2026',
     collecteurNom: 'Ahmed Dridi',
     recuPhysiquement: true,
-    statut: StatutCeoView.achatConfirme,
+    statut: StatutCeo.achatConfirme,
     totalTasteurs: 5,
     budgetNegociation: '9.20 TND/L',
     quantiteCibleT: '25',
@@ -258,7 +258,7 @@ final List<EchantillonCeoView> mockEchantillons = [
     dateArriveeEchantillon: '03/03/2026',
     collecteurNom: 'Ahmed Dridi',
     recuPhysiquement: true,
-    statut: StatutCeoView.achatConfirme,
+    statut: StatutCeo.achatConfirme,
     totalTasteurs: 5,
     budgetNegociation: '7.80 TND/L',
     quantiteCibleT: '18',
@@ -279,14 +279,14 @@ final List<EchantillonCeoView> mockEchantillons = [
     dateLivraisonPrevue: '20/04/2026',
     collecteurNom: 'Mounir Zouaghi',
     recuPhysiquement: false,
-    statut: StatutCeoView.selectionne,
+    statut: StatutCeo.selectionne,
     totalTasteurs: 5,
     evaluations: [
-      EvaluationTasteur(
+      EvaluationOrganoleptique(id: 'eval-mock-009', echantillonId: 'mock',
         tasteurId: 'D2',
         tasteurNom: 'Sara Mbarki',
         classification: ClassificationHuile.extraVierge,
-        soumisLe: DateTime(2026, 3, 27, 10, 0),
+        soumisLe: '2026-03-27T10:00:00Z',
         fruite: 7.0,
         fruiteVert: false,
         amertume: 5.5,
@@ -308,27 +308,27 @@ final List<EchantillonCeoView> mockEchantillons = [
     dateArriveeEchantillon: '18/03/2026',
     collecteurNom: 'Sami Khaled',
     recuPhysiquement: true,
-    statut: StatutCeoView.achatConfirme,
+    statut: StatutCeo.achatConfirme,
     totalTasteurs: 5,
     budgetNegociation: '9.00 TND/L',
     quantiteCibleT: '40',
     stockArrive: false,
     evaluations: [
-      EvaluationTasteur(
+      EvaluationOrganoleptique(id: 'eval-mock-010', echantillonId: 'mock',
         tasteurId: 'D1',
         tasteurNom: 'Ali Ben Salem',
         classification: ClassificationHuile.extraVierge,
-        soumisLe: DateTime(2026, 3, 20, 9, 30),
+        soumisLe: '2026-03-20T09:30:00Z',
         fruite: 8.0,
         fruiteVert: true,
         amertume: 6.0,
         piquant: 6.5,
       ),
-      EvaluationTasteur(
+      EvaluationOrganoleptique(id: 'eval-mock-011', echantillonId: 'mock',
         tasteurId: 'D2',
         tasteurNom: 'Sara Mbarki',
         classification: ClassificationHuile.extraVierge,
-        soumisLe: DateTime(2026, 3, 20, 11, 0),
+        soumisLe: '2026-03-20T11:00:00Z',
         fruite: 7.5,
         fruiteVert: true,
         amertume: 5.5,
@@ -346,7 +346,7 @@ final List<EchantillonCeoView> mockEchantillons = [
 /// Only samples that have at least started the tasting process.
 List<EchantillonCeoView> get mockEchantillonsOrganoleptique => mockEchantillons
     .where(
-      (e) => e.evaluations.isNotEmpty || e.statut == StatutCeoView.selectionne,
+      (e) => e.evaluations.isNotEmpty || e.statut == StatutCeo.selectionne,
     )
     .toList();
 
@@ -357,125 +357,36 @@ List<EchantillonCeoView> get mockEchantillonsLabo => mockEchantillons;
 /// Used by achats_confirmes_ceo_page.dart
 /// Only confirmed purchases.
 List<EchantillonCeoView> get mockAchatsConfirmes => mockEchantillons
-    .where((e) => e.statut == StatutCeoView.achatConfirme)
+    .where((e) => e.statut == StatutCeo.achatConfirme)
     .toList();
-
-// ═════════════════════════════════════════════════════════════════════════════
-// FILE : mock/mock_data_patch.dart
-// PURPOSE : Adds mockUtilisateurs to the mock data layer.
-//           Add these lines to mock_data.dart — same file, same pattern.
-//           When you connect the real API, replace with GET /api/users.
-// ═════════════════════════════════════════════════════════════════════════════
-
-// ── ADD THIS import at the top of mock_data.dart ─────────────────────────────
-// import 'utilisateurs/utilisateurs_ceo_page.dart';   ← AppUser + UserRole
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ALL USERS — used by utilisateurs_ceo_page.dart
+// TODO: remove when backend is ready and replace with GET /api/users/
 // ─────────────────────────────────────────────────────────────────────────────
-final List<AppUser> mockUtilisateurs = [
-  AppUser(
-    id: 'U001',
-    initials: 'TA',
-    prenom: 'Takwa',
-    nom: 'Amara',
-    email: 'takwa.amara@aljazira.tn',
-    telephone: '+216 98 123 456',
-    dateDebut: '01/01/2024',
-    role: UserRole.ceo,
-    actif: true,
-  ),
-  AppUser(
-    id: 'U002',
-    initials: 'MS',
-    prenom: 'Mohamed',
-    nom: 'Slim',
-    email: 'mslim@aljazira.tn',
-    telephone: '+216 55 234 567',
-    dateDebut: '15/02/2024',
-    role: UserRole.laboratoire,
-    actif: true,
-  ),
-  AppUser(
-    id: 'U003',
-    initials: 'AB',
-    prenom: 'Ali',
-    nom: 'Ben Salem',
-    email: 'ali.bensalem@aljazira.tn',
-    telephone: '+216 20 345 678',
-    dateDebut: '10/03/2024',
-    role: UserRole.degustateur,
-    actif: true,
-  ),
-  AppUser(
-    id: 'U004',
-    initials: 'SM',
-    prenom: 'Sara',
-    nom: 'Mbarki',
-    email: 'sara.mbarki@aljazira.tn',
-    telephone: '+216 22 456 789',
-    dateDebut: '10/03/2024',
-    role: UserRole.degustateur,
-    actif: true,
-  ),
-  AppUser(
-    id: 'U005',
-    initials: 'HR',
-    prenom: 'Hedi',
-    nom: 'Rjaibi',
-    email: 'hedi.rjaibi@aljazira.tn',
-    telephone: '+216 25 567 890',
-    dateDebut: '10/03/2024',
-    role: UserRole.degustateur,
-    actif: false,
-  ),
-  AppUser(
-    id: 'U006',
-    initials: 'AD',
-    prenom: 'Ahmed',
-    nom: 'Dridi',
-    email: 'ahmed.dridi@aljazira.tn',
-    telephone: '+216 50 678 901',
-    dateDebut: '01/02/2024',
-    role: UserRole.collecteur,
-    actif: true,
-  ),
-  AppUser(
-    id: 'U007',
-    initials: 'SK',
-    prenom: 'Sami',
-    nom: 'Khaled',
-    email: 'sami.khaled@aljazira.tn',
-    telephone: '+216 52 789 012',
-    dateDebut: '01/02/2024',
-    role: UserRole.collecteur,
-    actif: true,
-  ),
-  AppUser(
-    id: 'U008',
-    initials: 'MZ',
-    prenom: 'Mounir',
-    nom: 'Zouaghi',
-    email: 'mounir.z@aljazira.tn',
-    telephone: '+216 54 890 123',
-    dateDebut: '15/02/2024',
-    role: UserRole.collecteur,
-    actif: true,
-  ),
+final List<UserProfile> mockUtilisateurs = [
+  UserProfile(id: 'U001', email: 'takwa.amara@aljazira.tn',   role: RoleUtilisateur.direction,   nom: 'Amara',   prenom: 'Takwa',   telephone: '+216 98 123 456', dateCreation: '2024-01-01'),
+  UserProfile(id: 'U002', email: 'mslim@aljazira.tn',         role: RoleUtilisateur.laboratoire,  nom: 'Slim',    prenom: 'Mohamed', telephone: '+216 55 234 567', dateCreation: '2024-02-15'),
+  UserProfile(id: 'U003', email: 'ali.bensalem@aljazira.tn',  role: RoleUtilisateur.degustateur,  nom: 'Ben Salem', prenom: 'Ali',  telephone: '+216 20 345 678', dateCreation: '2024-03-10'),
+  UserProfile(id: 'U004', email: 'sara.mbarki@aljazira.tn',   role: RoleUtilisateur.degustateur,  nom: 'Mbarki',  prenom: 'Sara',    telephone: '+216 22 456 789', dateCreation: '2024-03-10'),
+  UserProfile(id: 'U005', email: 'hedi.rjaibi@aljazira.tn',   role: RoleUtilisateur.degustateur,  nom: 'Rjaibi',  prenom: 'Hedi',    telephone: '+216 25 567 890', dateCreation: '2024-03-10', isActive: false),
+  UserProfile(id: 'U006', email: 'ahmed.dridi@aljazira.tn',   role: RoleUtilisateur.collecteur,   nom: 'Dridi',   prenom: 'Ahmed',   telephone: '+216 50 678 901', dateCreation: '2024-02-01'),
+  UserProfile(id: 'U007', email: 'sami.khaled@aljazira.tn',   role: RoleUtilisateur.collecteur,   nom: 'Khaled',  prenom: 'Sami',    telephone: '+216 52 789 012', dateCreation: '2024-02-01'),
+  UserProfile(id: 'U008', email: 'mounir.z@aljazira.tn',      role: RoleUtilisateur.collecteur,   nom: 'Zouaghi', prenom: 'Mounir',  telephone: '+216 54 890 123', dateCreation: '2024-02-15'),
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
-// DERIVED LISTS — mirrors the pattern in mock_data.dart
+// DERIVED LISTS
 // ─────────────────────────────────────────────────────────────────────────────
 
-/// Active users only — for panels, session assignment, etc.
-List<AppUser> get mockUtilisateursActifs =>
-    mockUtilisateurs.where((u) => u.actif).toList();
+/// Active users only.
+List<UserProfile> get mockUtilisateursActifs =>
+    mockUtilisateurs.where((u) => u.isActive).toList();
 
-/// Dégustateurs only — used by session planning
-List<AppUser> get mockDegustateurs =>
-    mockUtilisateurs.where((u) => u.role == UserRole.degustateur).toList();
+/// Dégustateurs only — used by session planning.
+List<UserProfile> get mockDegustateurs =>
+    mockUtilisateurs.where((u) => u.role == RoleUtilisateur.degustateur).toList();
 
-/// Collecteurs only — used by sample tracking
-List<AppUser> get mockCollecteurs =>
-    mockUtilisateurs.where((u) => u.role == UserRole.collecteur).toList();
+/// Collecteurs only — used by sample tracking.
+List<UserProfile> get mockCollecteurs =>
+    mockUtilisateurs.where((u) => u.role == RoleUtilisateur.collecteur).toList();

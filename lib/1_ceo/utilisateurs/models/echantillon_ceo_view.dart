@@ -1,108 +1,28 @@
-import 'package:flutter/material.dart';
-import '../widgets/analyse_labo_sheet.dart';
+// ═════════════════════════════════════════════════════════════════════════════
+// FILE    : ceo/utilisateurs/models/echantillon_ceo_view.dart
+// PURPOSE : CEO-specific view model — aggregates sample + evaluations + analysis
+//           into one object for the CEO pages. All enums/types come from core.
+// ═════════════════════════════════════════════════════════════════════════════
 
-// ── Status enum ───────────────────────────────────────────────────────────────
-enum StatutCeoView { selectionne, enNegociation, achatConfirme, refuse }
+// Re-export core types so CEO pages only need to import this one file.
+export '../../../../core/models/enums.dart'
+    show
+        ClassificationHuile,
+        ClassificationHuileX,
+        StatutCeo,
+        StatutCeoX;
 
-// ── Classification enum ───────────────────────────────────────────────────────
-enum ClassificationHuile { extraVierge, vierge, viergeOrdinaire, lampante }
+export '../../../../core/models/evaluation_organoleptique.dart';
+export '../../../../core/widgets/analyse_labo_sheet_adapter.dart';
 
-extension ClassificationHuileLabel on ClassificationHuile {
-  String get label {
-    switch (this) {
-      case ClassificationHuile.extraVierge:
-        return 'Extra Vierge';
-      case ClassificationHuile.vierge:
-        return 'Vierge';
-      case ClassificationHuile.viergeOrdinaire:
-        return 'Vierge Ordinaire';
-      case ClassificationHuile.lampante:
-        return 'Lampante';
-    }
-  }
-
-  int get colorValue {
-    switch (this) {
-      case ClassificationHuile.extraVierge:
-        return 0xFF38835A;
-      case ClassificationHuile.vierge:
-        return 0xFFF57C00;
-      case ClassificationHuile.viergeOrdinaire:
-        return 0xFFE64A19;
-      case ClassificationHuile.lampante:
-        return 0xFFD32F2F;
-    }
-  }
-}
-
-// ── Full evaluation model — all COI criteria ──────────────────────────────────
-class EvaluationTasteur {
-  final String tasteurId;
-  final String tasteurNom;
-  final ClassificationHuile classification;
-  final DateTime soumisLe;
-
-  // Attributs positifs
-  final double? fruite;
-  final bool fruiteVert; // true = Vert, false = Mûr
-  final double? amertume;
-  final double? piquant;
-
-  // Attributs négatifs (défauts)
-  final double? chome;
-  final double? moisi;
-  final double? vinaigre;
-  final double? gele;
-  final double? rance;
-  final double? autresDefaut;
-  final String? autresDefautNom;
-
-  final String? commentaire;
-  final String? defauts; // legacy
-
-  const EvaluationTasteur({
-    required this.tasteurId,
-    required this.tasteurNom,
-    required this.classification,
-    required this.soumisLe,
-    this.fruite,
-    this.fruiteVert = true,
-    this.amertume,
-    this.piquant,
-    this.chome,
-    this.moisi,
-    this.vinaigre,
-    this.gele,
-    this.rance,
-    this.autresDefaut,
-    this.autresDefautNom,
-    this.commentaire,
-    this.defauts,
-  });
-
-  double get medianeDefauts {
-    final vals = [
-      chome ?? 0.0,
-      moisi ?? 0.0,
-      vinaigre ?? 0.0,
-      gele ?? 0.0,
-      rance ?? 0.0,
-      autresDefaut ?? 0.0,
-    ];
-    return vals.reduce((a, b) => a > b ? a : b);
-  }
-}
+import '../../../../core/models/enums.dart';
+import '../../../../core/models/evaluation_organoleptique.dart';
+import '../../../../core/widgets/analyse_labo_sheet_adapter.dart';
 
 // ── Sample view model ─────────────────────────────────────────────────────────
 class EchantillonCeoView {
-  /// Sequential sample ID shown everywhere in the UI.
-  /// Format: "YYYY/NNNN"  e.g. "2026/0001"
   final String id;
-
-  /// Bottle reference written by the collector on the physical bottle.
-  /// Examples: "CHEMLALI-C1", "ZALMATI-07-B", "CHETOUI-C3"
   final String referenceBouteille;
-
   final String gouvernorat;
   final String? delegation;
   final String codeFournisseur;
@@ -114,12 +34,13 @@ class EchantillonCeoView {
   final String? dateArriveeEchantillon;
   final String? collecteurNom;
   bool recuPhysiquement;
-  StatutCeoView statut;
+  StatutCeo statut;
   final int totalTasteurs;
-  final List<EvaluationTasteur> evaluations;
+  final List<EvaluationOrganoleptique> evaluations;
   final AnalyseLaboCeoView? analyse;
   String? raisonRefus;
   String? budgetNegociation;
+  String? dateLivraisonStockSouhaitee; // CEO's desired delivery date for stock
   String? quantiteCibleT;
   String? camionReserve;
   String? noteInterne;
@@ -147,6 +68,7 @@ class EchantillonCeoView {
     this.analyse,
     this.raisonRefus,
     this.budgetNegociation,
+    this.dateLivraisonStockSouhaitee,
     this.quantiteCibleT,
     this.camionReserve,
     this.noteInterne,

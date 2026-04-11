@@ -40,45 +40,52 @@ class CeoDrawer extends StatelessWidget {
             // ── Header ──
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.fromLTRB(20, 28, 20, 24),
+              padding: const EdgeInsets.fromLTRB(20, 30, 20, 30),
               decoration: const BoxDecoration(
-                color: _headerBg,
+                color: Color(0xFF55755E),
                 borderRadius: BorderRadius.only(
                   bottomRight: Radius.circular(24),
                 ),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: Row(
                 children: [
                   Container(
                     width: 52,
                     height: 52,
                     decoration: BoxDecoration(
-                      color: _green.withValues(alpha: 0.12),
+                      color: const Color.fromARGB(
+                        255,
+                        146,
+                        172,
+                        157,
+                      ).withValues(alpha: 0.7),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
                       Icons.person_outline,
-                      color: _green,
+                      color: Color.fromARGB(255, 255, 255, 255),
                       size: 28,
                     ),
                   ),
-                  const SizedBox(height: 14),
-                  Text(
-                    'Directeur',
-                    style: GoogleFonts.domine(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                      color: _dark,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    'STCA Aljazira',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: _dark.withValues(alpha: 0.5),
-                    ),
+                  const SizedBox(width: 14),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Directeur',
+                        style: GoogleFonts.domine(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                          color: _dark,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'STCA Aljazira',
+                        style: const TextStyle(fontSize: 12, color: _dark),
+                      ),
+                    ],
                   ),
                 ],
               ),

@@ -30,7 +30,7 @@ class _ProfileCollecteurPageState extends State<ProfileCollecteurPage> {
   // ── Brand Colors ──────────────────────────────────────────────────────────
   static const Color green = Color(0xFF38835A);
   static const Color oliveGreen = Color(0xFF6B8143);
-  static const Color cream = Color(0xFFF9F6EF);
+  static const Color headerBg = Color.fromARGB(255, 220, 233, 226);
   static const Color darkText = Color(0xFF1A2E1F);
 
   // ── Controllers — empty by default, filled by backend later ──────────────
@@ -38,25 +38,21 @@ class _ProfileCollecteurPageState extends State<ProfileCollecteurPage> {
   late TextEditingController _prenomController;
   late TextEditingController _emailController;
   late TextEditingController _numeroController;
-  late TextEditingController _roleController;
 
   // ── Per-field editing booleans ────────────────────────────────────────────
   bool _editingNom = false;
   bool _editingPrenom = false;
   bool _editingEmail = false;
   bool _editingnumero = false;
-  bool _editingRole = false;
 
   // ── Displayed header values ───────────────────────────────────────────────
   String _displayedFullName = '';
-  String _displayedRole = '';
 
   // ── FocusNodes ────────────────────────────────────────────────────────────
   final FocusNode _nomFocus = FocusNode();
   final FocusNode _prenomFocus = FocusNode();
   final FocusNode _emailFocus = FocusNode();
   final FocusNode _numeroFocus = FocusNode();
-  final FocusNode _roleFocus = FocusNode();
 
   // ── initState ─────────────────────────────────────────────────────────────
   @override
@@ -66,7 +62,6 @@ class _ProfileCollecteurPageState extends State<ProfileCollecteurPage> {
     _prenomController = TextEditingController(text: '');
     _emailController = TextEditingController(text: '');
     _numeroController = TextEditingController(text: '');
-    _roleController = TextEditingController(text: '');
   }
 
   // ── dispose ───────────────────────────────────────────────────────────────
@@ -76,12 +71,10 @@ class _ProfileCollecteurPageState extends State<ProfileCollecteurPage> {
     _prenomController.dispose();
     _emailController.dispose();
     _numeroController.dispose();
-    _roleController.dispose();
     _nomFocus.dispose();
     _prenomFocus.dispose();
     _emailFocus.dispose();
-    _numeroFocus.dispose(); // ✅ fixed — was _emailFocus duplicated
-    _roleFocus.dispose();
+    _numeroFocus.dispose();
     super.dispose();
   }
 
@@ -141,18 +134,6 @@ class _ProfileCollecteurPageState extends State<ProfileCollecteurPage> {
           }
           break;
 
-        case 'role':
-          _editingRole = !_editingRole;
-          if (_editingRole) {
-            Future.delayed(
-              const Duration(milliseconds: 50),
-              () => _roleFocus.requestFocus(),
-            );
-          } else {
-            _displayedRole = _roleController.text;
-            _showSuccess('Rôle mis à jour');
-          }
-          break;
       }
     });
   }
@@ -225,27 +206,29 @@ class _ProfileCollecteurPageState extends State<ProfileCollecteurPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: cream,
+      backgroundColor: Colors.white,
       drawer: CollecteurDrawer(
         onMesEchantillons: () => _goTo(const MesEchantillonsPage()),
         onCarte: () => _goTo(const Placeholder()),
         onMessagerie: () => _goTo(const Placeholder()),
         onTableauDeBord: () => _goTo(const TableauDeBordCollecteurPage()),
-        onProfil: () => Navigator.pop(context), // ✅ fixed — was missing
+        onProfil: () => Navigator.pop(context),
         onDeconnexion: _goToLogin,
       ),
       appBar: AppBar(
-        backgroundColor: green,
+        backgroundColor: headerBg,
         elevation: 0,
+        centerTitle: false,
+        toolbarHeight: 65,
         title: Text(
           'Votre Profil',
           style: GoogleFonts.domine(
-            fontSize: 22,
+            fontSize: 18,
             fontWeight: FontWeight.w700,
-            color: Colors.white,
-            letterSpacing: 0.8,
+            color: darkText,
           ),
         ),
+        iconTheme: const IconThemeData(color: darkText),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
@@ -314,19 +297,6 @@ class _ProfileCollecteurPageState extends State<ProfileCollecteurPage> {
                   color: darkText,
                 ),
               ),
-
-            // ── Role — shows after user saves role ──
-            if (_displayedRole.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Text(
-                _displayedRole,
-                style: GoogleFonts.alegreya(
-                  fontSize: 16,
-                  color: oliveGreen,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
 
             const SizedBox(height: 30),
 
@@ -402,31 +372,6 @@ class _ProfileCollecteurPageState extends State<ProfileCollecteurPage> {
                     hint: 'Votre Numéro de Téléphone',
                     keyboardType:
                         TextInputType.phone, // ✅ fixed — was emailAddress
-                  ),
-                  const SizedBox(height: 20),
-                  Divider(color: Colors.grey.shade200),
-                  const SizedBox(height: 20),
-
-                  _sectionTitle('Informations Professionnelles'),
-                  const SizedBox(height: 20),
-
-                  // ── Rôle ──
-                  _buildField(
-                    label: 'Rôle',
-                    controller: _roleController,
-                    focusNode: _roleFocus,
-                    icon: Icons.badge_outlined,
-                    isEditing: _editingRole,
-                    fieldKey: 'role',
-                    hint: 'Votre rôle',
-                  ),
-                  const SizedBox(height: 16),
-
-                  // ── Date — always locked, assigned by system ──
-                  _buildLockedField(
-                    label: "Date de début d'activité",
-                    value: '01/01/2024',
-                    icon: Icons.calendar_today_outlined,
                   ),
                 ],
               ),

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'homepage/homepage_page.dart';
+import 'tableau_de_bord/homepage_page.dart';
 //import 'degustateur/homepage/homepage_page.dart';
 import 'evaluation_echantillons/evaluation_echantillons_page.dart';
 //import '../../../profil.dart';
-import 'homepage/widgets/app_drawer.dart';
+import 'tableau_de_bord/widgets/app_drawer.dart';
 import 'membres_panel/membres_panel_page.dart';
 import '../../../main.dart';
 import 'gestion_echantillons/gestion_echantillons_page.dart';
@@ -63,7 +63,7 @@ class _ProfilePageState extends State<ProfilePage> {
   // ── Brand Colors ──────────────────────────────────────────────────────────
   static const Color green = Color(0xFF38835A);
   static const Color oliveGreen = Color(0xFF6B8143);
-  static const Color cream = Color(0xFFF9F6EF);
+  static const Color headerBg = Color.fromARGB(255, 220, 233, 226);
   static const Color darkText = Color(0xFF1A2E1F);
 
   // ── Controllers — empty by default, filled by backend later ──────────────
@@ -71,27 +71,21 @@ class _ProfilePageState extends State<ProfilePage> {
   late TextEditingController _prenomController;
   late TextEditingController _emailController;
   late TextEditingController _numeroController;
-  late TextEditingController _roleController;
 
   // ── Per-field editing booleans ────────────────────────────────────────────
   bool _editingNom = false;
   bool _editingPrenom = false;
   bool _editingEmail = false;
   bool _editingnumero = false;
-  bool _editingRole = false;
 
   // ── Displayed header values ───────────────────────────────────────────────
-  // Empty by default — will be filled when user saves or data loads from API
   String _displayedFullName = '';
-  String _displayedRole = '';
 
   // ── FocusNodes ────────────────────────────────────────────────────────────
   final FocusNode _nomFocus = FocusNode();
   final FocusNode _prenomFocus = FocusNode();
   final FocusNode _emailFocus = FocusNode();
   final FocusNode _numeroFocus = FocusNode();
-
-  final FocusNode _roleFocus = FocusNode();
 
   // ── initState ─────────────────────────────────────────────────────────────
   @override
@@ -104,8 +98,6 @@ class _ProfilePageState extends State<ProfilePage> {
     _prenomController = TextEditingController(text: '');
     _emailController = TextEditingController(text: '');
     _numeroController = TextEditingController(text: '');
-
-    _roleController = TextEditingController(text: '');
   }
 
   // ── dispose ───────────────────────────────────────────────────────────────
@@ -115,12 +107,10 @@ class _ProfilePageState extends State<ProfilePage> {
     _prenomController.dispose();
     _emailController.dispose();
     _numeroController.dispose();
-    _roleController.dispose();
     _nomFocus.dispose();
     _prenomFocus.dispose();
     _emailFocus.dispose();
     _numeroFocus.dispose();
-    _roleFocus.dispose();
     super.dispose();
   }
 
@@ -176,19 +166,6 @@ class _ProfilePageState extends State<ProfilePage> {
             );
           } else {
             _showSuccess('numero mis à jour');
-          }
-          break;
-
-        case 'role':
-          _editingRole = !_editingRole;
-          if (_editingRole) {
-            Future.delayed(
-              const Duration(milliseconds: 50),
-              () => _roleFocus.requestFocus(),
-            );
-          } else {
-            _displayedRole = _roleController.text;
-            _showSuccess('Rôle mis à jour');
           }
           break;
       }
@@ -263,7 +240,7 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: cream,
+      backgroundColor: Colors.white,
       drawer: AppDrawer(
         onaccueil: () => _goTo(const HomePage()),
 
@@ -291,19 +268,19 @@ class _ProfilePageState extends State<ProfilePage> {
         onDeconnexion: _goToLogin,
       ),
       appBar: AppBar(
-        backgroundColor: green,
+        backgroundColor: headerBg,
         elevation: 0,
-
-        // ✅ Back arrow — navigates to HomePage in homepage.dart
+        centerTitle: false,
+        toolbarHeight: 65,
         title: Text(
           'Votre Profil',
           style: GoogleFonts.domine(
-            fontSize: 22,
+            fontSize: 18,
             fontWeight: FontWeight.w700,
-            color: Colors.white,
-            letterSpacing: 0.8,
+            color: darkText,
           ),
         ),
+        iconTheme: const IconThemeData(color: darkText),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
@@ -372,19 +349,6 @@ class _ProfilePageState extends State<ProfilePage> {
                   color: darkText,
                 ),
               ),
-
-            // ── Role — shows after user saves role ──
-            if (_displayedRole.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Text(
-                _displayedRole,
-                style: GoogleFonts.alegreya(
-                  fontSize: 16,
-                  color: oliveGreen,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
 
             const SizedBox(height: 30),
 
@@ -459,31 +423,6 @@ class _ProfilePageState extends State<ProfilePage> {
                     hint:
                         'Votre Numéro de Téléphone', // ✅ hint instead of default value
                     keyboardType: TextInputType.phone,
-                  ),
-                  const SizedBox(height: 20),
-                  Divider(color: Colors.grey.shade200),
-                  const SizedBox(height: 20),
-
-                  _sectionTitle('Informations Professionnelles'),
-                  const SizedBox(height: 20),
-
-                  // ── Rôle ──
-                  _buildField(
-                    label: 'Rôle',
-                    controller: _roleController,
-                    focusNode: _roleFocus,
-                    icon: Icons.badge_outlined,
-                    isEditing: _editingRole,
-                    fieldKey: 'role',
-                    hint: 'Votre rôle', // ✅ hint instead of default value
-                  ),
-                  const SizedBox(height: 16),
-
-                  // ── Date — always locked, assigned by system ──
-                  _buildLockedField(
-                    label: "Date de début d'activité",
-                    value: '01/01/2024',
-                    icon: Icons.calendar_today_outlined,
                   ),
                 ],
               ),

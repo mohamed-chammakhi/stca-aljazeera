@@ -3,7 +3,11 @@
 // PURPOSE : Core data model for a laboratory analysis report
 // ═════════════════════════════════════════════════════════════════════════════
 
-enum StatutAnalyse { enAttente, enCours, soumis }
+import '../core/models/enums.dart' show StatutLabo;
+
+/// Alias kept for callers within this module.
+/// All new code should use StatutLabo from core/models/enums.dart directly.
+typedef StatutAnalyse = StatutLabo;
 
 class AnalyseLabo {
   String echantillonId;

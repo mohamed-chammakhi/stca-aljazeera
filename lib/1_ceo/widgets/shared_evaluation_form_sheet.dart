@@ -20,7 +20,7 @@ const Color _dark = Color(0xFF1A2E1F);
 // ── Entry point ───────────────────────────────────────────────────────────────
 void showEvaluationFormSheet(
   BuildContext context, {
-  required EvaluationTasteur evaluation,
+  required EvaluationOrganoleptique evaluation,
   required String sampleRef,
 }) {
   showModalBottomSheet(
@@ -34,7 +34,7 @@ void showEvaluationFormSheet(
 
 // ── Bottom sheet ──────────────────────────────────────────────────────────────
 class _EvaluationFormSheet extends StatelessWidget {
-  final EvaluationTasteur evaluation;
+  final EvaluationOrganoleptique evaluation;
   final String sampleRef;
 
   const _EvaluationFormSheet({
@@ -87,8 +87,8 @@ class _EvaluationFormSheet extends StatelessWidget {
                   ),
                   child: Center(
                     child: Text(
-                      ev.tasteurNom.isNotEmpty
-                          ? ev.tasteurNom[0].toUpperCase()
+                      (ev.tasteurNom != null && ev.tasteurNom!.isNotEmpty)
+                          ? ev.tasteurNom![0].toUpperCase()
                           : '?',
                       style: TextStyle(
                         fontSize: 18,
@@ -104,7 +104,7 @@ class _EvaluationFormSheet extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        ev.tasteurNom,
+                        ev.tasteurNom ?? ev.tasteurId,
                         style: GoogleFonts.domine(
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
@@ -119,7 +119,7 @@ class _EvaluationFormSheet extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        _fmtDate(ev.soumisLe),
+                        _fmtDate(DateTime.tryParse(ev.soumisLe) ?? DateTime.now()),
                         style: TextStyle(
                           fontSize: 11,
                           color: Colors.grey.shade400,
@@ -375,7 +375,7 @@ class _EvaluationFormSheet extends StatelessWidget {
 
 // ── Classification card ───────────────────────────────────────────────────────
 class _ClassificationCard extends StatelessWidget {
-  final EvaluationTasteur evaluation;
+  final EvaluationOrganoleptique evaluation;
   const _ClassificationCard({required this.evaluation});
 
   @override

@@ -7,9 +7,9 @@
 //   2. STATE         — search, statut filter, date range
 //   3. NAVIGATION    — _goTo, _goToLogin
 //   4. MOCK DATA     — replace with API call later
-//   5. FILTER LOGIC  — _filtres getter, _parseDate, _labelToStatut
+//   5. FILTER LOGIC  — _filtres getter, _parseDate
 //   6. ACTIONS       — add, edit, delete, snackbar
-//   7. BUILD         — appbar, drawer, FAB, SearchFilterBar, list
+//   7. BUILD         — appbar, drawer, header zone, stats strip, list
 // ═════════════════════════════════════════════════════════════════════════════
 
 import 'package:flutter/material.dart';
@@ -21,12 +21,13 @@ import 'widgets/session_card.dart';
 import 'widgets/dialogs/formulaire_session_dialog.dart';
 import 'widgets/dialogs/suppression_session_dialog.dart';
 
-// ── Shared date filter widgets ────────────────────────────────────────────────
-import '../gestion_echantillons/widgets/search_filter_bar.dart';
+// ── Shared date filter ────────────────────────────────────────────────────────
+import '../gestion_echantillons/widgets/search_filter_bar.dart'
+    show DateFilterSheet;
 
 // ── App-wide imports ──────────────────────────────────────────────────────────
 import '../profil.dart';
-import '../homepage/widgets/app_drawer.dart';
+import '../tableau_de_bord/widgets/app_drawer.dart';
 import '../membres_panel/membres_panel_page.dart';
 import '../gestion_echantillons/gestion_echantillons_page.dart';
 import '../evaluation_echantillons/evaluation_echantillons_page.dart';
@@ -46,8 +47,10 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
   // 1. COLORS
   // ───────────────────────────────────────────────────────────────────────────
 
-  static const Color green = Color(0xFF38835A);
-  static const Color cream = Color(0xFFF9F6EF);
+  static const Color _headerBg = Color.fromARGB(255, 220, 233, 226);
+  static const Color _green = Color(0xFF38835A);
+  static const Color _dark = Color(0xFF1A2E1F);
+  static const Color _bg = Color(0xFFFFFFFF);
 
   // ───────────────────────────────────────────────────────────────────────────
   // 2. STATE
@@ -55,12 +58,13 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
 
   final TextEditingController _searchController = TextEditingController();
   String _recherche = '';
-  String?
-  _filtreStatutLabel; // null = show all  |  'Planifiée' / 'En cours' / 'Terminée'
-  DateTime? _dateDebut; // null = no lower date bound
-  DateTime? _dateFin; // null = no upper date bound
+  String? _filtreStatutLabel; // null = show all  |  'Planifiée' / 'Terminée'
+  DateTime? _dateDebut;
+  DateTime? _dateFin;
 
   bool get _dateFilterActive => _dateDebut != null || _dateFin != null;
+  bool get _anyFilter =>
+      _dateFilterActive || _recherche.isNotEmpty || _filtreStatutLabel != null;
 
   // ───────────────────────────────────────────────────────────────────────────
   // 3. NAVIGATION
@@ -92,8 +96,11 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
       lieu: 'Salle de dégustation A',
       statut: StatutSession.terminee,
       echantillonIds: ['OL-2024-001', 'OL-2024-005'],
-      participants: ['Ichrak C.', 'Lobna E.', 'Maha O.'],
+      participantIds: ['mock-ichrak', 'mock-lobna', 'mock-maha'],
+      participantNoms: ['Ichrak C.', 'Lobna E.', 'Maha O.'],
       notes: 'Apporter les fiches de notation',
+      createdBy: 'mock-user-001',
+      createdAt: '2026-02-01T08:00:00Z',
     ),
     SessionDegustation(
       id: 'SES-002',
@@ -101,9 +108,12 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
       date: '21/02/2026',
       heure: '10:30',
       lieu: 'Laboratoire 2',
-      statut: StatutSession.enCours,
+      statut: StatutSession.planifiee,
       echantillonIds: ['OL-2024-002'],
-      participants: ['Nayrouz F.', 'Yosra S.'],
+      participantIds: ['mock-nayrouz', 'mock-yosra'],
+      participantNoms: ['Nayrouz F.', 'Yosra S.'],
+      createdBy: 'mock-user-001',
+      createdAt: '2026-02-05T08:00:00Z',
     ),
     SessionDegustation(
       id: 'SES-003',
@@ -113,8 +123,16 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
       lieu: 'Salle de dégustation B',
       statut: StatutSession.planifiee,
       echantillonIds: ['OL-2024-003', 'OL-2024-004'],
-      participants: ['Ichrak C.', 'Maha O.', 'Nayrouz F.', 'Yosra S.'],
+      participantIds: [
+        'mock-ichrak',
+        'mock-maha',
+        'mock-nayrouz',
+        'mock-yosra',
+      ],
+      participantNoms: ['Ichrak C.', 'Maha O.', 'Nayrouz F.', 'Yosra S.'],
       notes: 'Préparer les verres ISO 3591',
+      createdBy: 'mock-user-001',
+      createdAt: '2026-02-10T08:00:00Z',
     ),
     SessionDegustation(
       id: 'SES-004',
@@ -124,7 +142,10 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
       lieu: 'Salle de dégustation A',
       statut: StatutSession.planifiee,
       echantillonIds: ['OL-2024-004'],
-      participants: ['Lobna E.', 'Yosra S.'],
+      participantIds: ['mock-lobna', 'mock-yosra'],
+      participantNoms: ['Lobna E.', 'Yosra S.'],
+      createdBy: 'mock-user-001',
+      createdAt: '2026-02-15T08:00:00Z',
     ),
   ];
 
@@ -132,13 +153,10 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
   // 5. FILTER LOGIC
   // ───────────────────────────────────────────────────────────────────────────
 
-  // label → enum  (SearchFilterBar gives us a String, we need StatutSession)
   StatutSession? _labelToStatut(String? label) {
     switch (label) {
       case 'Planifiée':
         return StatutSession.planifiee;
-      case 'En cours':
-        return StatutSession.enCours;
       case 'Terminée':
         return StatutSession.terminee;
       default:
@@ -146,7 +164,6 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
     }
   }
 
-  // converts "DD/MM/YYYY" → DateTime for date comparison
   DateTime? _parseDate(String s) {
     try {
       final p = s.split('/');
@@ -157,21 +174,17 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
     }
   }
 
-  // combines text + statut + date into one filtered list
   List<SessionDegustation> get _filtres {
     return _sessions.where((s) {
-      // text search across titre, lieu, id
       final matchRecherche =
           _recherche.isEmpty ||
           s.titre.toLowerCase().contains(_recherche.toLowerCase()) ||
           s.lieu.toLowerCase().contains(_recherche.toLowerCase()) ||
           s.id.toLowerCase().contains(_recherche.toLowerCase());
 
-      // statut filter
       final filtreEnum = _labelToStatut(_filtreStatutLabel);
       final matchStatut = filtreEnum == null || s.statut == filtreEnum;
 
-      // date range filter
       bool matchDate = true;
       if (_dateFilterActive) {
         final raw = _parseDate(s.date);
@@ -203,7 +216,7 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
   int get _prochainNumero => _sessions.length + 1;
 
   // ───────────────────────────────────────────────────────────────────────────
-  // 6. ACTIONS  —  setState always called here, never inside widgets/dialogs
+  // 6. ACTIONS
   // ───────────────────────────────────────────────────────────────────────────
 
   void _onAjouter(SessionDegustation nouvelle) {
@@ -212,7 +225,7 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
   }
 
   void _onModifier(SessionDegustation modifiee) {
-    setState(() {}); // object already mutated inside formulaire_session_dialog
+    setState(() {});
     _showSuccess('Session modifiée avec succès');
   }
 
@@ -221,8 +234,6 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
     _showSuccess('Session "${s.titre}" supprimée');
   }
 
-  // ── Date filter sheet ──────────────────────────────────────────────────────
-
   Future<void> _showDateFilter() async {
     await showModalBottomSheet(
       context: context,
@@ -230,14 +241,14 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
       isScrollControlled: true,
       builder: (_) => DateFilterSheet(
         dateDebut: _dateDebut,
-        dateFin:   _dateFin,
+        dateFin: _dateFin,
         onApply: (debut, fin) => setState(() {
           _dateDebut = debut;
-          _dateFin   = fin;
+          _dateFin = fin;
         }),
         onClear: () => setState(() {
           _dateDebut = null;
-          _dateFin   = null;
+          _dateFin = null;
         }),
       ),
     );
@@ -253,7 +264,7 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
             fontWeight: FontWeight.w600,
           ),
         ),
-        backgroundColor: green,
+        backgroundColor: _green,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         margin: const EdgeInsets.all(20),
@@ -273,10 +284,12 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: cream,
+    final items = _filtres;
 
-      // ── DRAWER ───────────────────────────────────────────────────────────
+    return Scaffold(
+      backgroundColor: _bg,
+
+      // ── DRAWER ─────────────────────────────────────────────────────────────
       drawer: AppDrawer(
         onaccueil: () => Navigator.pop(context),
         onEvaluationEchantillons: () =>
@@ -284,33 +297,60 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
         onGestionEchantillons: () => _goTo(const GestionEchantillonsPage()),
         onAnalyseLaboratoire: () => _goTo(const AnalyseLaboratoirePage()),
         onSessionsDegustationPage: () => _goTo(const SessionsDegustationPage()),
-        // current page
         onMembredupanel: () => _goTo(const MembresPanelPage()),
         onProfil: () => _goTo(const ProfilePage()),
         onAPropos: () => Navigator.pop(context),
         onDeconnexion: _goToLogin,
       ),
 
-      // ── APPBAR ───────────────────────────────────────────────────────────
+      // ── APPBAR ─────────────────────────────────────────────────────────────
       appBar: AppBar(
-        backgroundColor: green,
+        backgroundColor: _headerBg,
         elevation: 0,
+        centerTitle: false,
+        toolbarHeight: 65,
         title: Text(
           'Sessions de dégustation',
           style: GoogleFonts.domine(
-            fontSize: 18, fontWeight: FontWeight.w700, color: Colors.white,
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+            color: _dark,
           ),
         ),
+        iconTheme: const IconThemeData(color: _dark),
         actions: [
-          DateFilterButton(
-            dateDebut: _dateDebut,
-            dateFin:   _dateFin,
-            onTap:     _showDateFilter,
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              IconButton(
+                icon: Icon(
+                  Icons.calendar_today_outlined,
+                  size: 20,
+                  color: _dateFilterActive ? _green : const Color(0xFF6B8E7A),
+                ),
+                onPressed: _showDateFilter,
+                tooltip: 'Filtrer par date',
+              ),
+              if (_dateFilterActive)
+                Positioned(
+                  right: 10,
+                  top: 10,
+                  child: Container(
+                    width: 8,
+                    height: 8,
+                    decoration: const BoxDecoration(
+                      color: _green,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ),
+            ],
           ),
+          const SizedBox(width: 6),
         ],
       ),
 
-      // ── FAB — opens formulaire in ADD mode ───────────────────────────────
+      // ── FAB ────────────────────────────────────────────────────────────────
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => showFormulaireSessionDialog(
           context,
@@ -318,82 +358,146 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
           prochainNumero: _prochainNumero,
           onSave: _onAjouter,
         ),
-        backgroundColor: green,
-        icon: const Icon(Icons.add, color: Colors.white),
+        backgroundColor: const Color.fromARGB(255, 197, 206, 201),
+        elevation: 2,
+        icon: const Icon(Icons.add, color: _dark),
         label: const Text(
           'Nouvelle session',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+          style: TextStyle(color: _dark, fontWeight: FontWeight.w700),
         ),
       ),
 
       body: Column(
         children: [
-          // ── SEARCH + FILTERS ─────────────────────────────────────────────
-          SearchFilterBar(
-            recherche:          _recherche,
-            controller:         _searchController,
-            filtreStatut:       _filtreStatutLabel,
-            statutLabels:       const ['Planifiée', 'En cours', 'Terminée'],
-            onRechercheChanged: (v) => setState(() => _recherche = v),
-            onRechercheClear:   () => setState(() {
-              _recherche = '';
-              _searchController.clear();
-            }),
-            onStatutChanged:    (v) => setState(() => _filtreStatutLabel = v),
+          // ── UNIFIED HEADER ZONE ─────────────────────────────────────────
+          Container(
+            color: _headerBg,
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
+            child: Column(
+              children: [
+                // Search bar
+                TextField(
+                  controller: _searchController,
+                  onChanged: (v) => setState(() => _recherche = v.trim()),
+                  style: const TextStyle(fontSize: 14, color: _dark),
+                  decoration: InputDecoration(
+                    hintText: 'Rechercher titre, lieu, réf…',
+                    hintStyle: const TextStyle(
+                      color: Color(0xFF6B8E7A),
+                      fontSize: 13,
+                    ),
+                    prefixIcon: const Icon(
+                      Icons.search,
+                      color: Color(0xFF6B8E7A),
+                      size: 20,
+                    ),
+                    suffixIcon: _recherche.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(
+                              Icons.close,
+                              size: 17,
+                              color: Color(0xFF6B8E7A),
+                            ),
+                            onPressed: () => setState(() {
+                              _recherche = '';
+                              _searchController.clear();
+                            }),
+                          )
+                        : null,
+                    filled: true,
+                    fillColor: Colors.white,
+                    contentPadding: const EdgeInsets.symmetric(
+                      vertical: 11,
+                      horizontal: 16,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: _green, width: 1.5),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 11),
+
+                // ── Statut filter chips ─────────────────────────────────
+                SizedBox(
+                  height: 34,
+                  child: ListView(
+                    scrollDirection: Axis.horizontal,
+                    children: [
+                      _StatutChip(
+                        label: 'Tous',
+                        activeColor: const Color(0xFF616161),
+                        inactiveColor: const Color(0xFFF0F0F0),
+                        inactiveTextColor: const Color(0xFF757575),
+                        selected: _filtreStatutLabel == null,
+                        onTap: () => setState(() => _filtreStatutLabel = null),
+                      ),
+                      const SizedBox(width: 7),
+                      _StatutChip(
+                        label: 'Planifiée',
+                        activeColor: const Color(0xFFD07B2F),
+                        inactiveColor: const Color(0xFFFEF3E8),
+                        inactiveTextColor: const Color(0xFFD07B2F),
+                        selected: _filtreStatutLabel == 'Planifiée',
+                        onTap: () =>
+                            setState(() => _filtreStatutLabel = 'Planifiée'),
+                      ),
+                      const SizedBox(width: 7),
+                      _StatutChip(
+                        label: 'Terminée',
+                        activeColor: const Color(0xFF38835A),
+                        inactiveColor: const Color(0xFFE6F4ED),
+                        inactiveTextColor: const Color(0xFF38835A),
+                        selected: _filtreStatutLabel == 'Terminée',
+                        onTap: () =>
+                            setState(() => _filtreStatutLabel = 'Terminée'),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
+
+          // Thin separator shadow
+          Container(height: 1, color: Colors.black.withValues(alpha: 0.06)),
 
           // ── STATS STRIP ───────────────────────────────────────────────────
           Container(
-            color:   Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            color: _bg,
+            padding: const EdgeInsets.fromLTRB(16, 9, 16, 6),
             child: Row(
               children: [
-                Icon(Icons.event_note_outlined,
-                    size: 13, color: Colors.grey.shade400),
+                Icon(
+                  Icons.event_note_outlined,
+                  size: 13,
+                  color: const Color.fromARGB(255, 156, 156, 156),
+                ),
                 const SizedBox(width: 6),
                 Text(
-                  '${_filtres.length} session${_filtres.length > 1 ? "s" : ""}',
-                  style: TextStyle(
-                    fontSize:   12,
-                    color:      Colors.grey.shade500,
+                  '${items.length} session${items.length > 1 ? "s" : ""}',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Color.fromARGB(255, 156, 156, 156),
                     fontWeight: FontWeight.w500,
                   ),
                 ),
-                if (_dateFilterActive || _recherche.isNotEmpty || _filtreStatutLabel != null) ...[
-                  const Spacer(),
-                  GestureDetector(
-                    onTap: () => setState(() {
-                      _recherche          = '';
-                      _searchController.clear();
-                      _filtreStatutLabel  = null;
-                      _dateDebut          = null;
-                      _dateFin            = null;
-                    }),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.filter_alt_off_outlined,
-                            size: 13, color: Colors.red.shade400),
-                        const SizedBox(width: 4),
-                        Text(
-                          'Effacer filtres',
-                          style: TextStyle(
-                            fontSize:   11,
-                            color:      Colors.red.shade500,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
               ],
             ),
           ),
 
           // ── LIST ─────────────────────────────────────────────────────────
           Expanded(
-            child: _filtres.isEmpty
+            child: items.isEmpty
                 ? Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -415,33 +519,115 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
                     ),
                   )
                 : Scrollbar(
-                      thumbVisibility: true,
-                      child: ListView.builder(
-                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
-                        itemCount: _filtres.length,
-                        itemBuilder: (context, index) {
-                          final s = _filtres[index];
-                          return SessionCard(
-                            session: s,
-                            // opens formulaire in EDIT mode
-                            onModifier: () => showFormulaireSessionDialog(
-                              context,
-                              session: s,
-                              prochainNumero: _prochainNumero,
-                              onSave: _onModifier,
-                            ),
-                            // opens confirmation dialog before deleting
-                            onSupprimer: () => showSuppressionSessionDialog(
-                              context,
-                              session: s,
-                              onConfirmer: () => _onSupprimer(s),
-                            ),
-                          );
-                        },
-                      ),
+                    thumbVisibility: true,
+                    child: ListView.builder(
+                      padding: const EdgeInsets.fromLTRB(16, 10, 16, 100),
+                      itemCount: items.length,
+                      itemBuilder: (context, i) {
+                        final s = items[i];
+                        final isPlanifiee = s.statut == StatutSession.planifiee;
+                        return SessionCard(
+                          session: s,
+                          onModifier: isPlanifiee
+                              ? null
+                              : () => showFormulaireSessionDialog(
+                                  context,
+                                  session: s,
+                                  prochainNumero: _prochainNumero,
+                                  onSave: _onModifier,
+                                ),
+                          onSupprimer: isPlanifiee
+                              ? null
+                              : () => showSuppressionSessionDialog(
+                                  context,
+                                  session: s,
+                                  onConfirmer: () => _onSupprimer(s),
+                                ),
+                        );
+                      },
                     ),
+                  ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// STATUT CHIP — matches gestion_echantillons_page._StatutChip exactly
+// ─────────────────────────────────────────────────────────────────────────────
+class _StatutChip extends StatelessWidget {
+  final String label;
+  final Color activeColor;
+  final Color inactiveColor;
+  final Color inactiveTextColor;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _StatutChip({
+    required this.label,
+    required this.activeColor,
+    required this.inactiveColor,
+    required this.inactiveTextColor,
+    required this.selected,
+    required this.onTap,
+  });
+
+  static const Color _inactiveBg = Color(0xFFF0F0F0);
+  static const Color _inactiveFg = Color(0xFF9E9E9E);
+  static const Color _inactiveBorder = Color(0xFFE0E0E0);
+
+  @override
+  Widget build(BuildContext context) {
+    final bool isTous = label == 'Tous';
+    final Color bg;
+    final Color fg;
+    final Color border;
+
+    if (!selected) {
+      bg = _inactiveBg;
+      fg = _inactiveFg;
+      border = _inactiveBorder;
+    } else if (isTous) {
+      bg = const Color(0xFF757575);
+      fg = Colors.white;
+      border = const Color(0xFF757575);
+    } else {
+      bg = inactiveColor;
+      fg = inactiveTextColor;
+      border = inactiveTextColor.withValues(alpha: 0.45);
+    }
+
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+        decoration: BoxDecoration(
+          color: bg,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: border, width: 1.2),
+          boxShadow: selected
+              ? [
+                  BoxShadow(
+                    color:
+                        (isTous ? const Color(0xFF757575) : inactiveTextColor)
+                            .withValues(alpha: 0.22),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
+              : null,
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: fg,
+          ),
+        ),
       ),
     );
   }

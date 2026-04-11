@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'sample_card_widgets.dart'; // DetailItem lives here
+import 'sample_card_echantillon.dart'; // DetailItem lives here
 import '../utilisateurs/models/echantillon_ceo_view.dart';
 
 const Color _dark = Color(0xFF1A2E1F);
-const Color _cream = Color(0xFFF9F6EF);
+const Color _white = Color.fromARGB(255, 255, 255, 255);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // BASE SAMPLE CARD
@@ -12,6 +12,7 @@ class BaseSampleCard extends StatefulWidget {
   final String referenceBouteille;
   final String id;
   final Color tintColor;
+  final Color? accentColor; // left accent bar color (collecteur-style)
   final Widget badge;
   final List<DetailItem> detailItems;
   final Widget? bottomSection;
@@ -23,6 +24,7 @@ class BaseSampleCard extends StatefulWidget {
     required this.referenceBouteille,
     required this.id,
     required this.tintColor,
+    this.accentColor,
     required this.badge,
     required this.detailItems,
     this.bottomSection,
@@ -38,71 +40,91 @@ class _BaseSampleCardState extends State<BaseSampleCard> {
 
   @override
   Widget build(BuildContext context) {
+    final accent = widget.accentColor;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: Colors.grey.shade200),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 8,
+            color: Colors.black.withValues(alpha: 0.07),
+            blurRadius: 10,
             offset: const Offset(0, 3),
+          ),
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 4,
+            offset: const Offset(0, 1),
           ),
         ],
       ),
       clipBehavior: Clip.antiAlias,
       child: Column(
         children: [
-          // ── Tinted header ──────────────────────────────────────────────
-          Container(
-            color: widget.tintColor,
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 3),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        widget.referenceBouteille,
-                        style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          color: _dark,
-                          letterSpacing: -0.2,
-                        ),
-                        overflow: TextOverflow.ellipsis,
+          // ── Header with left accent bar ────────────────────────────────
+          GestureDetector(
+            onTap: () => setState(() => _detailExpanded = !_detailExpanded),
+            behavior: HitTestBehavior.opaque,
+            child: IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Left accent bar
+                  if (accent != null) Container(width: 4, color: accent),
+
+                  // Content
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(13, 10, 10, 10),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  widget.referenceBouteille,
+                                  style: const TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w700,
+                                    color: _dark,
+                                    letterSpacing: -0.2,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  widget.id,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.grey.shade500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          widget.badge,
+                          const SizedBox(width: 8),
+                          AnimatedRotation(
+                            turns: _detailExpanded ? 0.5 : 0.0,
+                            duration: const Duration(milliseconds: 200),
+                            child: Icon(
+                              Icons.keyboard_arrow_down,
+                              size: 20,
+                              color: Colors.grey.shade400,
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 3),
-                      Text(
-                        widget.id,
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.grey.shade600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                widget.badge,
-                const SizedBox(width: 11),
-                GestureDetector(
-                  onTap: () =>
-                      setState(() => _detailExpanded = !_detailExpanded),
-                  child: AnimatedRotation(
-                    turns: _detailExpanded ? 0.5 : 0.0,
-                    duration: const Duration(milliseconds: 200),
-                    child: Icon(
-                      Icons.keyboard_arrow_down,
-                      size: 20,
-                      color: Colors.grey.shade500,
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
 
@@ -143,7 +165,7 @@ class _DetailPanel extends StatelessWidget {
     margin: const EdgeInsets.fromLTRB(12, 8, 12, 10),
     padding: const EdgeInsets.all(12),
     decoration: BoxDecoration(
-      color: _cream,
+      color: _white,
       borderRadius: BorderRadius.circular(10),
       border: Border.all(color: Colors.grey.shade100),
     ),
@@ -204,7 +226,7 @@ class CardBadgeRow extends StatelessWidget {
 // SAMPLE DELIVERY INDICATOR
 // Full 6-state delivery section matching SampleDetails in sample_card_widgets.
 // ─────────────────────────────────────────────────────────────────────────────
-class SampleDeliveryIndicator extends StatefulWidget {
+class SampleDeliveryIndicator extends StatelessWidget {
   final EchantillonCeoView e;
   final Color accentColor;
   const SampleDeliveryIndicator({
@@ -212,14 +234,6 @@ class SampleDeliveryIndicator extends StatefulWidget {
     required this.e,
     this.accentColor = const Color(0xFF38835A),
   });
-
-  @override
-  State<SampleDeliveryIndicator> createState() =>
-      _SampleDeliveryIndicatorState();
-}
-
-class _SampleDeliveryIndicatorState extends State<SampleDeliveryIndicator> {
-  bool _expanded = false;
 
   static const TextStyle _greyStyle = TextStyle(
     fontSize: 13,
@@ -229,62 +243,19 @@ class _SampleDeliveryIndicatorState extends State<SampleDeliveryIndicator> {
 
   @override
   Widget build(BuildContext context) {
-    final e = widget.e;
-    final color = widget.accentColor;
-
     if (e.stockArrive) {
       // ① Stock physically arrived
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            e.dateLivraisonStock != null
-                ? '— Stock réceptionné le ${e.dateLivraisonStock} —'
-                : '— Stock réceptionné —',
-            style: _greyStyle,
-          ),
-          const SizedBox(height: 6),
-          _ToggleLink(
-            label: "Détails de l'achat",
-            color: color,
-            expanded: _expanded,
-            onTap: () => setState(() => _expanded = !_expanded),
-          ),
-          AnimatedCrossFade(
-            firstChild: const SizedBox.shrink(),
-            secondChild: PurchaseDetailsPanel(e: e, color: color),
-            crossFadeState: _expanded
-                ? CrossFadeState.showSecond
-                : CrossFadeState.showFirst,
-            duration: const Duration(milliseconds: 200),
-          ),
-        ],
+      return Text(
+        e.dateLivraisonStock != null
+            ? '— Stock réceptionné le ${e.dateLivraisonStock} —'
+            : '— Stock réceptionné —',
+        style: _greyStyle,
       );
     } else if (e.dateLivraisonStock != null) {
       // ② Stock delivery date set but not yet received
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            '— Livraison du stock prévue le ${e.dateLivraisonStock} —',
-            style: _greyStyle,
-          ),
-          const SizedBox(height: 6),
-          _ToggleLink(
-            label: 'Détails de la commande',
-            color: color,
-            expanded: _expanded,
-            onTap: () => setState(() => _expanded = !_expanded),
-          ),
-          AnimatedCrossFade(
-            firstChild: const SizedBox.shrink(),
-            secondChild: PurchaseDetailsPanel(e: e, color: color),
-            crossFadeState: _expanded
-                ? CrossFadeState.showSecond
-                : CrossFadeState.showFirst,
-            duration: const Duration(milliseconds: 200),
-          ),
-        ],
+      return Text(
+        '— Livraison du stock prévue le ${e.dateLivraisonStock} —',
+        style: _greyStyle,
       );
     } else if (e.recuPhysiquement) {
       // ③ Sample physically received
@@ -300,8 +271,8 @@ class _SampleDeliveryIndicatorState extends State<SampleDeliveryIndicator> {
         '— Arrivée prévue le ${e.dateLivraisonPrevue} —',
         style: _greyStyle,
       );
-    } else if (e.statut == StatutCeoView.enNegociation ||
-        e.statut == StatutCeoView.achatConfirme) {
+    } else if (e.statut == StatutCeo.enNegociation ||
+        e.statut == StatutCeo.achatConfirme) {
       // ⑤ Purchase confirmed but no stock delivery date yet
       return const Text(
         '— Livraison du stock non programmée —',
@@ -312,43 +283,4 @@ class _SampleDeliveryIndicatorState extends State<SampleDeliveryIndicator> {
       return const Text('— Livraison non planifiée —', style: _greyStyle);
     }
   }
-}
-
-class _ToggleLink extends StatelessWidget {
-  final String label;
-  final Color color;
-  final bool expanded;
-  final VoidCallback onTap;
-  const _ToggleLink({
-    required this.label,
-    required this.color,
-    required this.expanded,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) => GestureDetector(
-    onTap: onTap,
-    child: Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            color: color,
-            fontWeight: FontWeight.w600,
-            decoration: TextDecoration.underline,
-            decorationColor: color.withValues(alpha: 0.4),
-          ),
-        ),
-        const SizedBox(width: 2),
-        AnimatedRotation(
-          turns: expanded ? 0.5 : 0.0,
-          duration: const Duration(milliseconds: 180),
-          child: Icon(Icons.keyboard_arrow_down, size: 15, color: color),
-        ),
-      ],
-    ),
-  );
 }

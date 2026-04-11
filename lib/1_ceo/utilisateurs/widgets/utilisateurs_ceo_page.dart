@@ -17,49 +17,13 @@ import '../../achats_confirmes/achats_confirmes_ceo_page.dart';
 import '../../analyse_laboratoire/analyse_laboratoire_ceo_page.dart';
 import '../../analyse_organoleptique/analyse_organoleptique_ceo_page.dart';
 import '../../profil_ceo_page.dart';
-import '../../utilisateurs/models/mock_data_patch.dart'; // ← same import pattern as organo page
+import '../../utilisateurs/models/mock_data_patch.dart';
+import '../../../../core/models/user_profile.dart';
+import '../../../../core/models/enums.dart';
 
-// ── Data model ────────────────────────────────────────────────────────────────
-enum UserRole { ceo, laboratoire, degustateur, collecteur }
-
-class AppUser {
-  final String id;
-  final String initials;
-  final String nom;
-  final String prenom;
-  final String email;
-  final String telephone;
-  final String dateDebut;
-  final UserRole role;
-  bool actif;
-
-  AppUser({
-    required this.id,
-    required this.initials,
-    required this.nom,
-    required this.prenom,
-    required this.email,
-    required this.telephone,
-    required this.dateDebut,
-    required this.role,
-    this.actif = true,
-  });
-
-  String get fullName => '$prenom $nom';
-
-  String get roleLabel {
-    switch (role) {
-      case UserRole.ceo:
-        return 'CEO';
-      case UserRole.laboratoire:
-        return 'Laboratoire';
-      case UserRole.degustateur:
-        return 'Dégustateur';
-      case UserRole.collecteur:
-        return 'Collecteur';
-    }
-  }
-}
+// ── Local aliases — keep page code unchanged while using core types ────────────
+typedef UserRole = RoleUtilisateur;
+typedef AppUser  = UserProfile;
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 class UtilisateursCeoPage extends StatefulWidget {
@@ -78,39 +42,38 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage> {
   static const Color darkText = Color(0xFF1A2E1F);
 
   // ── Role accent colors ─────────────────────────────────────────────────────
+  // CEO → blue, Laboratoire → orange, Dégustateur → green, Collecteur → pink
   static const _roleColors = {
-    UserRole.ceo: (bg: Color(0xFFE1F5EE), fg: Color(0xFF0F6E56)),
-    UserRole.laboratoire: (bg: Color(0xFFE6F1FB), fg: Color(0xFF185FA5)),
-    UserRole.degustateur: (bg: Color(0xFFFAEEDA), fg: Color(0xFF854F0B)),
+    UserRole.direction: (bg: Color(0xFFE6F1FB), fg: Color(0xFF185FA5)),
+    UserRole.laboratoire: (bg: Color(0xFFFAEEDA), fg: Color(0xFF854F0B)),
+    UserRole.degustateur: (bg: Color(0xFFE1F5EE), fg: Color(0xFF0F6E56)),
     UserRole.collecteur: (bg: Color(0xFFFBEAF0), fg: Color(0xFF993556)),
   };
 
-  // ── Data — from mock_data_patch.dart, same pattern as organo page ──────────
-  // To switch to real API: replace this getter with a FutureBuilder call.
-  // Example: Future<List<AppUser>> _future = UserService.fetchAll();
+  // ── Data ──────────────────────────────────────────────────────────────────
   List<AppUser> get _utilisateurs => mockUtilisateurs;
 
   // ── Local UI state ─────────────────────────────────────────────────────────
-  UserRole? _activeFilter; // null = show all
+  UserRole? _activeFilter;
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
 
-  // ── Derived filtered list — same filter+search pattern as echantillons page
+  // ── Derived filtered list ──────────────────────────────────────────────────
   List<AppUser> get _filtered {
     return _utilisateurs.where((u) {
       final matchRole = _activeFilter == null || u.role == _activeFilter;
       final q = _searchQuery.toLowerCase();
       final matchSearch =
           q.isEmpty ||
-          u.fullName.toLowerCase().contains(q) ||
+          u.nomComplet.toLowerCase().contains(q) ||
           u.email.toLowerCase().contains(q) ||
-          u.roleLabel.toLowerCase().contains(q) ||
-          u.telephone.contains(q);
+          u.role.label.toLowerCase().contains(q) ||
+          (u.telephone?.contains(q) ?? false);
       return matchRole && matchSearch;
     }).toList();
   }
 
-  // ── Navigation helpers — identical to every other CEO page ────────────────
+  // ── Navigation helpers ────────────────────────────────────────────────────
   void _goTo(Widget page) {
     Navigator.pop(context);
     Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => page));
@@ -144,7 +107,7 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage> {
         backgroundColor: headerBg,
         elevation: 0,
         centerTitle: false,
-        toolbarHeight: 65,
+        toolbarHeight: 52,
         title: Text(
           'Utilisateurs',
           style: GoogleFonts.domine(
@@ -173,7 +136,7 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage> {
           // ── Unified header zone ──────────────────────────────────────
           Container(
             color: headerBg,
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
+            padding: const EdgeInsets.fromLTRB(16, 10, 16, 14),
             child: Column(
               children: [
                 TextField(
@@ -225,10 +188,7 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage> {
                   ),
                 ),
                 const SizedBox(height: 11),
-                SizedBox(
-                  height: 34,
-                  child: _buildFilterChips(),
-                ),
+                SizedBox(height: 34, child: _buildFilterChips()),
               ],
             ),
           ),
@@ -244,8 +204,7 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage> {
                       green: green,
                       darkText: darkText,
                       roleColors: _roleColors,
-                      onToggleStatus: () =>
-                          _confirmToggleStatus(filtered[i]),
+                      onToggleStatus: () => _confirmToggleStatus(filtered[i]),
                       onDelete: () => _confirmDelete(filtered[i]),
                       onViewProfile: () => _showUserProfile(filtered[i]),
                     ),
@@ -256,15 +215,47 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage> {
     );
   }
 
-  // ── Filter chips — embedded inside unified header zone ────────────────────
+  // ── Filter chips ──────────────────────────────────────────────────────────
+  // Inactive = gray (like current "Tous" inactive).
+  // Active   = role-colored bg + colored text (like current inactive role chips).
   Widget _buildFilterChips() {
+    // (label, role, activeBg, activeFg)
     const chips = [
-      (label: 'Tous',         role: null,                   activeColor: Color(0xFF616161), inactiveColor: Color(0xFFF0F0F0), inactiveText: Color(0xFF757575)),
-      (label: 'CEO',          role: UserRole.ceo,            activeColor: Color(0xFF0F6E56), inactiveColor: Color(0xFFE1F5EE), inactiveText: Color(0xFF0F6E56)),
-      (label: 'Laboratoire',  role: UserRole.laboratoire,    activeColor: Color(0xFF185FA5), inactiveColor: Color(0xFFE6F1FB), inactiveText: Color(0xFF185FA5)),
-      (label: 'Dégustateur',  role: UserRole.degustateur,    activeColor: Color(0xFF854F0B), inactiveColor: Color(0xFFFAEEDA), inactiveText: Color(0xFF854F0B)),
-      (label: 'Collecteur',   role: UserRole.collecteur,     activeColor: Color(0xFF993556), inactiveColor: Color(0xFFFBEAF0), inactiveText: Color(0xFF993556)),
+      (
+        label: 'Tous',
+        role: null as UserRole?,
+        activeBg: Color(0xFF757575),
+        activeFg: Colors.white,
+      ),
+      (
+        label: 'CEO',
+        role: UserRole.direction as UserRole?,
+        activeBg: Color(0xFFE6F1FB),
+        activeFg: Color(0xFF185FA5),
+      ),
+      (
+        label: 'Laboratoire',
+        role: UserRole.laboratoire as UserRole?,
+        activeBg: Color(0xFFFAEEDA),
+        activeFg: Color(0xFF854F0B),
+      ),
+      (
+        label: 'Dégustateur',
+        role: UserRole.degustateur as UserRole?,
+        activeBg: Color(0xFFE1F5EE),
+        activeFg: Color(0xFF0F6E56),
+      ),
+      (
+        label: 'Collecteur',
+        role: UserRole.collecteur as UserRole?,
+        activeBg: Color(0xFFFBEAF0),
+        activeFg: Color(0xFF993556),
+      ),
     ];
+
+    const Color inactiveBg = Color(0xFFF0F0F0);
+    const Color inactiveFg = Color(0xFF757575);
+
     return ListView.separated(
       scrollDirection: Axis.horizontal,
       itemCount: chips.length,
@@ -272,36 +263,30 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage> {
       itemBuilder: (_, i) {
         final chip = chips[i];
         final isActive = _activeFilter == chip.role;
+        final bg = isActive ? chip.activeBg : inactiveBg;
+        final fg = isActive ? chip.activeFg : inactiveFg;
+
         return GestureDetector(
           onTap: () => setState(() => _activeFilter = chip.role),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 150),
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
             decoration: BoxDecoration(
-              color: isActive ? chip.activeColor : chip.inactiveColor,
+              color: bg,
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
                 color: isActive
-                    ? chip.activeColor
-                    : chip.inactiveText.withValues(alpha: 0.35),
+                    ? chip.activeFg.withValues(alpha: 0.4)
+                    : const Color(0xFFE0E0E0),
                 width: 1.2,
               ),
-              boxShadow: isActive
-                  ? [
-                      BoxShadow(
-                        color: chip.activeColor.withValues(alpha: 0.25),
-                        blurRadius: 6,
-                        offset: const Offset(0, 2),
-                      ),
-                    ]
-                  : null,
             ),
             child: Text(
               chip.label,
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color: isActive ? Colors.white : chip.inactiveText,
+                color: fg,
               ),
             ),
           ),
@@ -333,7 +318,7 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage> {
 
   // ── Toggle active / inactive ───────────────────────────────────────────────
   void _confirmToggleStatus(AppUser user) {
-    final action = user.actif ? 'désactiver' : 'réactiver';
+    final action = user.isActive ? 'désactiver' : 'réactiver';
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
@@ -346,7 +331,7 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage> {
           ),
         ),
         content: Text(
-          'Voulez-vous $action le compte de ${user.fullName} ?',
+          'Voulez-vous $action le compte de ${user.nomComplet} ?',
           style: const TextStyle(fontSize: 14),
         ),
         actions: [
@@ -356,17 +341,25 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage> {
           ),
           ElevatedButton(
             onPressed: () {
-              setState(() => user.actif = !user.actif);
+              final idx = mockUtilisateurs.indexWhere((u) => u.id == user.id);
+              if (idx != -1) {
+                final updated = UserProfile(
+                  id: user.id, email: user.email, role: user.role,
+                  nom: user.nom, prenom: user.prenom, telephone: user.telephone,
+                  dateCreation: user.dateCreation, isActive: !user.isActive,
+                );
+                setState(() => mockUtilisateurs[idx] = updated);
+              }
               Navigator.pop(context);
               _showSuccess(
-                user.actif
-                    ? '${user.fullName} réactivé'
-                    : '${user.fullName} désactivé',
+                !user.isActive
+                    ? '${user.nomComplet} réactivé'
+                    : '${user.nomComplet} désactivé',
               );
             },
             style: ElevatedButton.styleFrom(backgroundColor: green),
             child: Text(
-              user.actif ? 'Désactiver' : 'Réactiver',
+              user.isActive ? 'Désactiver' : 'Réactiver',
               style: const TextStyle(color: Colors.white),
             ),
           ),
@@ -390,7 +383,7 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage> {
         ),
         content: Text(
           'Cette action est irréversible. Voulez-vous supprimer '
-          '${user.fullName} ?',
+          '${user.nomComplet} ?',
           style: const TextStyle(fontSize: 14),
         ),
         actions: [
@@ -400,13 +393,11 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage> {
           ),
           ElevatedButton(
             onPressed: () {
-              // Mutates mockUtilisateurs directly — same pattern used in
-              // other pages. With real API: await UserService.delete(user.id)
               setState(
                 () => mockUtilisateurs.removeWhere((u) => u.id == user.id),
               );
               Navigator.pop(context);
-              _showSuccess('${user.fullName} supprimé');
+              _showSuccess('${user.nomComplet} supprimé');
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red.shade600,
@@ -457,7 +448,7 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage> {
                     radius: 30,
                     backgroundColor: colors.bg,
                     child: Text(
-                      user.initials,
+                      user.initiales,
                       style: TextStyle(
                         color: colors.fg,
                         fontWeight: FontWeight.w700,
@@ -471,7 +462,7 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          user.fullName,
+                          user.nomComplet,
                           style: GoogleFonts.domine(
                             fontSize: 20,
                             fontWeight: FontWeight.w700,
@@ -489,7 +480,7 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage> {
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
-                            user.roleLabel,
+                            user.role.label,
                             style: TextStyle(
                               color: colors.fg,
                               fontSize: 12,
@@ -515,13 +506,13 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage> {
               ),
               const SizedBox(height: 12),
               _infoTile(Icons.email_outlined, 'Email', user.email),
-              _infoTile(Icons.phone_outlined, 'Téléphone', user.telephone),
+              _infoTile(Icons.phone_outlined, 'Téléphone', user.telephone ?? '—'),
               _infoTile(
                 Icons.calendar_today_outlined,
                 'Date de début',
-                user.dateDebut,
+                user.dateCreation,
               ),
-              _infoTile(Icons.badge_outlined, 'Rôle', user.roleLabel),
+              _infoTile(Icons.badge_outlined, 'Rôle', user.role.label),
             ],
           ),
         ),
@@ -566,111 +557,192 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setSheet) => Padding(
+        builder: (ctx, setSheet) => SingleChildScrollView(
           padding: EdgeInsets.only(
-            left: 24,
-            right: 24,
-            top: 24,
-            bottom: MediaQuery.of(ctx).viewInsets.bottom + 24,
+            left: 20,
+            right: 20,
+            top: 16,
+            bottom: MediaQuery.of(ctx).viewInsets.bottom + 28,
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
-                    borderRadius: BorderRadius.circular(2),
+              // ── Drag handle + close ────────────────────────────────
+              Row(
+                children: [
+                  const Spacer(),
+                  Container(
+                    width: 36,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade300,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
                   ),
-                ),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                'Nouvel Utilisateur',
-                style: GoogleFonts.domine(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  color: darkText,
-                ),
-              ),
-              const SizedBox(height: 20),
-              const Text(
-                'Rôle',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: oliveGreen,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                children: UserRole.values.map((r) {
-                  final colors = _roleColors[r]!;
-                  final isSelected = selectedRole == r;
-                  final label = AppUser(
-                    id: '',
-                    initials: '',
-                    nom: '',
-                    prenom: '',
-                    email: '',
-                    telephone: '',
-                    dateDebut: '',
-                    role: r,
-                  ).roleLabel;
-                  return GestureDetector(
-                    onTap: () => setSheet(() => selectedRole = r),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 180),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
+                  const Spacer(),
+                  GestureDetector(
+                    onTap: () => Navigator.pop(ctx),
+                    child: Container(
+                      padding: const EdgeInsets.all(5),
                       decoration: BoxDecoration(
-                        color: isSelected ? colors.fg : colors.bg,
-                        borderRadius: BorderRadius.circular(20),
+                        color: Colors.grey.shade100,
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                      child: Text(
-                        label,
-                        style: TextStyle(
-                          color: isSelected ? Colors.white : colors.fg,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                        ),
+                      child: Icon(
+                        Icons.close,
+                        size: 17,
+                        color: Colors.grey.shade500,
                       ),
                     ),
-                  );
-                }).toList(),
+                  ),
+                ],
               ),
               const SizedBox(height: 16),
+
+              // ── Single card: title + role picker ──────────────────
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFFE8E8E8), width: 1),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.04),
+                      blurRadius: 10,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Title row
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(7),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF0F0F0),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Icon(
+                            Icons.person_add_outlined,
+                            color: darkText,
+                            size: 17,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Text(
+                          'Nouvel Utilisateur',
+                          style: GoogleFonts.domine(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: darkText,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 14),
+                    Divider(color: Colors.grey.shade100, height: 1),
+                    const SizedBox(height: 14),
+
+                    // Role label
+                    const Text(
+                      'Rôle',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: oliveGreen,
+                        letterSpacing: 0.4,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+
+                    // Role chips — one row
+                    Row(
+                      children: UserRole.values.asMap().entries.map((entry) {
+                        final i = entry.key;
+                        final r = entry.value;
+                        final roleC = _roleColors[r]!;
+                        final isSelected = selectedRole == r;
+                        final label = r.label;
+                        return Expanded(
+                          child: Padding(
+                            padding: EdgeInsets.only(
+                              right: i < UserRole.values.length - 1 ? 6 : 0,
+                            ),
+                            child: GestureDetector(
+                              onTap: () => setSheet(() => selectedRole = r),
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 150),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 8,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: isSelected
+                                      ? roleC.bg
+                                      : const Color(0xFFF5F5F5),
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: Border.all(
+                                    color: isSelected
+                                        ? roleC.fg.withValues(alpha: 0.35)
+                                        : const Color(0xFFE8E8E8),
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    label,
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w600,
+                                      color: isSelected
+                                          ? roleC.fg
+                                          : const Color(0xFF9E9E9E),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // ── Form fields ────────────────────────────────────────
               _addField(
                 prenomCtrl,
                 'Prénom',
                 Icons.person_outline,
                 TextInputType.name,
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 14),
               _addField(
                 nomCtrl,
                 'Nom',
                 Icons.person_outline,
                 TextInputType.name,
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 14),
               _addField(
                 emailCtrl,
                 'Email',
                 Icons.email_outlined,
                 TextInputType.emailAddress,
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 14),
               _addField(
                 telCtrl,
                 'Téléphone',
@@ -678,59 +750,84 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage> {
                 TextInputType.phone,
               ),
               const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    if (prenomCtrl.text.isEmpty ||
-                        nomCtrl.text.isEmpty ||
-                        emailCtrl.text.isEmpty) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            'Veuillez remplir tous les champs obligatoires',
-                          ),
-                          backgroundColor: Colors.red,
+
+              // ── Action buttons ─────────────────────────────────────
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.pop(ctx),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 13),
+                        side: BorderSide(color: Colors.grey.shade300),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                      );
-                      return;
-                    }
-                    final initials = '${prenomCtrl.text[0]}${nomCtrl.text[0]}'
-                        .toUpperCase();
-                    final newUser = AppUser(
-                      id: DateTime.now().millisecondsSinceEpoch.toString(),
-                      initials: initials,
-                      nom: nomCtrl.text.trim(),
-                      prenom: prenomCtrl.text.trim(),
-                      email: emailCtrl.text.trim(),
-                      telephone: telCtrl.text.trim(),
-                      dateDebut: _todayFormatted(),
-                      role: selectedRole,
-                    );
-                    // Mutates mock list directly — same pattern as delete above.
-                    // With real API: await UserService.create(newUser)
-                    setState(() => mockUtilisateurs.add(newUser));
-                    Navigator.pop(context);
-                    _showSuccess(
-                      '${prenomCtrl.text} ${nomCtrl.text} ajouté — invitation envoyée',
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: green,
-                    padding: const EdgeInsets.symmetric(vertical: 15),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        'Annuler',
+                        style: GoogleFonts.domine(
+                          color: Colors.grey.shade500,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14,
+                        ),
+                      ),
                     ),
                   ),
-                  child: Text(
-                    "Ajouter et envoyer l'invitation",
-                    style: GoogleFonts.domine(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 15,
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        if (prenomCtrl.text.isEmpty ||
+                            nomCtrl.text.isEmpty ||
+                            emailCtrl.text.isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Veuillez remplir tous les champs obligatoires',
+                              ),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                          return;
+                        }
+                        final newUser = UserProfile(
+                          id: DateTime.now().millisecondsSinceEpoch.toString(),
+                          email: emailCtrl.text.trim(),
+                          role: selectedRole,
+                          nom: nomCtrl.text.trim(),
+                          prenom: prenomCtrl.text.trim(),
+                          telephone: telCtrl.text.trim(),
+                          dateCreation: _todayFormatted(),
+                        );
+                        setState(() => mockUtilisateurs.add(newUser));
+                        Navigator.pop(ctx);
+                        _showUserCreatedDialog(
+                          prenomCtrl.text.trim(),
+                          nomCtrl.text.trim(),
+                          emailCtrl.text.trim(),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor:
+                            const Color.fromARGB(255, 197, 206, 201),
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(vertical: 13),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: Text(
+                        'Enregistrer',
+                        style: GoogleFonts.domine(
+                          color: darkText,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 14,
+                        ),
+                      ),
                     ),
                   ),
-                ),
+                ],
               ),
             ],
           ),
@@ -789,6 +886,23 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage> {
     );
   }
 
+  // ── User-created success dialog (auto-closes after 4 s) ───────────────────
+  void _showUserCreatedDialog(
+    String prenom,
+    String nom,
+    String email,
+  ) {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (_) => _UserCreatedDialog(
+        prenom: prenom,
+        nom: nom,
+        email: email,
+      ),
+    );
+  }
+
   // ── Helpers ────────────────────────────────────────────────────────────────
   String _todayFormatted() {
     final now = DateTime.now();
@@ -817,10 +931,138 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage> {
 }
 
 // ═════════════════════════════════════════════════════════════════════════════
-// WIDGET — _UserCard
-// Mirrors the card style of _PanelBlock / sample cards in organo page.
+// WIDGET — _UserCreatedDialog
+// Auto-dismisses after 4 seconds; user can also close it manually.
 // ═════════════════════════════════════════════════════════════════════════════
-class _UserCard extends StatelessWidget {
+class _UserCreatedDialog extends StatefulWidget {
+  final String prenom;
+  final String nom;
+  final String email;
+
+  const _UserCreatedDialog({
+    required this.prenom,
+    required this.nom,
+    required this.email,
+  });
+
+  @override
+  State<_UserCreatedDialog> createState() => _UserCreatedDialogState();
+}
+
+class _UserCreatedDialogState extends State<_UserCreatedDialog> {
+  @override
+  void initState() {
+    super.initState();
+    Future.delayed(const Duration(seconds: 4), () {
+      if (mounted) Navigator.of(context, rootNavigator: true).pop();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // ── Close button ─────────────────────────────────────────
+            Align(
+              alignment: Alignment.topRight,
+              child: GestureDetector(
+                onTap: () =>
+                    Navigator.of(context, rootNavigator: true).pop(),
+                child: Container(
+                  padding: const EdgeInsets.all(5),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade100,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(
+                    Icons.close,
+                    size: 16,
+                    color: Colors.grey.shade500,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+
+            // ── Success icon ─────────────────────────────────────────
+            Container(
+              width: 64,
+              height: 64,
+              decoration: const BoxDecoration(
+                color: Color(0xFFE1F5EE),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.check_circle_outline,
+                color: Color(0xFF38835A),
+                size: 36,
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // ── Title ────────────────────────────────────────────────
+            Text(
+              'Utilisateur créé',
+              style: GoogleFonts.domine(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: const Color(0xFF1A2E1F),
+              ),
+            ),
+            const SizedBox(height: 10),
+
+            // ── Message ──────────────────────────────────────────────
+            Text(
+              '${widget.prenom} ${widget.nom} a été ajouté avec succès.',
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 14,
+                color: Color(0xFF4A6358),
+              ),
+            ),
+            const SizedBox(height: 6),
+            RichText(
+              textAlign: TextAlign.center,
+              text: TextSpan(
+                style: const TextStyle(fontSize: 13, color: Color(0xFF6B8E7A)),
+                children: [
+                  const TextSpan(
+                    text: 'Un email contenant son mot de passe a été envoyé à ',
+                  ),
+                  TextSpan(
+                    text: widget.email,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF185FA5),
+                    ),
+                  ),
+                  const TextSpan(text: '.'),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            // ── Auto-close hint ──────────────────────────────────────
+            Text(
+              'Cette fenêtre se ferme automatiquement…',
+              style: TextStyle(fontSize: 11, color: Colors.grey.shade400),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// WIDGET — _UserCard
+// ═════════════════════════════════════════════════════════════════════════════
+class _UserCard extends StatefulWidget {
   final AppUser user;
   final Color green;
   final Color darkText;
@@ -840,144 +1082,234 @@ class _UserCard extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    final colors = roleColors[user.role]!;
+  State<_UserCard> createState() => _UserCardState();
+}
 
-    // Extra-soft card bg: role color at very low opacity blended over white
-    final cardBg = Color.fromARGB(
-      255,
-      (255 - (255 - colors.bg.red) ~/ 5),
-      (255 - (255 - colors.bg.green) ~/ 5),
-      (255 - (255 - colors.bg.blue) ~/ 5),
-    );
+class _UserCardState extends State<_UserCard> {
+  bool _actionsExpanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final user = widget.user;
+    final colors = widget.roleColors[user.role]!;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
-        color: cardBg,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: colors.bg, width: 1.2),
+        border: Border.all(color: Colors.grey.shade200),
         boxShadow: [
           BoxShadow(
-            color: colors.fg.withValues(alpha: 0.06),
+            color: Colors.black.withValues(alpha: 0.06),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
         ],
       ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        child: Row(
-          children: [
-            // ── Avatar ────────────────────────────────────────────────
-            CircleAvatar(
-              radius: 24,
-              backgroundColor: colors.bg,
-              child: Text(
-                user.initials,
-                style: TextStyle(
-                  color: colors.fg,
-                  fontWeight: FontWeight.w800,
-                  fontSize: 15,
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        children: [
+          // ── Main row with left accent bar ──────────────────────────
+          IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Left accent bar in role color
+                Container(width: 4, color: colors.fg),
 
-            // ── Name + role ───────────────────────────────────────────
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    user.fullName,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: darkText,
+                // Content
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 12,
+                    ),
+                    child: Row(
+                      children: [
+                        // ── Avatar ──────────────────────────────────────
+                        CircleAvatar(
+                          radius: 22,
+                          backgroundColor: colors.bg,
+                          child: Text(
+                            user.initiales,
+                            style: TextStyle(
+                              color: colors.fg,
+                              fontWeight: FontWeight.w800,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+
+                        // ── Name + email ────────────────────────────────
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                user.nomComplet,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                  color: widget.darkText,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                user.email,
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: Colors.grey.shade500,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // ── Role badge (moved here) + chevron ───────────
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 9,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: colors.bg,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: colors.fg.withValues(alpha: 0.2),
+                            ),
+                          ),
+                          child: Text(
+                            user.role.label,
+                            style: TextStyle(
+                              color: colors.fg,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        GestureDetector(
+                          onTap: () => setState(
+                            () => _actionsExpanded = !_actionsExpanded,
+                          ),
+                          behavior: HitTestBehavior.opaque,
+                          child: Padding(
+                            padding: const EdgeInsets.all(4),
+                            child: AnimatedRotation(
+                              turns: _actionsExpanded ? 0.5 : 0.0,
+                              duration: const Duration(milliseconds: 180),
+                              child: Icon(
+                                Icons.keyboard_arrow_down,
+                                size: 20,
+                                color: Colors.grey.shade400,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 4),
+                ),
+              ],
+            ),
+          ),
+
+          // ── Expandable actions section ─────────────────────────────
+          AnimatedCrossFade(
+            firstChild: const SizedBox.shrink(),
+            secondChild: Container(
+              decoration: BoxDecoration(
+                color: const Color(0xFFFAFAFA),
+                border: Border(
+                  top: BorderSide(color: Colors.grey.shade100),
+                ),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+              child: Row(
+                children: [
+                  // Status indicator
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 3,
-                    ),
+                    width: 7,
+                    height: 7,
                     decoration: BoxDecoration(
-                      color: colors.bg,
-                      borderRadius: BorderRadius.circular(20),
+                      shape: BoxShape.circle,
+                      color: user.isActive
+                          ? widget.green
+                          : Colors.grey.shade400,
                     ),
-                    child: Text(
-                      user.roleLabel,
-                      style: TextStyle(
-                        color: colors.fg,
-                        fontSize: 10,
-                        fontWeight: FontWeight.w700,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    user.isActive ? 'Actif' : 'Inactif',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: user.isActive
+                          ? widget.green
+                          : Colors.grey.shade500,
+                    ),
+                  ),
+                  const Spacer(),
+                  // Toggle status
+                  GestureDetector(
+                    onTap: widget.onToggleStatus,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 5,
+                      ),
+                      decoration: BoxDecoration(
+                        color: user.isActive
+                            ? const Color(0xFFF5F5F5)
+                            : const Color(0xFFE6F7EE),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: user.isActive
+                              ? const Color(0xFFE0E0E0)
+                              : const Color(0xFF9DD4B4),
+                        ),
+                      ),
+                      child: Text(
+                        user.isActive ? 'Désactiver' : 'Réactiver',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          color: user.isActive
+                              ? const Color(0xFF9E9E9E)
+                              : const Color(0xFF2E7D52),
+                        ),
                       ),
                     ),
+                  ),
+                  const SizedBox(width: 8),
+                  // View
+                  _IconBtn(
+                    icon: Icons.remove_red_eye_outlined,
+                    color: const Color(0xFF9E9E9E),
+                    bgColor: const Color(0xFFF5F5F5),
+                    onTap: widget.onViewProfile,
+                  ),
+                  const SizedBox(width: 6),
+                  // Delete
+                  _IconBtn(
+                    icon: Icons.delete_outline,
+                    color: const Color(0xFFBB4444),
+                    bgColor: const Color(0xFFFFF5F5),
+                    onTap: widget.onDelete,
                   ),
                 ],
               ),
             ),
-
-            // ── Action icons ──────────────────────────────────────────
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Eye — view profile
-                _IconBtn(
-                  icon: Icons.remove_red_eye_outlined,
-                  color: colors.fg,
-                  bgColor: colors.bg,
-                  onTap: onViewProfile,
-                ),
-                const SizedBox(width: 6),
-
-                // Activate / Deactivate — compact pill
-                GestureDetector(
-                  onTap: onToggleStatus,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 9,
-                      vertical: 5,
-                    ),
-                    decoration: BoxDecoration(
-                      color: user.actif
-                          ? Colors.orange.shade50
-                          : const Color(0xFFE6F7EE),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: user.actif
-                            ? Colors.orange.shade200
-                            : const Color(0xFF9DD4B4),
-                        width: 1,
-                      ),
-                    ),
-                    child: Text(
-                      user.actif ? 'Désactiver' : 'Activer',
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w700,
-                        color: user.actif
-                            ? Colors.orange.shade700
-                            : const Color(0xFF2E7D52),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 6),
-
-                // Delete
-                _IconBtn(
-                  icon: Icons.delete_outline,
-                  color: Colors.red.shade500,
-                  bgColor: Colors.red.shade50,
-                  onTap: onDelete,
-                ),
-              ],
-            ),
-          ],
-        ),
+            crossFadeState: _actionsExpanded
+                ? CrossFadeState.showSecond
+                : CrossFadeState.showFirst,
+            duration: const Duration(milliseconds: 200),
+          ),
+        ],
       ),
     );
   }

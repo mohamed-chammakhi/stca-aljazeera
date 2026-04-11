@@ -16,8 +16,8 @@ import '../../main.dart';
 import '../utilisateurs/models/mock_data_patch.dart';
 import '../utilisateurs/widgets/utilisateurs_ceo_page.dart';
 import '../widgets/search_date_filter_bar.dart';
-import '../widgets/sample_card_widgets.dart';
-import '../widgets/base_sample_card.dart'; // ← shared card
+import '../widgets/sample_card_echantillon.dart';
+import '../widgets/base_sample_card.dart';
 
 const Color _headerBg = Color.fromARGB(255, 220, 233, 226);
 const Color _green = Color(0xFF38835A);
@@ -35,6 +35,9 @@ class AnalyseLaboratoireCeoPage extends StatefulWidget {
 
 class _AnalyseLaboratoireCeoPageState extends State<AnalyseLaboratoireCeoPage> {
   final Set<String> _expandedRapport = {};
+
+  // ── ADDED: active filter state (mirrors achats confirmes pattern) ──────────
+  String _activeFilter = 'tout';
 
   DateTime? _dateDebut;
   DateTime? _dateFin;
@@ -83,6 +86,12 @@ class _AnalyseLaboratoireCeoPageState extends State<AnalyseLaboratoireCeoPage> {
                     false),
           )
           .toList();
+    }
+    // ── ADDED: apply status filter ────────────────────────────────────────────
+    if (_activeFilter == 'soumises') {
+      result = result.where((e) => e.analyse != null).toList();
+    } else if (_activeFilter == 'attente') {
+      result = result.where((e) => e.analyse == null).toList();
     }
     return result;
   }
@@ -258,64 +267,40 @@ class _AnalyseLaboratoireCeoPageState extends State<AnalyseLaboratoireCeoPage> {
             ),
           ),
           Container(height: 1, color: Colors.black.withValues(alpha: 0.06)),
-          // Stats strip
+
+          // ── CHANGED: filter chips strip (replaces old stats strip) ───────────
           Container(
             color: _bg,
             padding: const EdgeInsets.fromLTRB(16, 9, 16, 6),
             child: Row(
               children: [
-                _StatPill(
-                  value: samples
-                      .where((e) => e.analyse != null)
-                      .length
-                      .toString(),
+                _FilterChip(
+                  label: 'Tout',
+                  isActive: _activeFilter == 'tout',
+                  activeBg: const Color(0xFF757575),
+                  activeFg: Colors.white,
+                  onTap: () => setState(() => _activeFilter = 'tout'),
+                ),
+                const SizedBox(width: 8),
+                _FilterChip(
                   label: 'Soumises',
-                  color: _green,
+                  isActive: _activeFilter == 'soumises',
+                  activeBg: _green.withValues(alpha: 0.12),
+                  activeFg: _green,
+                  onTap: () => setState(() => _activeFilter = 'soumises'),
                 ),
-                const SizedBox(width: 10),
-                _StatPill(
-                  value: samples
-                      .where((e) => e.analyse == null)
-                      .length
-                      .toString(),
+                const SizedBox(width: 8),
+                _FilterChip(
                   label: 'En attente',
-                  color: Colors.orange.shade700,
+                  isActive: _activeFilter == 'attente',
+                  activeBg: Colors.orange.shade700.withValues(alpha: 0.12),
+                  activeFg: Colors.orange.shade700,
+                  onTap: () => setState(() => _activeFilter = 'attente'),
                 ),
-                if (_anyFilter) ...[
-                  const Spacer(),
-                  GestureDetector(
-                    onTap: () {
-                      _searchController.clear();
-                      setState(() {
-                        _searchQuery = '';
-                        _dateDebut = null;
-                        _dateFin = null;
-                      });
-                    },
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.filter_alt_off_outlined,
-                          size: 13,
-                          color: Colors.red.shade400,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          'Effacer filtres',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.red.shade500,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
               ],
             ),
           ),
+
           // List
           Expanded(
             child: samples.isEmpty
@@ -353,6 +338,9 @@ class _AnalyseLaboratoireCeoPageState extends State<AnalyseLaboratoireCeoPage> {
                         referenceBouteille: e.referenceBouteille,
                         id: e.id,
                         tintColor: _headerTint(hasAnalyse, classif),
+                        accentColor: hasAnalyse
+                            ? classifColor
+                            : Colors.orange.shade700,
                         badge: hasAnalyse
                             ? CardBadge(label: classif, color: classifColor)
                             : CardBadge(
@@ -395,6 +383,61 @@ class _AnalyseLaboratoireCeoPageState extends State<AnalyseLaboratoireCeoPage> {
                   ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// FILTER CHIP  — shared pattern across pages
+// Active "Tout"    → solid gray (#757575) bg + white text
+// Active status    → tinted bg + colored text
+// Inactive any     → light gray bg + gray text
+// ─────────────────────────────────────────────────────────────────────────────
+class _FilterChip extends StatelessWidget {
+  final String label;
+  final bool isActive;
+  final Color activeBg;
+  final Color activeFg;
+  final VoidCallback onTap;
+
+  const _FilterChip({
+    required this.label,
+    required this.isActive,
+    required this.activeBg,
+    required this.activeFg,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    const Color inactiveBg = Color(0xFFF0F0F0);
+    const Color inactiveFg = Color(0xFF9E9E9E);
+
+    final bg = isActive ? activeBg : inactiveBg;
+    final fg = isActive ? activeFg : inactiveFg;
+    final borderColor = isActive
+        ? activeFg.withValues(alpha: activeFg == Colors.white ? 0.0 : 0.3)
+        : const Color(0xFFE0E0E0);
+
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: bg,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: borderColor, width: 1.2),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: fg,
+          ),
+        ),
       ),
     );
   }
@@ -479,7 +522,7 @@ class _RapportSection extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// RAPPORT BLOCK  (unchanged content)
+// RAPPORT BLOCK
 // ─────────────────────────────────────────────────────────────────────────────
 class _RapportBlock extends StatelessWidget {
   final AnalyseLaboCeoView analyse;
@@ -663,47 +706,6 @@ class _EnAttenteHint extends StatelessWidget {
         Text(
           'Analyse non encore soumise par le technicien',
           style: TextStyle(fontSize: 13, color: Colors.orange.shade800),
-        ),
-      ],
-    ),
-  );
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// STAT PILL
-// ─────────────────────────────────────────────────────────────────────────────
-class _StatPill extends StatelessWidget {
-  final String value, label;
-  final Color color;
-  const _StatPill({
-    required this.value,
-    required this.label,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-    decoration: BoxDecoration(
-      color: color.withValues(alpha: 0.08),
-      borderRadius: BorderRadius.circular(20),
-      border: Border.all(color: color.withValues(alpha: 0.2)),
-    ),
-    child: Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w800,
-            color: color,
-          ),
-        ),
-        const SizedBox(width: 5),
-        Text(
-          label,
-          style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
         ),
       ],
     ),

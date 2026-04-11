@@ -38,10 +38,11 @@ class FormulaireEvaluationPage extends StatefulWidget {
 
 class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
   // ── Brand Colors ──────────────────────────────────────────────────────────
+  static const Color _headerBg = Color.fromARGB(255, 220, 233, 226);
   static const Color green = Color(0xFF38835A);
   static const Color oliveGreen = Color(0xFF6B8143);
-  static const Color cream = Color(0xFFF9F6EF);
   static const Color darkText = Color(0xFF1A2E1F);
+  static const Color _bg = Color.fromARGB(255, 255, 255, 255);
 
   // ── Soumis → verrouille tout ──────────────────────────────────────────────
   late bool _estSoumis;
@@ -99,10 +100,10 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
     if (med == 0.0 && fruit > 0.0) {
       return {
         'label': 'Extra Vierge',
-        'color': Colors.green.shade600,
+        'color': green,
         'icon': Icons.workspace_premium_outlined,
-        'bg': Colors.green.shade50,
-        'border': Colors.green.shade200,
+        'bg': green.withValues(alpha: 0.06),
+        'border': green.withValues(alpha: 0.28),
         'description': 'Médiane défauts = 0.0 et Fruité > 0.0',
       };
     } else if (med > 0.0 && med <= 3.5 && fruit > 0.0) {
@@ -157,7 +158,7 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
   }
 
   Color _sliderColor(double val) {
-    if (val <= 3.0) return Colors.green.shade500;
+    if (val <= 3.0) return green;
     if (val <= 6.0) return Colors.orange.shade500;
     return Colors.red.shade500;
   }
@@ -175,12 +176,14 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: cream,
+      backgroundColor: _bg,
       appBar: AppBar(
-        backgroundColor: green,
+        backgroundColor: _headerBg,
         elevation: 0,
+        centerTitle: false,
+        toolbarHeight: 65,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: const Icon(Icons.arrow_back, color: darkText),
           onPressed: () => Navigator.pop(context),
         ),
         title: Column(
@@ -191,12 +194,12 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
               style: GoogleFonts.domine(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
-                color: Colors.white,
+                color: darkText,
               ),
             ),
             Text(
               widget.echantillonId,
-              style: const TextStyle(fontSize: 12, color: Colors.white70),
+              style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
             ),
           ],
         ),
@@ -207,17 +210,18 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
               margin: const EdgeInsets.only(right: 12),
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
+                color: green.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: green.withValues(alpha: 0.3)),
               ),
               child: const Row(
                 children: [
-                  Icon(Icons.lock_outline, color: Colors.white, size: 14),
+                  Icon(Icons.lock_outline, color: green, size: 14),
                   SizedBox(width: 4),
                   Text(
                     'Verrouillé',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: green,
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
                     ),
@@ -249,9 +253,9 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
                         width: 80,
                         height: 80,
                         decoration: BoxDecoration(
-                          color: green.withOpacity(0.1),
+                          color: _headerBg.withValues(alpha: 0.5),
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: green.withOpacity(0.3)),
+                          border: Border.all(color: Colors.grey.shade200),
                         ),
                         child: widget.photoUrl != null
                             ? ClipRRect(
@@ -264,7 +268,7 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
                             : Icon(
                                 Icons.image_outlined,
                                 size: 36,
-                                color: green.withOpacity(0.4),
+                                color: Colors.grey.shade400,
                               ),
                       ),
 
@@ -634,15 +638,15 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
                 width: double.infinity,
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.green.shade50,
+                  color: green.withValues(alpha: 0.06),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.green.shade200),
+                  border: Border.all(color: green.withValues(alpha: 0.28)),
                 ),
                 child: Row(
                   children: [
                     Icon(
                       Icons.check_circle,
-                      color: Colors.green.shade600,
+                      color: green,
                       size: 24,
                     ),
                     const SizedBox(width: 12),
@@ -650,19 +654,19 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
+                          const Text(
                             'Évaluation soumise et verrouillée',
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w700,
-                              color: Colors.green.shade700,
+                              color: darkText,
                             ),
                           ),
                           Text(
                             'Cette fiche est en lecture seule',
                             style: TextStyle(
                               fontSize: 12,
-                              color: Colors.green.shade600,
+                              color: Colors.grey.shade600,
                             ),
                           ),
                         ],
@@ -1044,7 +1048,7 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
-            color: green.withOpacity(0.07),
+            color: Colors.black.withValues(alpha: 0.06),
             blurRadius: 10,
             offset: const Offset(0, 3),
           ),

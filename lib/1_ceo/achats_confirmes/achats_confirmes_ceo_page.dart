@@ -15,7 +15,7 @@ import '../../main.dart';
 import '../utilisateurs/models/mock_data_patch.dart';
 import '../utilisateurs/widgets/utilisateurs_ceo_page.dart';
 import '../widgets/search_date_filter_bar.dart';
-import '../widgets/sample_card_widgets.dart';
+import '../widgets/sample_card_echantillon.dart';
 import '../widgets/base_sample_card.dart';
 
 const Color _headerBg = Color.fromARGB(255, 220, 233, 226);
@@ -32,8 +32,9 @@ class AchatsConfirmesCeoPage extends StatefulWidget {
 }
 
 class _AchatsConfirmesCeoPageState extends State<AchatsConfirmesCeoPage> {
-  // ✅ ADDED: track which achat cards have their details expanded
   final Set<String> _expandedAchat = {};
+
+  String _activeFilter = 'tout';
 
   DateTime? _dateDebut;
   DateTime? _dateFin;
@@ -81,6 +82,11 @@ class _AchatsConfirmesCeoPageState extends State<AchatsConfirmesCeoPage> {
           )
           .toList();
     }
+    if (_activeFilter == 'arrive') {
+      result = result.where((e) => e.stockArrive).toList();
+    } else if (_activeFilter == 'transit') {
+      result = result.where((e) => !e.stockArrive).toList();
+    }
     return result;
   }
 
@@ -124,8 +130,6 @@ class _AchatsConfirmesCeoPageState extends State<AchatsConfirmesCeoPage> {
   @override
   Widget build(BuildContext context) {
     final achats = _achats;
-    final arrivesCount = achats.where((e) => e.stockArrive).length;
-    final enTransitCount = achats.where((e) => !e.stockArrive).length;
 
     return Scaffold(
       backgroundColor: _bg,
@@ -248,55 +252,30 @@ class _AchatsConfirmesCeoPageState extends State<AchatsConfirmesCeoPage> {
             padding: const EdgeInsets.fromLTRB(16, 9, 16, 6),
             child: Row(
               children: [
-                _StatPill(
-                  value: achats.length.toString(),
-                  label: 'Total',
-                  color: Colors.grey.shade600,
+                // ── CHANGED: use _FilterChip for consistent active/inactive states ──
+                _FilterChip(
+                  label: 'Tout',
+                  isActive: _activeFilter == 'tout',
+                  activeBg: const Color(0xFF757575),
+                  activeFg: Colors.white,
+                  onTap: () => setState(() => _activeFilter = 'tout'),
                 ),
-                const SizedBox(width: 10),
-                _StatPill(
-                  value: arrivesCount.toString(),
+                const SizedBox(width: 8),
+                _FilterChip(
                   label: 'Stock arrivé',
-                  color: _green,
+                  isActive: _activeFilter == 'arrive',
+                  activeBg: _green.withValues(alpha: 0.12),
+                  activeFg: _green,
+                  onTap: () => setState(() => _activeFilter = 'arrive'),
                 ),
-                const SizedBox(width: 10),
-                _StatPill(
-                  value: enTransitCount.toString(),
+                const SizedBox(width: 8),
+                _FilterChip(
                   label: 'En transit',
-                  color: Colors.orange.shade700,
+                  isActive: _activeFilter == 'transit',
+                  activeBg: Colors.orange.shade700.withValues(alpha: 0.12),
+                  activeFg: Colors.orange.shade700,
+                  onTap: () => setState(() => _activeFilter = 'transit'),
                 ),
-                if (_anyFilter) ...[
-                  const Spacer(),
-                  GestureDetector(
-                    onTap: () {
-                      _searchController.clear();
-                      setState(() {
-                        _searchQuery = '';
-                        _dateDebut = null;
-                        _dateFin = null;
-                      });
-                    },
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.filter_alt_off_outlined,
-                          size: 13,
-                          color: Colors.red.shade400,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          'Effacer filtres',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.red.shade500,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
               ],
             ),
           ),
@@ -334,24 +313,20 @@ class _AchatsConfirmesCeoPageState extends State<AchatsConfirmesCeoPage> {
                           ? const Color(0xFFEAF4EE)
                           : const Color(0xFFFFF3E0);
 
-                      // ✅ ADDED: read expanded state for this card
                       final achatExp = _expandedAchat.contains(e.id);
 
                       return BaseSampleCard(
                         referenceBouteille: e.referenceBouteille,
                         id: e.id,
                         tintColor: tintColor,
+                        accentColor: accentColor,
                         badge: CardBadgeRow(
                           badges: [
                             if (e.quantiteCibleT != null)
                               CardBadge(
-                                label: '${e.quantiteCibleT}T',
+                                label: 'Qté : ${e.quantiteCibleT}T',
                                 color: _olive,
                               ),
-                            CardBadge(
-                              label: e.stockArrive ? 'Arrivé' : 'En transit',
-                              color: accentColor,
-                            ),
                           ],
                         ),
                         detailItems: [
@@ -390,31 +365,26 @@ class _AchatsConfirmesCeoPageState extends State<AchatsConfirmesCeoPage> {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// ACHAT SECTION  — ✅ CHANGED: now collapsible with toggle row + chevron icon
+// ACHAT SECTION
 // ─────────────────────────────────────────────────────────────────────────────
 class _AchatSection extends StatelessWidget {
   final EchantillonCeoView echantillon;
   final Color accentColor;
-  // ✅ ADDED: collapse state props
   final bool isExpanded;
   final VoidCallback onToggle;
 
   const _AchatSection({
     required this.echantillon,
     required this.accentColor,
-    // ✅ ADDED
     required this.isExpanded,
-    // ✅ ADDED
     required this.onToggle,
   });
 
   @override
   Widget build(BuildContext context) {
     final e = echantillon;
-    // ✅ CHANGED: wrap content in Column with toggle row + AnimatedCrossFade
     return Column(
       children: [
-        // ✅ ADDED: tappable toggle row (mirrors _PanelSection / _RapportSection)
         GestureDetector(
           onTap: onToggle,
           behavior: HitTestBehavior.opaque,
@@ -422,7 +392,6 @@ class _AchatSection extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
             child: Row(
               children: [
-                // ✅ ADDED: contextual icon based on stock status
                 Icon(
                   e.stockArrive
                       ? Icons.inventory_2_outlined
@@ -431,7 +400,6 @@ class _AchatSection extends StatelessWidget {
                   color: accentColor,
                 ),
                 const SizedBox(width: 6),
-                // ✅ ADDED: label
                 Text(
                   'Détails de l\'achat',
                   style: TextStyle(
@@ -441,7 +409,6 @@ class _AchatSection extends StatelessWidget {
                   ),
                 ),
                 const Spacer(),
-                // ✅ ADDED: animated chevron
                 AnimatedRotation(
                   turns: isExpanded ? 0.5 : 0.0,
                   duration: const Duration(milliseconds: 180),
@@ -455,8 +422,6 @@ class _AchatSection extends StatelessWidget {
             ),
           ),
         ),
-
-        // ✅ ADDED: collapsible content panel
         AnimatedCrossFade(
           firstChild: const SizedBox.shrink(),
           secondChild: _AchatDetails(echantillon: e, accentColor: accentColor),
@@ -471,7 +436,7 @@ class _AchatSection extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// ACHAT DETAILS  — ✅ ADDED: extracted content (was inline in _AchatSection)
+// ACHAT DETAILS
 // ─────────────────────────────────────────────────────────────────────────────
 class _AchatDetails extends StatelessWidget {
   final EchantillonCeoView echantillon;
@@ -574,42 +539,56 @@ class _AchatDetails extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// STAT PILL  — unchanged
+// FILTER CHIP  — replaces old _FilterBtn
+// Active "Tout"  → solid gray (#757575) bg + white text  (mirrors utilisateurs)
+// Active status  → tinted bg + colored text
+// Inactive any   → light gray bg + gray text
 // ─────────────────────────────────────────────────────────────────────────────
-class _StatPill extends StatelessWidget {
-  final String value, label;
-  final Color color;
-  const _StatPill({
-    required this.value,
+class _FilterChip extends StatelessWidget {
+  final String label;
+  final bool isActive;
+  final Color activeBg;
+  final Color activeFg;
+  final VoidCallback onTap;
+
+  const _FilterChip({
     required this.label,
-    required this.color,
+    required this.isActive,
+    required this.activeBg,
+    required this.activeFg,
+    required this.onTap,
   });
 
   @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-    decoration: BoxDecoration(
-      color: color.withValues(alpha: 0.08),
-      borderRadius: BorderRadius.circular(20),
-      border: Border.all(color: color.withValues(alpha: 0.2)),
-    ),
-    child: Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          value,
+  Widget build(BuildContext context) {
+    const Color inactiveBg = Color(0xFFF0F0F0);
+    const Color inactiveFg = Color(0xFF9E9E9E);
+
+    final bg = isActive ? activeBg : inactiveBg;
+    final fg = isActive ? activeFg : inactiveFg;
+    final borderColor = isActive
+        ? activeFg.withValues(alpha: activeFg == Colors.white ? 0.0 : 0.3)
+        : const Color(0xFFE0E0E0);
+
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: bg,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: borderColor, width: 1.2),
+        ),
+        child: Text(
+          label,
           style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w800,
-            color: color,
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: fg,
           ),
         ),
-        const SizedBox(width: 5),
-        Text(
-          label,
-          style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
-        ),
-      ],
-    ),
-  );
+      ),
+    );
+  }
 }

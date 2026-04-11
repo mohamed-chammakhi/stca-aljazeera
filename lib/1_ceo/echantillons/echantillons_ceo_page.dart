@@ -14,16 +14,23 @@ import '../utilisateurs/models/mock_data_patch.dart';
 import '../utilisateurs/widgets/utilisateurs_ceo_page.dart';
 import '../../main.dart';
 import '../profil_ceo_page.dart';
-import '../homepage/homepage_ceo_page.dart';
+import '../tableau_de_bord/tableau_de_bord.dart';
 
 // ── Reusable widget imports ──────────────────────────────────────────────────
 import '../widgets/search_date_filter_bar.dart';
-import '../widgets/sample_card_widgets.dart';
+import '../widgets/sample_card_echantillon.dart';
 
 const Color _headerBg = Color.fromARGB(255, 220, 233, 226);
 const Color _green = Color(0xFF38835A);
 const Color _dark = Color(0xFF1A2E1F);
 const Color _bg = Color.fromARGB(255, 255, 255, 255);
+
+String _initials(String name) {
+  final parts = name.trim().split(' ').where((s) => s.isNotEmpty).toList();
+  if (parts.isEmpty) return '?';
+  if (parts.length == 1) return parts[0][0].toUpperCase();
+  return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // COLLECTEUR GROUP MODEL  (local to this page)
@@ -326,38 +333,6 @@ class _EchantillonsCeoPageState extends State<EchantillonsCeoPage> {
                     fontWeight: FontWeight.w500,
                   ),
                 ),
-                if (_anyFilter) ...[
-                  const Spacer(),
-                  GestureDetector(
-                    onTap: () {
-                      _searchController.clear();
-                      setState(() {
-                        _searchQuery = '';
-                        _dateDebut = null;
-                        _dateFin = null;
-                      });
-                    },
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.filter_alt_off_outlined,
-                          size: 13,
-                          color: Colors.red.shade400,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          'Effacer filtres',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: Colors.red.shade500,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
               ],
             ),
           ),
@@ -492,8 +467,8 @@ class _CollecteurSection extends StatelessWidget {
                     ),
                     const SizedBox(width: 12),
                     Container(
-                      width: 32,
-                      height: 32,
+                      width: 34,
+                      height: 34,
                       decoration: BoxDecoration(
                         color: group.isInterne
                             ? Colors.purple.shade50
@@ -501,15 +476,20 @@ class _CollecteurSection extends StatelessWidget {
                         shape: BoxShape.circle,
                       ),
                       child: Center(
-                        child: Icon(
-                          group.isInterne
-                              ? Icons.business_outlined
-                              : Icons.person_outline,
-                          size: 16,
-                          color: group.isInterne
-                              ? Colors.purple.shade400
-                              : _green,
-                        ),
+                        child: group.isInterne
+                            ? Icon(
+                                Icons.business_outlined,
+                                size: 16,
+                                color: Colors.purple.shade400,
+                              )
+                            : Text(
+                                _initials(group.displayName),
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                  color: _green,
+                                ),
+                              ),
                       ),
                     ),
                     const SizedBox(width: 10),

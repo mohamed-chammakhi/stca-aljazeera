@@ -13,7 +13,6 @@
 import 'package:flutter/material.dart';
 import '../../models/echantillon_collecteur.dart';
 import 'card_theme.dart';
-import '../dialogs/formulaire/planification_livraison.dart';
 
 // ── Info item ─────────────────────────────────────────────────────────────────
 class CardInfoItem extends StatelessWidget {

@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 // ── Page imports ──────────────────────────────────────────────────────────────
-import '../homepage/widgets/app_drawer.dart';
+import '../tableau_de_bord/widgets/app_drawer.dart';
 import '../membres_panel/membres_panel_page.dart';
 import '../../../main.dart';
 import '../profil.dart';
@@ -38,13 +38,13 @@ class _EvaluationEchantillonsPageState
     extends State<EvaluationEchantillonsPage> {
   // ── COLORS ──────────────────────────────────────────────────────────────────
   static const Color _headerBg = Color.fromARGB(255, 220, 233, 226);
-  static const Color _green    = Color(0xFF38835A);
-  static const Color _dark     = Color(0xFF1A2E1F);
-  static const Color _bg       = Color.fromARGB(255, 255, 255, 255);
+  static const Color _green = Color(0xFF38835A);
+  static const Color _dark = Color(0xFF1A2E1F);
+  static const Color _bg = Color.fromARGB(255, 255, 255, 255);
 
   // ── STATE ────────────────────────────────────────────────────────────────────
   final TextEditingController _searchController = TextEditingController();
-  String  _recherche        = '';
+  String _recherche = '';
   String? _filtreStatutLabel;
   DateTime? _dateDebut;
   DateTime? _dateFin;
@@ -54,8 +54,9 @@ class _EvaluationEchantillonsPageState
       _dateFilterActive || _recherche.isNotEmpty || _filtreStatutLabel != null;
 
   // ── DATA ──────────────────────────────────────────────────────────────────────
-  late final List<Echantillon> _echantillons =
-      List.from(mockEchantillonsEvaluation);
+  late final List<Echantillon> _echantillons = List.from(
+    mockEchantillonsEvaluation,
+  );
 
   // ── NAVIGATION ───────────────────────────────────────────────────────────────
   void _goTo(Widget page) {
@@ -74,10 +75,14 @@ class _EvaluationEchantillonsPageState
   // ── FILTER LOGIC ─────────────────────────────────────────────────────────────
   StatutEchantillon? _labelToStatut(String? label) {
     switch (label) {
-      case 'En attente': return StatutEchantillon.enAttente;
-      case 'En cours':   return StatutEchantillon.enCours;
-      case 'Soumis':     return StatutEchantillon.soumis;
-      default:           return null;
+      case 'En attente':
+        return StatutEchantillon.enAttente;
+      case 'En cours':
+        return StatutEchantillon.enCours;
+      case 'Soumis':
+        return StatutEchantillon.soumis;
+      default:
+        return null;
     }
   }
 
@@ -94,7 +99,8 @@ class _EvaluationEchantillonsPageState
   List<Echantillon> get _echantillonsFiltres {
     return _echantillons.where((e) {
       final q = _recherche.toLowerCase();
-      final matchRecherche = _recherche.isEmpty ||
+      final matchRecherche =
+          _recherche.isEmpty ||
           e.id.toLowerCase().contains(q) ||
           e.ref.toLowerCase().contains(q) ||
           e.fournisseur.toLowerCase().contains(q) ||
@@ -112,11 +118,11 @@ class _EvaluationEchantillonsPageState
         if (raw == null) {
           matchDate = false;
         } else {
-          final d     = DateTime(raw.year, raw.month, raw.day);
+          final d = DateTime(raw.year, raw.month, raw.day);
           final debut = _dateDebut != null
               ? DateTime(_dateDebut!.year, _dateDebut!.month, _dateDebut!.day)
               : null;
-          final fin   = _dateFin != null
+          final fin = _dateFin != null
               ? DateTime(_dateFin!.year, _dateFin!.month, _dateFin!.day)
               : null;
           if (debut != null && fin != null) {
@@ -145,11 +151,11 @@ class _EvaluationEchantillonsPageState
       MaterialPageRoute(
         builder: (_) => FormulaireEvaluationPage(
           echantillonId: e.id,
-          fournisseur:   e.fournisseur,
-          variete:       e.variete,
-          origine:       e.gouvernorat ?? 'Non spécifiée',
-          dateArrivee:   e.date,
-          photoUrl:      e.photoUrl,
+          fournisseur: e.fournisseur,
+          variete: e.variete,
+          origine: e.gouvernorat ?? 'Non spécifiée',
+          dateArrivee: e.date,
+          photoUrl: e.photoUrl,
         ),
       ),
     );
@@ -157,7 +163,7 @@ class _EvaluationEchantillonsPageState
     // result is classification label when submitted, null if just navigated back
     if (result != null && mounted) {
       setState(() {
-        e.statut         = StatutEchantillon.soumis;
+        e.statut = StatutEchantillon.soumis;
         e.classification = result;
       });
     }
@@ -169,12 +175,12 @@ class _EvaluationEchantillonsPageState
       MaterialPageRoute(
         builder: (_) => FormulaireEvaluationPage(
           echantillonId: e.id,
-          fournisseur:   e.fournisseur,
-          variete:       e.variete,
-          origine:       e.gouvernorat ?? 'Non spécifiée',
-          dateArrivee:   e.date,
-          photoUrl:      e.photoUrl,
-          readOnly:      true,
+          fournisseur: e.fournisseur,
+          variete: e.variete,
+          origine: e.gouvernorat ?? 'Non spécifiée',
+          dateArrivee: e.date,
+          photoUrl: e.photoUrl,
+          readOnly: true,
           classification: e.classification,
         ),
       ),
@@ -189,14 +195,14 @@ class _EvaluationEchantillonsPageState
       isScrollControlled: true,
       builder: (_) => DateFilterSheet(
         dateDebut: _dateDebut,
-        dateFin:   _dateFin,
+        dateFin: _dateFin,
         onApply: (debut, fin) => setState(() {
           _dateDebut = debut;
-          _dateFin   = fin;
+          _dateFin = fin;
         }),
         onClear: () => setState(() {
           _dateDebut = null;
-          _dateFin   = null;
+          _dateFin = null;
         }),
       ),
     );
@@ -217,15 +223,16 @@ class _EvaluationEchantillonsPageState
       backgroundColor: _bg,
 
       drawer: AppDrawer(
-        onaccueil:                 () => Navigator.pop(context),
-        onEvaluationEchantillons:  () => _goTo(const EvaluationEchantillonsPage()),
-        onGestionEchantillons:     () => _goTo(const GestionEchantillonsPage()),
-        onAnalyseLaboratoire:      () => _goTo(const AnalyseLaboratoirePage()),
+        onaccueil: () => Navigator.pop(context),
+        onEvaluationEchantillons: () =>
+            _goTo(const EvaluationEchantillonsPage()),
+        onGestionEchantillons: () => _goTo(const GestionEchantillonsPage()),
+        onAnalyseLaboratoire: () => _goTo(const AnalyseLaboratoirePage()),
         onSessionsDegustationPage: () => _goTo(const SessionsDegustationPage()),
-        onMembredupanel:           () => _goTo(const MembresPanelPage()),
-        onProfil:                  () => _goTo(const ProfilePage()),
-        onAPropos:                 () => Navigator.pop(context),
-        onDeconnexion:             _goToLogin,
+        onMembredupanel: () => _goTo(const MembresPanelPage()),
+        onProfil: () => _goTo(const ProfilePage()),
+        onAPropos: () => Navigator.pop(context),
+        onDeconnexion: _goToLogin,
       ),
 
       appBar: AppBar(
@@ -236,7 +243,9 @@ class _EvaluationEchantillonsPageState
         title: Text(
           'Évaluation des échantillons',
           style: GoogleFonts.domine(
-            fontSize: 18, fontWeight: FontWeight.w700, color: _dark,
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+            color: _dark,
           ),
         ),
         iconTheme: const IconThemeData(color: _dark),
@@ -274,7 +283,6 @@ class _EvaluationEchantillonsPageState
 
       body: Column(
         children: [
-
           // ── UNIFIED HEADER ZONE ────────────────────────────────────────────
           Container(
             color: _headerBg,
@@ -354,7 +362,8 @@ class _EvaluationEchantillonsPageState
                         inactiveColor: const Color(0xFFE8F1FB),
                         inactiveTextColor: const Color(0xFF3A6EA5),
                         selected: _filtreStatutLabel == 'En attente',
-                        onTap: () => setState(() => _filtreStatutLabel = 'En attente'),
+                        onTap: () =>
+                            setState(() => _filtreStatutLabel = 'En attente'),
                       ),
                       const SizedBox(width: 7),
                       _StatutChip(
@@ -363,7 +372,8 @@ class _EvaluationEchantillonsPageState
                         inactiveColor: const Color(0xFFFEF3E8),
                         inactiveTextColor: const Color(0xFFD07B2F),
                         selected: _filtreStatutLabel == 'En cours',
-                        onTap: () => setState(() => _filtreStatutLabel = 'En cours'),
+                        onTap: () =>
+                            setState(() => _filtreStatutLabel = 'En cours'),
                       ),
                       const SizedBox(width: 7),
                       _StatutChip(
@@ -372,7 +382,8 @@ class _EvaluationEchantillonsPageState
                         inactiveColor: const Color(0xFFE6F4ED),
                         inactiveTextColor: const Color(0xFF38835A),
                         selected: _filtreStatutLabel == 'Soumis',
-                        onTap: () => setState(() => _filtreStatutLabel = 'Soumis'),
+                        onTap: () =>
+                            setState(() => _filtreStatutLabel = 'Soumis'),
                       ),
                     ],
                   ),
@@ -404,33 +415,6 @@ class _EvaluationEchantillonsPageState
                     fontWeight: FontWeight.w500,
                   ),
                 ),
-                if (_anyFilter) ...[
-                  const Spacer(),
-                  GestureDetector(
-                    onTap: () => setState(() {
-                      _recherche         = '';
-                      _searchController.clear();
-                      _filtreStatutLabel = null;
-                      _dateDebut         = null;
-                      _dateFin           = null;
-                    }),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.filter_alt_off_outlined, size: 13, color: Colors.red.shade400),
-                        const SizedBox(width: 4),
-                        Text(
-                          'Effacer filtres',
-                          style: TextStyle(
-                            fontSize:   11,
-                            color:      Colors.red.shade500,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
               ],
             ),
           ),
@@ -449,7 +433,7 @@ class _EvaluationEchantillonsPageState
                         return EchantillonCard(
                           echantillon: e,
                           onAction: () => _onActionEchantillon(e),
-                          onVoir:   () => _onVoir(e),
+                          onVoir: () => _onVoir(e),
                         );
                       },
                     ),
@@ -465,11 +449,11 @@ class _EvaluationEchantillonsPageState
 // STATUT CHIP — soft pastel inactive, solid color active
 // ─────────────────────────────────────────────────────────────────────────────
 class _StatutChip extends StatelessWidget {
-  final String       label;
-  final Color        activeColor;
-  final Color        inactiveColor;
-  final Color        inactiveTextColor;
-  final bool         selected;
+  final String label;
+  final Color activeColor;
+  final Color inactiveColor;
+  final Color inactiveTextColor;
+  final bool selected;
   final VoidCallback onTap;
 
   const _StatutChip({
@@ -481,39 +465,66 @@ class _StatutChip extends StatelessWidget {
     required this.onTap,
   });
 
+  static const Color _inactiveBg = Color(0xFFF0F0F0);
+  static const Color _inactiveFg = Color(0xFF9E9E9E);
+  static const Color _inactiveBorder = Color(0xFFE0E0E0);
+
   @override
-  Widget build(BuildContext context) => GestureDetector(
-    onTap: onTap,
-    child: AnimatedContainer(
-      duration: const Duration(milliseconds: 150),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-      decoration: BoxDecoration(
-        color: selected ? activeColor : inactiveColor,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: selected
-              ? activeColor
-              : inactiveTextColor.withValues(alpha: 0.35),
-          width: 1.2,
+  Widget build(BuildContext context) {
+    // "Tous" se comporte comme _FilterChip dans achats confirmés :
+    //   inactif = gris neutre, actif = gris solide #757575 + texte blanc
+    // Les autres :
+    //   inactif = gris neutre, actif = fond teinté + texte coloré + bordure colorée
+    final bool isTous = label == 'Tous';
+
+    final Color bg;
+    final Color fg;
+    final Color border;
+
+    if (!selected) {
+      bg = _inactiveBg;
+      fg = _inactiveFg;
+      border = _inactiveBorder;
+    } else if (isTous) {
+      bg = const Color(0xFF757575);
+      fg = Colors.white;
+      border = const Color(0xFF757575);
+    } else {
+      bg = inactiveColor; // fond teinté clair
+      fg = inactiveTextColor; // texte coloré
+      border = inactiveTextColor.withValues(alpha: 0.45);
+    }
+
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+        decoration: BoxDecoration(
+          color: bg,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: border, width: 1.2),
+          boxShadow: selected
+              ? [
+                  BoxShadow(
+                    color:
+                        (isTous ? const Color(0xFF757575) : inactiveTextColor)
+                            .withValues(alpha: 0.22),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
+              : null,
         ),
-        boxShadow: selected
-            ? [
-                BoxShadow(
-                  color: activeColor.withValues(alpha: 0.25),
-                  blurRadius: 6,
-                  offset: const Offset(0, 2),
-                ),
-              ]
-            : null,
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize:   12,
-          fontWeight: FontWeight.w600,
-          color:      selected ? Colors.white : inactiveTextColor,
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: fg,
+          ),
         ),
       ),
-    ),
-  );
+    );
+  }
 }

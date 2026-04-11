@@ -1,14 +1,17 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // FILE : gestion_echantillons/widgets/dialogs/formulaire_dialog.dart
-// PURPOSE : add / edit dialog for one Echantillon (degustateur module)
-//           — sections: BOUTEILLE, FOURNISSEUR, LOCALISATION, DATE
-//           — gouvernorat → delegation cascade via GeoService
-//           — statut is always read-only
+// PURPOSE : add / edit dialog for one or more Echantillons (degustateur module)
+//           — in add mode: multiple bouteilles per fournisseur, each becomes its
+//             own card in the list (same pattern as formulaire_collecteur_dialog)
+//           — shared fields: collecteur, fournisseur, gouvernorat, délégation,
+//             date d'arrivée, statut (read-only), photo, action buttons
+//           — per-bouteille fields: référence, variété, scellage, quantité
 // ─────────────────────────────────────────────────────────────────────────────
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/models/echantillon.dart';
+import '../../../../core/models/enums.dart';
 import '../date_input_field.dart';
 import '../../../../2_collecteur/carte_geo/services/geo_service.dart';
 
@@ -26,18 +29,59 @@ const Color _sectionFournisseur = Color(0xFF2E7D98); // teal-blue
 const Color _sectionLocalisation = Color(0xFF6D4C41); // earthy
 const Color _sectionDate = Color(0xFF5C6BC0); // muted indigo
 
+// ─────────────────────────────────────────────────────────────────────────────
+// BOUTEILLE ROW — one row per bottle in the list
+// ─────────────────────────────────────────────────────────────────────────────
+class _BouteilleRow {
+  final TextEditingController refCtrl;
+  final TextEditingController varieteCtrl;
+  final TextEditingController scellageCtrl;
+  final TextEditingController qteCtrl;
+
+  _BouteilleRow({
+    required this.refCtrl,
+    required this.varieteCtrl,
+    required this.scellageCtrl,
+    required this.qteCtrl,
+  });
+
+  factory _BouteilleRow.empty() => _BouteilleRow(
+    refCtrl: TextEditingController(),
+    varieteCtrl: TextEditingController(),
+    scellageCtrl: TextEditingController(),
+    qteCtrl: TextEditingController(),
+  );
+
+  factory _BouteilleRow.fromSample(Echantillon e) => _BouteilleRow(
+    refCtrl: TextEditingController(text: e.referenceBouteille),
+    varieteCtrl: TextEditingController(text: e.variete ?? ''),
+    scellageCtrl: TextEditingController(text: e.scellage ?? ''),
+    qteCtrl: TextEditingController(text: e.quantiteEstimee ?? ''),
+  );
+
+  void dispose() {
+    refCtrl.dispose();
+    varieteCtrl.dispose();
+    scellageCtrl.dispose();
+    qteCtrl.dispose();
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PUBLIC ENTRY POINT
+// ─────────────────────────────────────────────────────────────────────────────
 void showFormulaireDialog(
   BuildContext context, {
   Echantillon? echantillon,
   required int prochainNumero,
-  required Function(Echantillon) onSave,
+  required Function(List<Echantillon>) onSaveMultiple,
 }) {
   showDialog(
     context: context,
     builder: (_) => _FormulaireDialog(
       echantillon: echantillon,
       prochainNumero: prochainNumero,
-      onSave: onSave,
+      onSaveMultiple: onSaveMultiple,
     ),
   );
 }
@@ -48,12 +92,12 @@ void showFormulaireDialog(
 class _FormulaireDialog extends StatefulWidget {
   final Echantillon? echantillon;
   final int prochainNumero;
-  final Function(Echantillon) onSave;
+  final Function(List<Echantillon>) onSaveMultiple;
 
   const _FormulaireDialog({
     required this.echantillon,
     required this.prochainNumero,
-    required this.onSave,
+    required this.onSaveMultiple,
   });
 
   @override
@@ -65,36 +109,41 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
   final GeoService _geo = GeoService.instance;
   bool _geoLoaded = false;
 
-  // ── Controllers ──────────────────────────────────────────────────────────
-  late final TextEditingController _refCtrl;
+  // ── Shared controllers ───────────────────────────────────────────────────
   late final TextEditingController _codeFournisseurCtrl;
-  late final TextEditingController _varieteCtrl;
-  late final TextEditingController _quantiteCtrl;
-  late final TextEditingController _dateAjoutCtrl;
   late final TextEditingController _collecteurCtrl;
+  late final TextEditingController _dateAjoutCtrl;
+  late final TextEditingController _remarquesCtrl;
 
   // ── Location state ────────────────────────────────────────────────────────
   String? _gouvernorat;
   String? _delegation;
 
+  // ── Per-bouteille rows ────────────────────────────────────────────────────
+  final List<_BouteilleRow> _bouteilles = [];
+
   bool get _isModification => widget.echantillon != null;
+  int get _bottleCount => _bouteilles.length;
 
   @override
   void initState() {
     super.initState();
     final e = widget.echantillon;
 
-    _refCtrl = TextEditingController(text: e?.referenceBouteille ?? '');
     _codeFournisseurCtrl = TextEditingController(
       text: e?.codeFournisseur ?? '',
     );
-    _varieteCtrl = TextEditingController(text: e?.variete ?? '');
-    _quantiteCtrl = TextEditingController(text: e?.quantiteEstimee ?? '');
     _collecteurCtrl = TextEditingController(text: e?.collecteurNom ?? '');
     _dateAjoutCtrl = TextEditingController(text: e?.dateAjout ?? _todayStr());
+    _remarquesCtrl = TextEditingController(text: e?.remarques ?? '');
 
     _gouvernorat = e?.gouvernorat.isEmpty == true ? null : e?.gouvernorat;
     _delegation = e?.delegation;
+
+    // Seed with one row (pre-filled for edit, empty for add)
+    _bouteilles.add(
+      e != null ? _BouteilleRow.fromSample(e) : _BouteilleRow.empty(),
+    );
 
     _geo.load().then((_) {
       if (mounted) setState(() => _geoLoaded = true);
@@ -103,12 +152,13 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
 
   @override
   void dispose() {
-    _refCtrl.dispose();
     _codeFournisseurCtrl.dispose();
-    _varieteCtrl.dispose();
-    _quantiteCtrl.dispose();
     _collecteurCtrl.dispose();
     _dateAjoutCtrl.dispose();
+    _remarquesCtrl.dispose();
+    for (final b in _bouteilles) {
+      b.dispose();
+    }
     super.dispose();
   }
 
@@ -118,11 +168,27 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
         '${n.month.toString().padLeft(2, '0')}/${n.year}';
   }
 
+  void _addRow() => setState(() => _bouteilles.add(_BouteilleRow.empty()));
+
+  void _removeRow(int index) {
+    setState(() {
+      _bouteilles[index].dispose();
+      _bouteilles.removeAt(index);
+    });
+  }
+
+  bool get _isValid {
+    if (_bouteilles.isEmpty) return false;
+    return _bouteilles.every((b) => b.refCtrl.text.trim().isNotEmpty);
+  }
+
   void _save() {
-    if (_refCtrl.text.trim().isEmpty) {
+    if (!_isValid) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('La référence est obligatoire'),
+          content: const Text(
+            'La référence est obligatoire pour chaque bouteille',
+          ),
           backgroundColor: Colors.red.shade400,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
@@ -140,43 +206,65 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
     final collecteur = _collecteurCtrl.text.trim().isEmpty
         ? null
         : _collecteurCtrl.text.trim();
+    final codeFournisseur = _codeFournisseurCtrl.text.trim().isEmpty
+        ? null
+        : _codeFournisseurCtrl.text.trim();
 
     if (_isModification) {
       final e = widget.echantillon!;
-      e.referenceBouteille = _refCtrl.text.trim();
-      e.codeFournisseur = _codeFournisseurCtrl.text.trim();
-      e.variete = _varieteCtrl.text.trim().isEmpty
+      final b = _bouteilles.first;
+      e.referenceBouteille = b.refCtrl.text.trim();
+      e.variete = b.varieteCtrl.text.trim().isEmpty
           ? null
-          : _varieteCtrl.text.trim();
+          : b.varieteCtrl.text.trim();
+      e.scellage = b.scellageCtrl.text.trim().isEmpty
+          ? null
+          : b.scellageCtrl.text.trim();
+      e.quantiteEstimee = b.qteCtrl.text.trim().isEmpty
+          ? null
+          : b.qteCtrl.text.trim();
       e.gouvernorat = gouvernorat;
       e.delegation = _delegation;
-      e.quantiteEstimee = _quantiteCtrl.text.trim().isEmpty
+      e.remarques = _remarquesCtrl.text.trim().isEmpty
           ? null
-          : _quantiteCtrl.text.trim();
-      e.dateAjout = _dateAjoutCtrl.text;
-      e.collecteurNom = collecteur;
-      widget.onSave(e);
+          : _remarquesCtrl.text.trim();
+      // codeFournisseur, dateAjout, collecteurNom are API-assigned — not mutated
+      widget.onSaveMultiple([e]);
     } else {
-      widget.onSave(
-        Echantillon(
-          id: '${DateTime.now().year}/${widget.prochainNumero}',
-          referenceBouteille: _refCtrl.text.trim(),
-          codeFournisseur: _codeFournisseurCtrl.text.trim(),
-          variete: _varieteCtrl.text.trim().isEmpty
+      final now = DateTime.now();
+      final samples = _bouteilles.asMap().entries.map((entry) {
+        final idx = entry.key;
+        final b = entry.value;
+        final numero = widget.prochainNumero + idx;
+        return Echantillon(
+          id: 'new-${now.millisecondsSinceEpoch}-$idx',
+          ref: '${now.year}/${numero.toString().padLeft(4, '0')}',
+          fournisseurId: 'fournisseur-placeholder',
+          collecteurId: 'collecteur-placeholder',
+          codeFournisseur: codeFournisseur,
+          collecteurNom: collecteur,
+          referenceBouteille: b.refCtrl.text.trim(),
+          variete: b.varieteCtrl.text.trim().isEmpty
               ? null
-              : _varieteCtrl.text.trim(),
-          dateAjout: _dateAjoutCtrl.text,
+              : b.varieteCtrl.text.trim(),
+          scellage: b.scellageCtrl.text.trim().isEmpty
+              ? null
+              : b.scellageCtrl.text.trim(),
           gouvernorat: gouvernorat,
           delegation: _delegation,
-          quantiteEstimee: _quantiteCtrl.text.trim().isEmpty
+          remarques: _remarquesCtrl.text.trim().isEmpty
               ? null
-              : _quantiteCtrl.text.trim(),
-          statut: 'En attente',
-          collecteurNom: collecteur,
-          recuPhysiquement:
-              true, // taster registers samples already present at company
-        ),
-      );
+              : _remarquesCtrl.text.trim(),
+          quantiteEstimee: b.qteCtrl.text.trim().isEmpty
+              ? null
+              : b.qteCtrl.text.trim(),
+          dateAjout: _dateAjoutCtrl.text,
+          statutCollecteur: StatutCollecteur.receptionne,
+          statutDegustateur: StatutDegustateur.enAttente,
+          recuPhysiquement: true,
+        );
+      }).toList();
+      widget.onSaveMultiple(samples);
     }
   }
 
@@ -224,29 +312,11 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
                       ),
                     ),
                   ),
+                  // ID badge — add mode only
                   if (!_isModification)
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Color.fromARGB(
-                          255,
-                          26,
-                          46,
-                          31,
-                        ).withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        '${DateTime.now().year}/${widget.prochainNumero}',
-                        style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: _dark,
-                        ),
-                      ),
+                    _IdBadge(
+                      prochainNumero: widget.prochainNumero,
+                      bottleCount: _bottleCount,
                     ),
                 ],
               ),
@@ -259,32 +329,7 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _FormField(
-                      label: 'Référence bouteille',
-                      controller: _refCtrl,
-                      hint: 'Ex: CHEMLALI-C1',
-                      required: true,
-                    ),
-                    const SizedBox(height: 12),
-                    _FormField(
-                      label: "Variété d'olive",
-                      controller: _varieteCtrl,
-                      hint: 'Ex: Chemlali, Chetoui…',
-                      // optional: false,
-                    ),
-                    const SizedBox(height: 12),
-                    _FormField(
-                      label: 'Quantité estimée',
-                      controller: _quantiteCtrl,
-                      hint: 'Ex: 5000',
-                      keyboardType: TextInputType.number,
-                      suffixText: 'T',
-                      // optional: true,
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    // ── SECTION: FOURNISSEUR & COLLECTEUR ────────────────
+                    // ── SHARED: FOURNISSEUR & COLLECTEUR ─────────────────
                     _FormField(
                       label: 'Nom / Code fournisseur',
                       controller: _codeFournisseurCtrl,
@@ -295,11 +340,11 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
                       label: 'Collecteur',
                       controller: _collecteurCtrl,
                       hint: 'Ex: Ahmed Dridi',
-                      // optional: true,
                     ),
 
                     const SizedBox(height: 12),
 
+                    // ── SHARED: LOCALISATION ─────────────────────────────
                     _DropdownField(
                       label: 'Gouvernorat',
                       value: _gouvernorat,
@@ -328,27 +373,35 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
                       onChanged: _gouvernorat == null
                           ? null
                           : (v) => setState(() => _delegation = v),
-                      //   optional: true,
                     ),
 
                     const SizedBox(height: 12),
 
-                    // ── SECTION: DATE & STATUT ────────────────────────────
+                    // ── PER-BOUTEILLE SECTION ─────────────────────────────
+                    _BouteillesSection(
+                      bouteilles: _bouteilles,
+                      isModification: _isModification,
+                      onAddRow: _addRow,
+                      onRemoveRow: _removeRow,
+                    ),
+
+                    const SizedBox(height: 12),
+                    // ── SHARED: DATE ──────────────────────────────────────
                     DateInputField(controller: _dateAjoutCtrl),
                     const SizedBox(height: 12),
 
-                    // Statut — read-only
+                    // ── SHARED: STATUT (read-only) ────────────────────────
                     _ReadOnlyField(
                       label: 'Statut',
                       icon: Icons.flag_outlined,
                       value: _isModification
-                          ? widget.echantillon!.statut
+                          ? (widget.echantillon!.statutDegustateur?.label ??
+                                'En attente')
                           : 'En attente',
                     ),
 
-                    const SizedBox(height: 12),
-
-                    // ── SECTION: PHOTO (placeholder) ──────────────────────
+                    const SizedBox(height: 16),
+                    // ── SHARED: PHOTO (placeholder) ───────────────────────
                     _FieldLabel(label: 'Photo'),
                     const SizedBox(height: 10),
                     Container(
@@ -380,6 +433,71 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
                           ),
                         ],
                       ),
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    // ── SHARED: REMARQUES ─────────────────────────────────
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const Text(
+                              'Remarques',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: _olive,
+                              ),
+                            ),
+                            Text(
+                              ' (optionnel)',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: Colors.grey.shade400,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        TextField(
+                          controller: _remarquesCtrl,
+                          maxLines: 3,
+                          minLines: 2,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: _dark,
+                          ),
+                          decoration: InputDecoration(
+                            hintText: 'Notes, observations particulières...',
+                            hintStyle: TextStyle(
+                              color: Colors.grey.shade400,
+                              fontSize: 13,
+                            ),
+                            filled: true,
+                            fillColor: _fieldFill,
+                            contentPadding: const EdgeInsets.all(12),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide:
+                                  BorderSide(color: Colors.grey.shade200),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide:
+                                  BorderSide(color: Colors.grey.shade200),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: const BorderSide(
+                                color: _green,
+                                width: 1.8,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
 
                     const SizedBox(height: 8),
@@ -423,7 +541,11 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
                         size: 16,
                       ),
                       label: Text(
-                        _isModification ? 'Enregistrer' : 'Ajouter',
+                        _isModification
+                            ? 'Enregistrer'
+                            : _bottleCount > 1
+                            ? 'Ajouter $_bottleCount échantillons'
+                            : 'Ajouter',
                         style: const TextStyle(fontWeight: FontWeight.w700),
                       ),
                       style: ElevatedButton.styleFrom(
@@ -453,6 +575,340 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// ID BADGE — shows auto-generated ref range (add mode only)
+// ─────────────────────────────────────────────────────────────────────────────
+class _IdBadge extends StatelessWidget {
+  final int prochainNumero;
+  final int bottleCount;
+
+  const _IdBadge({required this.prochainNumero, required this.bottleCount});
+
+  @override
+  Widget build(BuildContext context) {
+    final year = DateTime.now().year;
+    final from = prochainNumero.toString().padLeft(4, '0');
+    final to = (prochainNumero + bottleCount - 1).toString().padLeft(4, '0');
+    final label = bottleCount > 1 ? '$year/$from → $to' : '$year/$from';
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: const Color.fromARGB(255, 26, 46, 31).withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        label,
+        style: const TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
+          color: _dark,
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// BOUTEILLES SECTION — list of per-bottle cards with add/remove controls
+// ─────────────────────────────────────────────────────────────────────────────
+class _BouteillesSection extends StatelessWidget {
+  final List<_BouteilleRow> bouteilles;
+  final bool isModification;
+  final VoidCallback onAddRow;
+  final ValueChanged<int> onRemoveRow;
+
+  const _BouteillesSection({
+    required this.bouteilles,
+    required this.isModification,
+    required this.onAddRow,
+    required this.onRemoveRow,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final count = bouteilles.length;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Section header row with "Ajouter une bouteille" button
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const Text(
+              'Bouteilles *',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: _olive,
+              ),
+            ),
+            const Spacer(),
+            if (!isModification)
+              GestureDetector(
+                onTap: onAddRow,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 5,
+                  ),
+                  decoration: BoxDecoration(
+                    color: _green.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: _green.withValues(alpha: 0.3)),
+                  ),
+                  child: const Row(
+                    children: [
+                      Icon(Icons.add, size: 14, color: _green),
+                      SizedBox(width: 4),
+                      Text(
+                        'Ajouter une bouteille',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: _green,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+          ],
+        ),
+        // Info banner when multiple bottles
+        if (!isModification && count > 1) ...[
+          const SizedBox(height: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: _green.withValues(alpha: 0.07),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: _green.withValues(alpha: 0.2)),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.info_outline,
+                  size: 14,
+                  color: _green.withValues(alpha: 0.8),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    '$count bouteilles → $count échantillons séparés seront créés',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: _green.withValues(alpha: 0.9),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+        const SizedBox(height: 12),
+        // Bottle cards
+        ...List.generate(
+          count,
+          (i) => _BouteilleCard(
+            row: bouteilles[i],
+            index: i,
+            showRemove: !isModification && count > 1,
+            onRemove: () => onRemoveRow(i),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// BOUTEILLE CARD — ref, variété, scellage, quantité fields for one bottle
+// ─────────────────────────────────────────────────────────────────────────────
+class _BouteilleCard extends StatelessWidget {
+  final _BouteilleRow row;
+  final int index;
+  final bool showRemove;
+  final VoidCallback onRemove;
+
+  const _BouteilleCard({
+    required this.row,
+    required this.index,
+    required this.showRemove,
+    required this.onRemove,
+  });
+
+  InputDecoration _fieldDec(String hint, {String? suffixText}) =>
+      InputDecoration(
+        hintText: hint,
+        hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 13),
+        suffixText: suffixText,
+        suffixStyle: const TextStyle(
+          color: _olive,
+          fontWeight: FontWeight.w700,
+          fontSize: 14,
+        ),
+        filled: true,
+        fillColor: Colors.white,
+        contentPadding: const EdgeInsets.symmetric(
+          vertical: 10,
+          horizontal: 12,
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: Colors.grey.shade200),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: Colors.grey.shade200),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: const BorderSide(color: _green, width: 1.8),
+        ),
+      );
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: _fieldFill,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Card header: bottle label + remove button
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: _green.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  'Bouteille ${index + 1}',
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: _green,
+                  ),
+                ),
+              ),
+              const Spacer(),
+              if (showRemove)
+                GestureDetector(
+                  onTap: onRemove,
+                  child: Container(
+                    padding: const EdgeInsets.all(5),
+                    decoration: BoxDecoration(
+                      color: Colors.red.shade50,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Icon(
+                      Icons.delete_outline,
+                      size: 15,
+                      color: Colors.red.shade400,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 10),
+
+          // Référence bouteille *
+          _InlineLabel(label: 'Référence bouteille', required: true),
+          const SizedBox(height: 5),
+          TextField(
+            controller: row.refCtrl,
+            style: const TextStyle(fontSize: 13, color: _dark),
+            decoration: _fieldDec('Ex: CHEMLALI-C1'),
+          ),
+          const SizedBox(height: 8),
+
+          // Variété + Scellage (side by side)
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _InlineLabel(label: "Variété d'olive"),
+                    const SizedBox(height: 5),
+                    TextField(
+                      controller: row.varieteCtrl,
+                      style: const TextStyle(fontSize: 13, color: _dark),
+                      decoration: _fieldDec('Ex: Chemlali'),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _InlineLabel(label: 'Scellage'),
+                    const SizedBox(height: 5),
+                    TextField(
+                      controller: row.scellageCtrl,
+                      style: const TextStyle(fontSize: 13, color: _dark),
+                      decoration: _fieldDec('Ex: Z1'),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+
+          // Quantité estimée
+          _InlineLabel(label: 'Quantité estimée'),
+          const SizedBox(height: 5),
+          TextField(
+            controller: row.qteCtrl,
+            keyboardType: TextInputType.number,
+            style: const TextStyle(fontSize: 13, color: _dark),
+            decoration: _fieldDec('Ex: 5000', suffixText: 'T'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// INLINE LABEL — small label above a field inside a card
+// ─────────────────────────────────────────────────────────────────────────────
+class _InlineLabel extends StatelessWidget {
+  final String label;
+  final bool required;
+
+  const _InlineLabel({required this.label, this.required = false});
+
+  @override
+  Widget build(BuildContext context) => Row(
+    children: [
+      Text(
+        label,
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+          color: Colors.grey.shade600,
+        ),
+      ),
+      if (required)
+        const Text(' *', style: TextStyle(fontSize: 11, color: Colors.red)),
+    ],
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // FIELD LABEL — standalone label row (used before DateInputField)
 // ─────────────────────────────────────────────────────────────────────────────
 class _FieldLabel extends StatelessWidget {
@@ -476,11 +932,6 @@ class _FieldLabel extends StatelessWidget {
           color: _olive,
         ),
       ),
-      /*     if (optional)
-        Text(
-          ' (optionnel)',
-          style: TextStyle(fontSize: 11, color: Colors.grey.shade400),
-        ),*/
     ],
   );
 }
@@ -504,7 +955,6 @@ class _FormField extends StatelessWidget {
     this.keyboardType = TextInputType.text,
     this.suffixText,
     this.required = false,
-
     this.optional = false,
   });
 
@@ -554,11 +1004,6 @@ class _FormField extends StatelessWidget {
                 ' *',
                 style: TextStyle(fontSize: 12, color: Colors.red),
               ),
-            /*     if (optional)
-              Text(
-                ' (optionnel)',
-                style: TextStyle(fontSize: 11, color: Colors.grey.shade400),
-              ),*/
           ],
         ),
         const SizedBox(height: 6),
@@ -608,11 +1053,6 @@ class _DropdownField extends StatelessWidget {
                 color: _olive,
               ),
             ),
-            /*  if (optional)
-              Text(
-                ' (optionnel)',
-                style: TextStyle(fontSize: 11, color: Colors.grey.shade400),
-              ),*/
           ],
         ),
         const SizedBox(height: 6),

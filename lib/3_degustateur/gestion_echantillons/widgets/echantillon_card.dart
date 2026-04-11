@@ -6,33 +6,22 @@
 
 import 'package:flutter/material.dart';
 import '../../../../core/models/echantillon.dart';
+import '../../../../core/models/enums.dart';
 
 const Color _dark = Color(0xFF1A2E1F);
-const Color _cream = Color(0xFFF9F6EF);
+const Color _white = Color.fromARGB(255, 255, 255, 255);
 const Color _olive = Color(0xFF6B8143);
 const Color _green = Color(0xFF38835A);
 
 // ── Status palette ────────────────────────────────────────────────────────────
-Color _statusColor(String s) {
+Color _statusColor(StatutDegustateur? s) {
   switch (s) {
-    case 'En cours':
+    case StatutDegustateur.enCours:
       return const Color(0xFFD07B2F);
-    case 'Soumis':
+    case StatutDegustateur.soumis:
       return const Color(0xFF38835A);
     default:
       return const Color(0xFF3A6EA5);
-  }
-}
-
-// Light card background tint — matches the inactive chip pastel colors
-Color _statusCardBg(String s) {
-  switch (s) {
-    case 'En cours':
-      return const Color(0xFFFEF3E8); // soft orange
-    case 'Soumis':
-      return const Color(0xFFE6F4ED); // soft green
-    default:
-      return const Color(0xFFE8F1FB); // soft blue (En attente)
   }
 }
 
@@ -61,19 +50,19 @@ class _EchantillonCardState extends State<EchantillonCard> {
   @override
   Widget build(BuildContext context) {
     final e = widget.echantillon;
-    final accent = _statusColor(e.statut);
+    final accent = _statusColor(e.statutDegustateur);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
-        color: _statusCardBg(e.statut),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: accent.withValues(alpha: 0.20)),
+        border: Border.all(color: Colors.grey.shade200),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
+            color: Colors.black.withValues(alpha: 0.06),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
           ),
         ],
       ),
@@ -88,13 +77,13 @@ class _EchantillonCardState extends State<EchantillonCard> {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Colored left accent bar (status indicator)
+                  // Thick left accent bar (status indicator)
                   Container(width: 4, color: accent),
 
                   // Content
                   Expanded(
                     child: Padding(
-                      padding: const EdgeInsets.fromLTRB(13, 5, 10, 4),
+                      padding: const EdgeInsets.fromLTRB(13, 10, 10, 10),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -135,62 +124,59 @@ class _EchantillonCardState extends State<EchantillonCard> {
 
                           const SizedBox(height: 2),
 
-                          // ── Row 2: id · date + action icons ────────────
+                          // ── Row 2: id + action icons (only when expanded) ───
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               Text(
-                                '${e.id}  ·  ${e.dateAjout}',
+                                e.ref,
                                 style: TextStyle(
-                                  fontSize: 13,
+                                  fontSize: 12,
                                   fontWeight: FontWeight.w500,
-                                  color: const Color.fromARGB(
-                                    255,
-                                    137,
-                                    136,
-                                    136,
-                                  ),
+                                  color: Colors.grey.shade500,
                                 ),
                               ),
                               const Spacer(),
-                              // Physically received toggle
-                              Tooltip(
-                                message: e.recuPhysiquement
-                                    ? 'Annuler la réception'
-                                    : 'Confirmer la réception physique',
-                                child: _SmallIconBtn(
-                                  icon: e.recuPhysiquement
-                                      ? Icons.check_circle
-                                      : Icons.check_circle_outline,
-                                  color: e.recuPhysiquement
-                                      ? _green
-                                      : const Color.fromARGB(
-                                          255,
-                                          137,
-                                          136,
-                                          136,
-                                        ),
-                                  onTap: widget.onToggleRecu,
+                              if (_expanded) ...[
+                                // Physically received toggle
+                                Tooltip(
+                                  message: e.recuPhysiquement
+                                      ? 'Annuler la réception'
+                                      : 'Confirmer la réception physique',
+                                  child: _SmallIconBtn(
+                                    icon: e.recuPhysiquement
+                                        ? Icons.check_circle
+                                        : Icons.check_circle_outline,
+                                    color: e.recuPhysiquement
+                                        ? _green
+                                        : const Color.fromARGB(
+                                            255,
+                                            137,
+                                            136,
+                                            136,
+                                          ),
+                                    onTap: widget.onToggleRecu,
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(width: 2),
-                              Tooltip(
-                                message: 'Modifier',
-                                child: _SmallIconBtn(
-                                  icon: Icons.edit_outlined,
-                                  color: _olive,
-                                  onTap: widget.onModifier,
+                                const SizedBox(width: 2),
+                                Tooltip(
+                                  message: 'Modifier',
+                                  child: _SmallIconBtn(
+                                    icon: Icons.edit_outlined,
+                                    color: _olive,
+                                    onTap: widget.onModifier,
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(width: 2),
-                              Tooltip(
-                                message: 'Supprimer',
-                                child: _SmallIconBtn(
-                                  icon: Icons.delete_outline,
-                                  color: Colors.red.shade300,
-                                  onTap: widget.onSupprimer,
+                                const SizedBox(width: 2),
+                                Tooltip(
+                                  message: 'Supprimer',
+                                  child: _SmallIconBtn(
+                                    icon: Icons.delete_outline,
+                                    color: Colors.red.shade300,
+                                    onTap: widget.onSupprimer,
+                                  ),
                                 ),
-                              ),
+                              ],
                             ],
                           ),
                         ],
@@ -285,7 +271,7 @@ class _DetailPanel extends StatelessWidget {
           margin: const EdgeInsets.all(12),
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           decoration: BoxDecoration(
-            color: _cream,
+            color: _white,
             borderRadius: BorderRadius.circular(10),
             border: Border.all(color: Colors.grey.shade100),
           ),
@@ -297,9 +283,10 @@ class _DetailPanel extends StatelessWidget {
                 spacing: 90,
                 runSpacing: 10,
                 children: [
-                  _DetailItem('N° échantillon', e.id),
+                  _DetailItem('N° échantillon', e.ref),
                   _DetailItem('Réf. bouteille', e.referenceBouteille),
-                  _DetailItem('Fournisseur', e.codeFournisseur),
+                  if (e.codeFournisseur != null)
+                    _DetailItem('Fournisseur', e.codeFournisseur!),
                   if (e.variete != null && e.variete!.isNotEmpty)
                     _DetailItem('Variété', e.variete!),
                   _DetailItem(
@@ -319,36 +306,6 @@ class _DetailPanel extends StatelessWidget {
                 ],
               ),
 
-              // ── Delivery date line (same style as CEO view) ────────────
-              const SizedBox(height: 12),
-              if (e.recuPhysiquement) ...[
-                Text(
-                  '— Échantillon réceptionné le ${e.dateAjout} —',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: Colors.grey.shade500,
-                    fontWeight: FontWeight.w400,
-                  ),
-                ),
-              ] else if (e.dateLivraisonPrevue != null) ...[
-                Text(
-                  '— Arrivée prévue le ${e.dateLivraisonPrevue} —',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: Colors.grey.shade500,
-                    fontWeight: FontWeight.w400,
-                  ),
-                ),
-              ] else ...[
-                Text(
-                  '— Livraison non planifiée —',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: Colors.grey.shade400,
-                    fontWeight: FontWeight.w400,
-                  ),
-                ),
-              ],
             ],
           ),
         ),

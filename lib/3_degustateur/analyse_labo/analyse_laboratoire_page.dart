@@ -7,15 +7,12 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'models/analyse_labo.dart';
 import 'widgets/analyse_card.dart';
-import 'widgets/dialogs/formulaire_analyse_dialog.dart';
-import 'widgets/dialogs/suppression_analyse_dialog.dart';
-
 // date filter sheet + button
 import '../gestion_echantillons/widgets/search_filter_bar.dart';
 
 // app-wide imports
 import '../profil.dart';
-import '../homepage/widgets/app_drawer.dart';
+import '../tableau_de_bord/widgets/app_drawer.dart';
 import '../membres_panel/membres_panel_page.dart';
 import '../gestion_echantillons/gestion_echantillons_page.dart';
 import '../evaluation_echantillons/evaluation_echantillons_page.dart';
@@ -31,20 +28,23 @@ class AnalyseLaboratoirePage extends StatefulWidget {
 
 class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage> {
   // ── COLORS ──────────────────────────────────────────────────────────────────
+  static const Color _headerBg = Color.fromARGB(255, 220, 233, 226);
   static const Color _green = Color(0xFF38835A);
-  static const Color _cream = Color(0xFFF9F6EF);
-  static const Color _dark  = Color(0xFF1A2E1F);
+  static const Color _dark = Color(0xFF1A2E1F);
+  static const Color _bg = Color(0xFFFFFFFF);
 
   // ── STATE ────────────────────────────────────────────────────────────────────
   final TextEditingController _searchController = TextEditingController();
-  String    _recherche         = '';
-  String?   _filtreStatutLabel; // null = all
+  String _recherche = '';
+  String? _filtreStatutLabel; // null = all
   DateTime? _dateDebut;
   DateTime? _dateFin;
 
   bool get _anyFilter =>
-      _dateDebut != null || _dateFin != null ||
-      _recherche.isNotEmpty || _filtreStatutLabel != null;
+      _dateDebut != null ||
+      _dateFin != null ||
+      _recherche.isNotEmpty ||
+      _filtreStatutLabel != null;
 
   // ── NAVIGATION ───────────────────────────────────────────────────────────────
   void _goTo(Widget page) {
@@ -71,14 +71,62 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage> {
       statut: StatutAnalyse.envoyee,
       notes: 'Analyse conforme aux normes COI',
       criteres: [
-        CritereAnalyse(label: 'Acidité libre',       valeur: 0.3,   unite: '%',         seuilMin: 0.0,  seuilMax: 0.8),
-        CritereAnalyse(label: 'Indice de peroxyde',  valeur: 8.5,   unite: 'mEq O₂/kg', seuilMin: 0.0,  seuilMax: 20.0),
-        CritereAnalyse(label: 'Absorbance K232',     valeur: 1.82,  unite: '',          seuilMin: 0.0,  seuilMax: 2.50),
-        CritereAnalyse(label: 'Absorbance K270',     valeur: 0.14,  unite: '',          seuilMin: 0.0,  seuilMax: 0.22),
-        CritereAnalyse(label: 'ΔK (variation UV)',   valeur: 0.003, unite: '',          seuilMin: -0.01,seuilMax: 0.01),
-        CritereAnalyse(label: 'Polyphénols totaux',  valeur: 320.0, unite: 'mg/kg',     seuilMin: 0.0,  seuilMax: null),
-        CritereAnalyse(label: 'Humidité',            valeur: 0.09,  unite: '%',         seuilMin: 0.0,  seuilMax: 0.2),
-        CritereAnalyse(label: 'Impuretés',           valeur: 0.04,  unite: '%',         seuilMin: 0.0,  seuilMax: 0.1),
+        CritereAnalyse(
+          label: 'Acidité libre',
+          valeur: 0.3,
+          unite: '%',
+          seuilMin: 0.0,
+          seuilMax: 0.8,
+        ),
+        CritereAnalyse(
+          label: 'Indice de peroxyde',
+          valeur: 8.5,
+          unite: 'mEq O₂/kg',
+          seuilMin: 0.0,
+          seuilMax: 20.0,
+        ),
+        CritereAnalyse(
+          label: 'Absorbance K232',
+          valeur: 1.82,
+          unite: '',
+          seuilMin: 0.0,
+          seuilMax: 2.50,
+        ),
+        CritereAnalyse(
+          label: 'Absorbance K270',
+          valeur: 0.14,
+          unite: '',
+          seuilMin: 0.0,
+          seuilMax: 0.22,
+        ),
+        CritereAnalyse(
+          label: 'ΔK (variation UV)',
+          valeur: 0.003,
+          unite: '',
+          seuilMin: -0.01,
+          seuilMax: 0.01,
+        ),
+        CritereAnalyse(
+          label: 'Polyphénols totaux',
+          valeur: 320.0,
+          unite: 'mg/kg',
+          seuilMin: 0.0,
+          seuilMax: null,
+        ),
+        CritereAnalyse(
+          label: 'Humidité',
+          valeur: 0.09,
+          unite: '%',
+          seuilMin: 0.0,
+          seuilMax: 0.2,
+        ),
+        CritereAnalyse(
+          label: 'Impuretés',
+          valeur: 0.04,
+          unite: '%',
+          seuilMin: 0.0,
+          seuilMax: 0.1,
+        ),
       ],
     ),
     AnalyseLabo(
@@ -89,14 +137,62 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage> {
       technicienNom: 'Karim B.',
       statut: StatutAnalyse.envoyee,
       criteres: [
-        CritereAnalyse(label: 'Acidité libre',       valeur: 1.2,  unite: '%',         seuilMin: 0.0,  seuilMax: 0.8),
-        CritereAnalyse(label: 'Indice de peroxyde',  valeur: 14.0, unite: 'mEq O₂/kg', seuilMin: 0.0,  seuilMax: 20.0),
-        CritereAnalyse(label: 'Absorbance K232',     valeur: 2.10, unite: '',          seuilMin: 0.0,  seuilMax: 2.50),
-        CritereAnalyse(label: 'Absorbance K270',     valeur: 0.19, unite: '',          seuilMin: 0.0,  seuilMax: 0.22),
-        CritereAnalyse(label: 'ΔK (variation UV)',   valeur: 0.005,unite: '',          seuilMin: -0.01,seuilMax: 0.01),
-        CritereAnalyse(label: 'Polyphénols totaux',  valeur: 180.0,unite: 'mg/kg',     seuilMin: 0.0,  seuilMax: null),
-        CritereAnalyse(label: 'Humidité',            valeur: 0.15, unite: '%',         seuilMin: 0.0,  seuilMax: 0.2),
-        CritereAnalyse(label: 'Impuretés',           valeur: 0.08, unite: '%',         seuilMin: 0.0,  seuilMax: 0.1),
+        CritereAnalyse(
+          label: 'Acidité libre',
+          valeur: 1.2,
+          unite: '%',
+          seuilMin: 0.0,
+          seuilMax: 0.8,
+        ),
+        CritereAnalyse(
+          label: 'Indice de peroxyde',
+          valeur: 14.0,
+          unite: 'mEq O₂/kg',
+          seuilMin: 0.0,
+          seuilMax: 20.0,
+        ),
+        CritereAnalyse(
+          label: 'Absorbance K232',
+          valeur: 2.10,
+          unite: '',
+          seuilMin: 0.0,
+          seuilMax: 2.50,
+        ),
+        CritereAnalyse(
+          label: 'Absorbance K270',
+          valeur: 0.19,
+          unite: '',
+          seuilMin: 0.0,
+          seuilMax: 0.22,
+        ),
+        CritereAnalyse(
+          label: 'ΔK (variation UV)',
+          valeur: 0.005,
+          unite: '',
+          seuilMin: -0.01,
+          seuilMax: 0.01,
+        ),
+        CritereAnalyse(
+          label: 'Polyphénols totaux',
+          valeur: 180.0,
+          unite: 'mg/kg',
+          seuilMin: 0.0,
+          seuilMax: null,
+        ),
+        CritereAnalyse(
+          label: 'Humidité',
+          valeur: 0.15,
+          unite: '%',
+          seuilMin: 0.0,
+          seuilMax: 0.2,
+        ),
+        CritereAnalyse(
+          label: 'Impuretés',
+          valeur: 0.08,
+          unite: '%',
+          seuilMin: 0.0,
+          seuilMax: 0.1,
+        ),
       ],
     ),
     AnalyseLabo(
@@ -107,14 +203,62 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage> {
       technicienNom: 'Sonia M.',
       statut: StatutAnalyse.enAttente,
       criteres: [
-        CritereAnalyse(label: 'Acidité libre',       valeur: 0.0, unite: '%',         seuilMin: 0.0,  seuilMax: 0.8),
-        CritereAnalyse(label: 'Indice de peroxyde',  valeur: 0.0, unite: 'mEq O₂/kg', seuilMin: 0.0,  seuilMax: 20.0),
-        CritereAnalyse(label: 'Absorbance K232',     valeur: 0.0, unite: '',          seuilMin: 0.0,  seuilMax: 2.50),
-        CritereAnalyse(label: 'Absorbance K270',     valeur: 0.0, unite: '',          seuilMin: 0.0,  seuilMax: 0.22),
-        CritereAnalyse(label: 'ΔK (variation UV)',   valeur: 0.0, unite: '',          seuilMin: -0.01,seuilMax: 0.01),
-        CritereAnalyse(label: 'Polyphénols totaux',  valeur: 0.0, unite: 'mg/kg',     seuilMin: 0.0,  seuilMax: null),
-        CritereAnalyse(label: 'Humidité',            valeur: 0.0, unite: '%',         seuilMin: 0.0,  seuilMax: 0.2),
-        CritereAnalyse(label: 'Impuretés',           valeur: 0.0, unite: '%',         seuilMin: 0.0,  seuilMax: 0.1),
+        CritereAnalyse(
+          label: 'Acidité libre',
+          valeur: 0.0,
+          unite: '%',
+          seuilMin: 0.0,
+          seuilMax: 0.8,
+        ),
+        CritereAnalyse(
+          label: 'Indice de peroxyde',
+          valeur: 0.0,
+          unite: 'mEq O₂/kg',
+          seuilMin: 0.0,
+          seuilMax: 20.0,
+        ),
+        CritereAnalyse(
+          label: 'Absorbance K232',
+          valeur: 0.0,
+          unite: '',
+          seuilMin: 0.0,
+          seuilMax: 2.50,
+        ),
+        CritereAnalyse(
+          label: 'Absorbance K270',
+          valeur: 0.0,
+          unite: '',
+          seuilMin: 0.0,
+          seuilMax: 0.22,
+        ),
+        CritereAnalyse(
+          label: 'ΔK (variation UV)',
+          valeur: 0.0,
+          unite: '',
+          seuilMin: -0.01,
+          seuilMax: 0.01,
+        ),
+        CritereAnalyse(
+          label: 'Polyphénols totaux',
+          valeur: 0.0,
+          unite: 'mg/kg',
+          seuilMin: 0.0,
+          seuilMax: null,
+        ),
+        CritereAnalyse(
+          label: 'Humidité',
+          valeur: 0.0,
+          unite: '%',
+          seuilMin: 0.0,
+          seuilMax: 0.2,
+        ),
+        CritereAnalyse(
+          label: 'Impuretés',
+          valeur: 0.0,
+          unite: '%',
+          seuilMin: 0.0,
+          seuilMax: 0.1,
+        ),
       ],
     ),
   ];
@@ -122,9 +266,12 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage> {
   // ── FILTER LOGIC ─────────────────────────────────────────────────────────────
   StatutAnalyse? _labelToStatut(String? label) {
     switch (label) {
-      case 'En attente': return StatutAnalyse.enAttente;
-      case 'Envoyée':    return StatutAnalyse.envoyee;
-      default:           return null;
+      case 'En attente':
+        return StatutAnalyse.enAttente;
+      case 'Envoyée':
+        return StatutAnalyse.envoyee;
+      default:
+        return null;
     }
   }
 
@@ -155,11 +302,11 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage> {
         if (raw == null) {
           matchDate = false;
         } else {
-          final d     = DateTime(raw.year, raw.month, raw.day);
+          final d = DateTime(raw.year, raw.month, raw.day);
           final debut = _dateDebut != null
               ? DateTime(_dateDebut!.year, _dateDebut!.month, _dateDebut!.day)
               : null;
-          final fin   = _dateFin != null
+          final fin = _dateFin != null
               ? DateTime(_dateFin!.year, _dateFin!.month, _dateFin!.day)
               : null;
           if (debut != null && fin != null) {
@@ -176,8 +323,6 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage> {
     }).toList();
   }
 
-  int get _prochainNumero => _analyses.length + 1;
-
   // ── Date filter sheet ─────────────────────────────────────────────────────────
   Future<void> _showDateFilter() async {
     await showModalBottomSheet(
@@ -186,44 +331,15 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage> {
       isScrollControlled: true,
       builder: (_) => DateFilterSheet(
         dateDebut: _dateDebut,
-        dateFin:   _dateFin,
+        dateFin: _dateFin,
         onApply: (debut, fin) => setState(() {
           _dateDebut = debut;
-          _dateFin   = fin;
+          _dateFin = fin;
         }),
         onClear: () => setState(() {
           _dateDebut = null;
-          _dateFin   = null;
+          _dateFin = null;
         }),
-      ),
-    );
-  }
-
-  // ── ACTIONS ──────────────────────────────────────────────────────────────────
-  void _onAjouter(AnalyseLabo nouvelle) {
-    setState(() => _analyses.add(nouvelle));
-    _showSuccess('Analyse créée avec succès');
-  }
-
-  void _onModifier(AnalyseLabo modifiee) {
-    setState(() {});
-    _showSuccess('Analyse modifiée avec succès');
-  }
-
-  void _onSupprimer(AnalyseLabo a) {
-    setState(() => _analyses.remove(a));
-    _showSuccess('Analyse "${a.echantillonNom}" supprimée');
-  }
-
-  void _showSuccess(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(msg,
-            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
-        backgroundColor: _green,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        margin: const EdgeInsets.all(20),
       ),
     );
   }
@@ -234,182 +350,201 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage> {
     super.dispose();
   }
 
+  bool get _dateFilterActive => _dateDebut != null || _dateFin != null;
+
   // ── BUILD ─────────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
     final filtres = _filtres;
 
     return Scaffold(
-      backgroundColor: _cream,
+      backgroundColor: _bg,
 
       // ── DRAWER ────────────────────────────────────────────────────────────────
       drawer: AppDrawer(
-        onaccueil:                 () => Navigator.pop(context),
-        onEvaluationEchantillons:  () => _goTo(const EvaluationEchantillonsPage()),
-        onGestionEchantillons:     () => _goTo(const GestionEchantillonsPage()),
-        onAnalyseLaboratoire:      () => _goTo(const AnalyseLaboratoirePage()),
+        onaccueil: () => Navigator.pop(context),
+        onEvaluationEchantillons: () =>
+            _goTo(const EvaluationEchantillonsPage()),
+        onGestionEchantillons: () => _goTo(const GestionEchantillonsPage()),
+        onAnalyseLaboratoire: () => _goTo(const AnalyseLaboratoirePage()),
         onSessionsDegustationPage: () => _goTo(const SessionsDegustationPage()),
-        onMembredupanel:           () => _goTo(const MembresPanelPage()),
-        onProfil:                  () => _goTo(const ProfilePage()),
-        onAPropos:                 () => Navigator.pop(context),
-        onDeconnexion:             _goToLogin,
+        onMembredupanel: () => _goTo(const MembresPanelPage()),
+        onProfil: () => _goTo(const ProfilePage()),
+        onAPropos: () => Navigator.pop(context),
+        onDeconnexion: _goToLogin,
       ),
 
       // ── APPBAR ────────────────────────────────────────────────────────────────
       appBar: AppBar(
-        backgroundColor: _green,
+        backgroundColor: _headerBg,
         elevation: 0,
+        centerTitle: false,
+        toolbarHeight: 65,
         title: Text(
           'Analyse de laboratoire',
           style: GoogleFonts.domine(
-              fontSize: 18, fontWeight: FontWeight.w700, color: Colors.white),
-        ),
-        actions: [
-          DateFilterButton(
-            dateDebut: _dateDebut,
-            dateFin:   _dateFin,
-            onTap:     _showDateFilter,
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+            color: _dark,
           ),
-        ],
-      ),
-
-      // ── FAB ───────────────────────────────────────────────────────────────────
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => showFormulaireAnalyseDialog(
-          context,
-          analyse:        null,
-          prochainNumero: _prochainNumero,
-          onSave:         _onAjouter,
         ),
-        backgroundColor: _green,
-        icon:  const Icon(Icons.add, color: Colors.white),
-        label: const Text('Nouvelle analyse',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+        iconTheme: const IconThemeData(color: _dark),
+        actions: [
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              IconButton(
+                icon: Icon(
+                  Icons.calendar_today_outlined,
+                  size: 20,
+                  color: _dateFilterActive ? _green : const Color(0xFF6B8E7A),
+                ),
+                onPressed: _showDateFilter,
+                tooltip: 'Filtrer par date',
+              ),
+              if (_dateFilterActive)
+                Positioned(
+                  right: 10,
+                  top: 10,
+                  child: Container(
+                    width: 8,
+                    height: 8,
+                    decoration: const BoxDecoration(
+                      color: _green,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(width: 6),
+        ],
       ),
 
       body: Column(
         children: [
-
-          // ── GREEN SEARCH BAR ──────────────────────────────────────────────────
+          // ── UNIFIED HEADER ZONE ───────────────────────────────────────────────
           Container(
-            color:   _green,
-            padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-            child: Container(
-              height: 40,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(8),
-                boxShadow: [
-                  BoxShadow(
-                    color:      _dark.withValues(alpha: 0.08),
-                    blurRadius: 6,
-                    offset:     const Offset(0, 2),
+            color: _headerBg,
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
+            child: Column(
+              children: [
+                // Search bar
+                TextField(
+                  controller: _searchController,
+                  onChanged: (v) => setState(() => _recherche = v.trim()),
+                  style: const TextStyle(fontSize: 14, color: _dark),
+                  decoration: InputDecoration(
+                    hintText: 'Rechercher échantillon, technicien, ID…',
+                    hintStyle: const TextStyle(
+                      color: Color(0xFF6B8E7A),
+                      fontSize: 13,
+                    ),
+                    prefixIcon: const Icon(
+                      Icons.search,
+                      color: Color(0xFF6B8E7A),
+                      size: 20,
+                    ),
+                    suffixIcon: _recherche.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(
+                              Icons.close,
+                              size: 17,
+                              color: Color(0xFF6B8E7A),
+                            ),
+                            onPressed: () => setState(() {
+                              _recherche = '';
+                              _searchController.clear();
+                            }),
+                          )
+                        : null,
+                    filled: true,
+                    fillColor: Colors.white,
+                    contentPadding: const EdgeInsets.symmetric(
+                      vertical: 11,
+                      horizontal: 16,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: _green, width: 1.5),
+                    ),
                   ),
-                ],
-              ),
-              child: TextField(
-                controller: _searchController,
-                onChanged:  (v) => setState(() => _recherche = v.trim()),
-                style: const TextStyle(fontSize: 13, color: _dark),
-                decoration: InputDecoration(
-                  hintText:  'Rechercher échantillon, technicien, ID…',
-                  hintStyle: const TextStyle(
-                      fontSize: 13, color: Color.fromARGB(255, 150, 149, 149)),
-                  prefixIcon: Icon(Icons.search, size: 17, color: Colors.grey.shade400),
-                  suffixIcon: _recherche.isNotEmpty
-                      ? GestureDetector(
-                          onTap: () => setState(() {
-                            _recherche = '';
-                            _searchController.clear();
-                          }),
-                          child: Icon(Icons.close, size: 17, color: Colors.grey.shade400),
-                        )
-                      : null,
-                  border: InputBorder.none,
-                  isDense: true,
-                  contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 10, vertical: 9),
                 ),
-              ),
+
+                const SizedBox(height: 11),
+
+                // ── Filter chips ──────────────────────────────────────────
+                SizedBox(
+                  height: 34,
+                  child: ListView(
+                    scrollDirection: Axis.horizontal,
+                    children: [
+                      _StatutChip(
+                        label: 'Tous',
+                        activeColor: const Color(0xFF616161),
+                        inactiveColor: const Color(0xFFF0F0F0),
+                        inactiveTextColor: const Color(0xFF757575),
+                        selected: _filtreStatutLabel == null,
+                        onTap: () => setState(() => _filtreStatutLabel = null),
+                      ),
+                      const SizedBox(width: 7),
+                      _StatutChip(
+                        label: 'En attente',
+                        activeColor: const Color(0xFFD07B2F),
+                        inactiveColor: const Color(0xFFFEF3E8),
+                        inactiveTextColor: const Color(0xFFD07B2F),
+                        selected: _filtreStatutLabel == 'En attente',
+                        onTap: () =>
+                            setState(() => _filtreStatutLabel = 'En attente'),
+                      ),
+                      const SizedBox(width: 7),
+                      _StatutChip(
+                        label: 'Envoyée',
+                        activeColor: const Color(0xFF3A6EA5),
+                        inactiveColor: const Color(0xFFE8F1FB),
+                        inactiveTextColor: const Color(0xFF3A6EA5),
+                        selected: _filtreStatutLabel == 'Envoyée',
+                        onTap: () =>
+                            setState(() => _filtreStatutLabel = 'Envoyée'),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
 
-          // ── STATUT CHIPS ──────────────────────────────────────────────────────
-          Container(
-            color:   Colors.white,
-            padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
-            child: SizedBox(
-              height: 32,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                children: [
-                  _StatutChip(
-                    label:    'Tous',
-                    color:    _dark,
-                    selected: _filtreStatutLabel == null,
-                    onTap:    () => setState(() => _filtreStatutLabel = null),
-                  ),
-                  const SizedBox(width: 8),
-                  _StatutChip(
-                    label:    'En attente',
-                    color:    const Color(0xFFF9A825),
-                    selected: _filtreStatutLabel == 'En attente',
-                    onTap:    () => setState(() => _filtreStatutLabel = 'En attente'),
-                  ),
-                  const SizedBox(width: 8),
-                  _StatutChip(
-                    label:    'Envoyée',
-                    color:    const Color(0xFF1E88E5),
-                    selected: _filtreStatutLabel == 'Envoyée',
-                    onTap:    () => setState(() => _filtreStatutLabel = 'Envoyée'),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          Divider(color: Colors.grey.shade100, height: 1),
+          // Thin separator
+          Container(height: 1, color: Colors.black.withValues(alpha: 0.06)),
 
           // ── STATS STRIP ───────────────────────────────────────────────────────
           Container(
-            color:   Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            color: _bg,
+            padding: const EdgeInsets.fromLTRB(16, 9, 16, 6),
             child: Row(
               children: [
-                Icon(Icons.biotech_outlined, size: 13, color: Colors.grey.shade400),
+                Icon(
+                  Icons.biotech_outlined,
+                  size: 13,
+                  color: const Color.fromARGB(255, 156, 156, 156),
+                ),
                 const SizedBox(width: 6),
                 Text(
                   '${filtres.length} analyse${filtres.length > 1 ? "s" : ""}',
-                  style: TextStyle(
-                      fontSize: 12, color: Colors.grey.shade500,
-                      fontWeight: FontWeight.w500),
-                ),
-                if (_anyFilter) ...[
-                  const Spacer(),
-                  GestureDetector(
-                    onTap: () => setState(() {
-                      _recherche         = '';
-                      _searchController.clear();
-                      _filtreStatutLabel = null;
-                      _dateDebut         = null;
-                      _dateFin           = null;
-                    }),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.filter_alt_off_outlined,
-                            size: 13, color: Colors.red.shade400),
-                        const SizedBox(width: 4),
-                        Text(
-                          'Effacer filtres',
-                          style: TextStyle(
-                              fontSize:   11,
-                              color:      Colors.red.shade500,
-                              fontWeight: FontWeight.w600),
-                        ),
-                      ],
-                    ),
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Color.fromARGB(255, 156, 156, 156),
+                    fontWeight: FontWeight.w500,
                   ),
-                ],
+                ),
               ],
             ),
           ),
@@ -421,36 +556,30 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.biotech_outlined,
-                            size: 52, color: Colors.grey.shade300),
+                        Icon(
+                          Icons.biotech_outlined,
+                          size: 52,
+                          color: Colors.grey.shade300,
+                        ),
                         const SizedBox(height: 12),
-                        Text('Aucune analyse trouvée',
-                            style: TextStyle(
-                                color: Colors.grey.shade400, fontSize: 14)),
+                        Text(
+                          'Aucune analyse trouvée',
+                          style: TextStyle(
+                            color: Colors.grey.shade400,
+                            fontSize: 14,
+                          ),
+                        ),
                       ],
                     ),
                   )
                 : Scrollbar(
                     thumbVisibility: true,
                     child: ListView.builder(
-                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+                      padding: const EdgeInsets.fromLTRB(16, 10, 16, 100),
                       itemCount: filtres.length,
                       itemBuilder: (context, index) {
                         final a = filtres[index];
-                        return AnalyseCard(
-                          analyse:     a,
-                          onModifier:  () => showFormulaireAnalyseDialog(
-                            context,
-                            analyse:        a,
-                            prochainNumero: _prochainNumero,
-                            onSave:         _onModifier,
-                          ),
-                          onSupprimer: () => showSuppressionAnalyseDialog(
-                            context,
-                            analyse:     a,
-                            onConfirmer: () => _onSupprimer(a),
-                          ),
-                        );
+                        return AnalyseCard(analyse: a);
                       },
                     ),
                   ),
@@ -462,43 +591,81 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage> {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// STATUT CHIP  — colored pill (same pattern as evaluation page)
+// STATUT CHIP  — matches design system (gestion_echantillons pattern)
 // ─────────────────────────────────────────────────────────────────────────────
 class _StatutChip extends StatelessWidget {
-  final String       label;
-  final Color        color;
-  final bool         selected;
+  final String label;
+  final Color activeColor;
+  final Color inactiveColor;
+  final Color inactiveTextColor;
+  final bool selected;
   final VoidCallback onTap;
 
   const _StatutChip({
     required this.label,
-    required this.color,
+    required this.activeColor,
+    required this.inactiveColor,
+    required this.inactiveTextColor,
     required this.selected,
     required this.onTap,
   });
 
+  static const Color _inactiveBg = Color(0xFFF0F0F0);
+  static const Color _inactiveFg = Color(0xFF9E9E9E);
+  static const Color _inactiveBorder = Color(0xFFE0E0E0);
+
   @override
-  Widget build(BuildContext context) => GestureDetector(
-    onTap: onTap,
-    child: AnimatedContainer(
-      duration: const Duration(milliseconds: 160),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-      decoration: BoxDecoration(
-        color:        selected ? color : color.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: selected ? color : color.withValues(alpha: 0.3),
-          width: selected ? 1.5 : 1.0,
+  Widget build(BuildContext context) {
+    final bool isTous = label == 'Tous';
+
+    final Color bg;
+    final Color fg;
+    final Color border;
+
+    if (!selected) {
+      bg = _inactiveBg;
+      fg = _inactiveFg;
+      border = _inactiveBorder;
+    } else if (isTous) {
+      bg = const Color(0xFF757575);
+      fg = Colors.white;
+      border = const Color(0xFF757575);
+    } else {
+      bg = inactiveColor;
+      fg = inactiveTextColor;
+      border = inactiveTextColor.withValues(alpha: 0.45);
+    }
+
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+        decoration: BoxDecoration(
+          color: bg,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: border, width: 1.2),
+          boxShadow: selected
+              ? [
+                  BoxShadow(
+                    color:
+                        (isTous ? const Color(0xFF757575) : inactiveTextColor)
+                            .withValues(alpha: 0.22),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
+              : null,
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: fg,
+          ),
         ),
       ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize:   12,
-          fontWeight: FontWeight.w600,
-          color:      selected ? Colors.white : color,
-        ),
-      ),
-    ),
-  );
+    );
+  }
 }

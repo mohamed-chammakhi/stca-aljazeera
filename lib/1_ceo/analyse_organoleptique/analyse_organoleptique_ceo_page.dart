@@ -16,8 +16,10 @@ import '../../main.dart';
 import '../utilisateurs/models/mock_data_patch.dart';
 import '../utilisateurs/widgets/utilisateurs_ceo_page.dart';
 import '../widgets/search_date_filter_bar.dart';
-import '../widgets/sample_card_widgets.dart';
+import '../widgets/sample_card_echantillon.dart';
 import '../widgets/base_sample_card.dart'; // ← shared card
+import '../../2_collecteur/mes_echantillons/widgets/dialogs/formulaire_sections.dart'
+    show DateLivraisonSection, ModePlanificationUI;
 
 const Color _headerBg = Color.fromARGB(255, 220, 233, 226);
 const Color _green = Color(0xFF38835A);
@@ -28,7 +30,7 @@ const Color _olive = Color(0xFF6B8143);
 const Color _statusGreen = Color(0xFF38835A);
 const Color _statusBlue = Color(0xFF3A6EA5);
 const Color _statusOrange = Color(0xFFD07B2F);
-const Color _tintGreen = Color(0xFFEAF4EE);
+const Color _tintGreen = Color.fromARGB(255, 212, 225, 217);
 const Color _tintBlue = Color(0xFFEAF0F8);
 const Color _tintOrange = Color(0xFFFAF0E6);
 
@@ -163,15 +165,15 @@ class _AnalyseOrganoleptiqueCeoPageState
     return _SampleStatus.partial;
   }
 
-  Color _cardTint(EchantillonCeoView e) {
-    if (e.statut == StatutCeoView.refuse) return Colors.red.shade50;
-    return _statusOf(e).tint;
+  Color _cardAccent(EchantillonCeoView e) {
+    if (e.statut == StatutCeo.refuse) return Colors.red.shade400;
+    return _statusOf(e).color;
   }
 
   // ── Decision dialogs ───────────────────────────────────────────────────────
   Future<void> _showApprouverDialog(EchantillonCeoView e) async {
-    final isEdit = e.statut == StatutCeoView.enNegociation;
-    final isAchatConfirme = e.statut == StatutCeoView.achatConfirme;
+    final isEdit = e.statut == StatutCeo.enNegociation;
+    final isAchatConfirme = e.statut == StatutCeo.achatConfirme;
 
     if (isAchatConfirme) {
       final confirmed = await showDialog<bool>(
@@ -201,75 +203,270 @@ class _AnalyseOrganoleptiqueCeoPageState
     );
     final noteController = TextEditingController(text: e.noteInterne ?? '');
 
+    // Date souhaitée state
+    ModePlanificationUI dateMode = ModePlanificationUI.dateExacte;
+    DateTime? dateExacte;
+    DateTime? periodeDebut;
+    DateTime? periodeFin;
+
+    // Pre-fill from existing stored value
+    if (e.dateLivraisonStockSouhaitee != null) {
+      // We store it as a formatted string; just show it pre-filled
+    }
+
     await showDialog<void>(
       context: context,
-      builder: (_) => AlertDialog(
-        title: Text(
-          isEdit ? 'Modifier la négociation' : 'Approuver pour négociation',
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              e.referenceBouteille,
-              style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
-            ),
-            const SizedBox(height: 14),
-            TextField(
-              controller: budgetController,
-              decoration: const InputDecoration(
-                labelText: 'Budget (ex: 9.50 TND/L) *',
-                border: OutlineInputBorder(),
-                isDense: true,
-              ),
-              keyboardType: TextInputType.text,
-            ),
-            const SizedBox(height: 10),
-            TextField(
-              controller: noteController,
-              decoration: const InputDecoration(
-                labelText: 'Note interne (optionnelle)',
-                border: OutlineInputBorder(),
-                isDense: true,
-              ),
-              maxLines: 2,
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Annuler'),
+      builder: (_) => StatefulBuilder(
+        builder: (ctx, setDialogState) => Dialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
           ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: _green),
-            onPressed: () {
-              final budget = budgetController.text.trim();
-              if (budget.isEmpty) return;
-              setState(() {
-                e.statut = StatutCeoView.enNegociation;
-                e.budgetNegociation = budget;
-                e.noteInterne = noteController.text.trim().isEmpty
-                    ? null
-                    : noteController.text.trim();
-                e.raisonRefus = null;
-              });
-              Navigator.pop(context);
-            },
-            child: Text(
-              isEdit ? 'Modifier' : 'Approuver',
-              style: const TextStyle(color: Colors.white),
+          insetPadding: const EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: 24,
+          ),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(ctx).size.height * 0.90,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // ── Header ─────────────────────────────────────────────────
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.fromLTRB(20, 18, 16, 16),
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFE9F4EE),
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(16),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.handshake_outlined,
+                        color: _dark,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              isEdit
+                                  ? 'Modifier la négociation'
+                                  : 'Approuver pour négociation',
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                                color: _dark,
+                              ),
+                            ),
+                            Text(
+                              e.referenceBouteille,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Color(0xFF6B8E7A),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // ── Body ───────────────────────────────────────────────────
+                Flexible(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Budget
+                        _ceoDialogLabel('Budget proposé *'),
+                        const SizedBox(height: 6),
+                        TextField(
+                          controller: budgetController,
+                          decoration: _ceoDeco(
+                            'ex: 9.50 TND/L',
+                            Icons.payments_outlined,
+                          ),
+                          keyboardType: TextInputType.text,
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Date souhaitée (using same date picker logic as collector)
+                        _ceoDialogLabel('Date souhaitée de livraison du stock'),
+                        const SizedBox(height: 8),
+                        DateLivraisonSection(
+                          mode: dateMode,
+                          onModeChanged: (m) =>
+                              setDialogState(() => dateMode = m),
+                          dateExacte: dateExacte,
+                          periodeDebut: periodeDebut,
+                          periodeFin: periodeFin,
+                          onDateExacteChanged: (dt) =>
+                              setDialogState(() => dateExacte = dt),
+                          onPeriodeDebutChanged: (dt) =>
+                              setDialogState(() => periodeDebut = dt),
+                          onPeriodeFinChanged: (dt) =>
+                              setDialogState(() => periodeFin = dt),
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Note interne
+                        _ceoDialogLabel('Note interne (optionnelle)'),
+                        const SizedBox(height: 6),
+                        TextField(
+                          controller: noteController,
+                          decoration: _ceoDeco(
+                            'Remarques pour votre équipe…',
+                            Icons.notes_outlined,
+                          ),
+                          maxLines: 2,
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                // ── Footer ─────────────────────────────────────────────────
+                Container(
+                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF9F6EF),
+                    borderRadius: const BorderRadius.vertical(
+                      bottom: Radius.circular(16),
+                    ),
+                    border: Border(
+                      top: BorderSide(color: Colors.grey.shade100),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () => Navigator.pop(ctx),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: Colors.grey.shade600,
+                            side: BorderSide(color: Colors.grey.shade300),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          child: const Text('Annuler'),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: _green,
+                            foregroundColor: Colors.white,
+                            elevation: 0,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          onPressed: () {
+                            final budget = budgetController.text.trim();
+                            if (budget.isEmpty) return;
+
+                            // Build date string from picker selection
+                            String? dateSouhaitee;
+                            if (dateMode == ModePlanificationUI.dateExacte &&
+                                dateExacte != null) {
+                              dateSouhaitee =
+                                  '${dateExacte!.day.toString().padLeft(2, '0')}/'
+                                  '${dateExacte!.month.toString().padLeft(2, '0')}/'
+                                  '${dateExacte!.year}';
+                            } else if (dateMode ==
+                                    ModePlanificationUI.periode &&
+                                periodeDebut != null &&
+                                periodeFin != null) {
+                              final fmt = (DateTime d) =>
+                                  '${d.day.toString().padLeft(2, '0')}/'
+                                  '${d.month.toString().padLeft(2, '0')}/${d.year}';
+                              dateSouhaitee =
+                                  periodeDebut!.isAtSameMomentAs(periodeFin!)
+                                  ? fmt(periodeDebut!)
+                                  : '${fmt(periodeDebut!)} - ${fmt(periodeFin!)}';
+                            }
+
+                            setState(() {
+                              e.statut = StatutCeo.enNegociation;
+                              e.budgetNegociation = budget;
+                              e.dateLivraisonStockSouhaitee = dateSouhaitee;
+                              e.noteInterne = noteController.text.trim().isEmpty
+                                  ? null
+                                  : noteController.text.trim();
+                              e.raisonRefus = null;
+                            });
+                            Navigator.pop(ctx);
+                          },
+                          child: Text(
+                            isEdit ? 'Modifier' : 'Approuver',
+                            style: const TextStyle(fontWeight: FontWeight.w700),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
-        ],
+        ),
       ),
     );
   }
 
+  // Helper widgets for the approval dialog
+  static Widget _ceoDialogLabel(String text) => Text(
+    text,
+    style: const TextStyle(
+      fontSize: 12,
+      fontWeight: FontWeight.w600,
+      color: Color(0xFF6B8E7A),
+    ),
+  );
+
+  static InputDecoration _ceoDeco(String hint, IconData icon) =>
+      InputDecoration(
+        hintText: hint,
+        hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 13),
+        prefixIcon: Icon(icon, size: 18, color: const Color(0xFF6B8E7A)),
+        filled: true,
+        fillColor: const Color(0xFFF7F9F8),
+        isDense: true,
+        contentPadding: const EdgeInsets.symmetric(
+          vertical: 12,
+          horizontal: 14,
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide(color: Colors.grey.shade200),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide(color: Colors.grey.shade200),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(color: _green, width: 1.5),
+        ),
+      );
+
   Future<void> _showRefuserDialog(EchantillonCeoView e) async {
-    final isAchatConfirme = e.statut == StatutCeoView.achatConfirme;
+    final isAchatConfirme = e.statut == StatutCeo.achatConfirme;
 
     if (isAchatConfirme) {
       final confirmed = await showDialog<bool>(
@@ -339,7 +536,7 @@ class _AnalyseOrganoleptiqueCeoPageState
             ),
             onPressed: () {
               setState(() {
-                e.statut = StatutCeoView.refuse;
+                e.statut = StatutCeo.refuse;
                 e.raisonRefus = raisonController.text.trim().isEmpty
                     ? null
                     : raisonController.text.trim();
@@ -497,38 +694,6 @@ class _AnalyseOrganoleptiqueCeoPageState
                     fontWeight: FontWeight.w500,
                   ),
                 ),
-                if (_anyFilter) ...[
-                  const Spacer(),
-                  GestureDetector(
-                    onTap: () {
-                      _searchController.clear();
-                      setState(() {
-                        _searchQuery = '';
-                        _dateDebut = null;
-                        _dateFin = null;
-                      });
-                    },
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.filter_alt_off_outlined,
-                          size: 13,
-                          color: Colors.red.shade400,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          'Effacer filtres',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.red.shade500,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
               ],
             ),
           ),
@@ -567,10 +732,20 @@ class _AnalyseOrganoleptiqueCeoPageState
                       return BaseSampleCard(
                         referenceBouteille: e.referenceBouteille,
                         id: e.id,
-                        tintColor: _cardTint(e),
-                        badge: CardBadge(
-                          label: '${e.nombreEvaluations}/${e.totalTasteurs}',
-                          color: status.color,
+                        tintColor: Colors.white,
+                        accentColor: _cardAccent(e),
+                        badge: CardBadgeRow(
+                          badges: [
+                            if (e.quantiteEstimee != null)
+                              CardBadge(
+                                label: 'Qté : ${e.quantiteEstimee}T',
+                                color: _olive,
+                              ),
+                            CardBadge(
+                              label: '${e.nombreEvaluations}/${e.totalTasteurs}',
+                              color: status.color,
+                            ),
+                          ],
                         ),
                         detailItems: [
                           DetailItem('N° échantillon', e.id),
@@ -628,7 +803,7 @@ class _PanelSection extends StatelessWidget {
   final ClassificationHuile? majority;
   final bool isExpanded;
   final VoidCallback onToggle;
-  final void Function(EvaluationTasteur) onViewForm;
+  final void Function(EvaluationOrganoleptique) onViewForm;
   final VoidCallback onApprouver;
   final VoidCallback onRefuser;
 
@@ -648,28 +823,35 @@ class _PanelSection extends StatelessWidget {
 
     // Active state for each action
     final approved =
-        e.statut == StatutCeoView.enNegociation ||
-        e.statut == StatutCeoView.achatConfirme;
-    final refused = e.statut == StatutCeoView.refuse;
+        e.statut == StatutCeo.enNegociation ||
+        e.statut == StatutCeo.achatConfirme;
+    final refused = e.statut == StatutCeo.refuse;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // ── Row 1: panel label + classification badge + chevron ──────────
+        // ── Row 1: decision buttons + classification badge + chevron ─────
         GestureDetector(
           onTap: onToggle,
           behavior: HitTestBehavior.opaque,
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(14, 11, 14, 6),
+            padding: const EdgeInsets.fromLTRB(14, 11, 14, 10),
             child: Row(
               children: [
-                Text(
-                  'Panel de dégustation',
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: _olive,
-                  ),
+                _DecisionButton(
+                  label: 'Approuver',
+                  active: approved,
+                  dimmed: refused,
+                  activeColor: _green,
+                  onTap: onApprouver,
+                ),
+                const SizedBox(width: 6),
+                _DecisionButton(
+                  label: 'Refuser',
+                  active: refused,
+                  dimmed: approved,
+                  activeColor: Colors.red.shade500,
+                  onTap: onRefuser,
                 ),
                 const Spacer(),
                 if (majority != null) ...[
@@ -699,28 +881,6 @@ class _PanelSection extends StatelessWidget {
           ),
         ),
 
-        // ── Row 2: decision action buttons ───────────────────────────────
-        Padding(
-          padding: const EdgeInsets.fromLTRB(14, 0, 14, 10),
-          child: Row(
-            children: [
-              _DecisionButton(
-                label: approved ? 'Approuvé' : 'Approuver',
-                active: approved,
-                activeColor: _green,
-                onTap: onApprouver,
-              ),
-              const SizedBox(width: 8),
-              _DecisionButton(
-                label: refused ? 'Refusé' : 'Refuser',
-                active: refused,
-                activeColor: Colors.red.shade500,
-                onTap: onRefuser,
-              ),
-            ],
-          ),
-        ),
-
         // ── Expandable taster list ────────────────────────────────────────
         AnimatedCrossFade(
           firstChild: const SizedBox.shrink(),
@@ -739,37 +899,54 @@ class _PanelSection extends StatelessWidget {
 class _DecisionButton extends StatelessWidget {
   final String label;
   final bool active;
+  final bool dimmed;
   final Color activeColor;
+
   final VoidCallback onTap;
+
   const _DecisionButton({
     required this.label,
     required this.active,
+    required this.dimmed,
     required this.activeColor,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    // inactive = muted version of the real color (not grey)
-    // active   = solid filled button
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-        decoration: BoxDecoration(
-          color: active ? activeColor : activeColor.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: active ? activeColor : activeColor.withValues(alpha: 0.3),
-            width: active ? 1.5 : 1.0,
+    const inactiveGray = Color(0xFFB4B2A9);
+
+    return Opacity(
+      opacity: dimmed ? 0.38 : 1.0,
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 5),
+          decoration: BoxDecoration(
+            color: active
+                ? activeColor.withValues(alpha: 0.09)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: active
+                  ? activeColor.withValues(alpha: 0.35)
+                  : inactiveGray.withValues(alpha: 0.45),
+              width: active ? 1.4 : 1.0,
+            ),
           ),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: active ? FontWeight.w700 : FontWeight.w500,
-            color: active ? Colors.white : activeColor,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: active ? FontWeight.w600 : FontWeight.w500,
+                  color: active ? activeColor : inactiveGray,
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -777,9 +954,12 @@ class _DecisionButton extends StatelessWidget {
   }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// PANEL LIST
+// ─────────────────────────────────────────────────────────────────────────────
 class _PanelList extends StatelessWidget {
   final EchantillonCeoView echantillon;
-  final void Function(EvaluationTasteur) onViewForm;
+  final void Function(EvaluationOrganoleptique) onViewForm;
   const _PanelList({required this.echantillon, required this.onViewForm});
 
   @override
@@ -833,8 +1013,8 @@ class _PanelList extends StatelessWidget {
                   ),
                   child: Center(
                     child: Text(
-                      ev.tasteurNom.isNotEmpty
-                          ? ev.tasteurNom[0].toUpperCase()
+                      (ev.tasteurNom != null && ev.tasteurNom!.isNotEmpty)
+                          ? ev.tasteurNom![0].toUpperCase()
                           : '?',
                       style: TextStyle(
                         fontSize: 13,
@@ -847,7 +1027,7 @@ class _PanelList extends StatelessWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    ev.tasteurNom,
+                    ev.tasteurNom ?? ev.tasteurId,
                     style: const TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,

@@ -1,5 +1,8 @@
 # CLAUDE.md
 
+## Always Do First
+- **Invoke the `frontend-design` skill** before writing any frontend code, every session, no exceptions.
+
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Commands
@@ -108,13 +111,25 @@ Simplest role — only 2 pages: profile + sample list.
 
 ## Sample Lifecycle & States
 
-### Collector-facing states:
-- **Reçu (registered)** — sample registered in app
-- **Reçu (physically present)** — taster confirms physical arrival at company
-- **Date de livraison fixée** — scheduled date or date range for sample bottle arrival
-- **En négociation** — direction approved purchase, collector negotiates full stock with given budget
-- **Achat confirmé** — negotiation succeeded, stock purchase confirmed
-- **Date de livraison stock** — scheduled delivery date for full stock
+### Collector-facing states (`StatutCollecteur`):
+- **Réceptionné** — sample registered by collector in app; can edit+delete freely if not yet received at company
+- **Réceptionné (reçu physiquement)** — taster confirmed physical arrival (`recuPhysiquement = true`, `dateReceptionEchantillon` set); checkmark appears on card; can still edit limited fields; cannot delete
+- **En négociation** — CEO approved for purchase; collector CANNOT edit or delete; CEO's budget (`budgetNegociation`) and desired delivery date (`dateStockSouhaitee`) are visible in a collapsible section; collector can confirm purchase
+- **Achat confirmé** — collector confirmed purchase with `prixFinal`, `camionLivraison`, and planned stock delivery date (`PlanificationLivraison`)
+
+### Data flow per status transition:
+| Transition | Who acts | Fields set |
+|---|---|---|
+| Register → Réceptionné | Collector | All sample fields, optionally `dateArriveeEchantillon` |
+| Réceptionné → recuPhysiquement | Taster | `recuPhysiquement = true`, `dateReceptionEchantillon` |
+| Réceptionné → En négociation | CEO (organoleptique page) | `budgetNegociation`, `dateLivraisonStockSouhaitee` |
+| En négociation → Achat confirmé | Collector | `prixFinal`, `camionLivraison`, `PlanificationLivraison` |
+
+### What each role sees on a sample:
+- **Collector**: their own samples + status + CEO negotiation details (when enNegociation) + received checkmark
+- **CEO**: all samples grouped by collector; statut badge; approval/refusal actions; after approval shows budget + desired date
+- **Taster**: all samples; can toggle `recuPhysiquement`; fills sensory evaluation forms
+- **Lab**: physically-received samples only; lab analysis form
 
 ### Lab Technician-facing states:
 - **En attente** — analysis not yet started
@@ -297,6 +312,49 @@ static List<Echantillon> fromJsonList(Map<String, dynamic> json) =>
 - **Do not** use `camelCase` for JSON keys in `toJson()` / `fromJson()` — Django serializers output `snake_case`.
 - **Do not** store auth tokens in `SharedPreferences` — use `flutter_secure_storage`.
 - **Do not** hardcode `baseUrl` strings anywhere except `lib/config.dart`.
+
+---
+
+## Design System & Visual Theme
+
+A consistent visual theme **must be applied across all role modules**. Use the following constants in every page:
+
+```dart
+const Color _headerBg = Color.fromARGB(255, 220, 233, 226); // light green — AppBar + header zone bg
+const Color _green    = Color(0xFF38835A);                   // primary brand green
+const Color _dark     = Color(0xFF1A2E1F);                   // dark text
+const Color _bg       = Color.fromARGB(255, 255, 255, 255);  // page background (white, NOT cream)
+const Color _white    = Color.fromARGB(255, 255, 255, 255);  // sample card details background (replaces old _cream)
+```
+
+**AppBar pattern (mandatory for all pages):**
+```dart
+AppBar(
+  backgroundColor: _headerBg,
+  elevation: 0,
+  centerTitle: false,
+  toolbarHeight: 65,
+  title: Text('Page title', style: GoogleFonts.domine(fontSize: 18, fontWeight: FontWeight.w700, color: _dark)),
+  iconTheme: const IconThemeData(color: _dark),
+  // actions: date filter icon if page has date filtering
+)
+```
+
+**Page body layout pattern:**
+1. **Header zone** — `Container(color: _headerBg)` containing search bar + filter chips (same background as AppBar, visually seamless)
+2. **Thin divider** — `Container(height: 1, color: Colors.black.withValues(alpha: 0.06))`
+3. **Stats strip** — `Container(color: _bg)` with item count and active-filter clear button
+4. **List** — `Expanded` scrollable content on white background
+
+**Filter chips pattern** — use per-status colors (active = solid color + shadow, inactive = soft pastel):
+- Tous: `Color(0xFF616161)` / inactive bg `Color(0xFFF0F0F0)`
+- En attente / Réceptionné: `Color(0xFF3A6EA5)` / inactive bg `Color(0xFFE8F1FB)`
+- En cours / En négociation: `Color(0xFFD07B2F)` / inactive bg `Color(0xFFFEF3E8)`
+- Soumis / Achat confirmé: `Color(0xFF38835A)` / inactive bg `Color(0xFFE6F4ED)`
+
+**FAB pattern** (when present): gray background `Color.fromARGB(255, 197, 206, 201)`, dark icon and label text.
+
+The reference implementations are `lib/1_ceo/echantillons/echantillons_ceo_page.dart` and `lib/3_degustateur/gestion_echantillons/gestion_echantillons_page.dart`.
 
 ---
 

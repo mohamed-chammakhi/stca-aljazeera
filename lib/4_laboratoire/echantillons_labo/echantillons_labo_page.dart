@@ -3,6 +3,7 @@
 // ═════════════════════════════════════════════════════════════════════════════
 
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'models/echantillon_labo.dart';
 import 'widgets/echantillon_labo_card.dart';
 import 'widgets/statut_analyse_badge.dart';
@@ -13,7 +14,9 @@ import '../profil_labo_page.dart';
 import '../../main.dart';
 
 const Color _green = Color(0xFF38835A);
-const Color _cream = Color(0xFFF9F6EF);
+const Color _headerBg = Color.fromARGB(255, 220, 233, 226);
+const Color _dark = Color(0xFF1A2E1F);
+const Color _bg = Color.fromARGB(255, 255, 255, 255);
 const Color _gray = Color.fromARGB(255, 81, 82, 81);
 
 class EchantillonsLaboPage extends StatefulWidget {
@@ -173,6 +176,8 @@ class _EchantillonsLaboPageState extends State<EchantillonsLaboPage> {
       .where((e) => e.statutAnalyse == StatutAnalyse.enAttente)
       .length;
 
+  bool get _anyFilter => _recherche.isNotEmpty || _filtreStatut != null;
+
   static const List<_ChipData> _chips = [
     _ChipData(null, 'Tous'),
     _ChipData(StatutAnalyse.enAttente, 'En attente'),
@@ -188,49 +193,147 @@ class _EchantillonsLaboPageState extends State<EchantillonsLaboPage> {
 
   @override
   Widget build(BuildContext context) {
+    final items = _filtres;
+
     return Scaffold(
-      backgroundColor: _cream,
+      backgroundColor: _bg,
       drawer: LaboDrawer(
         onEchantillons: () => _goTo(const EchantillonsLaboPage()),
         onProfil: () => _goTo(const ProfilLaboPage()),
         onDeconnexion: () => _goTo(LoginPage()),
       ),
       appBar: AppBar(
-        backgroundColor: _green,
+        backgroundColor: _headerBg,
         elevation: 0,
-        title: const Text(
+        centerTitle: false,
+        toolbarHeight: 65,
+        title: Text(
           'Échantillons à analyser',
-          style: TextStyle(
-            color: Colors.white,
+          style: GoogleFonts.domine(
+            fontSize: 18,
             fontWeight: FontWeight.w700,
-            fontSize: 16,
+            color: _dark,
           ),
         ),
-        actions: [
-          Container(
-            margin: const EdgeInsets.only(right: 12),
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Text(
-              '${_echantillons.length} échantillon(s)',
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ],
+        iconTheme: const IconThemeData(color: _dark),
       ),
       body: Column(
         children: [
+          // ── Header zone ──────────────────────────────────────────────────
+          Container(
+            color: _headerBg,
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
+            child: Column(
+              children: [
+                // Search bar
+                TextField(
+                  controller: _searchCtrl,
+                  onChanged: (v) => setState(() => _recherche = v),
+                  style: const TextStyle(fontSize: 14, color: _dark),
+                  decoration: InputDecoration(
+                    hintText: 'Rechercher réf, fournisseur, gouvernorat…',
+                    hintStyle: const TextStyle(
+                      color: Color(0xFF6B8E7A),
+                      fontSize: 13,
+                    ),
+                    prefixIcon: const Icon(
+                      Icons.search,
+                      color: Color(0xFF6B8E7A),
+                      size: 20,
+                    ),
+                    suffixIcon: _recherche.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(
+                              Icons.close,
+                              size: 17,
+                              color: Color(0xFF6B8E7A),
+                            ),
+                            onPressed: () => setState(() {
+                              _recherche = '';
+                              _searchCtrl.clear();
+                            }),
+                          )
+                        : null,
+                    filled: true,
+                    fillColor: Colors.white,
+                    contentPadding: const EdgeInsets.symmetric(
+                      vertical: 11,
+                      horizontal: 16,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: _green, width: 1.5),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 11),
+                // Filter chips
+                SizedBox(
+                  height: 34,
+                  child: ListView(
+                    scrollDirection: Axis.horizontal,
+                    children: [
+                      _StatutChip(
+                        label: 'Tous',
+                        activeColor: const Color(0xFF616161),
+                        inactiveColor: const Color(0xFFF0F0F0),
+                        inactiveTextColor: const Color(0xFF757575),
+                        selected: _filtreStatut == null,
+                        onTap: () => setState(() => _filtreStatut = null),
+                      ),
+                      const SizedBox(width: 7),
+                      _StatutChip(
+                        label: 'En attente',
+                        activeColor: const Color(0xFF3A6EA5),
+                        inactiveColor: const Color(0xFFE8F1FB),
+                        inactiveTextColor: const Color(0xFF3A6EA5),
+                        selected: _filtreStatut == StatutAnalyse.enAttente,
+                        onTap: () => setState(
+                          () => _filtreStatut = StatutAnalyse.enAttente,
+                        ),
+                      ),
+                      const SizedBox(width: 7),
+                      _StatutChip(
+                        label: 'En cours',
+                        activeColor: const Color(0xFFD07B2F),
+                        inactiveColor: const Color(0xFFFEF3E8),
+                        inactiveTextColor: const Color(0xFFD07B2F),
+                        selected: _filtreStatut == StatutAnalyse.enCours,
+                        onTap: () => setState(
+                          () => _filtreStatut = StatutAnalyse.enCours,
+                        ),
+                      ),
+                      const SizedBox(width: 7),
+                      _StatutChip(
+                        label: 'Soumis',
+                        activeColor: const Color(0xFF38835A),
+                        inactiveColor: const Color(0xFFE6F4ED),
+                        inactiveTextColor: const Color(0xFF38835A),
+                        selected: _filtreStatut == StatutAnalyse.soumis,
+                        onTap: () => setState(
+                          () => _filtreStatut = StatutAnalyse.soumis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Container(height: 1, color: Colors.black.withValues(alpha: 0.06)),
+
           // ── Stats strip ──────────────────────────────────────────────────
           Container(
-            color: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            color: _bg,
+            padding: const EdgeInsets.fromLTRB(16, 9, 16, 6),
             child: Row(
               children: [
                 _StatPill(
@@ -254,99 +357,9 @@ class _EchantillonsLaboPageState extends State<EchantillonsLaboPage> {
             ),
           ),
 
-          // ── Search ────────────────────────────────────────────────────────
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-            child: TextField(
-              controller: _searchCtrl,
-              onChanged: (v) => setState(() => _recherche = v),
-              style: const TextStyle(fontSize: 14),
-              decoration: InputDecoration(
-                hintText: 'Rechercher par référence, fournisseur, région...',
-                hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 13),
-                prefixIcon: const Icon(Icons.search, color: _green, size: 20),
-                suffixIcon: _recherche.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.close, size: 18),
-                        onPressed: () => setState(() {
-                          _recherche = '';
-                          _searchCtrl.clear();
-                        }),
-                      )
-                    : null,
-                filled: true,
-                fillColor: Colors.white,
-                contentPadding: const EdgeInsets.symmetric(
-                  vertical: 12,
-                  horizontal: 16,
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey.shade200),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey.shade200),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: _green, width: 1.5),
-                ),
-              ),
-            ),
-          ),
-
-          // ── Filter chips ──────────────────────────────────────────────────
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: SizedBox(
-              height: 44,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: _chips.length,
-                itemBuilder: (_, i) {
-                  final chip = _chips[i];
-                  final selected = _filtreStatut == chip.statut;
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 8),
-                    child: GestureDetector(
-                      onTap: () => setState(() => _filtreStatut = chip.statut),
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 14,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          color: selected ? _green : Colors.white,
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                            color: selected ? _green : Colors.grey.shade200,
-                          ),
-                        ),
-                        child: Text(
-                          chip.label,
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: selected
-                                ? Colors.white
-                                : Colors.grey.shade600,
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 8),
-
           // ── List ──────────────────────────────────────────────────────────
           Expanded(
-            child: _filtres.isEmpty
+            child: items.isEmpty
                 ? Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -377,9 +390,9 @@ class _EchantillonsLaboPageState extends State<EchantillonsLaboPage> {
                       thumbVisibility: true,
                       child: ListView.builder(
                         padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
-                        itemCount: _filtres.length,
+                        itemCount: items.length,
                         itemBuilder: (_, i) {
-                          final e = _filtres[i];
+                          final e = items[i];
                           return EchantillonLaboCard(
                             echantillon: e,
                             onAjouterAnalyse: e.analyse == null
@@ -468,9 +481,9 @@ class _AnalyseReadOnlySheet extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: classifColor.withOpacity(0.07),
+                color: classifColor.withValues(alpha: 0.07),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: classifColor.withOpacity(0.25)),
+                border: Border.all(color: classifColor.withValues(alpha: 0.25)),
               ),
               child: Row(
                 children: [
@@ -572,6 +585,61 @@ class _ReadOnlyRow extends StatelessWidget {
   }
 }
 
+// ── Statut chip — soft pastel inactive, solid color active ───────────────────
+class _StatutChip extends StatelessWidget {
+  final String label;
+  final Color activeColor;
+  final Color inactiveColor;
+  final Color inactiveTextColor;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _StatutChip({
+    required this.label,
+    required this.activeColor,
+    required this.inactiveColor,
+    required this.inactiveTextColor,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) => GestureDetector(
+    onTap: onTap,
+    child: AnimatedContainer(
+      duration: const Duration(milliseconds: 150),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+      decoration: BoxDecoration(
+        color: selected ? activeColor : inactiveColor,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: selected
+              ? activeColor
+              : inactiveTextColor.withValues(alpha: 0.35),
+          width: 1.2,
+        ),
+        boxShadow: selected
+            ? [
+                BoxShadow(
+                  color: activeColor.withValues(alpha: 0.25),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
+                ),
+              ]
+            : null,
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: selected ? Colors.white : inactiveTextColor,
+        ),
+      ),
+    ),
+  );
+}
+
 // ── Small stat pill ───────────────────────────────────────────────────────────
 class _StatPill extends StatelessWidget {
   final String value;
@@ -587,9 +655,9 @@ class _StatPill extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
     decoration: BoxDecoration(
-      color: color.withOpacity(0.08),
+      color: color.withValues(alpha: 0.08),
       borderRadius: BorderRadius.circular(20),
-      border: Border.all(color: color.withOpacity(0.2)),
+      border: Border.all(color: color.withValues(alpha: 0.2)),
     ),
     child: Row(
       mainAxisSize: MainAxisSize.min,

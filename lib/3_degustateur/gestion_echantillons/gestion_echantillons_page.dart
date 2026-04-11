@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/models/echantillon.dart';
+import '../../../core/models/enums.dart';
 import 'models/mock_echantillons.dart';
 import 'widgets/echantillon_card.dart';
 import 'widgets/empty_state.dart';
@@ -10,7 +11,7 @@ import 'widgets/dialogs/suppression_dialog.dart';
 import 'widgets/search_filter_bar.dart';
 import '../evaluation_echantillons/evaluation_echantillons_page.dart';
 import '../profil.dart';
-import '../homepage/widgets/app_drawer.dart';
+import '../tableau_de_bord/widgets/app_drawer.dart';
 import '../membres_panel/membres_panel_page.dart';
 import '../../../main.dart';
 import '../sessions_degustation/sessions_degustation_page.dart';
@@ -95,14 +96,15 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage> {
       final matchRecherche =
           _recherche.isEmpty ||
           e.referenceBouteille.toLowerCase().contains(q) ||
-          e.id.toLowerCase().contains(q) ||
-          e.codeFournisseur.toLowerCase().contains(q) ||
+          e.ref.toLowerCase().contains(q) ||
+          (e.codeFournisseur?.toLowerCase().contains(q) ?? false) ||
           (e.variete?.toLowerCase().contains(q) ?? false) ||
           e.gouvernorat.toLowerCase().contains(q) ||
           (e.delegation?.toLowerCase().contains(q) ?? false) ||
           (e.collecteurNom?.toLowerCase().contains(q) ?? false);
 
-      final matchStatut = _filtreStatut == null || e.statut == _filtreStatut;
+      final matchStatut =
+          _filtreStatut == null || e.statutDegustateur?.label == _filtreStatut;
 
       bool matchDate = true;
       if (_dateFilterActive) {
@@ -139,12 +141,15 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage> {
   // 6. ACTIONS
   // ───────────────────────────────────────────────────────────────────────────
 
-  void _onAjouter(Echantillon nouveau) {
-    setState(() => _echantillons.add(nouveau));
-    _showSuccess('Échantillon ajouté avec succès');
+  void _onAjouter(List<Echantillon> nouveaux) {
+    setState(() => _echantillons.addAll(nouveaux));
+    final label = nouveaux.length == 1
+        ? 'Échantillon ajouté avec succès'
+        : '${nouveaux.length} échantillons ajoutés';
+    _showSuccess(label);
   }
 
-  void _onModifier(Echantillon modifie) {
+  void _onModifier(List<Echantillon> modifies) {
     setState(() {});
     _showSuccess('Échantillon modifié avec succès');
   }
@@ -291,7 +296,7 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage> {
           context,
           echantillon: null,
           prochainNumero: _prochainNumero,
-          onSave: _onAjouter,
+          onSaveMultiple: _onAjouter,
         ),
         backgroundColor: const Color.fromARGB(255, 197, 206, 201),
         elevation: 2,
@@ -455,7 +460,7 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage> {
                             context,
                             echantillon: e,
                             prochainNumero: _prochainNumero,
-                            onSave: _onModifier,
+                            onSaveMultiple: _onModifier,
                           ),
                           onSupprimer: () => showSuppressionDialog(
                             context,
@@ -496,39 +501,66 @@ class _StatutChip extends StatelessWidget {
     required this.onTap,
   });
 
+  static const Color _inactiveBg = Color(0xFFF0F0F0);
+  static const Color _inactiveFg = Color(0xFF9E9E9E);
+  static const Color _inactiveBorder = Color(0xFFE0E0E0);
+
   @override
-  Widget build(BuildContext context) => GestureDetector(
-    onTap: onTap,
-    child: AnimatedContainer(
-      duration: const Duration(milliseconds: 150),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-      decoration: BoxDecoration(
-        color: selected ? activeColor : inactiveColor,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: selected
-              ? activeColor
-              : inactiveTextColor.withValues(alpha: 0.35),
-          width: 1.2,
+  Widget build(BuildContext context) {
+    // "Tous" se comporte comme _FilterChip dans achats confirmés :
+    //   inactif = gris neutre, actif = gris solide #757575 + texte blanc
+    // Les autres :
+    //   inactif = gris neutre, actif = fond teinté + texte coloré + bordure colorée
+    final bool isTous = label == 'Tous';
+
+    final Color bg;
+    final Color fg;
+    final Color border;
+
+    if (!selected) {
+      bg = _inactiveBg;
+      fg = _inactiveFg;
+      border = _inactiveBorder;
+    } else if (isTous) {
+      bg = const Color(0xFF757575);
+      fg = Colors.white;
+      border = const Color(0xFF757575);
+    } else {
+      bg = inactiveColor; // fond teinté clair
+      fg = inactiveTextColor; // texte coloré
+      border = inactiveTextColor.withValues(alpha: 0.45);
+    }
+
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+        decoration: BoxDecoration(
+          color: bg,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: border, width: 1.2),
+          boxShadow: selected
+              ? [
+                  BoxShadow(
+                    color:
+                        (isTous ? const Color(0xFF757575) : inactiveTextColor)
+                            .withValues(alpha: 0.22),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
+              : null,
         ),
-        boxShadow: selected
-            ? [
-                BoxShadow(
-                  color: activeColor.withValues(alpha: 0.25),
-                  blurRadius: 6,
-                  offset: const Offset(0, 2),
-                ),
-              ]
-            : null,
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-          color: selected ? Colors.white : inactiveTextColor,
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: fg,
+          ),
         ),
       ),
-    ),
-  );
+    );
+  }
 }
