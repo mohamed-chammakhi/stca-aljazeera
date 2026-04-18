@@ -7,6 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'models/analyse_labo.dart';
 import 'widgets/analyse_card.dart';
+import 'widgets/dialogs/formulaire_analyse_dialog.dart';
+import 'widgets/dialogs/suppression_analyse_dialog.dart';
 // date filter sheet + button
 import '../gestion_echantillons/widgets/search_filter_bar.dart';
 
@@ -323,6 +325,39 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage> {
     }).toList();
   }
 
+  // ── CRUD helpers ─────────────────────────────────────────────────────────────
+  int get _prochainNumero => _analyses.length + 1;
+
+  void _onAjouter(AnalyseLabo analyse) {
+    setState(() => _analyses.add(analyse));
+    _showSuccess('Analyse ajoutée pour ${analyse.echantillonNom}');
+  }
+
+  void _onModifier(AnalyseLabo analyse) {
+    setState(() {});
+    _showSuccess('Analyse modifiée');
+  }
+
+  void _onSupprimer(AnalyseLabo analyse) {
+    setState(() => _analyses.remove(analyse));
+    _showSuccess('Analyse supprimée');
+  }
+
+  void _showSuccess(String msg) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          msg,
+          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+        ),
+        backgroundColor: _green,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        margin: const EdgeInsets.all(20),
+      ),
+    );
+  }
+
   // ── Date filter sheet ─────────────────────────────────────────────────────────
   Future<void> _showDateFilter() async {
     await showModalBottomSheet(
@@ -359,6 +394,23 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage> {
 
     return Scaffold(
       backgroundColor: _bg,
+
+      // ── FAB ───────────────────────────────────────────────────────────────────
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => showFormulaireAnalyseDialog(
+          context,
+          analyse: null,
+          prochainNumero: _prochainNumero,
+          onSave: _onAjouter,
+        ),
+        backgroundColor: const Color.fromARGB(255, 197, 206, 201),
+        elevation: 2,
+        icon: const Icon(Icons.add, color: _dark),
+        label: const Text(
+          'Nouvelle analyse',
+          style: TextStyle(color: _dark, fontWeight: FontWeight.w700),
+        ),
+      ),
 
       // ── DRAWER ────────────────────────────────────────────────────────────────
       drawer: AppDrawer(
@@ -575,11 +627,24 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage> {
                 : Scrollbar(
                     thumbVisibility: true,
                     child: ListView.builder(
-                      padding: const EdgeInsets.fromLTRB(16, 10, 16, 100),
+                      padding: const EdgeInsets.fromLTRB(16, 10, 16, 110),
                       itemCount: filtres.length,
                       itemBuilder: (context, index) {
                         final a = filtres[index];
-                        return AnalyseCard(analyse: a);
+                        return AnalyseCard(
+                          analyse: a,
+                          onModifier: () => showFormulaireAnalyseDialog(
+                            context,
+                            analyse: a,
+                            prochainNumero: _prochainNumero,
+                            onSave: _onModifier,
+                          ),
+                          onSupprimer: () => showSuppressionAnalyseDialog(
+                            context,
+                            analyse: a,
+                            onConfirmer: () => _onSupprimer(a),
+                          ),
+                        );
                       },
                     ),
                   ),

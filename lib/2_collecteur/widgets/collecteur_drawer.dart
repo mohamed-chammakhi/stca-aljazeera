@@ -107,11 +107,6 @@ class CollecteurDrawer extends StatelessWidget {
                     label: 'Messagerie CEO',
                     onTap: onMessagerie,
                   ),
-                  _DrawerItem(
-                    icon: Icons.bar_chart_outlined,
-                    label: 'Tableau de bord',
-                    onTap: onTableauDeBord,
-                  ),
                   const SizedBox(height: 4),
                   Divider(color: _olive.withOpacity(0.15), height: 1),
                   const SizedBox(height: 4),

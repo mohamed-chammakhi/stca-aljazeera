@@ -51,6 +51,12 @@ widgets/         # Role-level shared widgets (e.g., *_drawer.dart)
 
 ---
 
+## Project Status
+
+**This is a real-life, production-bound application** being built for an actual client — Al Jazeera STCA. It is not a demo, prototype, or academic exercise. All decisions (architecture, data modeling, service layer, auth, offline sync) must reflect production quality. The app will be deployed to real users across multiple roles. Shortcuts that would be acceptable in a prototype are not acceptable here.
+
+---
+
 ## Business Context
 
 Al Jazeera STCA collects olive oil samples from external suppliers across Tunisia. Each sample goes through a structured evaluation process. If accepted, the company negotiates and purchases the full stock, then processes, packages, and distributes it under their own brand.
@@ -60,81 +66,100 @@ Al Jazeera STCA collects olive oil samples from external suppliers across Tunisi
 ## Actors & Their Roles
 
 ### 1. Direction (1_ceo/)
-Limited role to avoid app complexity. Cannot register or modify samples.
+Cannot register or modify samples.
 
 **Pages:**
-- **Échantillons** — list of collectors (+ internal company collector), expandable per collector, filterable by date range. Click sample reference to see full details
-- **Analyse Organoleptique** — all samples with per-panel-member evaluation details, can view each member's filled sensory evaluation form
-- **Analyse Laboratoire** — samples with lab analysis results
-- **Achats Confirmés** — confirmed purchases with purchase details
+- **Échantillons** — all samples grouped by collector, filterable by date. Samples have three statut badges: **Réceptionné**, **En négociation**, **Achat confirmé**. Click any sample to see full details including delivery date and purchase details where applicable.
+- **Analyse Organoleptique** — all samples with per-panel-member evaluation details. CEO views each panel member's completed sensory evaluation form and from this page decides whether to approve a sample for purchase (sets `budgetNegociation` and `dateLivraisonStockSouhaitee`).
+- **Analyse Laboratoire** — samples with their linked lab analysis results, filterable by date.
+- **Achats Confirmés** — confirmed purchases split into two sub-states: **Stock en transit** (purchased, stock not yet arrived) and **Stock reçu** (stock physically arrived at company). Filterable by date.
+- **Carte** — geographic map showing, per collector, which Tunisian delegations have been visited and which have not yet been reached.
 - **Dashboard** — KPIs (TBD)
-- **Utilisateurs** — all app users with contact info
-- **Profile** — edit personal info
+- **Utilisateurs** — all app users with contact info. CEO can view user details, delete a user, or activate/deactivate an account.
+- **Profile** — edit name, phone number, email, password.
 
 ### 2. Collector (2_collecteur/)
 External participant who collects samples from across the country.
 
-**Features:**
-- Register, modify, delete samples (with restrictions)
-- AI OCR to scan handwritten bottle labels and auto-fill registration forms
-- Offline mode — data syncs when connection is restored
-- Geographic map of visited/unvisited locations (flutter_map + delegations.geojson)
-- Chat/messagerie with Direction
-- Can see other collectors' work
-- Cannot see taster evaluations
-- Dashboard + profile page
+**Pages & Features:**
+- **Échantillons** — list of the collector's own registered samples, filterable by date. Each sample shows its current state. States:
+  - **Réceptionné** (registered only, not yet physically at company) — collector can edit and delete freely.
+  - **Réceptionné – reçu physiquement** (taster confirmed physical arrival) — collector can edit limited fields but cannot delete. Any edit produces a visible edit history accessible to the taster, CEO, and lab technician (like the "edited" label in messaging apps, showing the previous value alongside the new one).
+  - **En négociation** — CEO has approved the sample for purchase. Collector sees the negotiation details provided by the CEO (budget, desired stock delivery date) in a collapsible section. Collector can confirm the purchase from this state.
+  - **Achat confirmé** — purchase confirmed by collector. Collector can edit the planned stock delivery date.
+- **Ajouter un échantillon** (FAB / add button) — form with fields: supplier name, origin, bottle reference, variety, quantity, number of bottles, optional expected arrival date at company, etc. Collector can take a photo of the handwritten bottle label; AI OCR (Gemini Vision) reads the handwriting and auto-fills the form fields. Collector reviews and can correct the pre-filled values before saving.
+- **Carte** — map of Tunisian delegations. Delegations the collector has visited are highlighted, unvisited ones are not. Helps the collector plan future routes.
+- **Chat** — messaging interface with the Direction (CEO). Planned feature; implemented if time allows.
+- **Dashboard** — collector-level KPIs and activity summary.
+- **Profile** — edit personal info (name, phone, email, password, photo).
+- **Offline mode** — data syncs when connection is restored. All writes are queued locally when offline. Critical feature; sync logic must not be broken.
+- Cannot see taster evaluations.
 
 ### 3. Taster / Panel Member (3_degustateur/)
 Part of a tasting team (multiple tasters, not just one).
 
-**Features:**
-- Register, modify, delete samples
-- Perform physical sensory evaluation and fill in evaluation forms per sample
-- Confirm physical arrival of sample at company (marks sample as physically present)
-- View laboratory analysis for each sample
-- View other panel members in the app
-- Organize tasting sessions/reunions
-- Dashboard + profile page
+**Pages & Features:**
+- **Gestion des échantillons** — full list of all samples in the application, filterable by date. Taster can:
+  - Add a new sample (in case a collector missed it or a sample arrived outside the collector flow).
+  - Edit a sample — edits are tracked and the previous value remains visible to all actors (edit history, same mechanic as the collector).
+  - Delete a sample — only allowed if the sample has **not** yet entered the **En négociation** state. Once a sample is in negotiation or beyond, it cannot be edited or deleted.
+  - Toggle the physical receipt confirmation (`recuPhysiquement`) — marks that the sample is physically present at the company, which unlocks lab analysis.
+- **Évaluation organoleptique** — list of all samples with evaluation states:
+  - **En attente** — no evaluation started yet.
+  - **En cours** — taster has opened the evaluation form and partially filled it but has not submitted.
+  - **Soumis** — taster has submitted the evaluation. Submitted evaluations are read-only (can be viewed but not modified).
+  Each taster submits their own individual evaluation per sample. The CEO sees all tasters' evaluations side by side.
+- **Séances de dégustation** — tasting session planner. States: **Planifiée** (upcoming) and **Terminée** (past). To create a session: enter title, date, time, location, notes, and select participant panel members from the list. Only selected participants receive the notification. Each invited participant can confirm their attendance by tapping a checkmark.
+- **Analyse laboratoire** — read-only view of lab analyses per sample. Filter states: **En attente** (no analysis submitted yet) and **Soumis** (lab technician has submitted the analysis).
+- **Membres du panel** — list of all panel members in the app.
+- **Dashboard** — taster-level KPIs and activity summary.
+- **Profile** — edit name, family name, phone number, email, password, profile photo. Logout.
 
 ### 4. Laboratory Technician (4_laboratoire/)
 Simplest role — only 2 pages: profile + sample list.
 
 **Features:**
-- Does NOT register samples — sees samples added by tasters or collectors
-- Performs laboratory analysis on physically present samples
-- Upload photo of physical analysis paper (AI extracts table values into form) OR fill form manually
-- Export analysis results
+- Does NOT register samples — sees samples added by tasters or collectors that are physically present at the company (`recuPhysiquement = true`).
+- Performs laboratory analysis on physically present samples. Two entry methods:
+  1. **Photo upload** — take or upload a photo of the physical paper analysis report; AI automatically detects and extracts table values to fill the form fields. Technician reviews and confirms.
+  2. **Manual entry** — fill the analysis form directly without a photo.
+  The physical paper photo is preserved and stored alongside the digital form.
+- Export analysis results.
 - Samples grouped by state: **En attente** / **En cours** / **Soumis**
-- Profile page only (no dashboard)
+- Profile page (no dashboard).
 
 ---
 
 ## Sample Lifecycle & States
 
 ### Collector-facing states (`StatutCollecteur`):
-- **Réceptionné** — sample registered by collector in app; can edit+delete freely if not yet received at company
-- **Réceptionné (reçu physiquement)** — taster confirmed physical arrival (`recuPhysiquement = true`, `dateReceptionEchantillon` set); checkmark appears on card; can still edit limited fields; cannot delete
-- **En négociation** — CEO approved for purchase; collector CANNOT edit or delete; CEO's budget (`budgetNegociation`) and desired delivery date (`dateStockSouhaitee`) are visible in a collapsible section; collector can confirm purchase
-- **Achat confirmé** — collector confirmed purchase with `prixFinal`, `camionLivraison`, and planned stock delivery date (`PlanificationLivraison`)
+- **Réceptionné** — sample registered in app; not yet physically at company. Collector can edit and delete freely.
+- **Réceptionné (reçu physiquement)** — taster confirmed physical arrival (`recuPhysiquement = true`, `dateReceptionEchantillon` set); checkmark appears on card. Collector can edit limited fields but **cannot delete**. Edits are tracked — the previous value remains visible alongside the updated one to all actors (edit history).
+- **En négociation** — CEO approved for purchase from the Analyse Organoleptique page. CEO's negotiation details (`budgetNegociation`, `dateLivraisonStockSouhaitee`) are visible to the collector in a collapsible section. Collector can proceed to confirm the purchase.
+- **Achat confirmé** — collector confirmed purchase with `prixFinal`, `camionLivraison`, and planned stock delivery date (`planificationLivraison`). Sub-states tracked by CEO: **Stock en transit** and **Stock reçu**.
 
 ### Data flow per status transition:
 | Transition | Who acts | Fields set |
 |---|---|---|
-| Register → Réceptionné | Collector | All sample fields, optionally `dateArriveeEchantillon` |
+| Register → Réceptionné | Collector or Taster | All sample fields, optionally `dateArriveeEchantillon` |
 | Réceptionné → recuPhysiquement | Taster | `recuPhysiquement = true`, `dateReceptionEchantillon` |
-| Réceptionné → En négociation | CEO (organoleptique page) | `budgetNegociation`, `dateLivraisonStockSouhaitee` |
-| En négociation → Achat confirmé | Collector | `prixFinal`, `camionLivraison`, `PlanificationLivraison` |
+| Réceptionné → En négociation | CEO (Analyse Organoleptique page) | `budgetNegociation`, `dateLivraisonStockSouhaitee` |
+| En négociation → Achat confirmé | Collector | `prixFinal`, `camionLivraison`, `planificationLivraison` |
+| Achat confirmé → Stock reçu | CEO or Collector | `dateArriveeStock` |
+
+### Edit history rule:
+Once a sample is physically received (`recuPhysiquement = true`), any edit to its fields must be stored with the previous value. All actors (CEO, taster, lab technician) see both the old value and the new value, clearly labelled, similar to the "edited" indicator in messaging applications.
 
 ### What each role sees on a sample:
-- **Collector**: their own samples + status + CEO negotiation details (when enNegociation) + received checkmark
-- **CEO**: all samples grouped by collector; statut badge; approval/refusal actions; after approval shows budget + desired date
-- **Taster**: all samples; can toggle `recuPhysiquement`; fills sensory evaluation forms
-- **Lab**: physically-received samples only; lab analysis form
+- **Collector**: their own samples + status badge + CEO negotiation details (when En négociation) + physical receipt checkmark. Cannot see taster evaluations.
+- **CEO**: all samples grouped by collector; statut badge; approve/refuse action from Analyse Organoleptique page; negotiation details after approval; purchase details after confirmation.
+- **Taster**: all samples regardless of collector; can toggle `recuPhysiquement`; fills individual sensory evaluation forms; can edit/delete until sample reaches En négociation state.
+- **Lab**: physically-received samples only; lab analysis form.
 
 ### Lab Technician-facing states:
 - **En attente** — analysis not yet started
-- **En cours** — analysis started but not finished
-- **Soumis** — analysis submitted
+- **En cours** — analysis started but not submitted
+- **Soumis** — analysis submitted (read-only)
 
 ---
 
@@ -365,6 +390,8 @@ The reference implementations are `lib/1_ceo/echantillons/echantillons_ceo_page.
 - Assets declared in `pubspec.yaml` under `assets/img/`.
 - French is used for all UI labels, page names, and state names.
 - Always clarify which actor's module is being worked on before making changes — roles are isolated and have different permissions and views for the same data.
+- Edit/delete permissions are governed by sample state, not by CEO approval. There is no concept of "collector needs CEO permission to edit." State transitions determine what is editable.
+- Once a sample is physically received, edits must record the previous value (edit history). Store `editHistory` as a list on the model.
 - The collector has offline support — sync logic is critical and must not be broken.
 - The 4 debug login buttons in `main.dart` must be removed before production.
 - All data access goes through a service class — never hardcode or fetch data directly in widgets.

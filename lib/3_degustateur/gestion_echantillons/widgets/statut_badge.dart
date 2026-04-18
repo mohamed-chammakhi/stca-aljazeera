@@ -19,15 +19,15 @@ class StatutBadge extends StatelessWidget {
     IconData icone;
 
     switch (statut) {
-      case 'En attente':
+      case 'Non évaluée':
         couleur = Colors.orange;
         icone = Icons.hourglass_empty_rounded;
         break;
-      case 'En cours':
+      case 'Évaluation en cours':
         couleur = Colors.blue;
         icone = Icons.edit_outlined;
         break;
-      case 'Soumis':
+      case '	Évaluation soumise':
         couleur = Colors.green;
         icone = Icons.check_circle_outline;
         break;

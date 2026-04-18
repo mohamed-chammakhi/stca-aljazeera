@@ -697,14 +697,8 @@ class _EnAttenteHint extends StatelessWidget {
     ),
     child: Row(
       children: [
-        Icon(
-          Icons.hourglass_empty_rounded,
-          size: 13,
-          color: Colors.orange.shade600,
-        ),
-        const SizedBox(width: 8),
         Text(
-          'Analyse non encore soumise par le technicien',
+          'Analyse non encore soumise',
           style: TextStyle(fontSize: 13, color: Colors.orange.shade800),
         ),
       ],

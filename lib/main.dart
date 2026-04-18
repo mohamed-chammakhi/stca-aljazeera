@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '3_degustateur/tableau_de_bord/homepage_page.dart';
 import '2_collecteur/mes_echantillons/mes_echantillons_page.dart';
-import '2_collecteur/tableau_de_bord/tableau_de_bord_collecteur_page.dart';
 //import 'collecteur/mes_echantillons/widgets/dialogs/try.dart';
 import '1_ceo/tableau_de_bord/tableau_de_bord.dart';
 import '4_laboratoire/echantillons_labo/echantillons_labo_page.dart';
@@ -350,7 +349,7 @@ class _LoginPageState extends State<LoginPage> {
                       _debugBtn('Dégustateur', () => _goTo(const HomePage())),
                       _debugBtn(
                         'Collecteur',
-                        () => _goTo(const TableauDeBordCollecteurPage()),
+                        () => _goTo(const MesEchantillonsPage()),
                       ),
 
                       _debugBtn(

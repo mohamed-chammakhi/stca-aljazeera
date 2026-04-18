@@ -167,23 +167,7 @@ class _EchantillonsLaboPageState extends State<EchantillonsLaboPage> {
     );
   }
 
-  // ── Summary stats ──────────────────────────────────────────────────────────
-  int get _total => _echantillons.length;
-  int get _analysesSoumises => _echantillons
-      .where((e) => e.statutAnalyse == StatutAnalyse.soumis)
-      .length;
-  int get _enAttente => _echantillons
-      .where((e) => e.statutAnalyse == StatutAnalyse.enAttente)
-      .length;
-
   bool get _anyFilter => _recherche.isNotEmpty || _filtreStatut != null;
-
-  static const List<_ChipData> _chips = [
-    _ChipData(null, 'Tous'),
-    _ChipData(StatutAnalyse.enAttente, 'En attente'),
-    _ChipData(StatutAnalyse.enCours, 'En cours'),
-    _ChipData(StatutAnalyse.soumis, 'Soumis'),
-  ];
 
   @override
   void dispose() {
@@ -336,22 +320,19 @@ class _EchantillonsLaboPageState extends State<EchantillonsLaboPage> {
             padding: const EdgeInsets.fromLTRB(16, 9, 16, 6),
             child: Row(
               children: [
-                _StatPill(
-                  value: _total.toString(),
-                  label: 'Total',
-                  color: Colors.grey.shade600,
+                Icon(
+                  Icons.science_outlined,
+                  size: 13,
+                  color: const Color.fromARGB(255, 156, 156, 156),
                 ),
-                const SizedBox(width: 10),
-                _StatPill(
-                  value: _enAttente.toString(),
-                  label: 'En attente',
-                  color: Colors.orange.shade700,
-                ),
-                const SizedBox(width: 10),
-                _StatPill(
-                  value: _analysesSoumises.toString(),
-                  label: 'Analysés',
-                  color: _green,
+                const SizedBox(width: 6),
+                Text(
+                  '${items.length} échantillon${items.length > 1 ? "s" : ""}',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Color.fromARGB(255, 156, 156, 156),
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ],
             ),
@@ -585,7 +566,7 @@ class _ReadOnlyRow extends StatelessWidget {
   }
 }
 
-// ── Statut chip — soft pastel inactive, solid color active ───────────────────
+// ── Statut chip — soft pastel inactive, tinted active (matches taster design) ──
 class _StatutChip extends StatelessWidget {
   final String label;
   final Color activeColor;
@@ -603,85 +584,62 @@ class _StatutChip extends StatelessWidget {
     required this.onTap,
   });
 
-  @override
-  Widget build(BuildContext context) => GestureDetector(
-    onTap: onTap,
-    child: AnimatedContainer(
-      duration: const Duration(milliseconds: 150),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-      decoration: BoxDecoration(
-        color: selected ? activeColor : inactiveColor,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: selected
-              ? activeColor
-              : inactiveTextColor.withValues(alpha: 0.35),
-          width: 1.2,
-        ),
-        boxShadow: selected
-            ? [
-                BoxShadow(
-                  color: activeColor.withValues(alpha: 0.25),
-                  blurRadius: 6,
-                  offset: const Offset(0, 2),
-                ),
-              ]
-            : null,
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-          color: selected ? Colors.white : inactiveTextColor,
-        ),
-      ),
-    ),
-  );
-}
-
-// ── Small stat pill ───────────────────────────────────────────────────────────
-class _StatPill extends StatelessWidget {
-  final String value;
-  final String label;
-  final Color color;
-  const _StatPill({
-    required this.value,
-    required this.label,
-    required this.color,
-  });
+  static const Color _inactiveBg = Color(0xFFF0F0F0);
+  static const Color _inactiveFg = Color(0xFF9E9E9E);
+  static const Color _inactiveBorder = Color(0xFFE0E0E0);
 
   @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-    decoration: BoxDecoration(
-      color: color.withValues(alpha: 0.08),
-      borderRadius: BorderRadius.circular(20),
-      border: Border.all(color: color.withValues(alpha: 0.2)),
-    ),
-    child: Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          value,
+  Widget build(BuildContext context) {
+    final bool isTous = label == 'Tous';
+
+    final Color bg;
+    final Color fg;
+    final Color border;
+
+    if (!selected) {
+      bg = _inactiveBg;
+      fg = _inactiveFg;
+      border = _inactiveBorder;
+    } else if (isTous) {
+      bg = const Color(0xFF757575);
+      fg = Colors.white;
+      border = const Color(0xFF757575);
+    } else {
+      bg = inactiveColor; // pastel tinted bg
+      fg = inactiveTextColor; // colored text
+      border = inactiveTextColor.withValues(alpha: 0.45);
+    }
+
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+        decoration: BoxDecoration(
+          color: bg,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: border, width: 1.2),
+          boxShadow: selected
+              ? [
+                  BoxShadow(
+                    color: (isTous ? const Color(0xFF757575) : inactiveTextColor)
+                        .withValues(alpha: 0.22),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
+              : null,
+        ),
+        child: Text(
+          label,
           style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w800,
-            color: color,
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: fg,
           ),
         ),
-        const SizedBox(width: 5),
-        Text(
-          label,
-          style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
-        ),
-      ],
-    ),
-  );
+      ),
+    );
+  }
 }
 
-class _ChipData {
-  final StatutAnalyse? statut;
-  final String label;
-  const _ChipData(this.statut, this.label);
-}
