@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CEO Dashboard v4</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&family=DM+Serif+Display&display=swap');
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:#101810;display:flex;justify-content:center;padding:44px 24px 80px;font-family:'DM Sans','Segoe UI',sans-serif;}
+  .phone{width:390px;background:#f2f4f2;border-radius:48px;overflow:hidden;box-shadow:0 0 0 1px rgba(255,255,255,0.07),0 48px 96px rgba(0,0,0,0.65);}
+
+  /* AppBar */
+  .appbar{background:#1A2E1F;height:65px;padding:0 20px;display:flex;align-items:center;gap:14px;}
+  .hamburger{display:flex;flex-direction:column;gap:4px;cursor:pointer;}
+  .hamburger span{display:block;height:1.5px;background:rgba(255,255,255,0.65);border-radius:1px;}
+  .hamburger span:nth-child(1){width:20px;} .hamburger span:nth-child(2){width:14px;} .hamburger span:nth-child(3){width:17px;}
+  .appbar-title{flex:1;font-family:'DM Serif Display',Georgia,serif;font-size:18px;font-weight:400;color:#fff;letter-spacing:0.1px;}
+  .bell-btn{width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,0.09);display:flex;align-items:center;justify-content:center;position:relative;}
+  .bell-dot{position:absolute;top:7px;right:7px;width:6px;height:6px;border-radius:50%;background:#e67e22;border:1.5px solid #1A2E1F;}
+
+  /* Season strip */
+  .season{background:#1A2E1F;padding:0 20px 13px;display:flex;align-items:center;}
+  .s-item{font-size:10px;color:rgba(255,255,255,0.38);font-weight:500;letter-spacing:0.3px;}
+  .s-item strong{color:rgba(122,184,150,0.9);font-weight:700;}
+  .s-div{width:1px;height:10px;background:rgba(255,255,255,0.12);margin:0 10px;}
+
+  /* Body */
+  .body{background:#f2f4f2;padding:16px 14px 52px;display:flex;flex-direction:column;gap:12px;}
+
+  /* KPI grid */
+  .kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .kpi-card{background:#fff;border-radius:14px;padding:15px 14px 13px;border:1px solid rgba(0,0,0,0.05);}
+  .kpi-card.featured{background:#1A2E1F;grid-column:span 2;display:flex;align-items:center;gap:18px;padding:18px 20px;}
+  .kpi-card.featured .kpi-lbl{color:rgba(255,255,255,0.4);}
+  .kpi-card.featured .kpi-num{color:#fff;font-size:28px;}
+  .kpi-card.featured .kpi-unit{color:rgba(255,255,255,0.3);}
+  .kpi-card.featured .kpi-delta{color:#7ab896;}
+  .feat-div{width:1px;height:48px;background:rgba(255,255,255,0.1);}
+  .feat-right{flex:1;}
+  .kpi-accent{height:3px;border-radius:2px;margin-bottom:12px;width:28px;}
+  .kpi-lbl{font-size:10px;font-weight:600;color:#999;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;}
+  .kpi-num{font-size:22px;font-weight:800;color:#1A2E1F;line-height:1;letter-spacing:-0.5px;}
+  .kpi-unit{font-size:11px;font-weight:400;color:#bbb;margin-left:3px;}
+  .kpi-delta{font-size:10px;font-weight:600;margin-top:7px;}
+  .up{color:#38835A;} .warn{color:#D07B2F;}
+
+  /* White card */
+  .wcard{background:#fff;border-radius:14px;border:1px solid rgba(0,0,0,0.05);}
+  .wpad{padding:14px 16px;}
+
+  /* Section header */
+  .sec-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+  .sec{font-size:10px;font-weight:700;color:#1A2E1F;text-transform:uppercase;letter-spacing:0.7px;}
+  .sec-meta{font-size:10px;color:#bbb;}
+
+  /* Pills */
+  .pills{display:flex;background:#f0f2f1;border-radius:7px;padding:2px;gap:1px;}
+  .p{padding:4px 9px;font-size:10px;font-weight:600;color:#999;border-radius:5px;cursor:pointer;}
+  .p.on{background:#1A2E1F;color:#fff;}
+
+  /* Metric switcher (inline tabs inside card) */
+  .metric-tabs{display:flex;gap:0;border-bottom:1px solid #f0f0f0;margin:0 -16px 14px;padding:0 16px;}
+  .mt{padding:8px 12px;font-size:11px;font-weight:600;color:#bbb;border-bottom:2px solid transparent;margin-bottom:-1px;cursor:pointer;}
+  .mt.on{color:#1A2E1F;border-bottom:2px solid #1A2E1F;}
+
+  /* Urgent */
+  .urg{background:#fff;border-radius:14px;border:1px solid rgba(192,57,43,0.15);overflow:hidden;}
+  .urg-head{display:flex;align-items:center;gap:10px;padding:11px 14px;background:#fdf4f3;border-bottom:1px solid rgba(192,57,43,0.08);}
+  .urg-pulse{width:8px;height:8px;border-radius:50%;background:#C0392B;box-shadow:0 0 0 3px rgba(192,57,43,0.15);flex-shrink:0;}
+  .urg-title{font-size:12px;font-weight:700;color:#C0392B;flex:1;}
+  .urg-badge{background:#C0392B;color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px;}
+  .urg-row{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid #f8f8f8;cursor:pointer;}
+  .urg-row:last-child{border-bottom:none;}
+  .urg-row:hover{background:#fdf9f9;}
+  .urg-ref{font-size:11px;font-weight:700;color:#1A2E1F;font-family:'Courier New',monospace;}
+  .urg-sub{font-size:10px;color:#aaa;margin-top:2px;}
+  .urg-chip{margin-left:auto;font-size:10px;font-weight:700;padding:4px 9px;border-radius:6px;white-space:nowrap;}
+  .cr{background:#fdf4f3;color:#C0392B;border:1px solid rgba(192,57,43,0.18);}
+  .ca{background:#fef8f3;color:#D07B2F;border:1px solid rgba(208,123,47,0.18);}
+  .urg-tap-hint{display:flex;align-items:center;gap:4px;padding:8px 14px;background:#fafafa;border-top:1px solid #f0f0f0;}
+  .urg-tap-text{font-size:10px;color:#bbb;font-style:italic;}
+
+  /* Pipeline */
+  .pipe{display:flex;}
+  .ps{flex:1;padding:14px 4px;text-align:center;position:relative;}
+  .ps+.ps::before{content:'›';position:absolute;left:-4px;top:44%;font-size:13px;color:#ddd;}
+  .ps-num{font-size:24px;font-weight:800;letter-spacing:-0.5px;line-height:1;}
+  .ps-lbl{font-size:8px;font-weight:700;color:#bbb;text-transform:uppercase;letter-spacing:0.5px;margin-top:4px;}
+  .ps-bar{height:2px;margin:7px 12px 0;border-radius:1px;}
+
+  /* Bar chart */
+  .bar-chart{display:flex;align-items:flex-end;gap:5px;height:80px;}
+  .bc{flex:1;display:flex;flex-direction:column;align-items:center;}
+  .bc-bar{width:100%;border-radius:3px 3px 0 0;}
+  .bc-lbl{font-size:9px;color:#bbb;margin-top:5px;}
+  .bc-val{font-size:9px;font-weight:700;margin-top:1px;}
+
+  /* Leaderboard */
+  .lr{display:flex;align-items:center;gap:9px;padding:10px 0;border-bottom:1px solid #f5f5f5;}
+  .lr:last-child{border-bottom:none;padding-bottom:2px;}
+  .lr-rank{width:16px;font-size:10px;font-weight:700;text-align:center;}
+  .lr-av{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;flex-shrink:0;}
+  .lr-name{font-size:11px;font-weight:700;color:#1A2E1F;}
+  .lr-meta{font-size:9px;color:#bbb;margin-top:1px;}
+  .lr-bar-bg{height:3px;background:#f0f0f0;border-radius:2px;margin-top:4px;overflow:hidden;}
+  .lr-bar{height:100%;border-radius:2px;}
+  .lr-right{margin-left:auto;text-align:right;flex-shrink:0;}
+  .lr-num{font-size:11px;font-weight:700;color:#1A2E1F;}
+  .lr-pct{font-size:9px;color:#bbb;margin-top:1px;}
+
+  /* Stacked bars */
+  .stk{display:flex;align-items:flex-end;gap:4px;height:76px;}
+  .stk-col{flex:1;display:flex;flex-direction:column;justify-content:flex-end;border-radius:3px 3px 0 0;overflow:hidden;}
+  .stk-seg{width:100%;}
+
+  /* Donut */
+  .dn-row{display:flex;align-items:center;gap:18px;}
+  .dn-item{display:flex;align-items:center;gap:8px;margin-bottom:9px;}
+  .dn-item:last-child{margin-bottom:0;}
+  .dn-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0;}
+  .dn-name{font-size:11px;color:#555;flex:1;}
+  .dn-pct{font-size:12px;font-weight:800;}
+  .dn-bar-bg{height:3px;background:#f0f0f0;border-radius:2px;margin:3px 0 0 16px;overflow:hidden;}
+  .dn-bar{height:100%;border-radius:2px;}
+
+  /* Supplier — relative % bars */
+  .sup-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+  .sup-row:last-child{margin-bottom:0;}
+  .sup-label{width:78px;flex-shrink:0;}
+  .sup-name{font-size:11px;font-weight:600;color:#1A2E1F;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .sup-region{font-size:9px;color:#bbb;margin-top:1px;}
+  .sup-track{flex:1;height:24px;background:#f4f6f4;border-radius:6px;overflow:hidden;position:relative;}
+  .sup-fill{height:100%;border-radius:6px;display:flex;align-items:center;padding-left:8px;}
+  .sup-fill-label{font-size:10px;font-weight:700;color:#fff;}
+  .sup-right{width:42px;flex-shrink:0;text-align:right;}
+  .sup-share{font-size:11px;font-weight:800;}
+  .sup-count{font-size:9px;color:#bbb;margin-top:1px;}
+  .sup-note{font-size:9px;color:#bbb;margin-top:8px;padding-top:8px;border-top:1px solid #f5f5f5;text-align:center;}
+
+  /* Stock — two tiles */
+  .stock-tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .stock-tile{border-radius:10px;padding:14px 12px;}
+  .stock-tile-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;margin-bottom:10px;}
+  .stock-tile-lbl{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.4px;margin-bottom:6px;}
+  .stock-tile-val{font-size:18px;font-weight:800;line-height:1;letter-spacing:-0.3px;}
+  .stock-tile-sub{font-size:10px;margin-top:4px;}
+
+  /* Map CTA */
+  .map-cta{background:#1A2E1F;border-radius:14px;padding:16px 18px;display:flex;align-items:center;gap:14px;}
+  .map-ico{width:40px;height:40px;border-radius:11px;background:rgba(56,131,90,0.22);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .map-title{font-size:13px;font-weight:700;color:#fff;}
+  .map-sub{font-size:10px;color:rgba(255,255,255,0.4);margin-top:3px;}
+  .map-arr{margin-left:auto;color:rgba(255,255,255,0.28);font-size:15px;}
+</style>
+</head>
+<body>
+<div class="phone">
+
+  <!-- AppBar -->
+  <div class="appbar">
+    <div class="hamburger"><span></span><span></span><span></span></div>
+    <div class="appbar-title">Tableau de Bord</div>
+    <div class="bell-btn">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="1.8" stroke-linecap="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      <div class="bell-dot"></div>
+    </div>
+  </div>
+
+  <!-- Season strip -->
+  <div class="season">
+    <div class="s-item" style="text-transform:uppercase;letter-spacing:0.5px;">Saison 2025/2026</div>
+    <div class="s-div"></div>
+    <div class="s-item"><strong>34</strong> échantillons</div>
+    <div class="s-div"></div>
+    <div class="s-item"><strong>9</strong> achats</div>
+    <div class="s-div"></div>
+    <div class="s-item"><strong>5</strong> en négoc.</div>
+  </div>
+
+  <div class="body">
+
+    <!-- ① KPI — current season, no filter -->
+    <div class="kpi-grid">
+      <div class="kpi-card featured">
+        <div>
+          <div class="kpi-lbl">Investi · Saison</div>
+          <div><span class="kpi-num">284 500</span><span class="kpi-unit">TND</span></div>
+          <div class="kpi-delta up">↑ +12% vs saison préc.</div>
+        </div>
+        <div class="feat-div"></div>
+        <div class="feat-right">
+          <div class="kpi-lbl">Prix moy./litre</div>
+          <div><span class="kpi-num" style="font-size:24px;">8.3</span><span class="kpi-unit">TND</span></div>
+          <div class="kpi-delta up" style="font-size:9px;">Objectif 8.0</div>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-accent" style="background:#3A6EA5;"></div>
+        <div class="kpi-lbl">Échantillons</div>
+        <div><span class="kpi-num">34</span></div>
+        <div class="kpi-delta up">↑ +3 ce mois</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-accent" style="background:#D07B2F;"></div>
+        <div class="kpi-lbl">Délai moy. → achat</div>
+        <div><span class="kpi-num">7.2</span><span class="kpi-unit">j</span></div>
+        <div class="kpi-delta warn">↑ +1.1j vs objectif</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-accent" style="background:#38835A;"></div>
+        <div class="kpi-lbl">Taux d'approbation</div>
+        <div><span class="kpi-num">68</span><span class="kpi-unit">%</span></div>
+        <div class="kpi-delta up">↑ +5% vs mois préc.</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-accent" style="background:#6B8143;"></div>
+        <div class="kpi-lbl">Achats confirmés</div>
+        <div><span class="kpi-num">9</span></div>
+        <div class="kpi-delta up">↑ +2 vs mois préc.</div>
+      </div>
+    </div>
+
+    <!-- ② Urgent — tappable rows -->
+    <div class="urg">
+      <div class="urg-head">
+        <div class="urg-pulse"></div>
+        <div class="urg-title">Décisions en attente</div>
+        <div class="urg-badge">2 urgentes</div>
+      </div>
+      <div class="urg-row">
+        <div>
+          <div class="urg-ref">ECH-2026-031</div>
+          <div class="urg-sub">Ahmed Dridi · Henchir Errouss · Sfax</div>
+        </div>
+        <div class="urg-chip cr">3j — urgent</div>
+        <svg style="margin-left:6px;flex-shrink:0;" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+      <div class="urg-row">
+        <div>
+          <div class="urg-ref">ECH-2026-028</div>
+          <div class="urg-sub">Sami Kraiem · Domaine Zitoun · Gafsa</div>
+        </div>
+        <div class="urg-chip ca">2j en attente</div>
+        <svg style="margin-left:6px;flex-shrink:0;" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+      <div class="urg-tap-hint">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+        <div class="urg-tap-text">Appuyer sur une décision → Analyse organoleptique</div>
+      </div>
+    </div>
+
+    <!-- ③ Pipeline -->
+    <div class="wcard">
+      <div class="wpad" style="padding-bottom:0;">
+        <div class="sec-row"><div class="sec">Pipeline des échantillons</div><div class="sec-meta">Temps réel</div></div>
+      </div>
+      <div class="pipe">
+        <div class="ps"><div class="ps-num" style="color:#3A6EA5">12</div><div class="ps-lbl">Réceptionné</div><div class="ps-bar" style="background:rgba(58,110,165,0.2)"></div></div>
+        <div class="ps"><div class="ps-num" style="color:#6B8143">8</div><div class="ps-lbl">Reçu phys.</div><div class="ps-bar" style="background:rgba(107,129,67,0.2)"></div></div>
+        <div class="ps"><div class="ps-num" style="color:#D07B2F">5</div><div class="ps-lbl">Négociation</div><div class="ps-bar" style="background:rgba(208,123,47,0.2)"></div></div>
+        <div class="ps"><div class="ps-num" style="color:#38835A">9</div><div class="ps-lbl">Confirmé</div><div class="ps-bar" style="background:rgba(56,131,90,0.2)"></div></div>
+      </div>
+      <div style="height:14px;"></div>
+    </div>
+
+    <!-- ④ Collector Performance — CONSOLIDATED, one section -->
+    <div class="wcard wpad">
+      <div class="sec-row">
+        <div class="sec">Performance collecteurs</div>
+        <div class="pills">
+          <div class="p">Sem</div><div class="p on">Mois</div><div class="p">An</div>
+        </div>
+      </div>
+
+      <!-- Metric switcher: one chart changes -->
+      <div class="metric-tabs">
+        <div class="mt on">Valeur</div>
+        <div class="mt">Échantillons</div>
+        <div class="mt">Approbation</div>
+      </div>
+
+      <!-- Chart: value per collector (changes with metric tab) -->
+      <div style="font-size:9px;color:#bbb;margin-bottom:8px;">Valeur des achats (TND) · Mois en cours</div>
+      <div class="bar-chart">
+        <div class="bc"><div class="bc-bar" style="height:100%;background:#1A2E1F;"></div><div class="bc-lbl">A. Dridi</div><div class="bc-val" style="color:#1A2E1F;">92K</div></div>
+        <div class="bc"><div class="bc-bar" style="height:77%;background:#38835A;"></div><div class="bc-lbl">S. Kraiem</div><div class="bc-val" style="color:#38835A;">71K</div></div>
+        <div class="bc"><div class="bc-bar" style="height:75%;background:#6B8143;"></div><div class="bc-lbl">F. Bouzid</div><div class="bc-val" style="color:#6B8143;">69K</div></div>
+        <div class="bc"><div class="bc-bar" style="height:41%;background:#c0b898;"></div><div class="bc-lbl">K. Maalej</div><div class="bc-val" style="color:#c0b898;">38K</div></div>
+      </div>
+
+      <!-- Divider -->
+      <div style="height:1px;background:#f5f5f5;margin:14px -16px 13px;"></div>
+
+      <!-- Leaderboard: all 3 metrics per row -->
+      <div style="display:flex;padding:0 0 8px;border-bottom:1px solid #f5f5f5;margin-bottom:4px;">
+        <div style="width:16px;"></div>
+        <div style="width:30px;margin:0 9px;"></div>
+        <div style="flex:1;"></div>
+        <div style="width:90px;display:flex;justify-content:space-between;flex-shrink:0;">
+          <div style="font-size:9px;color:#bbb;text-align:center;width:26px;">Éch.</div>
+          <div style="font-size:9px;color:#bbb;text-align:center;width:32px;">Approb.</div>
+          <div style="font-size:9px;color:#bbb;text-align:right;width:26px;">~j</div>
+        </div>
+      </div>
+
+      <div class="lr">
+        <div class="lr-rank" style="color:#c9a227;">1</div>
+        <div class="lr-av" style="background:#f0f7f3;color:#1A2E1F;">AD</div>
+        <div style="flex:1;"><div class="lr-name">Ahmed Dridi</div><div class="lr-meta">92 400 TND</div></div>
+        <div style="width:90px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;">
+          <div style="font-size:11px;font-weight:700;color:#1A2E1F;text-align:center;width:26px;">8</div>
+          <div style="font-size:11px;font-weight:700;color:#38835A;text-align:center;width:32px;">75%</div>
+          <div style="font-size:11px;font-weight:700;color:#bbb;text-align:right;width:26px;">6j</div>
+        </div>
+      </div>
+      <div class="lr">
+        <div class="lr-rank" style="color:#9e9e9e;">2</div>
+        <div class="lr-av" style="background:#f9f5f0;color:#8d6e40;">SK</div>
+        <div style="flex:1;"><div class="lr-name">Sami Kraiem</div><div class="lr-meta">71 200 TND</div></div>
+        <div style="width:90px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;">
+          <div style="font-size:11px;font-weight:700;color:#1A2E1F;text-align:center;width:26px;">6</div>
+          <div style="font-size:11px;font-weight:700;color:#D07B2F;text-align:center;width:32px;">67%</div>
+          <div style="font-size:11px;font-weight:700;color:#bbb;text-align:right;width:26px;">8j</div>
+        </div>
+      </div>
+      <div class="lr">
+        <div class="lr-rank" style="color:#8d6e40;">3</div>
+        <div class="lr-av" style="background:#eef3fb;color:#3A6EA5;">FB</div>
+        <div style="flex:1;"><div class="lr-name">Fatma Bouzid</div><div class="lr-meta">68 900 TND</div></div>
+        <div style="width:90px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;">
+          <div style="font-size:11px;font-weight:700;color:#1A2E1F;text-align:center;width:26px;">5</div>
+          <div style="font-size:11px;font-weight:700;color:#38835A;text-align:center;width:32px;">80%</div>
+          <div style="font-size:11px;font-weight:700;color:#bbb;text-align:right;width:26px;">4j</div>
+        </div>
+      </div>
+      <div class="lr">
+        <div class="lr-rank" style="color:#ccc;">4</div>
+        <div class="lr-av" style="background:#f5f5f5;color:#bbb;">KM</div>
+        <div style="flex:1;"><div class="lr-name">Khalil Maalej</div><div class="lr-meta">38 000 TND</div></div>
+        <div style="width:90px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;">
+          <div style="font-size:11px;font-weight:700;color:#bbb;text-align:center;width:26px;">4</div>
+          <div style="font-size:11px;font-weight:700;color:#bbb;text-align:center;width:32px;">50%</div>
+          <div style="font-size:11px;font-weight:700;color:#bbb;text-align:right;width:26px;">11j</div>
+        </div>
+      </div>
+
+      <!-- Divider -->
+      <div style="height:1px;background:#f5f5f5;margin:13px -16px 12px;"></div>
+
+      <!-- Samples per month stacked — inside same section, own period filter -->
+      <div class="sec-row" style="margin-bottom:10px;">
+        <div style="font-size:11px;font-weight:700;color:#1A2E1F;">Échantillons soumis</div>
+        <div class="pills"><div class="p">3m</div><div class="p on">6m</div><div class="p">1an</div></div>
+      </div>
+      <div class="stk">
+        <div class="stk-col"><div class="stk-seg" style="height:25%;background:#1A2E1F;"></div><div class="stk-seg" style="height:13%;background:#3A6EA5;"></div><div class="stk-seg" style="height:13%;background:#6B8143;"></div><div class="stk-seg" style="height:13%;background:#c0b898;"></div></div>
+        <div class="stk-col"><div class="stk-seg" style="height:38%;background:#1A2E1F;"></div><div class="stk-seg" style="height:25%;background:#6B8143;"></div><div class="stk-seg" style="height:13%;background:#c0b898;"></div></div>
+        <div class="stk-col"><div class="stk-seg" style="height:13%;background:#1A2E1F;"></div><div class="stk-seg" style="height:25%;background:#3A6EA5;"></div><div class="stk-seg" style="height:13%;background:#c0b898;"></div></div>
+        <div class="stk-col"><div class="stk-seg" style="height:50%;background:#1A2E1F;"></div><div class="stk-seg" style="height:13%;background:#3A6EA5;"></div><div class="stk-seg" style="height:25%;background:#6B8143;"></div></div>
+        <div class="stk-col"><div class="stk-seg" style="height:25%;background:#1A2E1F;"></div><div class="stk-seg" style="height:13%;background:#3A6EA5;"></div><div class="stk-seg" style="height:13%;background:#6B8143;"></div><div class="stk-seg" style="height:25%;background:#c0b898;"></div></div>
+        <div class="stk-col" style="opacity:0.25;"><div class="stk-seg" style="height:13%;background:#1A2E1F;"></div></div>
+      </div>
+      <div style="display:flex;gap:4px;margin-top:6px;">
+        <div style="flex:1;font-size:9px;color:#bbb;text-align:center;">Nov</div>
+        <div style="flex:1;font-size:9px;color:#bbb;text-align:center;">Déc</div>
+        <div style="flex:1;font-size:9px;color:#bbb;text-align:center;">Jan</div>
+        <div style="flex:1;font-size:9px;color:#bbb;text-align:center;">Fév</div>
+        <div style="flex:1;font-size:9px;color:#bbb;text-align:center;">Mar</div>
+        <div style="flex:1;font-size:9px;color:#bbb;text-align:center;">Avr</div>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:12px;margin-top:10px;">
+        <div style="display:flex;align-items:center;gap:5px;"><div style="width:10px;height:2px;background:#1A2E1F;border-radius:1px;"></div><span style="font-size:10px;color:#888;">A. Dridi</span></div>
+        <div style="display:flex;align-items:center;gap:5px;"><div style="width:10px;height:2px;background:#3A6EA5;border-radius:1px;"></div><span style="font-size:10px;color:#888;">F. Bouzid</span></div>
+        <div style="display:flex;align-items:center;gap:5px;"><div style="width:10px;height:2px;background:#6B8143;border-radius:1px;"></div><span style="font-size:10px;color:#888;">S. Kraiem</span></div>
+        <div style="display:flex;align-items:center;gap:5px;"><div style="width:10px;height:2px;background:#c0b898;border-radius:1px;"></div><span style="font-size:10px;color:#888;">K. Maalej</span></div>
+      </div>
+    </div>
+
+    <!-- ⑤ Classification -->
+    <div class="wcard wpad">
+      <div class="sec-row">
+        <div class="sec">Classification de l'huile</div>
+        <div class="pills"><div class="p">Sem</div><div class="p on">Mois</div><div class="p">An</div></div>
+      </div>
+      <div class="dn-row">
+        <svg width="100" height="100" viewBox="0 0 100 100" style="flex-shrink:0;">
+          <circle cx="50" cy="50" r="36" fill="none" stroke="#f0f0f0" stroke-width="18"/>
+          <circle cx="50" cy="50" r="36" fill="none" stroke="#1A2E1F" stroke-width="18" stroke-dasharray="135.7 90.5" stroke-dashoffset="0" transform="rotate(-90 50 50)"/>
+          <circle cx="50" cy="50" r="36" fill="none" stroke="#6B8143" stroke-width="18" stroke-dasharray="60.5 165.7" stroke-dashoffset="-135.7" transform="rotate(-90 50 50)"/>
+          <circle cx="50" cy="50" r="36" fill="none" stroke="#D07B2F" stroke-width="18" stroke-dasharray="30 196.2" stroke-dashoffset="-196.2" transform="rotate(-90 50 50)"/>
+          <text x="50" y="46" text-anchor="middle" font-size="13" font-weight="800" fill="#1A2E1F" font-family="DM Sans,sans-serif">15</text>
+          <text x="50" y="58" text-anchor="middle" font-size="8" fill="#bbb" font-family="DM Sans,sans-serif">lots</text>
+        </svg>
+        <div style="flex:1;">
+          <div class="dn-item"><div class="dn-dot" style="background:#1A2E1F;"></div><div class="dn-name">Extra Vierge</div><div class="dn-pct" style="color:#1A2E1F;">60%</div></div>
+          <div class="dn-bar-bg"><div class="dn-bar" style="width:60%;background:#1A2E1F;"></div></div>
+          <div class="dn-item" style="margin-top:9px;"><div class="dn-dot" style="background:#6B8143;"></div><div class="dn-name">Vierge</div><div class="dn-pct" style="color:#6B8143;">27%</div></div>
+          <div class="dn-bar-bg"><div class="dn-bar" style="width:27%;background:#6B8143;"></div></div>
+          <div class="dn-item" style="margin-top:9px;"><div class="dn-dot" style="background:#D07B2F;"></div><div class="dn-name">Lampante</div><div class="dn-pct" style="color:#D07B2F;">13%</div></div>
+          <div class="dn-bar-bg"><div class="dn-bar" style="width:13%;background:#D07B2F;"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ⑥ Suppliers — relative % share bars -->
+    <div class="wcard wpad">
+      <div class="sec-row">
+        <div class="sec">Fréquence fournisseurs</div>
+        <div class="pills"><div class="p on">Mois</div><div class="p">An</div><div class="p">Tout</div></div>
+      </div>
+      <div style="font-size:9px;color:#bbb;margin-bottom:10px;">Part relative des achats · Total = 21 transactions</div>
+      <div class="sup-row">
+        <div class="sup-label"><div class="sup-name">Henchir Err.</div><div class="sup-region">Sfax</div></div>
+        <div class="sup-track"><div class="sup-fill" style="width:100%;background:#1A2E1F;"><span class="sup-fill-label">33%</span></div></div>
+        <div class="sup-right"><div class="sup-share" style="color:#1A2E1F;">7</div><div class="sup-count">achats</div></div>
+      </div>
+      <div class="sup-row">
+        <div class="sup-label"><div class="sup-name">Dom. Zitoun</div><div class="sup-region">Gafsa</div></div>
+        <div class="sup-track"><div class="sup-fill" style="width:71%;background:#38835A;"><span class="sup-fill-label">24%</span></div></div>
+        <div class="sup-right"><div class="sup-share" style="color:#38835A;">5</div><div class="sup-count">achats</div></div>
+      </div>
+      <div class="sup-row">
+        <div class="sup-label"><div class="sup-name">F. El Baraka</div><div class="sup-region">Sousse</div></div>
+        <div class="sup-track"><div class="sup-fill" style="width:57%;background:#6B8143;"><span class="sup-fill-label">19%</span></div></div>
+        <div class="sup-right"><div class="sup-share" style="color:#6B8143;">4</div><div class="sup-count">achats</div></div>
+      </div>
+      <div class="sup-row">
+        <div class="sup-label"><div class="sup-name">Agr. Ben Ali</div><div class="sup-region">Nabeul</div></div>
+        <div class="sup-track"><div class="sup-fill" style="width:43%;background:#8d9e6a;"><span class="sup-fill-label">14%</span></div></div>
+        <div class="sup-right"><div class="sup-share" style="color:#8d9e6a;">3</div><div class="sup-count">achats</div></div>
+      </div>
+      <div class="sup-row">
+        <div class="sup-label"><div class="sup-name">Coop. Nour</div><div class="sup-region">Sidi Bouzid</div></div>
+        <div class="sup-track"><div class="sup-fill" style="width:28%;background:#c0b898;"><span class="sup-fill-label">10%</span></div></div>
+        <div class="sup-right"><div class="sup-share" style="color:#bbb;">2</div><div class="sup-count">achats</div></div>
+      </div>
+      <div class="sup-note">Les barres représentent la part de chaque fournisseur dans le total des transactions</div>
+    </div>
+
+    <!-- ⑦ Stock — two tiles, donut, no bars -->
+    <div class="wcard wpad">
+      <div class="sec-row"><div class="sec">État du stock</div><div class="sec-meta">Temps réel</div></div>
+      <div class="stock-tiles">
+        <div class="stock-tile" style="background:#fef8f2;">
+          <div class="stock-tile-icon" style="background:rgba(208,123,47,0.12);">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D07B2F" stroke-width="1.8" stroke-linecap="round"><rect x="1" y="3" width="15" height="13"/><path d="M16 8h4l3 6v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+          </div>
+          <div class="stock-tile-lbl" style="color:#D07B2F;">En transit</div>
+          <div class="stock-tile-val" style="color:#D07B2F;">145 000</div>
+          <div class="stock-tile-sub" style="color:#D07B2F;opacity:0.6;">litres · 3 lots</div>
+        </div>
+        <div class="stock-tile" style="background:#f0f7f3;">
+          <div class="stock-tile-icon" style="background:rgba(56,131,90,0.12);">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#38835A" stroke-width="1.8" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          </div>
+          <div class="stock-tile-lbl" style="color:#38835A;">Stock reçu</div>
+          <div class="stock-tile-val" style="color:#38835A;">287 000</div>
+          <div class="stock-tile-sub" style="color:#38835A;opacity:0.6;">litres · 6 lots</div>
+        </div>
+      </div>
+      <!-- Donut showing transit vs received -->
+      <div style="display:flex;align-items:center;gap:16px;margin-top:14px;padding-top:14px;border-top:1px solid #f5f5f5;">
+        <svg width="72" height="72" viewBox="0 0 72 72" style="flex-shrink:0;">
+          <circle cx="36" cy="36" r="26" fill="none" stroke="#f0f0f0" stroke-width="14"/>
+          <circle cx="36" cy="36" r="26" fill="none" stroke="#38835A" stroke-width="14" stroke-dasharray="109 54" stroke-dashoffset="0" transform="rotate(-90 36 36)" opacity="0.8"/>
+          <circle cx="36" cy="36" r="26" fill="none" stroke="#D07B2F" stroke-width="14" stroke-dasharray="54 109" stroke-dashoffset="-109" transform="rotate(-90 36 36)" opacity="0.7"/>
+          <text x="36" y="32" text-anchor="middle" font-size="9" font-weight="700" fill="#1A2E1F" font-family="DM Sans,sans-serif">432K</text>
+          <text x="36" y="43" text-anchor="middle" font-size="7" fill="#bbb" font-family="DM Sans,sans-serif">litres</text>
+        </svg>
+        <div style="flex:1;">
+          <div style="display:flex;align-items:center;gap:7px;margin-bottom:8px;">
+            <div style="width:8px;height:8px;border-radius:2px;background:#38835A;flex-shrink:0;"></div>
+            <div style="font-size:11px;color:#555;flex:1;">Stock reçu</div>
+            <div style="font-size:12px;font-weight:800;color:#38835A;">67%</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:7px;">
+            <div style="width:8px;height:8px;border-radius:2px;background:#D07B2F;flex-shrink:0;"></div>
+            <div style="font-size:11px;color:#555;flex:1;">En transit</div>
+            <div style="font-size:12px;font-weight:800;color:#D07B2F;">33%</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ⑧ Map CTA -->
+    <div class="map-cta">
+      <div class="map-ico">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7ab896" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg>
+      </div>
+      <div>
+        <div class="map-title">Carte de couverture</div>
+        <div class="map-sub">Délégations visitées par tous les collecteurs</div>
+      </div>
+      <div class="map-arr">›</div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

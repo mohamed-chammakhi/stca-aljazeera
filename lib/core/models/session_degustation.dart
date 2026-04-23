@@ -18,6 +18,9 @@ class SessionDegustation {
   final String createdBy;   // UUID FK → users (who created the session)
   final String createdAt;   // ISO 8601 timestamp
 
+  /// Planned number of samples for this session (informational, set at creation).
+  int? nombreEchantillonsPrevus;
+
   /// UUIDs of echantillons assigned to this session (from session_echantillons M2M).
   List<String> echantillonIds;
 
@@ -35,6 +38,7 @@ class SessionDegustation {
     required this.lieu,
     required this.statut,
     this.notes,
+    this.nombreEchantillonsPrevus,
     required this.createdBy,
     required this.createdAt,
     this.echantillonIds  = const [],
@@ -56,6 +60,7 @@ class SessionDegustation {
         notes:           json['notes']           as String?,
         createdBy:       json['created_by']      as String,
         createdAt:       json['created_at']      as String,
+        nombreEchantillonsPrevus: json['nombre_echantillons_prevus'] as int?,
         echantillonIds:  (json['echantillon_ids'] as List?)
                              ?.map((e) => e as String).toList() ?? [],
         participantIds:  (json['participant_ids'] as List?)
@@ -78,6 +83,7 @@ class SessionDegustation {
     'lieu':             lieu,
     'statut':           statut.toJson,
     'notes':            notes,
+    'nombre_echantillons_prevus': nombreEchantillonsPrevus,
     'created_by':       createdBy,
     'created_at':       createdAt,
     'echantillon_ids':  echantillonIds,

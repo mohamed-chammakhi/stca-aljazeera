@@ -24,6 +24,7 @@ const Color _green = Color(0xFF38835A);
 const Color _dark = Color(0xFF1A2E1F);
 const Color _bg = Color.fromARGB(255, 255, 255, 255);
 const Color _teal = Color(0xFF00796B);
+const Color _olive = Color(0xFF6B8143);
 
 // ─────────────────────────────────────────────────────────────────────────────
 class AnalyseLaboratoireCeoPage extends StatefulWidget {
@@ -88,9 +89,9 @@ class _AnalyseLaboratoireCeoPageState extends State<AnalyseLaboratoireCeoPage> {
           .toList();
     }
     // ── ADDED: apply status filter ────────────────────────────────────────────
-    if (_activeFilter == 'soumises') {
+    if (_activeFilter == 'Analyse soumise') {
       result = result.where((e) => e.analyse != null).toList();
-    } else if (_activeFilter == 'attente') {
+    } else if (_activeFilter == 'Analyse en attente') {
       result = result.where((e) => e.analyse == null).toList();
     }
     return result;
@@ -283,19 +284,21 @@ class _AnalyseLaboratoireCeoPageState extends State<AnalyseLaboratoireCeoPage> {
                 ),
                 const SizedBox(width: 8),
                 _FilterChip(
-                  label: 'Soumises',
-                  isActive: _activeFilter == 'soumises',
+                  label: 'Analyse soumise',
+                  isActive: _activeFilter == 'Analyse soumise',
                   activeBg: _green.withValues(alpha: 0.12),
                   activeFg: _green,
-                  onTap: () => setState(() => _activeFilter = 'soumises'),
+                  onTap: () =>
+                      setState(() => _activeFilter = 'Analyse soumise'),
                 ),
                 const SizedBox(width: 8),
                 _FilterChip(
-                  label: 'En attente',
-                  isActive: _activeFilter == 'attente',
+                  label: 'Analyse en attente',
+                  isActive: _activeFilter == 'Analyse en attente',
                   activeBg: Colors.orange.shade700.withValues(alpha: 0.12),
                   activeFg: Colors.orange.shade700,
-                  onTap: () => setState(() => _activeFilter = 'attente'),
+                  onTap: () =>
+                      setState(() => _activeFilter = 'Analyse en attente'),
                 ),
               ],
             ),
@@ -338,15 +341,16 @@ class _AnalyseLaboratoireCeoPageState extends State<AnalyseLaboratoireCeoPage> {
                         referenceBouteille: e.referenceBouteille,
                         id: e.id,
                         tintColor: _headerTint(hasAnalyse, classif),
-                        accentColor: hasAnalyse
-                            ? classifColor
-                            : Colors.orange.shade700,
-                        badge: hasAnalyse
-                            ? CardBadge(label: classif, color: classifColor)
-                            : CardBadge(
-                                label: 'En attente',
-                                color: Colors.orange.shade700,
+                        accentColor: _teal,
+                        badge: CardBadgeRow(
+                          badges: [
+                            if (e.quantiteEstimee != null)
+                              CardBadge(
+                                label: 'Qté : ${e.quantiteEstimee}T',
+                                color: _olive,
                               ),
+                          ],
+                        ),
                         detailItems: [
                           DetailItem('N° échantillon', e.id),
                           DetailItem('Ref. bouteille', e.referenceBouteille),
@@ -485,14 +489,13 @@ class _RapportSection extends StatelessWidget {
                     color: hasAnalyse ? _teal : Colors.grey.shade300,
                   ),
                 ),
-                if (hasAnalyse && e.analyse!.dateAnalyse != null) ...[
-                  const SizedBox(width: 6),
+                const Spacer(),
+                if (hasAnalyse && e.analyse!.dateAnalyse != null)
                   Text(
                     e.analyse!.dateAnalyse!,
                     style: TextStyle(fontSize: 12, color: Colors.grey.shade400),
                   ),
-                ],
-                const Spacer(),
+                const SizedBox(width: 6),
                 AnimatedRotation(
                   turns: isExpanded ? 0.5 : 0.0,
                   duration: const Duration(milliseconds: 180),

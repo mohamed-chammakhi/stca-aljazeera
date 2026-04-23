@@ -75,11 +75,11 @@ class _EvaluationEchantillonsPageState
   // ── FILTER LOGIC ─────────────────────────────────────────────────────────────
   StatutEchantillon? _labelToStatut(String? label) {
     switch (label) {
-      case 'En attente':
+      case 'Non évaluée':
         return StatutEchantillon.enAttente;
-      case 'En cours':
+      case 'Évaluation en cours':
         return StatutEchantillon.enCours;
-      case 'Soumis':
+      case 'Évaluation soumise':
         return StatutEchantillon.soumis;
       default:
         return null;
@@ -357,33 +357,35 @@ class _EvaluationEchantillonsPageState
                       ),
                       const SizedBox(width: 7),
                       _StatutChip(
-                        label: 'En attente',
+                        label: 'Non évaluée',
                         activeColor: const Color(0xFF3A6EA5),
                         inactiveColor: const Color(0xFFE8F1FB),
                         inactiveTextColor: const Color(0xFF3A6EA5),
-                        selected: _filtreStatutLabel == 'En attente',
+                        selected: _filtreStatutLabel == 'Non évaluée',
                         onTap: () =>
-                            setState(() => _filtreStatutLabel = 'En attente'),
+                            setState(() => _filtreStatutLabel = 'Non évaluée'),
                       ),
                       const SizedBox(width: 7),
                       _StatutChip(
-                        label: 'En cours',
+                        label: 'Évaluation en cours',
                         activeColor: const Color(0xFFD07B2F),
                         inactiveColor: const Color(0xFFFEF3E8),
                         inactiveTextColor: const Color(0xFFD07B2F),
-                        selected: _filtreStatutLabel == 'En cours',
-                        onTap: () =>
-                            setState(() => _filtreStatutLabel = 'En cours'),
+                        selected: _filtreStatutLabel == 'Évaluation en cours',
+                        onTap: () => setState(
+                          () => _filtreStatutLabel = 'Évaluation en cours',
+                        ),
                       ),
                       const SizedBox(width: 7),
                       _StatutChip(
-                        label: 'Soumis',
+                        label: 'Évaluation soumise',
                         activeColor: const Color(0xFF38835A),
                         inactiveColor: const Color(0xFFE6F4ED),
                         inactiveTextColor: const Color(0xFF38835A),
-                        selected: _filtreStatutLabel == 'Soumis',
-                        onTap: () =>
-                            setState(() => _filtreStatutLabel = 'Soumis'),
+                        selected: _filtreStatutLabel == 'Évaluation soumise',
+                        onTap: () => setState(
+                          () => _filtreStatutLabel = 'Évaluation soumise',
+                        ),
                       ),
                     ],
                   ),

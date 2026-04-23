@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '3_degustateur/tableau_de_bord/homepage_page.dart';
 import '2_collecteur/mes_echantillons/mes_echantillons_page.dart';
-//import 'collecteur/mes_echantillons/widgets/dialogs/try.dart';
 import '1_ceo/tableau_de_bord/tableau_de_bord.dart';
 import '4_laboratoire/echantillons_labo/echantillons_labo_page.dart';
+import '5_chef_degustateur/tableau_de_bord/homepage_page.dart' as chef;
+import '6_responsable_financier/achats_confirmes/achats_confirmes_rf_page.dart';
+import 'core/api_client.dart';
 
 // ENTRY POINT
 void main() {
@@ -45,6 +47,8 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool _obscurePassword = true;
+  bool _isLoading = false;
+  String? _errorMessage;
 
   // Brand colors
   static const Color green = Color(0xFF38835A);
@@ -76,30 +80,51 @@ class _LoginPageState extends State<LoginPage> {
     Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => page));
   }
 
-  // ── Login — TODO: replace with real API call ──────────────────────────────
-  void _login() {
-    if (_formKey.currentState!.validate()) {
-      FocusScope.of(context).unfocus();
-      Future.delayed(const Duration(milliseconds: 200), () {
-        Navigator.pushReplacement(
-          context,
-          PageRouteBuilder(
-            transitionDuration: const Duration(milliseconds: 10),
-            pageBuilder: (context, animation, secondaryAnimation) =>
-                const HomePage(),
-            transitionsBuilder:
-                (context, animation, secondaryAnimation, child) {
-                  return FadeTransition(
-                    opacity: CurvedAnimation(
-                      parent: animation,
-                      curve: Curves.easeIn,
-                    ),
-                    child: child,
-                  );
-                },
+  // ── Login ─────────────────────────────────────────────────────────────────
+  Future<void> _login() async {
+    if (!_formKey.currentState!.validate()) return;
+    FocusScope.of(context).unfocus();
+    setState(() { _isLoading = true; _errorMessage = null; });
+
+    try {
+      // 1. Authenticate — saves JWT tokens automatically
+      await apiClient.login(emailController.text.trim(), passwordController.text);
+
+      // 2. Fetch current user profile to get the role
+      final userData = await apiClient.get('/api/users/me/');
+      final role = userData['role'] as String?;
+
+      // 3. Navigate to the correct dashboard based on role
+      if (!mounted) return;
+      final Widget destination = switch (role) {
+        'direction'   => const HomePageCeo(),
+        'collecteur'  => const MesEchantillonsPage(),
+        'degustateur' => const HomePage(),
+        'laboratoire' => const EchantillonsLaboPage(),
+        _             => const HomePage(),
+      };
+
+      Navigator.pushReplacement(
+        context,
+        PageRouteBuilder(
+          transitionDuration: const Duration(milliseconds: 400),
+          pageBuilder: (_, __, ___) => destination,
+          transitionsBuilder: (_, animation, __, child) => FadeTransition(
+            opacity: CurvedAnimation(parent: animation, curve: Curves.easeIn),
+            child: child,
           ),
-        );
+        ),
+      );
+    } on ApiException catch (e) {
+      setState(() {
+        _errorMessage = e.statusCode == 401
+            ? 'Email ou mot de passe incorrect.'
+            : 'Erreur serveur (${e.statusCode}). Réessayez.';
       });
+    } catch (_) {
+      setState(() { _errorMessage = 'Impossible de joindre le serveur. Vérifiez votre connexion.'; });
+    } finally {
+      if (mounted) setState(() { _isLoading = false; });
     }
   }
 
@@ -292,32 +317,45 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                           ),
                           const SizedBox(height: 20),
+                          if (_errorMessage != null)
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 14),
+                              child: Text(
+                                _errorMessage!,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(color: red, fontSize: 13),
+                              ),
+                            ),
                           SizedBox(
                             width: double.infinity,
                             height: 52,
                             child: ElevatedButton(
-                              onPressed: _login,
+                              onPressed: _isLoading ? null : _login,
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color.fromARGB(
-                                  233,
-                                  22,
-                                  61,
-                                  39,
-                                ),
+                                backgroundColor: const Color.fromARGB(233, 22, 61, 39),
                                 foregroundColor: Colors.white,
                                 elevation: 0,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(14),
                                 ),
                               ),
-                              child: const Text(
-                                'Log In',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w700,
-                                  letterSpacing: 0.5,
-                                ),
-                              ),
+                              child: _isLoading
+                                  ? const SizedBox(
+                                      width: 22,
+                                      height: 22,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2.5,
+                                        color: Colors.white,
+                                      ),
+                                    )
+                                  : const Text(
+                                      'Log In',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w700,
+                                        letterSpacing: 0.5,
+                                      ),
+                                    ),
                             ),
                           ),
                         ],
@@ -355,6 +393,12 @@ class _LoginPageState extends State<LoginPage> {
                       _debugBtn(
                         'Technicien labo',
                         () => _goTo(const EchantillonsLaboPage()),
+                      ),
+                      _debugBtn('Chef de degus', () => _goTo(const chef.HomePage())),
+
+                      _debugBtn(
+                        'finance',
+                        () => _goTo(const AchatsConfirmesRfPage()),
                       ),
                       //    _debugBtn('Test', () => _goTo(const GeoTestPage())),
                     ],

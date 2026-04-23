@@ -1,0 +1,437 @@
+// ═════════════════════════════════════════════════════════════════════════════
+// FILE : shared/widgets/search_date_filter_bar.dart
+// Reusable search bar + date filter sheet.
+// ═════════════════════════════════════════════════════════════════════════════
+
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+
+const Color _green = Color(0xFF38835A);
+const Color _cream = Color(0xFFF9F6EF);
+const Color _dark = Color(0xFF1A2E1F);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SEARCH BAR
+// A slim, self-contained search input that notifies parent on change/clear.
+// ─────────────────────────────────────────────────────────────────────────────
+class SearchBarWidget extends StatelessWidget {
+  final TextEditingController controller;
+  final String searchQuery;
+  final ValueChanged<String> onChanged;
+  final VoidCallback onClear;
+
+  const SearchBarWidget({
+    super.key,
+    required this.controller,
+    required this.searchQuery,
+    required this.onChanged,
+    required this.onClear,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: _green,
+      padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+      child: Container(
+        height: 40,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          boxShadow: [
+            BoxShadow(
+              color: _dark.withValues(alpha: 0.08),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: TextField(
+          controller: controller,
+          onChanged: (v) => onChanged(v.trim()),
+          style: const TextStyle(fontSize: 13, color: _dark),
+          decoration: InputDecoration(
+            hintText: 'Rechercher réf, fournisseur, gouvernorat…',
+            hintStyle: const TextStyle(
+              fontSize: 13,
+              color: Color.fromARGB(255, 150, 149, 149),
+            ),
+            prefixIcon: Icon(
+              Icons.search,
+              size: 17,
+              color: Colors.grey.shade400,
+            ),
+            suffixIcon: searchQuery.isNotEmpty
+                ? GestureDetector(
+                    onTap: onClear,
+                    child: Icon(
+                      Icons.close,
+                      size: 17,
+                      color: Colors.grey.shade400,
+                    ),
+                  )
+                : null,
+            border: InputBorder.none,
+            isDense: true,
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 10,
+              vertical: 9,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// DATE FILTER BUTTON  (AppBar action)
+// ─────────────────────────────────────────────────────────────────────────────
+class DateFilterButton extends StatelessWidget {
+  final DateTime? dateDebut;
+  final DateTime? dateFin;
+  final VoidCallback onTap;
+
+  const DateFilterButton({
+    super.key,
+    required this.dateDebut,
+    required this.dateFin,
+    required this.onTap,
+  });
+
+  bool get _active => dateDebut != null;
+
+  String _fmt(DateTime d) =>
+      '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}';
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.only(right: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 7),
+        decoration: BoxDecoration(
+          color: _active ? Colors.white : Colors.white.withValues(alpha: 0.18),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: _active ? Colors.white : Colors.white.withValues(alpha: 0.3),
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.calendar_today_outlined,
+              size: 15,
+              color: _active ? _green : Colors.white,
+            ),
+            if (_active) ...[
+              const SizedBox(width: 5),
+              Text(
+                dateFin != null
+                    ? '${_fmt(dateDebut!)} → ${_fmt(dateFin!)}'
+                    : _fmt(dateDebut!),
+                style: const TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  color: _green,
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// DATE FILTER SHEET
+// ─────────────────────────────────────────────────────────────────────────────
+class DateFilterSheet extends StatefulWidget {
+  final DateTime? dateDebut;
+  final DateTime? dateFin;
+  final void Function(DateTime debut, DateTime? fin) onApply;
+  final VoidCallback onClear;
+
+  const DateFilterSheet({
+    super.key,
+    required this.dateDebut,
+    required this.dateFin,
+    required this.onApply,
+    required this.onClear,
+  });
+
+  @override
+  State<DateFilterSheet> createState() => _DateFilterSheetState();
+}
+
+class _DateFilterSheetState extends State<DateFilterSheet> {
+  late DateTime? _debut;
+  late DateTime? _fin;
+  bool _isRange = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _debut = widget.dateDebut;
+    _fin = widget.dateFin;
+    _isRange = widget.dateFin != null;
+  }
+
+  String _fmtDate(DateTime d) =>
+      '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}';
+
+  Future<void> _pickDate(bool isDebut) async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: (isDebut ? _debut : _fin) ?? DateTime.now(),
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2030),
+      builder: (ctx, child) => Theme(
+        data: Theme.of(ctx).copyWith(
+          colorScheme: const ColorScheme.light(
+            primary: _green,
+            onPrimary: Colors.white,
+          ),
+        ),
+        child: child!,
+      ),
+    );
+    if (picked != null) {
+      setState(() => isDebut ? _debut = picked : _fin = picked);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        color: _cream,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      padding: EdgeInsets.fromLTRB(
+        20,
+        16,
+        20,
+        MediaQuery.of(context).viewInsets.bottom + 32,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Center(
+            child: Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              const Icon(
+                Icons.calendar_today_outlined,
+                size: 16,
+                color: _green,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Filtrer par date',
+                style: GoogleFonts.domine(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w700,
+                  color: _dark,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          // Mode toggle
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.grey.shade100,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            padding: const EdgeInsets.all(3),
+            child: Row(
+              children: [
+                _ModeSegment(
+                  label: 'Jour exact',
+                  selected: !_isRange,
+                  onTap: () => setState(() {
+                    _isRange = false;
+                    _fin = null;
+                  }),
+                ),
+                _ModeSegment(
+                  label: 'Période',
+                  selected: _isRange,
+                  onTap: () => setState(() => _isRange = true),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 14),
+          GestureDetector(
+            onTap: () => _pickDate(true),
+            child: _DatePickerField(
+              label: _isRange ? 'Du' : 'Date',
+              value: _debut != null ? _fmtDate(_debut!) : null,
+            ),
+          ),
+          if (_isRange) ...[
+            const SizedBox(height: 10),
+            GestureDetector(
+              onTap: () => _pickDate(false),
+              child: _DatePickerField(
+                label: 'Au',
+                value: _fin != null ? _fmtDate(_fin!) : null,
+              ),
+            ),
+          ],
+          const SizedBox(height: 20),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () {
+                    widget.onClear();
+                    Navigator.pop(context);
+                  },
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.grey.shade600,
+                    side: BorderSide(color: Colors.grey.shade300),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: const Text('Effacer'),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                flex: 2,
+                child: ElevatedButton(
+                  onPressed: _debut == null
+                      ? null
+                      : () {
+                          widget.onApply(_debut!, _isRange ? _fin : null);
+                          Navigator.pop(context);
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _green,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: const Text(
+                    'Appliquer',
+                    style: TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PRIVATE HELPERS  (used only inside this file)
+// ─────────────────────────────────────────────────────────────────────────────
+class _ModeSegment extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+  const _ModeSegment({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) => Expanded(
+    child: GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(vertical: 9),
+        decoration: BoxDecoration(
+          color: selected ? Colors.white : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+          boxShadow: selected
+              ? [
+                  BoxShadow(
+                    color: _dark.withValues(alpha: 0.07),
+                    blurRadius: 4,
+                    offset: const Offset(0, 1),
+                  ),
+                ]
+              : null,
+        ),
+        child: Center(
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: selected ? _dark : Colors.grey.shade500,
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
+class _DatePickerField extends StatelessWidget {
+  final String label;
+  final String? value;
+  const _DatePickerField({required this.label, this.value});
+
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(10),
+      border: Border.all(
+        color: value != null ? _green : Colors.grey.shade200,
+        width: value != null ? 1.5 : 1,
+      ),
+    ),
+    child: Row(
+      children: [
+        Icon(
+          Icons.calendar_today_outlined,
+          size: 16,
+          color: value != null ? _green : Colors.grey.shade400,
+        ),
+        const SizedBox(width: 10),
+        Text(
+          '$label : ',
+          style: TextStyle(fontSize: 13, color: Colors.grey.shade500),
+        ),
+        Text(
+          value ?? 'Choisir une date',
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: value != null ? FontWeight.w700 : FontWeight.w400,
+            color: value != null ? _dark : Colors.grey.shade400,
+          ),
+        ),
+      ],
+    ),
+  );
+}

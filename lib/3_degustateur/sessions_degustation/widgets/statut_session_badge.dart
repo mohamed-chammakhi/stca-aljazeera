@@ -57,6 +57,13 @@ class _BadgeConfig {
 
 _BadgeConfig _config(StatutSession s) {
   switch (s) {
+    case StatutSession.enAttenteValidation:
+      return _BadgeConfig(
+        const Color(0xFFF5F5F5),
+        const Color(0xFF9E9E9E),
+        const Color(0xFF9E9E9E),
+        'En attente',
+      );
     case StatutSession.planifiee:
       return _BadgeConfig(
         const Color(0xFFFFF8E1),

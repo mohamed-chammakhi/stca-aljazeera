@@ -725,7 +725,6 @@ class _AnalyseOrganoleptiqueCeoPageState
                     itemCount: echantillons.length,
                     itemBuilder: (_, i) {
                       final e = echantillons[i];
-                      final status = _statusOf(e);
                       final majority = e.classificationMajoritaire;
                       final panelExp = _expandedPanel.contains(e.id);
 
@@ -741,10 +740,6 @@ class _AnalyseOrganoleptiqueCeoPageState
                                 label: 'Qté : ${e.quantiteEstimee}T',
                                 color: _olive,
                               ),
-                            CardBadge(
-                              label: '${e.nombreEvaluations}/${e.totalTasteurs}',
-                              color: status.color,
-                            ),
                           ],
                         ),
                         detailItems: [

@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>CEO Dashboard — Aperçu v4</title>
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;600;700&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --hbg:#DCE9E2;
+      --green:#38835A;
+      --dark:#1A2E1F;
+      --bg:#F2F4F2;
+      --white:#FFFFFF;
+      --amber:#D07B2F;
+      --blue:#3A6EA5;
+      --red:#C0392B;
+      --kpi:#3D5C49;
+    }
+    body{
+      font-family:'DM Sans',sans-serif;
+      background:#DFE7E3;
+      min-height:100vh;
+      display:flex;flex-direction:column;align-items:center;
+      padding:40px 16px 80px;gap:20px;
+    }
+    h1{font-family:'EB Garamond',serif;font-size:22px;color:var(--dark);text-align:center;letter-spacing:-.3px}
+
+    /* ── Phone ── */
+    .phone{width:340px;border-radius:40px;background:#161616;padding:10px;box-shadow:0 32px 80px rgba(0,0,0,.28),0 0 0 1px rgba(255,255,255,.05) inset}
+    .screen{border-radius:31px;overflow:hidden;background:var(--bg);max-height:720px;overflow-y:auto;scrollbar-width:none}
+    .screen::-webkit-scrollbar{display:none}
+
+    /* ── AppBar ── */
+    .appbar{display:flex;align-items:center;height:64px;padding:0 15px;background:var(--hbg);position:sticky;top:0;z-index:10}
+    .appbar-icon{width:34px;height:34px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .appbar-title{flex:1;font-family:'EB Garamond',serif;font-size:17px;font-weight:700;color:var(--dark);margin-left:4px}
+    .notif-btn{position:relative;width:34px;height:34px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .notif-badge{position:absolute;top:4px;right:4px;width:14px;height:14px;background:#FF8C00;border-radius:7px;font-size:7px;font-weight:800;color:white;display:flex;align-items:center;justify-content:center}
+    .divider{height:1px;background:rgba(0,0,0,.07)}
+
+    /* ── Body ── */
+    .body{background:var(--bg);padding:13px 13px 28px;display:flex;flex-direction:column;gap:10px}
+
+    /* ── KPI big ── */
+    .kpi-big{background:var(--kpi);border-radius:14px;padding:17px;display:flex}
+    .kpi-half{flex:1}
+    .kpi-half+.kpi-half{padding-left:14px}
+    .kpi-lbl{font-size:7.5px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:rgba(255,255,255,.50);margin-bottom:6px}
+    .kpi-val{font-size:21px;font-weight:800;letter-spacing:-.5px;color:#fff}
+    .kpi-unit{font-size:11px;font-weight:400;color:#9DCBB3}
+    .kpi-sub{font-size:9px;margin-top:4px;color:rgba(255,255,255,.60)}
+    .kpi-sep{width:1px;background:rgba(255,255,255,.12);align-self:stretch;margin:0 4px;flex-shrink:0}
+
+    /* ── Cards ── */
+    .card{background:var(--white);border-radius:14px;border:1px solid rgba(0,0,0,.05);padding:14px}
+    .sec-hdr{display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:nowrap}
+    .sec-bar{width:3px;height:15px;background:var(--green);border-radius:2px;flex-shrink:0}
+    .sec-title{font-size:13px;font-weight:700;color:var(--dark);flex:1;min-width:0}
+    .sec-badge{font-size:10px;font-weight:700;color:var(--green);background:rgba(56,131,90,.10);padding:3px 9px;border-radius:20px;white-space:nowrap;flex-shrink:0}
+
+    /* ── Date chip ── */
+    .date-chip{display:inline-flex;align-items:center;gap:4px;padding:4px 8px;background:#F0F2F1;border:1px solid #E8EAE8;border-radius:8px;cursor:pointer;white-space:nowrap;flex-shrink:0}
+    .date-chip-text{font-size:9.5px;font-weight:700;color:var(--dark)}
+
+    /* ── Pipeline ─────────────────────────────────────────────────────────────
+       KEY FIX: numbers are abbreviated (k / M). Four columns share equal space.
+       The number font size shrinks slightly to 18px so even "100.0k" fits.
+       A sub-caption shows the raw count in small gray for precision if needed.
+    ── */
+    .pipe-row{display:flex;align-items:center}
+    .pipe-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;min-width:0}
+    .pipe-num{font-size:18px;font-weight:800;letter-spacing:-.3px;line-height:1}
+    .pipe-sub{font-size:7.5px;color:#ABABAB;margin-top:1px}   /* exact raw count for huge numbers */
+    .pipe-lbl{font-size:8px;font-weight:600;color:#9E9E9E;text-align:center;line-height:1.3;padding:0 2px}
+    .pipe-line{height:2px;width:80%;border-radius:2px;margin-top:4px;opacity:.30}
+    .pipe-arrow{font-size:13px;color:#DEDEDE;flex-shrink:0;padding-bottom:22px}
+
+    /* ── Urgent panel ── */
+    .urgent-card{background:var(--white);border-radius:14px;border:1px solid rgba(192,57,43,.15);overflow:hidden}
+    .urgent-header{background:#FDF4F3;padding:12px 14px;display:flex;align-items:center;gap:10px}
+    .urgent-dot{width:9px;height:9px;border-radius:50%;background:var(--red);box-shadow:0 0 0 3px rgba(192,57,43,.18);flex-shrink:0}
+    .urgent-title{flex:1;font-size:13px;font-weight:700;color:var(--red)}
+    .urgent-count{background:var(--red);color:white;font-size:11px;font-weight:700;padding:3px 9px;border-radius:7px}
+    .urgent-row{padding:13px 14px;display:flex;align-items:center;gap:10px;border-top:1px solid rgba(0,0,0,.04);cursor:pointer}
+    .urgent-ref{font-size:13px;font-weight:700;color:var(--dark)}
+    .urgent-meta{font-size:11px;color:#9E9E9E;margin-top:2px}
+    .ubadge{padding:5px 10px;border-radius:7px;font-size:11px;font-weight:700;flex-shrink:0;white-space:nowrap}
+    .ured{background:rgba(192,57,43,.09);border:1px solid rgba(192,57,43,.18);color:var(--red)}
+    .uamb{background:rgba(208,123,47,.09);border:1px solid rgba(208,123,47,.18);color:var(--amber)}
+    .chevron{color:#D0D0D0;font-size:15px;flex-shrink:0}
+    .urgent-hint{background:#F8F8F8;padding:9px 14px;border-top:1px solid rgba(0,0,0,.04)}
+    .hint-text{display:block;font-size:11px;color:#8A8A8A;font-style:italic;width:100%}
+
+    /* ── Collector chart ── */
+    .coll-tabs{display:flex;border-bottom:1px solid rgba(0,0,0,.06);margin-bottom:12px}
+    .coll-tab{padding:7px 13px;font-size:11px;font-weight:600;color:#ABABAB;cursor:pointer;white-space:nowrap}
+    .coll-tab.active{color:var(--dark);border-bottom:2px solid var(--dark);margin-bottom:-1px}
+    .chart-area{display:flex;align-items:stretch;gap:4px;height:170px}
+    .y-axis{width:30px;position:relative;flex-shrink:0}
+    .y-label{position:absolute;right:3px;font-size:8px;color:#ABABAB;transform:translateY(-50%)}
+    .y-line{width:1px;background:#EBEBEB;align-self:stretch;flex-shrink:0}
+    .bars-scroll{flex:1;overflow-x:auto;display:flex;align-items:flex-end;scrollbar-width:none}
+    .bars-scroll::-webkit-scrollbar{display:none}
+    .bar-col{width:58px;flex-shrink:0;display:flex;flex-direction:column;align-items:center}
+    .bar-top-lbl{height:15px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700}
+    .bar-wrap{flex:1;width:100%;display:flex;align-items:flex-end;justify-content:center}
+    .bar{width:32px;border-radius:5px 5px 0 0}
+    .bar-bottom{height:40px;width:100%;display:flex;flex-direction:column;align-items:center;padding-top:5px;overflow:hidden}
+    .bar-initials{font-size:10px;font-weight:800;color:var(--dark)}
+    .bar-name{font-size:8px;color:#ABABAB;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:54px;text-align:center}
+    .scroll-hint{display:flex;align-items:center;justify-content:center;gap:5px;padding:6px 0 2px;color:#7A8A7E;font-size:10.5px;font-style:italic}
+
+    /* ══════════════════════════════════════════════════════════════════════════
+       SALES COMPARISON CHART
+       Line chart: 2 series (current season vs previous season) over 6 months.
+       Uses an SVG polyline approach — no library needed for the preview.
+    ══════════════════════════════════════════════════════════════════════════ */
+    .sales-chart-wrap{position:relative;height:140px;margin-top:4px}
+    .sales-svg{width:100%;height:100%;overflow:visible}
+
+    /* period tabs for the sales chart */
+    .period-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+    .period-tab{padding:4px 10px;border-radius:20px;font-size:10px;font-weight:700;cursor:pointer;border:1px solid transparent}
+    .period-tab.active{background:var(--dark);color:white;border-color:var(--dark)}
+    .period-tab.inactive{background:#F0F2F1;color:#7A8A7E;border-color:#E8EAE8}
+
+    /* legend */
+    .sales-legend{display:flex;gap:14px;margin-bottom:10px;flex-wrap:wrap}
+    .legend-item{display:flex;align-items:center;gap:5px;font-size:10px;font-weight:600;color:var(--dark)}
+    .legend-line{width:18px;height:3px;border-radius:2px}
+    .legend-dot-sm{width:7px;height:7px;border-radius:50%;border:2px solid white}
+
+    /* ── Classification ── */
+    .class-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+    .class-row:last-child{margin-bottom:0}
+    .class-dot{width:9px;height:9px;border-radius:2px;flex-shrink:0}
+    .class-name{font-size:11px;color:var(--dark);flex:1}
+    .class-track{flex:2;height:5px;background:#F0F4F0;border-radius:3px;overflow:hidden}
+    .class-fill{height:100%;border-radius:3px}
+    .class-pct{font-size:11px;font-weight:800;width:32px;text-align:right;flex-shrink:0}
+
+    /* ── Suppliers ── */
+    .sup-row{display:flex;align-items:center;gap:9px;margin-bottom:10px}
+    .sup-row:last-child{margin-bottom:0}
+    .sup-info{width:80px;flex-shrink:0}
+    .sup-name{font-size:11px;font-weight:600;color:var(--dark);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .sup-region{font-size:9px;color:#ABABAB}
+    .sup-track{flex:1;height:22px;background:#EEF4F0;border-radius:6px;overflow:hidden}
+    .sup-fill{height:100%;border-radius:6px;display:flex;align-items:center;padding-left:8px}
+    .sup-pct-in{font-size:10px;font-weight:700;color:rgba(255,255,255,.88)}
+    .sup-right{text-align:right;flex-shrink:0;width:34px}
+    .sup-pct{font-size:11px;font-weight:800;color:var(--green)}
+    .sup-ach{font-size:9px;color:#ABABAB}
+
+    /* ── Stock ── */
+    .stock-row{display:flex;align-items:center;gap:16px}
+    .donut{width:90px;height:90px;border-radius:50%;flex-shrink:0;background:conic-gradient(var(--amber) 0% 34%,var(--green) 34% 100%);display:flex;align-items:center;justify-content:center}
+    .donut-hole{width:54px;height:54px;border-radius:50%;background:var(--white)}
+    .legend-lbl{font-size:12px;font-weight:600;color:var(--dark)}
+    .legend-sub{font-size:10px;color:#ABABAB;margin-top:1px}
+
+    /* ── Map CTA ── */
+    .map-cta{border-radius:14px;overflow:hidden;position:relative;height:64px;background:var(--dark);display:flex;align-items:center}
+    .map-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.18;filter:invert(1)}
+    .map-overlay{position:relative;z-index:1;display:flex;align-items:center;gap:14px;padding:0 18px;width:100%}
+    .map-title{font-size:13px;font-weight:700;color:white}
+    .map-sub{font-size:11px;color:rgba(255,255,255,.65);margin-top:2px}
+    .map-arrow{margin-left:auto;font-size:18px;color:rgba(255,255,255,.40)}
+  </style>
+</head>
+<body>
+
+<h1>Tableau de Bord — Aperçu v4</h1>
+
+<div class="phone">
+  <div class="screen">
+
+    <!-- AppBar -->
+    <div class="appbar">
+      <div class="appbar-icon">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#1A2E1F" stroke-width="2.2" stroke-linecap="round">
+          <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+      </div>
+      <div class="appbar-title">Tableau de Bord</div>
+      <div class="notif-btn">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#1A2E1F" stroke-width="2" stroke-linecap="round">
+          <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+        </svg>
+        <div class="notif-badge">3</div>
+      </div>
+    </div>
+    <div class="divider"></div>
+
+    <div class="body">
+
+      <!-- 1. KPI big -->
+      <div class="kpi-big">
+        <div class="kpi-half">
+          <div class="kpi-lbl">Investissements saison</div>
+          <div class="kpi-val">284 500 <span class="kpi-unit">TND</span></div>
+          <div class="kpi-sub">+12% vs saison précédente</div>
+        </div>
+        <div class="kpi-sep"></div>
+        <div class="kpi-half">
+          <div class="kpi-lbl">Prix moyen / litre</div>
+          <div class="kpi-val">8.4 <span class="kpi-unit">TND/L</span></div>
+          <div class="kpi-sub">Saison 2025/2026</div>
+        </div>
+      </div>
+
+      <!-- 2. Pipeline — large-number safe -->
+      <!--
+        FIX: numbers are abbreviated → formatPipelineNum() in Flutter will output:
+          < 1 000        → "342"
+          1 000–9 999    → "1.2k"
+          10 000–99 999  → "42k"
+          ≥ 100 000      → "100k"
+        A tiny raw-count line sits below in muted gray so the CEO always
+        has the exact figure without the big number overflowing its column.
+      -->
+      <div class="card">
+        <div class="sec-hdr">
+          <div class="sec-bar"></div>
+          <span class="sec-title">Pipeline des échantillons</span>
+        </div>
+        <div class="pipe-row">
+          <div class="pipe-col">
+            <div class="pipe-num" style="color:#3A6EA5">84k</div>
+            <div class="pipe-sub">84 312</div>
+            <div class="pipe-lbl">Réceptionné</div>
+            <div class="pipe-line" style="background:#3A6EA5"></div>
+          </div>
+          <div class="pipe-arrow">›</div>
+          <div class="pipe-col">
+            <div class="pipe-num" style="color:#6B8143">61k</div>
+            <div class="pipe-sub">61 004</div>
+            <div class="pipe-lbl">Reçu</div>
+            <div class="pipe-line" style="background:#6B8143"></div>
+          </div>
+          <div class="pipe-arrow">›</div>
+          <div class="pipe-col">
+            <div class="pipe-num" style="color:#D07B2F">5.2k</div>
+            <div class="pipe-sub">5 200</div>
+            <div class="pipe-lbl">En négoc.</div>
+            <div class="pipe-line" style="background:#D07B2F"></div>
+          </div>
+          <div class="pipe-arrow">›</div>
+          <div class="pipe-col">
+            <div class="pipe-num" style="color:#38835A">9</div>
+            <div class="pipe-sub">&nbsp;</div>
+            <div class="pipe-lbl">Confirmé</div>
+            <div class="pipe-line" style="background:#38835A"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Urgent decisions -->
+      <div class="urgent-card">
+        <div class="urgent-header">
+          <div class="urgent-dot"></div>
+          <div class="urgent-title">Décisions en attente</div>
+          <div class="urgent-count">2</div>
+        </div>
+        <div class="urgent-row">
+          <div style="flex:1;min-width:0">
+            <div class="urgent-ref">ECH-2026-031</div>
+            <div class="urgent-meta">Ahmed Dridi · Henchir Errouss</div>
+          </div>
+          <div class="ubadge ured">3j — urgent</div>
+          <div class="chevron">›</div>
+        </div>
+        <div class="urgent-row">
+          <div style="flex:1;min-width:0">
+            <div class="urgent-ref">ECH-2026-028</div>
+            <div class="urgent-meta">Sami Kraiem · Domaine Zitoun</div>
+          </div>
+          <div class="ubadge uamb">2j en attente</div>
+          <div class="chevron">›</div>
+        </div>
+        <div class="urgent-hint">
+          <span class="hint-text">Appuyez pour voir l'évaluation organoleptique</span>
+        </div>
+      </div>
+
+      <!-- 4. Collector performance -->
+      <div class="card" style="padding-bottom:10px">
+        <div class="sec-hdr">
+          <div class="sec-bar"></div>
+          <span class="sec-title">Performance collecteurs</span>
+          <div class="date-chip">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#38835A" stroke-width="2.2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <span class="date-chip-text">Nov 25 – Avr 26</span>
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#38835A" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+        </div>
+        <div class="coll-tabs">
+          <div class="coll-tab active">Valeur</div>
+          <div class="coll-tab">Échantillons</div>
+          <div class="coll-tab">Approbation</div>
+        </div>
+        <div class="chart-area">
+          <div class="y-axis">
+            <span class="y-label" style="top:0">93k</span>
+            <span class="y-label" style="top:50%">46k</span>
+            <span class="y-label" style="top:100%">0</span>
+          </div>
+          <div class="y-line"></div>
+          <div class="bars-scroll">
+            <div class="bar-col">
+              <div class="bar-top-lbl" style="color:#38835A">92k</div>
+              <div class="bar-wrap"><div class="bar" style="height:108px;background:#38835A"></div></div>
+              <div class="bar-bottom"><div class="bar-initials">AD</div><div class="bar-name">Ahmed</div></div>
+            </div>
+            <div class="bar-col">
+              <div class="bar-top-lbl" style="color:#38835A">71k</div>
+              <div class="bar-wrap"><div class="bar" style="height:83px;background:#38835A"></div></div>
+              <div class="bar-bottom"><div class="bar-initials">SK</div><div class="bar-name">Sami</div></div>
+            </div>
+            <div class="bar-col">
+              <div class="bar-top-lbl" style="color:#38835A">69k</div>
+              <div class="bar-wrap"><div class="bar" style="height:80px;background:#38835A"></div></div>
+              <div class="bar-bottom"><div class="bar-initials">FB</div><div class="bar-name">Fatma</div></div>
+            </div>
+            <div class="bar-col">
+              <div class="bar-top-lbl" style="color:#38835A">38k</div>
+              <div class="bar-wrap"><div class="bar" style="height:44px;background:#38835A"></div></div>
+              <div class="bar-bottom"><div class="bar-initials">KM</div><div class="bar-name">Khalil</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="scroll-hint">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#7A8A7E" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          Faites glisser pour voir tous les collecteurs
+        </div>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════════════════════
+           NEW — Évolution des achats (sales comparison across seasons/periods)
+           Two polyline series on the same axis + date filter chip + period tabs
+      ═══════════════════════════════════════════════════════════════════════ -->
+      <div class="card">
+        <div class="sec-hdr">
+          <div class="sec-bar"></div>
+          <span class="sec-title">Évolution des achats</span>
+          <div class="date-chip">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#38835A" stroke-width="2.2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <span class="date-chip-text">Saison 25/26</span>
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#38835A" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+        </div>
+
+        <!-- Legend only — two lines, no tab buttons -->
+        <div class="sales-legend">
+          <div class="legend-item">
+            <div class="legend-line" style="background:#38835A"></div>
+            <span>Saison 25/26</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-line" style="background:#B8DCC8;border-top:2px dashed #B8DCC8;height:0;margin-top:1px"></div>
+            <span style="color:#9A9A9A">Saison 24/25</span>
+          </div>
+        </div>
+
+        <!-- SVG line chart -->
+        <div class="sales-chart-wrap">
+          <svg class="sales-svg" viewBox="0 0 290 130" preserveAspectRatio="none">
+            <!-- Grid lines -->
+            <line x1="0" y1="0"   x2="290" y2="0"   stroke="#F0F0F0" stroke-width="1"/>
+            <line x1="0" y1="43"  x2="290" y2="43"  stroke="#F0F0F0" stroke-width="1"/>
+            <line x1="0" y1="86"  x2="290" y2="86"  stroke="#F0F0F0" stroke-width="1"/>
+            <line x1="0" y1="129" x2="290" y2="129" stroke="#F0F0F0" stroke-width="1"/>
+
+            <!-- Y axis labels (rendered outside SVG to keep fonts clean) -->
+
+            <!-- Previous season line — muted green, dashed -->
+            <polyline
+              points="0,110 48,95 96,80 144,65 192,55 240,48 290,45"
+              fill="none" stroke="#B8DCC8" stroke-width="2" stroke-dasharray="5,3"
+              stroke-linecap="round" stroke-linejoin="round"/>
+
+            <!-- Current season line — brand green, solid -->
+            <polyline
+              points="0,120 48,100 96,78 144,52 192,38 240,28 290,22"
+              fill="none" stroke="#38835A" stroke-width="2.5"
+              stroke-linecap="round" stroke-linejoin="round"/>
+
+            <!-- Area fill current season -->
+            <polygon
+              points="0,120 48,100 96,78 144,52 192,38 240,28 290,22 290,129 0,129"
+              fill="url(#greenFade)" opacity="0.5"/>
+
+            <!-- Dots — current season -->
+            <circle cx="0"   cy="120" r="3.5" fill="#38835A" stroke="white" stroke-width="1.5"/>
+            <circle cx="48"  cy="100" r="3.5" fill="#38835A" stroke="white" stroke-width="1.5"/>
+            <circle cx="96"  cy="78"  r="3.5" fill="#38835A" stroke="white" stroke-width="1.5"/>
+            <circle cx="144" cy="52"  r="3.5" fill="#38835A" stroke="white" stroke-width="1.5"/>
+            <circle cx="192" cy="38"  r="3.5" fill="#38835A" stroke="white" stroke-width="1.5"/>
+            <circle cx="240" cy="28"  r="3.5" fill="#38835A" stroke="white" stroke-width="1.5"/>
+            <circle cx="290" cy="22"  r="3.5" fill="#38835A" stroke="white" stroke-width="1.5"/>
+
+            <defs>
+              <linearGradient id="greenFade" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%"   stop-color="#38835A" stop-opacity="0.18"/>
+                <stop offset="100%" stop-color="#38835A" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+          </svg>
+
+          <!-- X-axis month labels (outside SVG so DM Sans renders) -->
+          <div style="display:flex;justify-content:space-between;margin-top:6px;padding:0 0px">
+            <span style="font-size:8px;color:#ABABAB">Oct</span>
+            <span style="font-size:8px;color:#ABABAB">Nov</span>
+            <span style="font-size:8px;color:#ABABAB">Déc</span>
+            <span style="font-size:8px;color:#ABABAB">Jan</span>
+            <span style="font-size:8px;color:#ABABAB">Fév</span>
+            <span style="font-size:8px;color:#ABABAB">Mar</span>
+            <span style="font-size:8px;color:#ABABAB">Avr</span>
+          </div>
+        </div>
+
+        <!-- KPI summary: price + quantity, no revenue -->
+        <div style="display:flex;gap:0;margin-top:12px;border-top:1px solid rgba(0,0,0,.05);padding-top:10px">
+          <div style="flex:1;text-align:center;border-right:1px solid rgba(0,0,0,.05)">
+            <div style="font-size:15px;font-weight:800;color:#38835A">8.4</div>
+            <div style="font-size:9px;color:#ABABAB;margin-top:2px">TND/L · saison en cours</div>
+          </div>
+          <div style="flex:1;text-align:center;border-right:1px solid rgba(0,0,0,.05)">
+            <div style="font-size:15px;font-weight:800;color:#B8DCC8">7.1</div>
+            <div style="font-size:9px;color:#ABABAB;margin-top:2px">TND/L · saison préc.</div>
+          </div>
+          <div style="flex:1;text-align:center">
+            <div style="font-size:15px;font-weight:800;color:var(--dark)">432k L</div>
+            <div style="font-size:9px;color:#ABABAB;margin-top:2px">Qté totale achetée</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5. Classification -->
+      <div class="card">
+        <div class="sec-hdr">
+          <div class="sec-bar"></div>
+          <span class="sec-title">Classification de l'huile</span>
+          <div class="date-chip">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#38835A" stroke-width="2.2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <span class="date-chip-text">Nov 25 – Avr 26</span>
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#38835A" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+        </div>
+        <div class="class-row">
+          <div class="class-dot" style="background:#38835A"></div>
+          <div class="class-name">Extra Vierge</div>
+          <div class="class-track"><div class="class-fill" style="width:60%;background:#38835A"></div></div>
+          <div class="class-pct" style="color:#38835A">60%</div>
+        </div>
+        <div class="class-row">
+          <div class="class-dot" style="background:#6B8143"></div>
+          <div class="class-name">Vierge</div>
+          <div class="class-track"><div class="class-fill" style="width:27%;background:#6B8143"></div></div>
+          <div class="class-pct" style="color:#6B8143">27%</div>
+        </div>
+        <div class="class-row">
+          <div class="class-dot" style="background:#D07B2F"></div>
+          <div class="class-name">Lampante</div>
+          <div class="class-track"><div class="class-fill" style="width:13%;background:#D07B2F"></div></div>
+          <div class="class-pct" style="color:#D07B2F">13%</div>
+        </div>
+      </div>
+
+      <!-- 6. Suppliers — fixed-height scrollable list, top 3 visible -->
+      <div class="card" style="padding-bottom:0">
+        <!-- Row 1: title + date chip -->
+        <div class="sec-hdr" style="margin-bottom:6px">
+          <div class="sec-bar"></div>
+          <span class="sec-title">Fournisseurs</span>
+          <div class="date-chip">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#38835A" stroke-width="2.2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <span class="date-chip-text">Nov 25 – Avr 26</span>
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#38835A" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+        </div>
+        <!-- Row 2: subtle sub-label + total badge -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding-left:11px">
+          <span style="font-size:10px;color:#9E9E9E;font-weight:500">Part des achats par fournisseur</span>
+          <span class="sec-badge" style="margin:0">12 au total</span>
+        </div>
+        <!-- Scrollable list — ~3 rows visible (each row ≈ 42px → 126px) -->
+        <div style="max-height:136px;overflow-y:auto;scrollbar-width:none;padding-bottom:12px">
+          <div class="sup-row">
+            <div class="sup-info"><div class="sup-name">Henchir Errouss</div><div class="sup-region">Sfax</div></div>
+            <div class="sup-track"><div class="sup-fill" style="width:100%;background:#38835A"><span class="sup-pct-in">33%</span></div></div>
+            <div class="sup-right"><div class="sup-pct">33%</div><div class="sup-ach">7 ach.</div></div>
+          </div>
+          <div class="sup-row">
+            <div class="sup-info"><div class="sup-name">Domaine Zitoun</div><div class="sup-region">Gafsa</div></div>
+            <div class="sup-track"><div class="sup-fill" style="width:76%;background:#4E9A72"><span class="sup-pct-in">24%</span></div></div>
+            <div class="sup-right"><div class="sup-pct">24%</div><div class="sup-ach">5 ach.</div></div>
+          </div>
+          <div class="sup-row">
+            <div class="sup-info"><div class="sup-name">Ferme El Baraka</div><div class="sup-region">Sousse</div></div>
+            <div class="sup-track"><div class="sup-fill" style="width:58%;background:#62AD88"><span class="sup-pct-in">19%</span></div></div>
+            <div class="sup-right"><div class="sup-pct">19%</div><div class="sup-ach">4 ach.</div></div>
+          </div>
+          <div class="sup-row">
+            <div class="sup-info"><div class="sup-name">Agricole Ben Ali</div><div class="sup-region">Nabeul</div></div>
+            <div class="sup-track"><div class="sup-fill" style="width:44%;background:#84C4A0"></div></div>
+            <div class="sup-right"><div class="sup-pct">14%</div><div class="sup-ach">3 ach.</div></div>
+          </div>
+          <div class="sup-row" style="margin-bottom:0">
+            <div class="sup-info"><div class="sup-name">Coop. Nour</div><div class="sup-region">Sidi Bz</div></div>
+            <div class="sup-track"><div class="sup-fill" style="width:28%;background:#A8D6BC"></div></div>
+            <div class="sup-right"><div class="sup-pct">10%</div><div class="sup-ach">2 ach.</div></div>
+          </div>
+        </div>
+        <!-- Fade + scroll hint at bottom -->
+        <div style="height:1px;background:rgba(0,0,0,.06)"></div>
+        <div style="display:flex;align-items:center;justify-content:center;gap:5px;padding:8px 0;color:#7A8A7E;font-size:10px;font-style:italic">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#7A8A7E" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+          Faites défiler pour voir tous les fournisseurs
+        </div>
+      </div>
+
+      <!-- 7. Stock -->
+      <div class="card">
+        <div class="sec-hdr"><div class="sec-bar"></div><span class="sec-title">État du stock</span></div>
+        <div class="stock-row">
+          <div class="donut"><div class="donut-hole"></div></div>
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <div style="display:flex;align-items:flex-start;gap:8px">
+              <div style="width:10px;height:10px;border-radius:3px;background:var(--amber);flex-shrink:0;margin-top:2px"></div>
+              <div><div class="legend-lbl">En transit</div><div class="legend-sub">3 lots · 145 000 L</div></div>
+            </div>
+            <div style="display:flex;align-items:flex-start;gap:8px">
+              <div style="width:10px;height:10px;border-radius:3px;background:var(--green);flex-shrink:0;margin-top:2px"></div>
+              <div><div class="legend-lbl">Stock reçu</div><div class="legend-sub">6 lots · 287 000 L</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 8. Map CTA -->
+      <div class="map-cta">
+        <img class="map-img" src="assets/img/continents.png" alt="carte"/>
+        <div class="map-overlay">
+          <div>
+            <div class="map-title">Carte de couverture</div>
+            <div class="map-sub">Délégations visitées par vos collecteurs</div>
+          </div>
+          <div class="map-arrow">›</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

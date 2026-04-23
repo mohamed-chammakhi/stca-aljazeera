@@ -87,7 +87,7 @@ External participant who collects samples from across the country.
   - **Réceptionné – reçu physiquement** (taster confirmed physical arrival) — collector can edit limited fields but cannot delete. Any edit produces a visible edit history accessible to the taster, CEO, and lab technician (like the "edited" label in messaging apps, showing the previous value alongside the new one).
   - **En négociation** — CEO has approved the sample for purchase. Collector sees the negotiation details provided by the CEO (budget, desired stock delivery date) in a collapsible section. Collector can confirm the purchase from this state.
   - **Achat confirmé** — purchase confirmed by collector. Collector can edit the planned stock delivery date.
-- **Ajouter un échantillon** (FAB / add button) — form with fields: supplier name, origin, bottle reference, variety, quantity, number of bottles, optional expected arrival date at company, etc. Collector can take a photo of the handwritten bottle label; AI OCR (Gemini Vision) reads the handwriting and auto-fills the form fields. Collector reviews and can correct the pre-filled values before saving.
+- **Ajouter un échantillon** (FAB / add button) — form with fields: supplier name, origin, reference (the bottle reference IS the sample reference — each bottle is a sample in itself), variety, quantity, number of bottles, optional expected arrival date at company, etc. Collector can take a photo of the handwritten bottle label; AI OCR (Gemini Vision) reads the handwriting and auto-fills the form fields. Collector reviews and can correct the pre-filled values before saving. When registering multiple bottles, each bottle gets its own reference and is saved as a separate Echantillon record.
 - **Carte** — map of Tunisian delegations. Delegations the collector has visited are highlighted, unvisited ones are not. Helps the collector plan future routes.
 - **Chat** — messaging interface with the Direction (CEO). Planned feature; implemented if time allows.
 - **Dashboard** — collector-level KPIs and activity summary.
@@ -380,6 +380,51 @@ AppBar(
 **FAB pattern** (when present): gray background `Color.fromARGB(255, 197, 206, 201)`, dark icon and label text.
 
 The reference implementations are `lib/1_ceo/echantillons/echantillons_ceo_page.dart` and `lib/3_degustateur/gestion_echantillons/gestion_echantillons_page.dart`.
+
+---
+
+## CEO Notification System
+
+Notifications are sent automatically to all active CEO accounts (`role='direction'`) via Django signals. No manual triggering — every relevant state change fires a notification.
+
+### Notification types & triggers
+
+| Type | Trigger | Section (deep-link) |
+|---|---|---|
+| `NOUVEL_ECHANTILLON` | Collector or taster creates a new sample | ECHANTILLONS |
+| `ECHANTILLON_MODIFIE` | Any field on a sample is edited (post-save, not a status transition) | ECHANTILLONS |
+| `ECHANTILLON_SUPPRIME` | A sample is deleted (fires on `pre_delete`) | ECHANTILLONS |
+| `ECHANTILLON_RECU` | Taster toggles `recu_physiquement` from `False` → `True` (includes exact date/time) | ECHANTILLONS |
+| `PREMIERE_EVALUATION` | First taster submits their evaluation for a given sample (`statut = soumis`, count goes 0 → 1) | EVALUATIONS |
+| `TOUTES_EVALUATIONS` | All active tasters (`role='degustateur'`) have submitted for that sample | EVALUATIONS |
+| `ANALYSE_SOUMISE` | Lab technician submits the lab analysis (`statut = soumis`) | ANALYSES |
+| `ACHAT_CONFIRME` | `statut_collecteur` transitions to `achat_confirme` (collector confirms purchase) | ACHATS |
+
+### Signal detection logic
+- **`pre_save`** stores `_old_recu_physiquement` and `_old_statut_collecteur` on the instance so `post_save` can compare old vs new values.
+- **`ECHANTILLON_MODIFIE`** fires on any save that is NOT a creation, NOT a `recu_physiquement` flip, and NOT an `achat_confirme` transition — i.e., the fallback for all other edits.
+- **`ECHANTILLON_SUPPRIME`** fires on `pre_delete` (not `post_delete`) so the reference can still be read.
+- **"All evaluations submitted"** check: count `EvaluationOrganoleptique` with `statut=soumis` for that sample and compare to `User.objects.filter(role='degustateur', is_active=True).count()`.
+
+### Backend files
+- `backend_new/notifications/models.py` — `Notification` model (UUID PK, destinataire FK, type, titre, message, echantillon FK SET_NULL, section, is_read, date_creation)
+- `backend_new/notifications/signals.py` — all signal handlers
+- `backend_new/notifications/views.py` — list, mark-one-read, mark-all-read, unread-count
+- `backend_new/notifications/urls.py` — mounted at `api/notifications/`
+
+### Flutter files (CEO module)
+- `lib/1_ceo/notifications/models/notification_ceo.dart` — model with `fromJson`/`toJson`
+- `lib/1_ceo/notifications/services/notification_ceo_service.dart` — service (mock data, ready for API swap)
+- `lib/1_ceo/notifications/notifications_ceo_page.dart` — full page (date grouping, filter chips, per-type icons, unread accent bar)
+- Bell icon lives in `lib/1_ceo/tableau_de_bord/tableau_de_bord.dart` AppBar — shows live unread count badge, navigates to notifications page, refreshes count on return.
+
+### Deep-link navigation (tap a notification)
+| section value | Navigates CEO to |
+|---|---|
+| `ECHANTILLONS` | `EchantillonsCeoPage` |
+| `EVALUATIONS` | `AnalyseOrganoleptiqueCeoPage` |
+| `ANALYSES` | `AnalyseLaboratoireCeoPage` |
+| `ACHATS` | `AchatsConfirmesCeoPage` |
 
 ---
 

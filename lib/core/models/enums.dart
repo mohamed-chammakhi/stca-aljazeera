@@ -5,33 +5,46 @@
 // ═════════════════════════════════════════════════════════════════════════════
 
 // ── User roles ────────────────────────────────────────────────────────────────
-enum RoleUtilisateur { direction, collecteur, degustateur, laboratoire }
+enum RoleUtilisateur {
+  direction,
+  collecteur,
+  degustateur,
+  laboratoire,
+  chefPanel,
+  responsableFinancier,
+}
 
 extension RoleUtilisateurX on RoleUtilisateur {
   String get toJson {
     switch (this) {
-      case RoleUtilisateur.direction:    return 'direction';
-      case RoleUtilisateur.collecteur:   return 'collecteur';
-      case RoleUtilisateur.degustateur:  return 'degustateur';
-      case RoleUtilisateur.laboratoire:  return 'laboratoire';
+      case RoleUtilisateur.direction:           return 'direction';
+      case RoleUtilisateur.collecteur:          return 'collecteur';
+      case RoleUtilisateur.degustateur:         return 'degustateur';
+      case RoleUtilisateur.laboratoire:         return 'laboratoire';
+      case RoleUtilisateur.chefPanel:           return 'chef_panel';
+      case RoleUtilisateur.responsableFinancier: return 'responsable_financier';
     }
   }
 
   String get label {
     switch (this) {
-      case RoleUtilisateur.direction:    return 'Direction';
-      case RoleUtilisateur.collecteur:   return 'Collecteur';
-      case RoleUtilisateur.degustateur:  return 'Dégustateur';
-      case RoleUtilisateur.laboratoire:  return 'Technicien Labo';
+      case RoleUtilisateur.direction:           return 'Direction';
+      case RoleUtilisateur.collecteur:          return 'Collecteur';
+      case RoleUtilisateur.degustateur:         return 'Dégustateur';
+      case RoleUtilisateur.laboratoire:         return 'Technicien Labo';
+      case RoleUtilisateur.chefPanel:           return 'Chef de Panel';
+      case RoleUtilisateur.responsableFinancier: return 'Responsable Financier';
     }
   }
 
   static RoleUtilisateur fromJson(String s) {
     switch (s) {
-      case 'direction':    return RoleUtilisateur.direction;
-      case 'collecteur':   return RoleUtilisateur.collecteur;
-      case 'degustateur':  return RoleUtilisateur.degustateur;
-      case 'laboratoire':  return RoleUtilisateur.laboratoire;
+      case 'direction':             return RoleUtilisateur.direction;
+      case 'collecteur':            return RoleUtilisateur.collecteur;
+      case 'degustateur':           return RoleUtilisateur.degustateur;
+      case 'laboratoire':           return RoleUtilisateur.laboratoire;
+      case 'chef_panel':            return RoleUtilisateur.chefPanel;
+      case 'responsable_financier': return RoleUtilisateur.responsableFinancier;
       default: throw ArgumentError('Unknown role: $s');
     }
   }
@@ -227,30 +240,33 @@ extension ModePlanificationX on ModePlanification {
 }
 
 // ── Session status ────────────────────────────────────────────────────────────
-enum StatutSession { planifiee, enCours, terminee }
+enum StatutSession { enAttenteValidation, planifiee, enCours, terminee }
 
 extension StatutSessionX on StatutSession {
   String get toJson {
     switch (this) {
-      case StatutSession.planifiee: return 'planifiee';
-      case StatutSession.enCours:   return 'en_cours';
-      case StatutSession.terminee:  return 'terminee';
+      case StatutSession.enAttenteValidation: return 'en_attente_validation';
+      case StatutSession.planifiee:           return 'planifiee';
+      case StatutSession.enCours:             return 'en_cours';
+      case StatutSession.terminee:            return 'terminee';
     }
   }
 
   String get label {
     switch (this) {
-      case StatutSession.planifiee: return 'Planifiée';
-      case StatutSession.enCours:   return 'En cours';
-      case StatutSession.terminee:  return 'Terminée';
+      case StatutSession.enAttenteValidation: return 'En attente';
+      case StatutSession.planifiee:           return 'Planifiée';
+      case StatutSession.enCours:             return 'En cours';
+      case StatutSession.terminee:            return 'Terminée';
     }
   }
 
   static StatutSession fromJson(String s) {
     switch (s) {
-      case 'planifiee': return StatutSession.planifiee;
-      case 'en_cours':  return StatutSession.enCours;
-      case 'terminee':  return StatutSession.terminee;
+      case 'en_attente_validation': return StatutSession.enAttenteValidation;
+      case 'planifiee':             return StatutSession.planifiee;
+      case 'en_cours':              return StatutSession.enCours;
+      case 'terminee':              return StatutSession.terminee;
       default: throw ArgumentError('Unknown statut_session: $s');
     }
   }

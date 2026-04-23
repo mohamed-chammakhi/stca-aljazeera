@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CEO Dashboard Mockup</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #1a1a2e;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    padding: 40px 20px;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+  }
+
+  .phone {
+    width: 390px;
+    background: #fff;
+    border-radius: 44px;
+    overflow: hidden;
+    box-shadow: 0 40px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.1);
+    position: relative;
+  }
+
+  /* AppBar */
+  .appbar {
+    background: #DCE9E2;
+    padding: 14px 20px 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    height: 65px;
+  }
+  .appbar-menu { font-size: 20px; color: #1A2E1F; cursor: pointer; }
+  .appbar-title {
+    font-size: 17px;
+    font-weight: 700;
+    color: #1A2E1F;
+    font-family: Georgia, 'Times New Roman', serif;
+    flex: 1;
+  }
+  .appbar-bell {
+    width: 36px; height: 36px;
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+  }
+  .appbar-bell svg { color: #1A2E1F; }
+  .notif-dot {
+    position: absolute;
+    top: 6px; right: 6px;
+    width: 8px; height: 8px;
+    background: #e67e22;
+    border-radius: 50%;
+    border: 1.5px solid #DCE9E2;
+  }
+
+  /* Divider */
+  .divider { height: 1px; background: rgba(0,0,0,0.06); }
+
+  /* Stats strip */
+  .stats-strip {
+    background: #fff;
+    padding: 7px 20px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border-bottom: 1px solid rgba(0,0,0,0.04);
+  }
+  .stats-strip-text { font-size: 11px; color: #bbb; }
+  .stats-dot { width: 4px; height: 4px; background: #38835A; border-radius: 50%; }
+
+  /* Scrollable body */
+  .scroll-body {
+    background: #f8faf9;
+    padding: 16px 16px 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    max-height: 720px;
+    overflow-y: auto;
+  }
+  .scroll-body::-webkit-scrollbar { width: 3px; }
+  .scroll-body::-webkit-scrollbar-thumb { background: #DCE9E2; border-radius: 2px; }
+
+  /* Cards */
+  .card {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 2px 12px rgba(56,131,90,0.07);
+    overflow: hidden;
+  }
+  .card-pad { padding: 16px; }
+
+  /* Section label */
+  .section-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .section-bar { width: 3px; height: 16px; background: #38835A; border-radius: 2px; }
+  .section-title { font-size: 13px; font-weight: 700; color: #1A2E1F; }
+  .section-subtitle { font-size: 10px; color: #aaa; margin-left: auto; }
+
+  /* Per-card filter pills (like reference image 1) */
+  .card-filter {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .card-filter-title { font-size: 12px; font-weight: 700; color: #1A2E1F; }
+  .filter-pills {
+    display: flex;
+    gap: 0;
+    background: #f0f0f0;
+    border-radius: 8px;
+    padding: 2px;
+  }
+  .fp {
+    padding: 4px 10px;
+    font-size: 10px;
+    font-weight: 600;
+    color: #999;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .fp.active {
+    background: #1A2E1F;
+    color: #fff;
+  }
+
+  /* KPI grid */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .kpi-tile {
+    background: #fff;
+    border-radius: 14px;
+    padding: 14px;
+    box-shadow: 0 2px 10px rgba(56,131,90,0.07);
+  }
+  .kpi-icon-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .kpi-icon {
+    width: 32px; height: 32px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+  }
+  .kpi-badge {
+    font-size: 9px;
+    font-weight: 700;
+    padding: 3px 7px;
+    border-radius: 8px;
+  }
+  .badge-up { background: #e6f4ed; color: #38835A; }
+  .badge-warn { background: #fef3e8; color: #D07B2F; }
+  .kpi-val { font-size: 20px; font-weight: 800; color: #1A2E1F; line-height: 1; }
+  .kpi-lbl { font-size: 10px; color: #aaa; margin-top: 4px; }
+
+  /* Urgent panel */
+  .urgent-card {
+    background: #fff8f5;
+    border-radius: 16px;
+    border: 1px solid rgba(192,57,43,0.2);
+    padding: 14px;
+    box-shadow: 0 2px 10px rgba(192,57,43,0.06);
+  }
+  .urgent-header {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 12px;
+  }
+  .urgent-icon {
+    width: 34px; height: 34px;
+    background: rgba(192,57,43,0.10);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+  }
+  .urgent-title { font-size: 13px; font-weight: 700; color: #C0392B; }
+  .urgent-sub { font-size: 10px; color: #aaa; }
+  .urgent-btn {
+    margin-left: auto;
+    background: #C0392B;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 6px 12px;
+    border-radius: 8px;
+  }
+  .urgent-row {
+    background: #fff;
+    border-radius: 10px;
+    border: 1px solid #f0f0f0;
+    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+  }
+  .urgent-ref { font-size: 11px; font-weight: 700; color: #1A2E1F; }
+  .urgent-info { font-size: 10px; color: #aaa; margin-top: 2px; }
+  .urgent-tag {
+    font-size: 10px; font-weight: 700;
+    padding: 4px 8px; border-radius: 6px;
+  }
+  .tag-red { background: rgba(192,57,43,0.08); color: #C0392B; }
+  .tag-amber { background: rgba(208,123,47,0.08); color: #D07B2F; }
+
+  /* Pipeline funnel */
+  .pipeline {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+  }
+  .pipe-step {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+  .pipe-num { font-size: 22px; font-weight: 800; }
+  .pipe-lbl { font-size: 9px; color: #aaa; font-weight: 600; text-align: center; }
+  .pipe-bar { height: 3px; width: 100%; border-radius: 2px; margin-top: 4px; }
+  .pipe-arrow { color: #e0e0e0; font-size: 14px; padding: 0 2px; align-self: center; padding-bottom: 16px; }
+
+  /* Bar chart mock */
+  .bar-chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 5px;
+    height: 80px;
+    padding-top: 8px;
+  }
+  .bc-group { flex: 1; display: flex; align-items: flex-end; gap: 2px; }
+  .bc-bar { flex: 1; border-radius: 3px 3px 0 0; }
+  .bc-labels { display: flex; gap: 5px; margin-top: 6px; }
+  .bc-lbl { flex: 1; font-size: 9px; color: #bbb; text-align: center; }
+
+  /* Donut mock */
+  .donut-row { display: flex; gap: 20px; align-items: center; }
+  .donut-svg { flex-shrink: 0; }
+  .legend-item { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
+  .legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .legend-name { font-size: 11px; color: #1A2E1F; flex: 1; }
+  .legend-pct { font-size: 11px; font-weight: 700; }
+
+  /* Supplier list */
+  .supplier-row { margin-bottom: 12px; }
+  .supplier-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 5px; }
+  .supplier-name { font-size: 12px; font-weight: 700; color: #1A2E1F; }
+  .supplier-region { font-size: 10px; color: #aaa; }
+  .supplier-count { font-size: 12px; font-weight: 700; color: #38835A; }
+  .supplier-val { font-size: 10px; color: #aaa; text-align: right; }
+  .progress-bar {
+    height: 6px; border-radius: 4px;
+    background: #f0f0f0; overflow: hidden;
+  }
+  .progress-fill { height: 100%; border-radius: 4px; background: #38835A; }
+
+  /* Stock */
+  .stock-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+  .stock-icon {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+  }
+  .stock-label { font-size: 13px; font-weight: 600; color: #1A2E1F; }
+  .stock-sub { font-size: 10px; color: #aaa; }
+  .stock-val { margin-left: auto; font-size: 14px; font-weight: 800; }
+  .stock-split { height: 7px; border-radius: 4px; overflow: hidden; display: flex; margin-top: 10px; }
+
+  /* Map CTA */
+  .map-cta {
+    background: linear-gradient(135deg, #2d6e4a 0%, #38835A 100%);
+    border-radius: 16px;
+    padding: 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    box-shadow: 0 4px 16px rgba(56,131,90,0.25);
+  }
+  .map-icon {
+    width: 44px; height: 44px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+  .map-text-title { font-size: 14px; font-weight: 700; color: #fff; }
+  .map-text-sub { font-size: 11px; color: rgba(255,255,255,0.7); margin-top: 2px; }
+  .map-arrow { margin-left: auto; color: rgba(255,255,255,0.6); font-size: 16px; }
+
+  /* Stacked bar */
+  .stacked-chart { display: flex; align-items: flex-end; gap: 5px; height: 80px; }
+  .stacked-col { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 0; height: 100%; }
+  .stack-seg { width: 100%; }
+</style>
+</head>
+<body>
+<div class="phone">
+
+  <!-- AppBar -->
+  <div class="appbar">
+    <div class="appbar-menu">☰</div>
+    <div class="appbar-title">Tableau de Bord</div>
+    <div class="appbar-bell">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1A2E1F" stroke-width="2" stroke-linecap="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      <div class="notif-dot"></div>
+    </div>
+  </div>
+  <div class="divider"></div>
+
+  <!-- Stats strip -->
+  <div class="stats-strip">
+    <div class="stats-dot"></div>
+    <div class="stats-strip-text">Saison 2025/2026 &nbsp;·&nbsp; 34 échantillons &nbsp;·&nbsp; 9 achats confirmés</div>
+  </div>
+
+  <!-- Scrollable content -->
+  <div class="scroll-body">
+
+    <!-- 1. KPI GRID (no filter — always current season) -->
+    <div class="kpi-grid">
+      <div class="kpi-tile">
+        <div class="kpi-icon-row">
+          <div class="kpi-icon" style="background:#e6f4ed;">💰</div>
+          <div class="kpi-badge badge-up">+12%</div>
+        </div>
+        <div class="kpi-val">284K</div>
+        <div class="kpi-lbl">Investissement total (TND)</div>
+      </div>
+      <div class="kpi-tile">
+        <div class="kpi-icon-row">
+          <div class="kpi-icon" style="background:#e8f1fb;">📦</div>
+          <div class="kpi-badge badge-up">+3</div>
+        </div>
+        <div class="kpi-val">34</div>
+        <div class="kpi-lbl">Échantillons traités</div>
+      </div>
+      <div class="kpi-tile">
+        <div class="kpi-icon-row">
+          <div class="kpi-icon" style="background:#fef3e8;">⏱</div>
+          <div class="kpi-badge badge-warn">~7j</div>
+        </div>
+        <div class="kpi-val">7.2j</div>
+        <div class="kpi-lbl">Délai moy. sample→achat</div>
+      </div>
+      <div class="kpi-tile">
+        <div class="kpi-icon-row">
+          <div class="kpi-icon" style="background:#e6f4ed;">✅</div>
+          <div class="kpi-badge badge-up">68%</div>
+        </div>
+        <div class="kpi-val">68%</div>
+        <div class="kpi-lbl">Taux d'approbation global</div>
+      </div>
+    </div>
+
+    <!-- 2. URGENT DECISIONS -->
+    <div class="urgent-card">
+      <div class="urgent-header">
+        <div class="urgent-icon">⚠️</div>
+        <div>
+          <div class="urgent-title">Décisions urgentes</div>
+          <div class="urgent-sub">2 échantillons nécessitent votre approbation</div>
+        </div>
+        <div class="urgent-btn">Voir</div>
+      </div>
+      <div class="urgent-row">
+        <div>
+          <div class="urgent-ref">ECH-2026-031</div>
+          <div class="urgent-info">Ahmed Dridi · Henchir Errouss</div>
+        </div>
+        <div class="urgent-tag tag-red">3j — urgent</div>
+      </div>
+      <div class="urgent-row" style="margin-bottom:0">
+        <div>
+          <div class="urgent-ref">ECH-2026-028</div>
+          <div class="urgent-info">Sami Kraiem · Domaine Zitoun</div>
+        </div>
+        <div class="urgent-tag tag-amber">2j en attente</div>
+      </div>
+    </div>
+
+    <!-- 3. PIPELINE -->
+    <div class="card card-pad">
+      <div class="section-label">
+        <div class="section-bar"></div>
+        <div class="section-title">Pipeline des échantillons</div>
+        <div class="section-subtitle">État actuel</div>
+      </div>
+      <div class="pipeline">
+        <div class="pipe-step">
+          <div class="pipe-num" style="color:#3A6EA5">12</div>
+          <div class="pipe-lbl">Réceptionné</div>
+          <div class="pipe-bar" style="background:rgba(58,110,165,0.2)"></div>
+        </div>
+        <div class="pipe-arrow">›</div>
+        <div class="pipe-step">
+          <div class="pipe-num" style="color:#6B8143">8</div>
+          <div class="pipe-lbl">Reçu phys.</div>
+          <div class="pipe-bar" style="background:rgba(107,129,67,0.2)"></div>
+        </div>
+        <div class="pipe-arrow">›</div>
+        <div class="pipe-step">
+          <div class="pipe-num" style="color:#D07B2F">5</div>
+          <div class="pipe-lbl">Négociation</div>
+          <div class="pipe-bar" style="background:rgba(208,123,47,0.2)"></div>
+        </div>
+        <div class="pipe-arrow">›</div>
+        <div class="pipe-step">
+          <div class="pipe-num" style="color:#38835A">9</div>
+          <div class="pipe-lbl">Confirmé</div>
+          <div class="pipe-bar" style="background:rgba(56,131,90,0.2)"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. COLLECTOR PERFORMANCE — per-card filter -->
+    <div class="card card-pad">
+      <div class="card-filter">
+        <div class="card-filter-title">Performance collecteurs</div>
+        <div class="filter-pills">
+          <div class="fp">Jour</div>
+          <div class="fp">Sem</div>
+          <div class="fp active">Mois</div>
+          <div class="fp">An</div>
+        </div>
+      </div>
+      <!-- Bar chart: value per collector -->
+      <div class="bar-chart">
+        <div class="bc-group"><div class="bc-bar" style="height:100%;background:#38835A;border-radius:4px 4px 0 0;"></div></div>
+        <div class="bc-group"><div class="bc-bar" style="height:74%;background:#3A6EA5;border-radius:4px 4px 0 0;"></div></div>
+        <div class="bc-group"><div class="bc-bar" style="height:77%;background:#D07B2F;border-radius:4px 4px 0 0;"></div></div>
+        <div class="bc-group"><div class="bc-bar" style="height:41%;background:#8B4513;border-radius:4px 4px 0 0;"></div></div>
+      </div>
+      <div class="bc-labels" style="margin-top:4px;">
+        <div class="bc-lbl">AD<br><span style="color:#38835A;font-weight:700;">92K</span></div>
+        <div class="bc-lbl">FB<br><span style="color:#3A6EA5;font-weight:700;">69K</span></div>
+        <div class="bc-lbl">SK<br><span style="color:#D07B2F;font-weight:700;">71K</span></div>
+        <div class="bc-lbl">KM<br><span style="color:#8B4513;font-weight:700;">38K</span></div>
+      </div>
+      <!-- Mini leaderboard -->
+      <div style="margin-top:14px;border-top:1px solid #f5f5f5;padding-top:12px;">
+        <!-- Row 1 -->
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+          <div style="width:20px;height:20px;border-radius:50%;background:rgba(212,160,23,0.12);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#D4A017;">1</div>
+          <div style="width:30px;height:30px;border-radius:50%;background:#e6f4ed;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#38835A;">AD</div>
+          <div style="flex:1;">
+            <div style="font-size:11px;font-weight:700;color:#1A2E1F;">Ahmed Dridi</div>
+            <div style="height:4px;background:#f0f0f0;border-radius:2px;margin-top:3px;overflow:hidden;"><div style="width:75%;height:100%;background:#D4A017;border-radius:2px;"></div></div>
+          </div>
+          <div style="font-size:11px;font-weight:700;color:#38835A;">75%</div>
+        </div>
+        <!-- Row 2 -->
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+          <div style="width:20px;height:20px;border-radius:50%;background:rgba(158,158,158,0.12);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#9E9E9E;">2</div>
+          <div style="width:30px;height:30px;border-radius:50%;background:#e8f1fb;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#3A6EA5;">FB</div>
+          <div style="flex:1;">
+            <div style="font-size:11px;font-weight:700;color:#1A2E1F;">Fatma Bouzid</div>
+            <div style="height:4px;background:#f0f0f0;border-radius:2px;margin-top:3px;overflow:hidden;"><div style="width:80%;height:100%;background:#9E9E9E;border-radius:2px;"></div></div>
+          </div>
+          <div style="font-size:11px;font-weight:700;color:#3A6EA5;">80%</div>
+        </div>
+        <!-- Row 3 -->
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+          <div style="width:20px;height:20px;border-radius:50%;background:rgba(141,110,64,0.12);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#8D6E40;">3</div>
+          <div style="width:30px;height:30px;border-radius:50%;background:#fef3e8;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#D07B2F;">SK</div>
+          <div style="flex:1;">
+            <div style="font-size:11px;font-weight:700;color:#1A2E1F;">Sami Kraiem</div>
+            <div style="height:4px;background:#f0f0f0;border-radius:2px;margin-top:3px;overflow:hidden;"><div style="width:67%;height:100%;background:#8D6E40;border-radius:2px;"></div></div>
+          </div>
+          <div style="font-size:11px;font-weight:700;color:#D07B2F;">67%</div>
+        </div>
+        <!-- Row 4 -->
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div style="width:20px;height:20px;border-radius:50%;background:rgba(56,131,90,0.10);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#38835A;">4</div>
+          <div style="width:30px;height:30px;border-radius:50%;background:#f5f0eb;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#8B4513;">KM</div>
+          <div style="flex:1;">
+            <div style="font-size:11px;font-weight:700;color:#1A2E1F;">Khalil Maalej</div>
+            <div style="height:4px;background:#f0f0f0;border-radius:2px;margin-top:3px;overflow:hidden;"><div style="width:50%;height:100%;background:#38835A;border-radius:2px;"></div></div>
+          </div>
+          <div style="font-size:11px;font-weight:700;color:#aaa;">50%</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. SAMPLES PER MONTH — per-card filter (range) -->
+    <div class="card card-pad">
+      <div class="card-filter">
+        <div class="card-filter-title">Échantillons soumis</div>
+        <div class="filter-pills">
+          <div class="fp">3 mois</div>
+          <div class="fp active">6 mois</div>
+          <div class="fp">1 an</div>
+        </div>
+      </div>
+      <!-- Stacked bar chart -->
+      <div class="stacked-chart">
+        <div class="stacked-col">
+          <div class="stack-seg" style="height:25%;background:#38835A;border-radius:3px 3px 0 0;"></div>
+          <div class="stack-seg" style="height:13%;background:#3A6EA5;"></div>
+          <div class="stack-seg" style="height:13%;background:#D07B2F;"></div>
+          <div class="stack-seg" style="height:13%;background:#8B4513;border-radius:0;"></div>
+        </div>
+        <div class="stacked-col">
+          <div class="stack-seg" style="height:38%;background:#38835A;border-radius:3px 3px 0 0;"></div>
+          <div class="stack-seg" style="height:0%;"></div>
+          <div class="stack-seg" style="height:25%;background:#D07B2F;"></div>
+          <div class="stack-seg" style="height:13%;background:#8B4513;"></div>
+        </div>
+        <div class="stacked-col">
+          <div class="stack-seg" style="height:13%;background:#38835A;border-radius:3px 3px 0 0;"></div>
+          <div class="stack-seg" style="height:25%;background:#3A6EA5;"></div>
+          <div class="stack-seg" style="height:0%;"></div>
+          <div class="stack-seg" style="height:13%;background:#8B4513;"></div>
+        </div>
+        <div class="stacked-col">
+          <div class="stack-seg" style="height:50%;background:#38835A;border-radius:3px 3px 0 0;"></div>
+          <div class="stack-seg" style="height:13%;background:#3A6EA5;"></div>
+          <div class="stack-seg" style="height:25%;background:#D07B2F;"></div>
+          <div class="stack-seg" style="height:0%;"></div>
+        </div>
+        <div class="stacked-col">
+          <div class="stack-seg" style="height:25%;background:#38835A;border-radius:3px 3px 0 0;"></div>
+          <div class="stack-seg" style="height:13%;background:#3A6EA5;"></div>
+          <div class="stack-seg" style="height:13%;background:#D07B2F;"></div>
+          <div class="stack-seg" style="height:25%;background:#8B4513;"></div>
+        </div>
+        <div class="stacked-col" style="opacity:0.45;">
+          <div class="stack-seg" style="height:13%;background:#38835A;border-radius:3px 3px 0 0;"></div>
+        </div>
+      </div>
+      <div class="bc-labels" style="margin-top:5px;">
+        <div class="bc-lbl">Nov</div>
+        <div class="bc-lbl">Déc</div>
+        <div class="bc-lbl">Jan</div>
+        <div class="bc-lbl">Fév</div>
+        <div class="bc-lbl">Mar</div>
+        <div class="bc-lbl">Avr</div>
+      </div>
+      <!-- Legend -->
+      <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;">
+        <div style="display:flex;align-items:center;gap:4px;"><div style="width:8px;height:8px;border-radius:2px;background:#38835A;"></div><span style="font-size:10px;color:#888;">AD</span></div>
+        <div style="display:flex;align-items:center;gap:4px;"><div style="width:8px;height:8px;border-radius:2px;background:#3A6EA5;"></div><span style="font-size:10px;color:#888;">FB</span></div>
+        <div style="display:flex;align-items:center;gap:4px;"><div style="width:8px;height:8px;border-radius:2px;background:#D07B2F;"></div><span style="font-size:10px;color:#888;">SK</span></div>
+        <div style="display:flex;align-items:center;gap:4px;"><div style="width:8px;height:8px;border-radius:2px;background:#8B4513;"></div><span style="font-size:10px;color:#888;">KM</span></div>
+      </div>
+    </div>
+
+    <!-- 6. CLASSIFICATION — per-card filter -->
+    <div class="card card-pad">
+      <div class="card-filter">
+        <div class="card-filter-title">Classification de l'huile</div>
+        <div class="filter-pills">
+          <div class="fp">Sem</div>
+          <div class="fp active">Mois</div>
+          <div class="fp">An</div>
+        </div>
+      </div>
+      <div class="donut-row">
+        <!-- SVG donut -->
+        <svg width="100" height="100" viewBox="0 0 100 100" class="donut-svg">
+          <circle cx="50" cy="50" r="35" fill="none" stroke="#f0f0f0" stroke-width="18"/>
+          <!-- Extra Vierge: 60% = 219.9 deg -->
+          <circle cx="50" cy="50" r="35" fill="none" stroke="#38835A" stroke-width="18"
+            stroke-dasharray="132 88" stroke-dashoffset="0" transform="rotate(-90 50 50)"/>
+          <!-- Vierge: 26.7% -->
+          <circle cx="50" cy="50" r="35" fill="none" stroke="#6B8143" stroke-width="18"
+            stroke-dasharray="58.8 161.2" stroke-dashoffset="-132" transform="rotate(-90 50 50)"/>
+          <!-- Lampante: 13.3% -->
+          <circle cx="50" cy="50" r="35" fill="none" stroke="#D07B2F" stroke-width="18"
+            stroke-dasharray="29.3 190.7" stroke-dashoffset="-190.8" transform="rotate(-90 50 50)"/>
+          <text x="50" y="46" text-anchor="middle" font-size="11" font-weight="800" fill="#1A2E1F">15</text>
+          <text x="50" y="58" text-anchor="middle" font-size="8" fill="#aaa">lots</text>
+        </svg>
+        <div style="flex:1;">
+          <div class="legend-item">
+            <div class="legend-dot" style="background:#38835A;"></div>
+            <div class="legend-name">Extra Vierge</div>
+            <div class="legend-pct" style="color:#38835A;">60%</div>
+          </div>
+          <div style="height:4px;background:#f0f0f0;border-radius:2px;margin:-4px 0 10px 14px;overflow:hidden;"><div style="width:60%;height:100%;background:#38835A;border-radius:2px;"></div></div>
+          <div class="legend-item">
+            <div class="legend-dot" style="background:#6B8143;"></div>
+            <div class="legend-name">Vierge</div>
+            <div class="legend-pct" style="color:#6B8143;">27%</div>
+          </div>
+          <div style="height:4px;background:#f0f0f0;border-radius:2px;margin:-4px 0 10px 14px;overflow:hidden;"><div style="width:27%;height:100%;background:#6B8143;border-radius:2px;"></div></div>
+          <div class="legend-item">
+            <div class="legend-dot" style="background:#D07B2F;"></div>
+            <div class="legend-name">Lampante</div>
+            <div class="legend-pct" style="color:#D07B2F;">13%</div>
+          </div>
+          <div style="height:4px;background:#f0f0f0;border-radius:2px;margin:-4px 0 0 14px;overflow:hidden;"><div style="width:13%;height:100%;background:#D07B2F;border-radius:2px;"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 7. ACQUISITIONS — per-card filter -->
+    <div class="card card-pad">
+      <div class="card-filter">
+        <div class="card-filter-title">Acquisitions confirmées</div>
+        <div class="filter-pills">
+          <div class="fp">Jour</div>
+          <div class="fp">Sem</div>
+          <div class="fp active">Mois</div>
+          <div class="fp">An</div>
+        </div>
+      </div>
+      <div class="bar-chart">
+        <div class="bc-group"><div class="bc-bar" style="height:40%;background:#3A6EA5;border-radius:4px 4px 0 0;"></div></div>
+        <div class="bc-group"><div class="bc-bar" style="height:66%;background:#3A6EA5;border-radius:4px 4px 0 0;"></div></div>
+        <div class="bc-group"><div class="bc-bar" style="height:50%;background:#3A6EA5;border-radius:4px 4px 0 0;"></div></div>
+        <div class="bc-group"><div class="bc-bar" style="height:100%;background:#3A6EA5;border-radius:4px 4px 0 0;"></div></div>
+        <div class="bc-group"><div class="bc-bar" style="height:78%;background:#3A6EA5;border-radius:4px 4px 0 0;"></div></div>
+        <div class="bc-group"><div class="bc-bar" style="height:28%;background:#3A6EA5;opacity:0.3;border-radius:4px 4px 0 0;"></div></div>
+      </div>
+      <div class="bc-labels" style="margin-top:4px;">
+        <div class="bc-lbl">Nov</div><div class="bc-lbl">Déc</div><div class="bc-lbl">Jan</div>
+        <div class="bc-lbl">Fév</div><div class="bc-lbl">Mar</div><div class="bc-lbl">Avr</div>
+      </div>
+    </div>
+
+    <!-- 8. SUPPLIERS — per-card filter -->
+    <div class="card card-pad">
+      <div class="card-filter">
+        <div class="card-filter-title">Fréquence fournisseurs</div>
+        <div class="filter-pills">
+          <div class="fp active">Mois</div>
+          <div class="fp">An</div>
+          <div class="fp">Tout</div>
+        </div>
+      </div>
+      <div class="supplier-row">
+        <div class="supplier-header">
+          <div><div class="supplier-name">Henchir Errouss</div><div class="supplier-region">Sfax</div></div>
+          <div style="text-align:right;"><div class="supplier-count">7 achats</div><div class="supplier-val">143 200 TND</div></div>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" style="width:100%;"></div></div>
+      </div>
+      <div class="supplier-row">
+        <div class="supplier-header">
+          <div><div class="supplier-name">Domaine Zitoun</div><div class="supplier-region">Gafsa</div></div>
+          <div style="text-align:right;"><div class="supplier-count">5 achats</div><div class="supplier-val">98 400 TND</div></div>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" style="width:71%;"></div></div>
+      </div>
+      <div class="supplier-row">
+        <div class="supplier-header">
+          <div><div class="supplier-name">Ferme El Baraka</div><div class="supplier-region">Sousse</div></div>
+          <div style="text-align:right;"><div class="supplier-count">4 achats</div><div class="supplier-val">76 100 TND</div></div>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" style="width:57%;"></div></div>
+      </div>
+      <div class="supplier-row" style="margin-bottom:0;">
+        <div class="supplier-header">
+          <div><div class="supplier-name">Agricole Ben Ali</div><div class="supplier-region">Nabeul</div></div>
+          <div style="text-align:right;"><div class="supplier-count">3 achats</div><div class="supplier-val">55 300 TND</div></div>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" style="width:43%;"></div></div>
+      </div>
+    </div>
+
+    <!-- 9. STOCK -->
+    <div class="card card-pad">
+      <div class="section-label" style="margin-bottom:14px;">
+        <div class="section-bar"></div>
+        <div class="section-title">État du stock</div>
+        <div class="section-subtitle">Temps réel</div>
+      </div>
+      <div class="stock-row">
+        <div class="stock-icon" style="background:rgba(208,123,47,0.08);">🚛</div>
+        <div><div class="stock-label">En transit</div><div class="stock-sub">3 lots</div></div>
+        <div class="stock-val" style="color:#D07B2F;">145 000 L</div>
+      </div>
+      <div class="stock-row" style="margin-bottom:0;">
+        <div class="stock-icon" style="background:#e6f4ed;">🏭</div>
+        <div><div class="stock-label">Stock reçu</div><div class="stock-sub">6 lots</div></div>
+        <div class="stock-val" style="color:#38835A;">287 000 L</div>
+      </div>
+      <div class="stock-split" style="margin-top:12px;">
+        <div style="width:33%;background:#D07B2F;opacity:0.7;"></div>
+        <div style="width:67%;background:#38835A;opacity:0.8;"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-top:4px;">
+        <div style="font-size:9px;color:#aaa;">145 000 L en transit</div>
+        <div style="font-size:9px;color:#aaa;">287 000 L reçus</div>
+      </div>
+    </div>
+
+    <!-- 10. MAP CTA -->
+    <div class="map-cta">
+      <div class="map-icon">🗺️</div>
+      <div>
+        <div class="map-text-title">Carte de couverture</div>
+        <div class="map-text-sub">Délégations visitées par tous les collecteurs</div>
+      </div>
+      <div class="map-arrow">›</div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

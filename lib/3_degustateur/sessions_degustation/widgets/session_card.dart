@@ -14,6 +14,8 @@ const Color _green = Color(0xFF38835A);
 
 Color _statusColor(StatutSession s) {
   switch (s) {
+    case StatutSession.enAttenteValidation:
+      return const Color(0xFF9E9E9E);
     case StatutSession.planifiee:
       return const Color(0xFFD07B2F);
     case StatutSession.enCours:

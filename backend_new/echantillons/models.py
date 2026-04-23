@@ -1,0 +1,105 @@
+import uuid
+from django.db import models
+from django.conf import settings
+
+
+class Echantillon(models.Model):
+
+    class StatutCollecteur(models.TextChoices):
+        RECEPTIONNE    = 'receptionne',    'Réceptionné'
+        EN_NEGOCIATION = 'en_negociation', 'En négociation'
+        ACHAT_CONFIRME = 'achat_confirme', 'Achat confirmé'
+
+    class StatutDegustateur(models.TextChoices):
+        NON_EVALUEE = 'non_evaluee', 'Non évaluée'
+        EN_COURS    = 'en_cours',    'Évaluation en cours'
+        SOUMIS      = 'soumis',      'Évaluation soumise'
+
+    class StatutLabo(models.TextChoices):
+        EN_ATTENTE = 'en_attente', 'En attente'
+        EN_COURS   = 'en_cours',   'En cours'
+        SOUMIS     = 'soumis',     'Soumis'
+
+    class StatutCEO(models.TextChoices):
+        SELECTIONNE    = 'selectionne',    'Sélectionné'
+        EN_NEGOCIATION = 'en_negociation', 'En négociation'
+        ACHAT_CONFIRME = 'achat_confirme', 'Achat confirmé'
+        REFUSE         = 'refuse',         'Refusé'
+
+    class Classification(models.TextChoices):
+        EXTRA_VIERGE    = 'extra_vierge',    'Extra vierge'
+        VIERGE          = 'vierge',          'Vierge'
+        VIERGE_ORDINAIRE = 'vierge_ordinaire', 'Vierge Ordinaire'
+        LAMPANTE        = 'lampante',        'Lampante'
+
+    # Identity — `ref` is the bottle reference, each bottle is its own sample
+    id  = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    ref = models.CharField(max_length=100, unique=True)
+
+    # Relations
+    fournisseur = models.ForeignKey(
+        'fournisseurs.Fournisseur',
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='echantillons'
+    )
+    collecteur = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='echantillons_collectes'
+    )
+
+    # Location
+    gouvernorat = models.CharField(max_length=100)
+    delegation  = models.CharField(max_length=100, blank=True)
+    cite        = models.CharField(max_length=100, blank=True)
+
+    # Sample physical details (stored as strings — values like "20L", "sealed", "oui")
+    variete          = models.CharField(max_length=100, blank=True)
+    scellage         = models.CharField(max_length=50, blank=True)
+    quantite_estimee = models.CharField(max_length=50, blank=True)
+    image_url        = models.CharField(max_length=500, blank=True)
+
+    # Status fields — each role sees its own status
+    statut_collecteur = models.CharField(
+        max_length=20, choices=StatutCollecteur.choices, default=StatutCollecteur.RECEPTIONNE
+    )
+    statut_degustateur = models.CharField(
+        max_length=20, choices=StatutDegustateur.choices, default=StatutDegustateur.NON_EVALUEE
+    )
+    statut_labo = models.CharField(
+        max_length=20, choices=StatutLabo.choices, default=StatutLabo.EN_ATTENTE
+    )
+    statut_ceo = models.CharField(
+        max_length=20, choices=StatutCEO.choices, default=StatutCEO.SELECTIONNE
+    )
+
+    # Physical reception at company
+    recu_physiquement       = models.BooleanField(default=False)
+    date_arrivee_echantillon = models.DateTimeField(null=True, blank=True)
+
+    # CEO negotiation details (set when CEO approves)
+    budget_negociation  = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    quantite_cible_t    = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    camion_reserve      = models.CharField(max_length=50, blank=True)
+    note_interne        = models.TextField(blank=True)
+    raison_refus        = models.TextField(blank=True)
+
+    # Purchase confirmation (set by collector when confirming achat)
+    prix_final = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+
+    # Stock delivery tracking
+    stock_arrive        = models.BooleanField(default=False)
+    date_livraison_stock = models.DateTimeField(null=True, blank=True)
+
+    # Quality assessment
+    classification = models.CharField(max_length=20, choices=Classification.choices, blank=True)
+    remarques      = models.TextField(blank=True)
+
+    # Timestamps
+    date_ajout = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.ref

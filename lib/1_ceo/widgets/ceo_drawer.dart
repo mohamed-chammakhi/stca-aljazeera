@@ -99,7 +99,13 @@ class CeoDrawer extends StatelessWidget {
                   vertical: 8,
                 ),
                 children: [
-                  _SectionLabel('Gestion'),
+                  const SizedBox(height: 11),
+
+                  _DrawerItem(
+                    icon: Icons.dashboard_outlined,
+                    label: 'Tableau de bord',
+                    onTap: onTableauDeBord,
+                  ),
                   _DrawerItem(
                     icon: Icons.science_outlined,
                     label: 'Échantillons',
@@ -127,12 +133,7 @@ class CeoDrawer extends StatelessWidget {
                   const SizedBox(height: 4),
                   Divider(color: _olive.withOpacity(0.15), height: 1),
                   const SizedBox(height: 4),
-                  _SectionLabel('Administration'),
-                  _DrawerItem(
-                    icon: Icons.dashboard_outlined,
-                    label: 'Tableau de bord',
-                    onTap: onTableauDeBord,
-                  ),
+
                   _DrawerItem(
                     icon: Icons.people_outline,
                     label: 'Utilisateurs',

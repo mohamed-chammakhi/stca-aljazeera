@@ -1,0 +1,292 @@
+<h2>Filtre de date — style par carte</h2>
+<p class="subtitle">Comment chaque carte affichera son propre filtre. Choisissez le style.</p>
+
+<style>
+  body { font-family: 'Segoe UI', sans-serif; }
+  .mock-card {
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 3px 10px rgba(56,131,90,0.08);
+    overflow: hidden;
+    margin-bottom: 8px;
+  }
+  .card-header {
+    padding: 14px 16px 10px;
+  }
+  .card-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: #1A2E1F;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .card-title-icon {
+    width: 14px; height: 14px;
+    background: #38835A;
+    border-radius: 3px;
+    display: inline-block;
+  }
+  .card-body-chart {
+    padding: 0 16px 16px;
+    display: flex;
+    align-items: flex-end;
+    gap: 6px;
+    height: 60px;
+  }
+  .bar { border-radius: 3px 3px 0 0; background: #38835A; width: 18px; }
+
+  /* Style A — mini pills inline in card header */
+  .filter-pills {
+    display: flex;
+    gap: 4px;
+  }
+  .filter-pill {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 600;
+    background: #f0f0f0;
+    color: #999;
+    cursor: pointer;
+  }
+  .filter-pill.active {
+    background: #38835A;
+    color: #fff;
+  }
+
+  /* Style B — subtle dropdown chip in top-right */
+  .card-header-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+  .filter-dropdown {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: #f5f8f6;
+    border: 1px solid #e0ede6;
+    border-radius: 8px;
+    padding: 5px 9px;
+    font-size: 10px;
+    font-weight: 700;
+    color: #38835A;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .filter-dropdown span {
+    font-size: 9px;
+    color: #38835A;
+  }
+
+  /* Shared period nav for Style B */
+  .period-mini-nav {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 6px;
+  }
+  .mini-nav-btn {
+    width: 20px; height: 20px;
+    background: #f5f8f6;
+    border-radius: 5px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; color: #1A2E1F;
+  }
+  .mini-nav-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #1A2E1F;
+  }
+
+  /* Style C — underline tabs */
+  .filter-tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid #f0f0f0;
+    margin: 0 -16px;
+    padding: 0 16px;
+  }
+  .filter-tab {
+    padding: 6px 12px;
+    font-size: 11px;
+    font-weight: 500;
+    color: #bbb;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    cursor: pointer;
+  }
+  .filter-tab.active {
+    color: #38835A;
+    font-weight: 700;
+    border-bottom: 2px solid #38835A;
+  }
+
+  .preview-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 10px;
+    padding-top: 4px;
+  }
+</style>
+
+<div class="cards">
+
+  <!-- Style A -->
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding: 20px; background: #f7f9f8;">
+      <div class="preview-label">Style A — Pastilles colorées</div>
+      <div class="mock-card">
+        <div class="card-header">
+          <div class="card-title"><span class="card-title-icon"></span>Performance des collecteurs</div>
+          <div class="filter-pills">
+            <div class="filter-pill">Jour</div>
+            <div class="filter-pill">Sem.</div>
+            <div class="filter-pill active">Mois</div>
+            <div class="filter-pill">An</div>
+          </div>
+        </div>
+        <div class="card-body-chart">
+          <div class="bar" style="height:55%;"></div>
+          <div class="bar" style="height:80%;"></div>
+          <div class="bar" style="height:60%; background:#3A6EA5;"></div>
+          <div class="bar" style="height:40%; background:#D07B2F;"></div>
+        </div>
+      </div>
+
+      <div class="mock-card" style="margin-top:10px;">
+        <div class="card-header">
+          <div class="card-title"><span class="card-title-icon" style="background:#3A6EA5;"></span>Acquisitions confirmées</div>
+          <div class="filter-pills">
+            <div class="filter-pill">Jour</div>
+            <div class="filter-pill">Sem.</div>
+            <div class="filter-pill active">Mois</div>
+            <div class="filter-pill">An</div>
+          </div>
+        </div>
+        <div class="card-body-chart">
+          <div class="bar" style="height:30%;background:#3A6EA5;"></div>
+          <div class="bar" style="height:60%;background:#3A6EA5;"></div>
+          <div class="bar" style="height:45%;background:#3A6EA5;"></div>
+          <div class="bar" style="height:90%;background:#3A6EA5;"></div>
+          <div class="bar" style="height:70%;background:#3A6EA5;"></div>
+          <div class="bar" style="height:25%;background:#3A6EA5;opacity:0.4;"></div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Pastilles colorées</h3>
+      <p>Filtre visible en permanence directement sous le titre. Toujours accessible en un tap, pas besoin d'ouvrir quoi que ce soit.</p>
+    </div>
+  </div>
+
+  <!-- Style B -->
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding: 20px; background: #f7f9f8;">
+      <div class="preview-label">Style B — Puce déroulante en haut à droite</div>
+      <div class="mock-card">
+        <div class="card-header">
+          <div class="card-header-row">
+            <div>
+              <div class="card-title"><span class="card-title-icon"></span>Performance des collecteurs</div>
+              <div class="period-mini-nav">
+                <div class="mini-nav-btn">‹</div>
+                <div class="mini-nav-label">Avril 2026</div>
+                <div class="mini-nav-btn">›</div>
+              </div>
+            </div>
+            <div class="filter-dropdown">Mois <span>▾</span></div>
+          </div>
+        </div>
+        <div class="card-body-chart">
+          <div class="bar" style="height:55%;"></div>
+          <div class="bar" style="height:80%;"></div>
+          <div class="bar" style="height:60%; background:#3A6EA5;"></div>
+          <div class="bar" style="height:40%; background:#D07B2F;"></div>
+        </div>
+      </div>
+
+      <div class="mock-card" style="margin-top:10px;">
+        <div class="card-header">
+          <div class="card-header-row">
+            <div>
+              <div class="card-title"><span class="card-title-icon" style="background:#3A6EA5;"></span>Acquisitions confirmées</div>
+              <div class="period-mini-nav">
+                <div class="mini-nav-btn">‹</div>
+                <div class="mini-nav-label">T1 2026</div>
+                <div class="mini-nav-btn">›</div>
+              </div>
+            </div>
+            <div class="filter-dropdown">Trimestre <span>▾</span></div>
+          </div>
+        </div>
+        <div class="card-body-chart">
+          <div class="bar" style="height:30%;background:#3A6EA5;"></div>
+          <div class="bar" style="height:60%;background:#3A6EA5;"></div>
+          <div class="bar" style="height:45%;background:#3A6EA5;"></div>
+          <div class="bar" style="height:90%;background:#3A6EA5;"></div>
+          <div class="bar" style="height:70%;background:#3A6EA5;"></div>
+          <div class="bar" style="height:25%;background:#3A6EA5;opacity:0.4;"></div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Puce déroulante + navigation</h3>
+      <p>Le filtre de mode est en haut à droite (compact). La navigation de période (‹ Avril 2026 ›) apparaît en dessous du titre. Chaque carte a sa propre période indépendante.</p>
+    </div>
+  </div>
+
+  <!-- Style C -->
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding: 20px; background: #f7f9f8;">
+      <div class="preview-label">Style C — Onglets soulignés en bas du titre</div>
+      <div class="mock-card">
+        <div class="card-header">
+          <div class="card-title" style="margin-bottom:8px;"><span class="card-title-icon"></span>Performance des collecteurs</div>
+          <div class="filter-tabs">
+            <div class="filter-tab">Jour</div>
+            <div class="filter-tab">Sem.</div>
+            <div class="filter-tab active">Mois</div>
+            <div class="filter-tab">An</div>
+          </div>
+        </div>
+        <div class="card-body-chart" style="margin-top:4px;">
+          <div class="bar" style="height:55%;"></div>
+          <div class="bar" style="height:80%;"></div>
+          <div class="bar" style="height:60%; background:#3A6EA5;"></div>
+          <div class="bar" style="height:40%; background:#D07B2F;"></div>
+        </div>
+      </div>
+
+      <div class="mock-card" style="margin-top:10px;">
+        <div class="card-header">
+          <div class="card-title" style="margin-bottom:8px;"><span class="card-title-icon" style="background:#3A6EA5;"></span>Acquisitions confirmées</div>
+          <div class="filter-tabs">
+            <div class="filter-tab">Jour</div>
+            <div class="filter-tab">Sem.</div>
+            <div class="filter-tab active">Mois</div>
+            <div class="filter-tab">An</div>
+          </div>
+        </div>
+        <div class="card-body-chart" style="margin-top:4px;">
+          <div class="bar" style="height:30%;background:#3A6EA5;"></div>
+          <div class="bar" style="height:60%;background:#3A6EA5;"></div>
+          <div class="bar" style="height:45%;background:#3A6EA5;"></div>
+          <div class="bar" style="height:90%;background:#3A6EA5;"></div>
+          <div class="bar" style="height:70%;background:#3A6EA5;"></div>
+          <div class="bar" style="height:25%;background:#3A6EA5;opacity:0.4;"></div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Onglets soulignés</h3>
+      <p>Style tabulation classique, sobre et élégant. L'onglet actif est souligné en vert. Très lisible mais prend un peu plus de hauteur.</p>
+    </div>
+  </div>
+
+</div>

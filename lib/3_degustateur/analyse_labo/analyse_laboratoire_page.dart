@@ -70,7 +70,7 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage> {
       echantillonNom: 'Chemlali - Lot A - Sfax',
       dateAnalyse: '18/02/2026',
       technicienNom: 'Karim B.',
-      statut: StatutAnalyse.envoyee,
+      statut: StatutAnalyse.soumise,
       notes: 'Analyse conforme aux normes COI',
       criteres: [
         CritereAnalyse(
@@ -137,7 +137,7 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage> {
       echantillonNom: 'Chetoui - Lot B - Béja',
       dateAnalyse: '19/02/2026',
       technicienNom: 'Karim B.',
-      statut: StatutAnalyse.envoyee,
+      statut: StatutAnalyse.soumise,
       criteres: [
         CritereAnalyse(
           label: 'Acidité libre',
@@ -268,10 +268,10 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage> {
   // ── FILTER LOGIC ─────────────────────────────────────────────────────────────
   StatutAnalyse? _labelToStatut(String? label) {
     switch (label) {
-      case 'En attente':
+      case 'Analyse en attente':
         return StatutAnalyse.enAttente;
-      case 'Envoyée':
-        return StatutAnalyse.envoyee;
+      case 'Analyse soumise':
+        return StatutAnalyse.soumise;
       default:
         return null;
     }
@@ -549,23 +549,23 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage> {
                       ),
                       const SizedBox(width: 7),
                       _StatutChip(
-                        label: 'En attente',
+                        label: 'Analyse en attente',
                         activeColor: const Color(0xFFD07B2F),
                         inactiveColor: const Color(0xFFFEF3E8),
                         inactiveTextColor: const Color(0xFFD07B2F),
-                        selected: _filtreStatutLabel == 'En attente',
-                        onTap: () =>
-                            setState(() => _filtreStatutLabel = 'En attente'),
+                        selected: _filtreStatutLabel == 'Analyse en attente',
+                        onTap: () => setState(
+                            () => _filtreStatutLabel = 'Analyse en attente'),
                       ),
                       const SizedBox(width: 7),
                       _StatutChip(
-                        label: 'Envoyée',
-                        activeColor: const Color(0xFF3A6EA5),
-                        inactiveColor: const Color(0xFFE8F1FB),
-                        inactiveTextColor: const Color(0xFF3A6EA5),
-                        selected: _filtreStatutLabel == 'Envoyée',
-                        onTap: () =>
-                            setState(() => _filtreStatutLabel = 'Envoyée'),
+                        label: 'Analyse soumise',
+                        activeColor: const Color(0xFF38835A),
+                        inactiveColor: const Color(0xFFE6F4ED),
+                        inactiveTextColor: const Color(0xFF38835A),
+                        selected: _filtreStatutLabel == 'Analyse soumise',
+                        onTap: () => setState(
+                            () => _filtreStatutLabel = 'Analyse soumise'),
                       ),
                     ],
                   ),

@@ -41,7 +41,7 @@ class _EchantillonsLaboPageState extends State<EchantillonsLaboPage> {
       collecteurNom: 'Ahmed D.',
       referenceBouteille: 'CHEMLALI-C1',
       variete: 'Chemlali',
-      quantiteEstimee: '10T',
+      quantiteEstimee: '10',
       dateArrivee: '01/03/2026',
       origineCampagne: '2025/2026',
     ),
@@ -53,7 +53,7 @@ class _EchantillonsLaboPageState extends State<EchantillonsLaboPage> {
       collecteurNom: 'Ahmed D.',
       referenceBouteille: 'CHETOUI-C3',
       variete: 'Chetoui',
-      quantiteEstimee: '8T',
+      quantiteEstimee: '8',
       dateArrivee: '28/02/2026',
       analyse: AnalyseLabo(
         echantillonId: 'ECH-002',
@@ -75,7 +75,7 @@ class _EchantillonsLaboPageState extends State<EchantillonsLaboPage> {
       collecteurNom: 'Sami B.',
       referenceBouteille: 'ZALMATI-C7',
       variete: 'Zalmati',
-      quantiteEstimee: '30T',
+      quantiteEstimee: '30',
       dateArrivee: '20/02/2026',
       priorite: PrioriteLabo.urgente,
       analyse: AnalyseLabo(
@@ -97,7 +97,7 @@ class _EchantillonsLaboPageState extends State<EchantillonsLaboPage> {
       collecteurNom: 'Leila M.',
       referenceBouteille: 'OUESLATI-C2',
       variete: 'Oueslati',
-      quantiteEstimee: '15T',
+      quantiteEstimee: '15',
       dateArrivee: '25/02/2026',
     ),
   ];
@@ -622,8 +622,9 @@ class _StatutChip extends StatelessWidget {
           boxShadow: selected
               ? [
                   BoxShadow(
-                    color: (isTous ? const Color(0xFF757575) : inactiveTextColor)
-                        .withValues(alpha: 0.22),
+                    color:
+                        (isTous ? const Color(0xFF757575) : inactiveTextColor)
+                            .withValues(alpha: 0.22),
                     blurRadius: 6,
                     offset: const Offset(0, 2),
                   ),
@@ -642,4 +643,3 @@ class _StatutChip extends StatelessWidget {
     );
   }
 }
-

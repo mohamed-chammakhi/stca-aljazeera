@@ -1,0 +1,77 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// FILE : gestion_echantillons/models/mock_echantillons.dart
+// PURPOSE : mock sample data for gestion page
+// TODO: remove when backend is ready and replace with EchantillonService.fetch()
+// ─────────────────────────────────────────────────────────────────────────────
+
+import '../../../core/models/echantillon.dart';
+import '../../../core/models/enums.dart';
+
+// TODO: remove when backend is ready
+final List<Echantillon> mockEchantillonsGestion = [
+  Echantillon(
+    id:                'aaa00000-0000-0000-0000-000000000001',
+    ref:               '2026/0001',
+    fournisseurId:     'faa00000-0000-0000-0000-000000000001',
+    collecteurId:      'caa00000-0000-0000-0000-000000000001',
+    codeFournisseur:   'Domaine Bel-Air',
+    collecteurNom:     'Ahmed Dridi',
+    referenceBouteille: 'CHEMLALI-C1',
+    variete:           'Chemlali',
+    gouvernorat:       'Sfax',
+    delegation:        'Sfax Sud',
+    quantiteEstimee:   '25',
+    statutCollecteur:  StatutCollecteur.receptionne,
+    statutDegustateur: StatutDegustateur.enAttente,
+    dateAjout:         '2026-03-01',
+    dateArriveeEchantillon: '2026-03-15',
+  ),
+  Echantillon(
+    id:                'aaa00000-0000-0000-0000-000000000002',
+    ref:               '2026/0002',
+    fournisseurId:     'faa00000-0000-0000-0000-000000000002',
+    collecteurId:      'caa00000-0000-0000-0000-000000000001',
+    codeFournisseur:   'SF-17',
+    collecteurNom:     'Ahmed Dridi',
+    referenceBouteille: 'CHEMLALI-C4',
+    variete:           'Chemlali',
+    gouvernorat:       'Sfax',
+    delegation:        'Mahres',
+    quantiteEstimee:   '12',
+    statutCollecteur:  StatutCollecteur.receptionne,
+    statutDegustateur: StatutDegustateur.enCours,
+    dateAjout:         '2026-03-05',
+  ),
+  Echantillon(
+    id:                'aaa00000-0000-0000-0000-000000000003',
+    ref:               '2026/0003',
+    fournisseurId:     'faa00000-0000-0000-0000-000000000003',
+    collecteurId:      'caa00000-0000-0000-0000-000000000002',
+    codeFournisseur:   'Ferme Al Jazira',
+    collecteurNom:     'Rania Hammami',
+    referenceBouteille: 'CHETOUI-C3',
+    variete:           'Chetoui',
+    gouvernorat:       'Béja',
+    delegation:        'Béja Nord',
+    quantiteEstimee:   '32',
+    statutCollecteur:  StatutCollecteur.receptionne,
+    statutDegustateur: StatutDegustateur.soumis,
+    dateAjout:         '2026-02-21',
+    dateArriveeEchantillon: '2026-02-28',
+  ),
+  Echantillon(
+    id:                'aaa00000-0000-0000-0000-000000000004',
+    ref:               '2026/0004',
+    fournisseurId:     'faa00000-0000-0000-0000-000000000004',
+    collecteurId:      'caa00000-0000-0000-0000-000000000003',
+    codeFournisseur:   'Green Valley',
+    referenceBouteille: 'OUESLATI-C2',
+    variete:           'Oueslati',
+    gouvernorat:       'Kairouan',
+    delegation:        'Kairouan Nord',
+    quantiteEstimee:   '18',
+    statutCollecteur:  StatutCollecteur.receptionne,
+    statutDegustateur: StatutDegustateur.enAttente,
+    dateAjout:         '2026-02-23',
+  ),
+];
