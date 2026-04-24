@@ -20,6 +20,7 @@ Future<void> showConfirmerAchatDialog({
     String prix,
     String? camion,
     PlanificationLivraison? livraison,
+    String? scellage,
   )
   onConfirm,
 }) async {
@@ -37,6 +38,7 @@ class _ConfirmerAchatDialog extends StatefulWidget {
     String prix,
     String? camion,
     PlanificationLivraison? livraison,
+    String? scellage,
   )
   onConfirm;
 
@@ -51,6 +53,7 @@ class _ConfirmerAchatDialog extends StatefulWidget {
 
 class _ConfirmerAchatDialogState extends State<_ConfirmerAchatDialog> {
   late final TextEditingController _prixCtrl;
+  late final TextEditingController _scellageCtrl;
   late final TextEditingController _camionCtrl;
 
   ModePlanificationUI _mode = ModePlanificationUI.dateExacte;
@@ -63,6 +66,7 @@ class _ConfirmerAchatDialogState extends State<_ConfirmerAchatDialog> {
     super.initState();
     final e = widget.echantillon;
     _prixCtrl = TextEditingController(text: e.prixFinal ?? '');
+    _scellageCtrl = TextEditingController(text: e.scellage ?? '');
     _camionCtrl = TextEditingController(text: e.camionLivraison ?? '');
     // Pre-fill delivery date if already set
     if (e.livraison?.dateExacte != null) {
@@ -73,6 +77,7 @@ class _ConfirmerAchatDialogState extends State<_ConfirmerAchatDialog> {
   @override
   void dispose() {
     _prixCtrl.dispose();
+    _scellageCtrl.dispose();
     _camionCtrl.dispose();
     super.dispose();
   }
@@ -220,6 +225,16 @@ class _ConfirmerAchatDialogState extends State<_ConfirmerAchatDialog> {
                     ),
                     const SizedBox(height: 14),
 
+                    // Scellage
+                    const _DialogLabel('Scellage'),
+                    const SizedBox(height: 6),
+                    TextField(
+                      controller: _scellageCtrl,
+                      decoration: _inputDeco('ex: Z1', Icons.verified_outlined),
+                      style: const TextStyle(fontSize: 14),
+                    ),
+                    const SizedBox(height: 14),
+
                     // Camion (no prefix icon)
                     const _DialogLabel('Camion utilisé'),
                     const SizedBox(height: 6),
@@ -298,6 +313,9 @@ class _ConfirmerAchatDialogState extends State<_ConfirmerAchatDialog> {
                               ? null
                               : _camionCtrl.text.trim(),
                           _buildLivraison(),
+                          _scellageCtrl.text.trim().isEmpty
+                              ? null
+                              : _scellageCtrl.text.trim(),
                         );
                       },
                       style: ElevatedButton.styleFrom(

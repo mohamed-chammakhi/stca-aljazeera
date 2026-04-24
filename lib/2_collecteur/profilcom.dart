@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'mes_echantillons/mes_echantillons_page.dart';
-import 'tableau_de_bord/tableau_de_bord_collecteur_page.dart';
 import 'widgets/collecteur_drawer.dart';
 import '../../main.dart';
 
@@ -210,6 +209,7 @@ class _ProfileCollecteurPageState extends State<ProfileCollecteurPage> {
         onMesEchantillons: () => _goTo(const MesEchantillonsPage()),
         onCarte: () => _goTo(const Placeholder()),
         onMessagerie: () => _goTo(const Placeholder()),
+
         onProfil: () => Navigator.pop(context),
         onDeconnexion: _goToLogin,
       ),

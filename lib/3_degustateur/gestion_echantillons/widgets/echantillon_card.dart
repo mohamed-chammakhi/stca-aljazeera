@@ -4,6 +4,7 @@
 //           expandable detail panel with all attributes + delivery date.
 // ─────────────────────────────────────────────────────────────────────────────
 
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../../../core/models/echantillon.dart';
 import '../../../../core/models/enums.dart';
@@ -46,6 +47,29 @@ class EchantillonCard extends StatefulWidget {
 
 class _EchantillonCardState extends State<EchantillonCard> {
   bool _expanded = false;
+  bool _showRecuMsg = false;
+  Timer? _msgTimer;
+
+  @override
+  void dispose() {
+    _msgTimer?.cancel();
+    super.dispose();
+  }
+
+  void _toggleRecuWithFeedback() {
+    _msgTimer?.cancel();
+    widget.onToggleRecu();
+    // After onToggleRecu, the field is already flipped (setState runs fn synchronously)
+    final isNowReceived = widget.echantillon.recuPhysiquement;
+    if (isNowReceived) {
+      setState(() => _showRecuMsg = true);
+      _msgTimer = Timer(const Duration(seconds: 6), () {
+        if (mounted) setState(() => _showRecuMsg = false);
+      });
+    } else {
+      setState(() => _showRecuMsg = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -87,7 +111,7 @@ class _EchantillonCardState extends State<EchantillonCard> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // ── Row 1: ref + qty pill + chevron ────────────
+                          // ── Row 1: ref + qty pill + tick + chevron ─────
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
@@ -108,8 +132,76 @@ class _EchantillonCardState extends State<EchantillonCard> {
                               if (e.quantiteEstimee != null &&
                                   e.quantiteEstimee!.isNotEmpty) ...[
                                 _QuantityPill(quantite: e.quantiteEstimee!),
-                                const SizedBox(width: 8),
+                                const SizedBox(width: 6),
                               ],
+                              // ── Inline confirmation message ───────────────
+                              AnimatedSize(
+                                duration: const Duration(milliseconds: 200),
+                                curve: Curves.easeInOut,
+                                child: _showRecuMsg
+                                    ? Container(
+                                        margin: const EdgeInsets.only(right: 6),
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 7,
+                                          vertical: 3,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: _green,
+                                          borderRadius: BorderRadius.circular(6),
+                                        ),
+                                        child: const Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(
+                                              Icons.check,
+                                              size: 10,
+                                              color: Colors.white,
+                                            ),
+                                            SizedBox(width: 4),
+                                            Text(
+                                              'Réception physique confirmée',
+                                              style: TextStyle(
+                                                fontSize: 10,
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      )
+                                    : const SizedBox.shrink(),
+                              ),
+                              // ── Physical reception tick ───────────────────
+                              GestureDetector(
+                                onTap: _toggleRecuWithFeedback,
+                                behavior: HitTestBehavior.opaque,
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 4,
+                                    vertical: 2,
+                                  ),
+                                  child: AnimatedSwitcher(
+                                    duration: const Duration(milliseconds: 220),
+                                    switchInCurve: Curves.easeOutBack,
+                                    transitionBuilder: (child, anim) =>
+                                        ScaleTransition(
+                                          scale: anim,
+                                          child: child,
+                                        ),
+                                    child: Icon(
+                                      e.recuPhysiquement
+                                          ? Icons.check_circle
+                                          : Icons.check_circle_outline,
+                                      key: ValueKey(e.recuPhysiquement),
+                                      size: 20,
+                                      color: e.recuPhysiquement
+                                          ? _green
+                                          : Colors.grey.shade400,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 4),
                               AnimatedRotation(
                                 turns: _expanded ? 0.5 : 0.0,
                                 duration: const Duration(milliseconds: 200),
@@ -138,27 +230,6 @@ class _EchantillonCardState extends State<EchantillonCard> {
                               ),
                               const Spacer(),
                               if (_expanded) ...[
-                                // Physically received toggle
-                                Tooltip(
-                                  message: e.recuPhysiquement
-                                      ? 'Annuler la réception'
-                                      : 'Confirmer la réception physique',
-                                  child: _SmallIconBtn(
-                                    icon: e.recuPhysiquement
-                                        ? Icons.check_circle
-                                        : Icons.check_circle_outline,
-                                    color: e.recuPhysiquement
-                                        ? _green
-                                        : const Color.fromARGB(
-                                            255,
-                                            137,
-                                            136,
-                                            136,
-                                          ),
-                                    onTap: widget.onToggleRecu,
-                                  ),
-                                ),
-                                const SizedBox(width: 2),
                                 Tooltip(
                                   message: 'Modifier',
                                   child: _SmallIconBtn(

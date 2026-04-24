@@ -8,6 +8,7 @@ import 'models/echantillon_labo.dart';
 import 'widgets/echantillon_labo_card.dart';
 import 'widgets/statut_analyse_badge.dart';
 import 'widgets/dialogs/analyse_dialog.dart';
+import 'widgets/dialogs/formulaire_analyse_labo_dialog.dart';
 import '../analyse_labo.dart';
 import '../labo_drawer.dart';
 import '../profil_labo_page.dart';
@@ -142,10 +143,42 @@ class _EchantillonsLaboPageState extends State<EchantillonsLaboPage> {
     showAnalyseChoiceSheet(
       context,
       echantillon: e,
+      existing:    e.analyse,
       onSave: (analyse) {
         setState(() => e.analyse = analyse);
         _showSnack('Analyse modifiée');
       },
+    );
+  }
+
+  void _onSupprimerAnalyse(EchantillonLabo e) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Supprimer l\'analyse',
+            style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+        content: Text(
+            'Supprimer l\'analyse de ${e.referenceBouteille} ? '
+            'Vous pourrez en soumettre une nouvelle.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Annuler',
+                style: TextStyle(color: Color(0xFF38835A))),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              setState(() => e.analyse = null);
+              _showSnack('Analyse supprimée');
+            },
+            child: Text('Supprimer',
+                style: TextStyle(color: Colors.red.shade600,
+                    fontWeight: FontWeight.w700)),
+          ),
+        ],
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      ),
     );
   }
 
@@ -275,7 +308,7 @@ class _EchantillonsLaboPageState extends State<EchantillonsLaboPage> {
                       ),
                       const SizedBox(width: 7),
                       _StatutChip(
-                        label: 'En attente',
+                        label: 'Analyse en attente',
                         activeColor: const Color(0xFF3A6EA5),
                         inactiveColor: const Color(0xFFE8F1FB),
                         inactiveTextColor: const Color(0xFF3A6EA5),
@@ -286,7 +319,7 @@ class _EchantillonsLaboPageState extends State<EchantillonsLaboPage> {
                       ),
                       const SizedBox(width: 7),
                       _StatutChip(
-                        label: 'En cours',
+                        label: 'Analyse en cours',
                         activeColor: const Color(0xFFD07B2F),
                         inactiveColor: const Color(0xFFFEF3E8),
                         inactiveTextColor: const Color(0xFFD07B2F),
@@ -297,7 +330,7 @@ class _EchantillonsLaboPageState extends State<EchantillonsLaboPage> {
                       ),
                       const SizedBox(width: 7),
                       _StatutChip(
-                        label: 'Soumis',
+                        label: 'Analyse soumise',
                         activeColor: const Color(0xFF38835A),
                         inactiveColor: const Color(0xFFE6F4ED),
                         inactiveTextColor: const Color(0xFF38835A),
@@ -385,6 +418,9 @@ class _EchantillonsLaboPageState extends State<EchantillonsLaboPage> {
                             onModifierAnalyse: e.analyse != null
                                 ? () => _onModifierAnalyse(e)
                                 : null,
+                            onSupprimerAnalyse: e.analyse != null
+                                ? () => _onSupprimerAnalyse(e)
+                                : null,
                           );
                         },
                       ),
@@ -397,13 +433,13 @@ class _EchantillonsLaboPageState extends State<EchantillonsLaboPage> {
   }
 
   void _showAnalyseReadOnly(EchantillonLabo e) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (_) => _AnalyseReadOnlySheet(echantillon: e),
+    showFormulaireAnalyseLaboDialog(
+      context,
+      echantillonRef: e.referenceBouteille,
+      echantillonId:  e.id,
+      analyse:        e.analyse,
+      readOnly:       true,
+      onSave:         (_) {},
     );
   }
 }

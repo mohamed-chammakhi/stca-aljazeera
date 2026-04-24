@@ -40,6 +40,18 @@ class AnalyseLabo {
   StatutAnalyse statut;
   String? notes;
 
+  // Sample detail fields — populated from linked Echantillon for display
+  final String? fournisseurNom;
+  final String? gouvernorat;
+  final String? delegation;
+  final String? collecteurNom;
+  final String? variete;
+  final String? quantiteEstimee;
+
+  // Dates for filtering — DD/MM/YYYY format
+  final String? dateEnregistrement;   // sample registration date
+  final String? dateReceptionPhysique; // date sample physically arrived
+
   // the list of criteria + their values
   List<CritereAnalyse> criteres;
 
@@ -52,6 +64,14 @@ class AnalyseLabo {
     required this.statut,
     required this.criteres,
     this.notes,
+    this.fournisseurNom,
+    this.gouvernorat,
+    this.delegation,
+    this.collecteurNom,
+    this.variete,
+    this.quantiteEstimee,
+    this.dateEnregistrement,
+    this.dateReceptionPhysique,
   });
 
   /// true if ALL criteria are within their allowed range

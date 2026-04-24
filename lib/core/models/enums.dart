@@ -66,9 +66,9 @@ extension StatutCollecteurX on StatutCollecteur {
 
   String get label {
     switch (this) {
-      case StatutCollecteur.receptionne:    return 'Réceptionné';
-      case StatutCollecteur.enNegociation:  return 'En négociation';
-      case StatutCollecteur.achatConfirme:  return 'Achat confirmé';
+      case StatutCollecteur.receptionne:    return 'Échantillon enregistré';
+      case StatutCollecteur.enNegociation:  return 'Prix en négociation';
+      case StatutCollecteur.achatConfirme:  return 'Achat conclu';
     }
   }
 
@@ -158,7 +158,7 @@ extension StatutCeoX on StatutCeo {
 
   String get label {
     switch (this) {
-      case StatutCeo.selectionne:    return 'Sélectionné';
+      case StatutCeo.selectionne:    return 'Enregistré';
       case StatutCeo.enNegociation:  return 'En négociation';
       case StatutCeo.achatConfirme:  return 'Achat confirmé';
       case StatutCeo.refuse:         return 'Refusé';

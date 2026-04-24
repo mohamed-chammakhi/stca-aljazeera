@@ -11,6 +11,35 @@ const Color _cream = Color(0xFFF9F6EF);
 const Color _dark = Color(0xFF1A2E1F);
 
 // ─────────────────────────────────────────────────────────────────────────────
+// DATE FILTER TYPE  — which date field to filter by (optional feature)
+// ─────────────────────────────────────────────────────────────────────────────
+enum DateFilterType { enregistrement, livraisonEchantillon, arriveeStock }
+
+extension DateFilterTypeX on DateFilterType {
+  String get label {
+    switch (this) {
+      case DateFilterType.enregistrement:
+        return 'Date d\'enregistrement';
+      case DateFilterType.livraisonEchantillon:
+        return 'Livraison échantillon';
+      case DateFilterType.arriveeStock:
+        return 'Arrivée du stock';
+    }
+  }
+
+  String get shortLabel {
+    switch (this) {
+      case DateFilterType.enregistrement:
+        return 'Enregistrement';
+      case DateFilterType.livraisonEchantillon:
+        return 'Livraison éch.';
+      case DateFilterType.arriveeStock:
+        return 'Arrivée stock';
+    }
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // SEARCH BAR
 // A slim, self-contained search input that notifies parent on change/clear.
 // ─────────────────────────────────────────────────────────────────────────────
@@ -154,6 +183,12 @@ class DateFilterSheet extends StatefulWidget {
   final DateTime? dateFin;
   final void Function(DateTime debut, DateTime? fin) onApply;
   final VoidCallback onClear;
+  // Optional: enable a date-type selector above the date pickers.
+  // When provided, onApplyTyped fires instead of onApply.
+  final List<DateFilterType> availableTypes;
+  final DateFilterType? initialType;
+  final void Function(DateTime debut, DateTime? fin, DateFilterType type)?
+      onApplyTyped;
 
   const DateFilterSheet({
     super.key,
@@ -161,6 +196,9 @@ class DateFilterSheet extends StatefulWidget {
     required this.dateFin,
     required this.onApply,
     required this.onClear,
+    this.availableTypes = const [],
+    this.initialType,
+    this.onApplyTyped,
   });
 
   @override
@@ -171,6 +209,7 @@ class _DateFilterSheetState extends State<DateFilterSheet> {
   late DateTime? _debut;
   late DateTime? _fin;
   bool _isRange = false;
+  late DateFilterType _selectedType;
 
   @override
   void initState() {
@@ -178,7 +217,13 @@ class _DateFilterSheetState extends State<DateFilterSheet> {
     _debut = widget.dateDebut;
     _fin = widget.dateFin;
     _isRange = widget.dateFin != null;
+    _selectedType = widget.initialType ??
+        (widget.availableTypes.isNotEmpty
+            ? widget.availableTypes.first
+            : DateFilterType.enregistrement);
   }
+
+  bool get _hasTypeSelector => widget.availableTypes.length > 1;
 
   String _fmtDate(DateTime d) =>
       '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}';
@@ -251,6 +296,59 @@ class _DateFilterSheetState extends State<DateFilterSheet> {
             ],
           ),
           const SizedBox(height: 16),
+
+          // ── Date type selector (shown only when availableTypes provided) ──
+          if (_hasTypeSelector) ...[
+            Text(
+              'Filtrer sur quelle date :',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey.shade500,
+              ),
+            ),
+            const SizedBox(height: 8),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: widget.availableTypes.map((type) {
+                  final selected = _selectedType == type;
+                  return GestureDetector(
+                    onTap: () => setState(() => _selectedType = type),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 150),
+                      margin: const EdgeInsets.only(right: 8),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 7,
+                      ),
+                      decoration: BoxDecoration(
+                        color: selected
+                            ? _green
+                            : Colors.grey.shade100,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: selected ? _green : Colors.grey.shade200,
+                        ),
+                      ),
+                      child: Text(
+                        type.shortLabel,
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: selected
+                              ? Colors.white
+                              : Colors.grey.shade600,
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
+
           // Mode toggle
           Container(
             decoration: BoxDecoration(
@@ -321,7 +419,15 @@ class _DateFilterSheetState extends State<DateFilterSheet> {
                   onPressed: _debut == null
                       ? null
                       : () {
-                          widget.onApply(_debut!, _isRange ? _fin : null);
+                          if (widget.onApplyTyped != null) {
+                            widget.onApplyTyped!(
+                              _debut!,
+                              _isRange ? _fin : null,
+                              _selectedType,
+                            );
+                          } else {
+                            widget.onApply(_debut!, _isRange ? _fin : null);
+                          }
                           Navigator.pop(context);
                         },
                   style: ElevatedButton.styleFrom(

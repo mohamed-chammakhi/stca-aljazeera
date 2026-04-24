@@ -995,6 +995,9 @@ class _DropdownField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isLoading = items.isEmpty && onChanged != null;
+    final isDisabled = onChanged == null;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1007,44 +1010,74 @@ class _DropdownField extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 6),
-        IgnorePointer(
-          ignoring: onChanged == null,
-          child: Opacity(
-            opacity: onChanged == null ? 0.5 : 1.0,
-            child: DropdownButtonFormField<String>(
-              value: (value != null && items.contains(value)) ? value : null,
-              isExpanded: true,
-              decoration: InputDecoration(
-                filled: true,
-                fillColor: _fieldFill,
-                contentPadding: const EdgeInsets.symmetric(
-                  vertical: 12,
-                  horizontal: 14,
+        if (isLoading)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 14),
+            decoration: BoxDecoration(
+              color: _fieldFill,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: Colors.grey.shade200),
+            ),
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 13,
+                  height: 13,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 1.5,
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      _green.withValues(alpha: 0.6),
+                    ),
+                  ),
                 ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide(color: Colors.grey.shade200),
+                const SizedBox(width: 10),
+                Text(
+                  hint,
+                  style: TextStyle(fontSize: 13, color: Colors.grey.shade400),
                 ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide(color: Colors.grey.shade200),
+              ],
+            ),
+          )
+        else
+          Opacity(
+            opacity: isDisabled ? 0.5 : 1.0,
+            child: IgnorePointer(
+              ignoring: isDisabled,
+              child: DropdownButtonFormField<String>(
+                initialValue: (value != null && items.contains(value)) ? value : null,
+                isExpanded: true,
+                decoration: InputDecoration(
+                  filled: true,
+                  fillColor: _fieldFill,
+                  contentPadding: const EdgeInsets.symmetric(
+                    vertical: 12,
+                    horizontal: 14,
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(color: Colors.grey.shade200),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(color: Colors.grey.shade200),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: _green, width: 1.8),
+                  ),
                 ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: _green, width: 1.8),
+                hint: Text(
+                  hint,
+                  style: TextStyle(fontSize: 13, color: Colors.grey.shade400),
                 ),
+                items: items
+                    .map((s) => DropdownMenuItem(value: s, child: Text(s)))
+                    .toList(),
+                onChanged: onChanged,
               ),
-              hint: Text(
-                hint,
-                style: TextStyle(fontSize: 13, color: Colors.grey.shade400),
-              ),
-              items: items
-                  .map((s) => DropdownMenuItem(value: s, child: Text(s)))
-                  .toList(),
-              onChanged: onChanged,
             ),
           ),
-        ),
       ],
     );
   }

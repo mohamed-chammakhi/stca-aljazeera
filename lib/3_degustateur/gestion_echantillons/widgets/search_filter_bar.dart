@@ -185,6 +185,11 @@ class DateFilterSheet extends StatefulWidget {
   final VoidCallback onClear;
   final String titre;
 
+  // Optional typed-filter support — when provided, shows a type selector
+  final List<({String key, String label})>? typeOptions;
+  final String? initialType;
+  final void Function(DateTime debut, DateTime? fin, String type)? onApplyTyped;
+
   const DateFilterSheet({
     super.key,
     required this.dateDebut,
@@ -192,6 +197,9 @@ class DateFilterSheet extends StatefulWidget {
     required this.onApply,
     required this.onClear,
     this.titre = 'Filtrer par date',
+    this.typeOptions,
+    this.initialType,
+    this.onApplyTyped,
   });
 
   @override
@@ -202,13 +210,15 @@ class _DateFilterSheetState extends State<DateFilterSheet> {
   late DateTime? _debut;
   late DateTime? _fin;
   bool _isRange = false;
+  late String? _selectedType;
 
   @override
   void initState() {
     super.initState();
-    _debut   = widget.dateDebut;
-    _fin     = widget.dateFin;
-    _isRange = widget.dateFin != null;
+    _debut        = widget.dateDebut;
+    _fin          = widget.dateFin;
+    _isRange      = widget.dateFin != null;
+    _selectedType = widget.initialType ?? widget.typeOptions?.first.key;
   }
 
   String _fmtDate(DateTime d) =>
@@ -277,6 +287,25 @@ class _DateFilterSheetState extends State<DateFilterSheet> {
               ),
             ),
           ]),
+
+          // optional date-type selector
+          if (widget.typeOptions != null) ...[
+            const SizedBox(height: 12),
+            Container(
+              decoration: BoxDecoration(
+                color:        Colors.grey.shade100,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              padding: const EdgeInsets.all(3),
+              child: Row(
+                children: widget.typeOptions!.map((t) => _ModeSegment(
+                  label:    t.label,
+                  selected: _selectedType == t.key,
+                  onTap:    () => setState(() => _selectedType = t.key),
+                )).toList(),
+              ),
+            ),
+          ],
           const SizedBox(height: 16),
 
           // mode toggle
@@ -349,7 +378,16 @@ class _DateFilterSheetState extends State<DateFilterSheet> {
                 onPressed: _debut == null
                     ? null
                     : () {
-                        widget.onApply(_debut!, _isRange ? _fin : null);
+                        if (widget.onApplyTyped != null &&
+                            _selectedType != null) {
+                          widget.onApplyTyped!(
+                            _debut!,
+                            _isRange ? _fin : null,
+                            _selectedType!,
+                          );
+                        } else {
+                          widget.onApply(_debut!, _isRange ? _fin : null);
+                        }
                         Navigator.pop(context);
                       },
                 style: ElevatedButton.styleFrom(

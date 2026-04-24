@@ -25,7 +25,7 @@ class StatutCfg {
 StatutCfg statutConfig(StatutCeo s) {
   switch (s) {
     case StatutCeo.selectionne:
-      return StatutCfg(Colors.blue.shade400, 'Sélectionné');
+      return StatutCfg(Colors.blue.shade400, 'Enregistré');
     case StatutCeo.enNegociation:
       return StatutCfg(Colors.orange.shade500, 'En négociation');
     case StatutCeo.achatConfirme:
@@ -86,6 +86,16 @@ class SampleDetails extends StatefulWidget {
 class _SampleDetailsState extends State<SampleDetails> {
   bool _purchaseExpanded = false;
 
+  // Helper: wraps a string in the — sentence — gray style
+  Text _dLine(String s) => Text(
+        '— $s —',
+        style: const TextStyle(
+          fontSize: 13,
+          color: Color(0xFF9C9B9B),
+          fontWeight: FontWeight.w400,
+        ),
+      );
+
   Color _statutColor(StatutCeo s) {
     switch (s) {
       case StatutCeo.selectionne:
@@ -102,7 +112,7 @@ class _SampleDetailsState extends State<SampleDetails> {
   String _statutLabel(StatutCeo s) {
     switch (s) {
       case StatutCeo.selectionne:
-        return 'Sélectionné';
+        return 'Enregistré';
       case StatutCeo.enNegociation:
         return 'En négociation';
       case StatutCeo.achatConfirme:
@@ -171,148 +181,102 @@ class _SampleDetailsState extends State<SampleDetails> {
           ),
           const SizedBox(height: 15),
 
-          // ── Réception / livraison indicator (6 states) ───────────────────
-          if (e.stockArrive) ...[
-            // ① Stock physically arrived → delivery text, then "Détails" on next line
-            Text(
-              e.dateLivraisonStock != null
-                  ? '— Stock réceptionné le ${e.dateLivraisonStock} —'
-                  : '— Stock réceptionné —',
-              style: const TextStyle(
-                fontSize: 13,
-                color: Color(0xFF9C9B9B),
-                fontWeight: FontWeight.w400,
-              ),
-            ),
-            const SizedBox(height: 6),
-            GestureDetector(
-              onTap: () =>
-                  setState(() => _purchaseExpanded = !_purchaseExpanded),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    'Détails de l\'achat',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: statutColor,
-                      fontWeight: FontWeight.w600,
-                      decoration: TextDecoration.underline,
-                      decorationColor: statutColor.withValues(alpha: 0.4),
-                    ),
-                  ),
-                  const SizedBox(width: 2),
-                  AnimatedRotation(
-                    turns: _purchaseExpanded ? 0.5 : 0.0,
-                    duration: const Duration(milliseconds: 180),
-                    child: Icon(
-                      Icons.keyboard_arrow_down,
-                      size: 15,
-                      color: statutColor,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            // Collapsible purchase details panel
-            AnimatedCrossFade(
-              firstChild: const SizedBox.shrink(),
-              secondChild: PurchaseDetailsPanel(e: e, color: statutColor),
-              crossFadeState: _purchaseExpanded
-                  ? CrossFadeState.showSecond
-                  : CrossFadeState.showFirst,
-              duration: const Duration(milliseconds: 200),
-            ),
-          ] else if (e.dateLivraisonStock != null) ...[
-            // ② Stock delivery date set but not yet received
-            Text(
-              '— Livraison du stock prévue le ${e.dateLivraisonStock} —',
-              style: const TextStyle(
-                fontSize: 13,
-                color: Color(0xFF9C9B9B),
-                fontWeight: FontWeight.w400,
-              ),
-            ),
-            const SizedBox(height: 6),
-            GestureDetector(
-              onTap: () =>
-                  setState(() => _purchaseExpanded = !_purchaseExpanded),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    'Détails de la commande',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: statutColor,
-                      fontWeight: FontWeight.w600,
-                      decoration: TextDecoration.underline,
-                      decorationColor: statutColor.withValues(alpha: 0.4),
-                    ),
-                  ),
-                  const SizedBox(width: 2),
-                  AnimatedRotation(
-                    turns: _purchaseExpanded ? 0.5 : 0.0,
-                    duration: const Duration(milliseconds: 180),
-                    child: Icon(
-                      Icons.keyboard_arrow_down,
-                      size: 15,
-                      color: statutColor,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            AnimatedCrossFade(
-              firstChild: const SizedBox.shrink(),
-              secondChild: PurchaseDetailsPanel(e: e, color: statutColor),
-              crossFadeState: _purchaseExpanded
-                  ? CrossFadeState.showSecond
-                  : CrossFadeState.showFirst,
-              duration: const Duration(milliseconds: 200),
-            ),
-          ] else if (e.recuPhysiquement) ...[
-            // ③ Sample physically received (taster confirmed arrival)
-            Text(
+          // ── Delivery section — layout depends on statut ───────────────────
+          //
+          // Enregistré : 4 sample delivery scenarios
+          // En négociation : sample has arrived → show reception only
+          // Achat confirmé : show reception + 4 stock delivery scenarios
+          // Refusé : no delivery section
+          if (e.statut == StatutCeo.selectionne) ...[
+            if (e.recuPhysiquement)
+              _dLine(
+                e.dateArriveeEchantillon != null
+                    ? 'Échantillon réceptionné le ${e.dateArriveeEchantillon}'
+                    : 'Échantillon réceptionné',
+              )
+            else if (e.dateLivraisonPrevue != null &&
+                e.dateLivraisonPrevueFin != null)
+              _dLine(
+                'Échantillon attendu entre le ${e.dateLivraisonPrevue} et le ${e.dateLivraisonPrevueFin}',
+              )
+            else if (e.dateLivraisonPrevue != null)
+              _dLine('Échantillon attendu le ${e.dateLivraisonPrevue}')
+            else
+              _dLine('Livraison de l\'échantillon non planifiée'),
+          ] else if (e.statut == StatutCeo.enNegociation) ...[
+            _dLine(
               e.dateArriveeEchantillon != null
-                  ? '— Échantillon réceptionné le ${e.dateArriveeEchantillon} —'
-                  : '— Échantillon réceptionné —',
-              style: const TextStyle(
-                fontSize: 13,
-                color: Color(0xFF9C9B9B),
-                fontWeight: FontWeight.w400,
+                  ? 'Échantillon réceptionné le ${e.dateArriveeEchantillon}'
+                  : 'Échantillon réceptionné',
+            ),
+          ] else if (e.statut == StatutCeo.achatConfirme) ...[
+            _dLine(
+              e.dateArriveeEchantillon != null
+                  ? 'Échantillon réceptionné le ${e.dateArriveeEchantillon}'
+                  : 'Échantillon réceptionné',
+            ),
+            const SizedBox(height: 4),
+            if (e.stockArrive)
+              _dLine(
+                e.dateLivraisonStock != null
+                    ? 'Stock réceptionné le ${e.dateLivraisonStock}'
+                    : 'Stock réceptionné',
+              )
+            else if (e.dateLivraisonStock != null &&
+                e.dateLivraisonStockFin != null)
+              _dLine(
+                'Stock attendu entre le ${e.dateLivraisonStock} et le ${e.dateLivraisonStockFin}',
+              )
+            else if (e.dateLivraisonStock != null)
+              _dLine('Stock attendu pour le ${e.dateLivraisonStock}')
+            else
+              _dLine('Livraison du stock non encore planifiée'),
+          ],
+
+          // ── Purchase details (collapsible, achat confirmé only) ───────────
+          if (e.statut == StatutCeo.achatConfirme &&
+              (e.quantiteCibleT != null ||
+                  e.budgetNegociation != null ||
+                  e.camionReserve != null)) ...[
+            const SizedBox(height: 6),
+            GestureDetector(
+              onTap: () =>
+                  setState(() => _purchaseExpanded = !_purchaseExpanded),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    e.stockArrive
+                        ? 'Détails de l\'achat'
+                        : 'Détails de la commande',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: statutColor,
+                      fontWeight: FontWeight.w600,
+                      decoration: TextDecoration.underline,
+                      decorationColor: statutColor.withValues(alpha: 0.4),
+                    ),
+                  ),
+                  const SizedBox(width: 2),
+                  AnimatedRotation(
+                    turns: _purchaseExpanded ? 0.5 : 0.0,
+                    duration: const Duration(milliseconds: 180),
+                    child: Icon(
+                      Icons.keyboard_arrow_down,
+                      size: 15,
+                      color: statutColor,
+                    ),
+                  ),
+                ],
               ),
             ),
-          ] else if (e.dateLivraisonPrevue != null) ...[
-            // ④ Collector stated a delivery date but sample hasn't arrived yet
-            Text(
-              '— Arrivée prévue le ${e.dateLivraisonPrevue} —',
-              style: const TextStyle(
-                fontSize: 13,
-                color: Color(0xFF9C9B9B),
-                fontWeight: FontWeight.w400,
-              ),
-            ),
-          ] else if (e.statut == StatutCeo.enNegociation ||
-              e.statut == StatutCeo.achatConfirme) ...[
-            // ⑤ Stock purchase confirmed but no delivery date set yet
-            const Text(
-              '— Livraison du stock non programmée —',
-              style: TextStyle(
-                fontSize: 13,
-                color: Color(0xFF9C9B9B),
-                fontWeight: FontWeight.w400,
-              ),
-            ),
-          ] else ...[
-            // ⑥ Sample registered, no delivery date announced yet
-            const Text(
-              '— Livraison non planifiée —',
-              style: TextStyle(
-                fontSize: 13,
-                color: Color(0xFF9C9B9B),
-                fontWeight: FontWeight.w400,
-              ),
+            AnimatedCrossFade(
+              firstChild: const SizedBox.shrink(),
+              secondChild: PurchaseDetailsPanel(e: e, color: statutColor),
+              crossFadeState: _purchaseExpanded
+                  ? CrossFadeState.showSecond
+                  : CrossFadeState.showFirst,
+              duration: const Duration(milliseconds: 200),
             ),
           ],
 

@@ -240,6 +240,7 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       builder: (_) => DateFilterSheet(
+        titre: 'Filtrer par date de séance',
         dateDebut: _dateDebut,
         dateFin: _dateFin,
         onApply: (debut, fin) => setState(() {
@@ -328,7 +329,7 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
                   color: _dateFilterActive ? _green : const Color(0xFF6B8E7A),
                 ),
                 onPressed: _showDateFilter,
-                tooltip: 'Filtrer par date',
+                tooltip: 'Filtrer par date de séance',
               ),
               if (_dateFilterActive)
                 Positioned(
@@ -380,10 +381,10 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
                   onChanged: (v) => setState(() => _recherche = v.trim()),
                   style: const TextStyle(fontSize: 14, color: _dark),
                   decoration: InputDecoration(
-                    hintText: 'Rechercher titre, lieu, réf…',
+                    hintText: 'Titre · lieu · réf · organisateur…',
                     hintStyle: const TextStyle(
                       color: Color(0xFF6B8E7A),
-                      fontSize: 13,
+                      fontSize: 11,
                     ),
                     prefixIcon: const Icon(
                       Icons.search,

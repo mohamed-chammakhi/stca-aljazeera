@@ -24,7 +24,7 @@ final List<EchantillonCeoView> mockEchantillons = [
     variete: 'Chemlali',
     quantiteEstimee: '25',
     dateAjout: '01/03/2026',
-    dateArriveeEchantillon: '03/03/2026',
+    dateArriveeEchantillon: '03/03/2026 à 09h15',
     collecteurNom: 'Ahmed Dridi',
     recuPhysiquement: true,
     statut: StatutCeo.selectionne,
@@ -109,7 +109,9 @@ final List<EchantillonCeoView> mockEchantillons = [
     variete: 'Chemlali',
     quantiteEstimee: '12',
     dateAjout: '05/03/2026',
+    dateArriveeEchantillon: '08/03/2026 à 14h00',
     collecteurNom: 'Ahmed Dridi',
+    recuPhysiquement: true,
     statut: StatutCeo.enNegociation,
     totalTasteurs: 5,
     evaluations: [
@@ -135,7 +137,7 @@ final List<EchantillonCeoView> mockEchantillons = [
     variete: 'Zalmati',
     quantiteEstimee: '30',
     dateAjout: '20/02/2026',
-    dateArriveeEchantillon: '23/02/2026',
+    dateArriveeEchantillon: '23/02/2026 à 11h30',
     collecteurNom: 'Sami Khaled',
     recuPhysiquement: true,
     statut: StatutCeo.achatConfirme,
@@ -144,7 +146,7 @@ final List<EchantillonCeoView> mockEchantillons = [
     quantiteCibleT: '30',
     camionReserve: 'TRK-003',
     stockArrive: false,
-    dateLivraisonStock: '28/03/2026',
+    dateLivraisonStock: '28/03/2026 à 09h00',
     evaluations: [
       EvaluationOrganoleptique(id: 'eval-mock-007', echantillonId: 'mock',
         tasteurId: 'D1',
@@ -199,6 +201,7 @@ final List<EchantillonCeoView> mockEchantillons = [
     variete: 'Oueslati',
     quantiteEstimee: '15',
     dateAjout: '18/03/2026',
+    dateLivraisonPrevue: '15/05/2026 à 10h00', // shows "Échantillon attendu le [date exacte]" case
     collecteurNom: 'Mounir Zouaghi',
     statut: StatutCeo.selectionne,
     totalTasteurs: 5,
@@ -234,7 +237,7 @@ final List<EchantillonCeoView> mockEchantillons = [
     variete: 'Chemlali',
     quantiteEstimee: '25',
     dateAjout: '01/03/2026',
-    dateArriveeEchantillon: '05/03/2026',
+    dateArriveeEchantillon: '05/03/2026 à 08h45',
     collecteurNom: 'Ahmed Dridi',
     recuPhysiquement: true,
     statut: StatutCeo.achatConfirme,
@@ -244,7 +247,7 @@ final List<EchantillonCeoView> mockEchantillons = [
     camionReserve: 'TRK-007',
     noteInterne: 'Qualité extra vierge confirmée.',
     stockArrive: true,
-    dateLivraisonStock: '20/03/2026',
+    dateLivraisonStock: '20/03/2026 à 07h30',
   ),
 
   EchantillonCeoView(
@@ -255,7 +258,7 @@ final List<EchantillonCeoView> mockEchantillons = [
     variete: 'Chetoui',
     quantiteEstimee: '18',
     dateAjout: '28/02/2026',
-    dateArriveeEchantillon: '03/03/2026',
+    dateArriveeEchantillon: '03/03/2026 à 16h20',
     collecteurNom: 'Ahmed Dridi',
     recuPhysiquement: true,
     statut: StatutCeo.achatConfirme,
@@ -263,7 +266,7 @@ final List<EchantillonCeoView> mockEchantillons = [
     budgetNegociation: '7.80 TND/L',
     quantiteCibleT: '18',
     stockArrive: true,
-    dateLivraisonStock: '15/03/2026',
+    dateLivraisonStock: '15/03/2026 à 07h30',
   ),
 
   // ── State ④ : dateLivraisonPrevue set, sample not yet received ──────────────
@@ -277,6 +280,7 @@ final List<EchantillonCeoView> mockEchantillons = [
     quantiteEstimee: '20',
     dateAjout: '25/03/2026',
     dateLivraisonPrevue: '20/04/2026',
+    dateLivraisonPrevueFin: '05/05/2026',
     collecteurNom: 'Mounir Zouaghi',
     recuPhysiquement: false,
     statut: StatutCeo.selectionne,
@@ -305,7 +309,7 @@ final List<EchantillonCeoView> mockEchantillons = [
     variete: 'Chemlali',
     quantiteEstimee: '40',
     dateAjout: '15/03/2026',
-    dateArriveeEchantillon: '18/03/2026',
+    dateArriveeEchantillon: '18/03/2026 à 13h10',
     collecteurNom: 'Sami Khaled',
     recuPhysiquement: true,
     statut: StatutCeo.achatConfirme,
@@ -313,6 +317,8 @@ final List<EchantillonCeoView> mockEchantillons = [
     budgetNegociation: '9.00 TND/L',
     quantiteCibleT: '40',
     stockArrive: false,
+    dateLivraisonStock: '01/04/2026',
+    dateLivraisonStockFin: '15/04/2026', // shows "Stock attendu entre [d1] et [d2]" case
     evaluations: [
       EvaluationOrganoleptique(id: 'eval-mock-010', echantillonId: 'mock',
         tasteurId: 'D1',
@@ -335,6 +341,26 @@ final List<EchantillonCeoView> mockEchantillons = [
         piquant: 6.0,
       ),
     ],
+  ),
+  // ── Stock non planifié : achat confirmé mais aucune date de livraison stock ──
+  EchantillonCeoView(
+    id: '2026/0011',
+    referenceBouteille: 'NOURI-03',
+    gouvernorat: 'Nabeul',
+    delegation: 'Nabeul Nord',
+    codeFournisseur: 'NB-04',
+    variete: 'Nouri',
+    quantiteEstimee: '22',
+    dateAjout: '10/04/2026',
+    dateArriveeEchantillon: '14/04/2026 à 10h00',
+    collecteurNom: 'Mounir Zouaghi',
+    recuPhysiquement: true,
+    statut: StatutCeo.achatConfirme,
+    totalTasteurs: 5,
+    budgetNegociation: '8.00 TND/L',
+    quantiteCibleT: '22',
+    stockArrive: false,
+    // no dateLivraisonStock → shows "Livraison du stock non encore planifiée"
   ),
 ];
 

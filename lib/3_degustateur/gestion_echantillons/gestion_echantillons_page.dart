@@ -161,10 +161,6 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage> {
 
   void _onToggleRecu(Echantillon e) {
     setState(() => e.recuPhysiquement = !e.recuPhysiquement);
-    final msg = e.recuPhysiquement
-        ? 'Réception confirmée pour ${e.referenceBouteille}'
-        : 'Réception annulée pour ${e.referenceBouteille}';
-    _showSuccess(msg);
   }
 
   void _showSuccess(String msg) {
@@ -191,6 +187,7 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage> {
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       builder: (_) => DateFilterSheet(
+        titre: "Filtrer par date d'enregistrement",
         dateDebut: _dateDebut,
         dateFin: _dateFin,
         onApply: (debut, fin) => setState(() {
@@ -268,7 +265,7 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage> {
                   color: _dateFilterActive ? _green : const Color(0xFF6B8E7A),
                 ),
                 onPressed: _showDateFilter,
-                tooltip: 'Filtrer par date',
+                tooltip: "Filtrer par date d'enregistrement",
               ),
               if (_dateFilterActive)
                 Positioned(
@@ -320,10 +317,10 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage> {
                   onChanged: (v) => setState(() => _recherche = v.trim()),
                   style: const TextStyle(fontSize: 14, color: _dark),
                   decoration: InputDecoration(
-                    hintText: 'Rechercher réf, fournisseur, gouvernorat…',
+                    hintText: 'Réf · fournisseur · gouvernorat · collecteur…',
                     hintStyle: const TextStyle(
                       color: Color(0xFF6B8E7A),
-                      fontSize: 13,
+                      fontSize: 11,
                     ),
                     prefixIcon: const Icon(
                       Icons.search,

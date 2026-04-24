@@ -12,7 +12,8 @@ import 'widgets/dialogs/formulaire_sections.dart'
     show DateLivraisonSection, ModePlanificationUI;
 import 'widgets/dialogs/confirmer_achat_dialog.dart'
     show showConfirmerAchatDialog;
-import '../../1_ceo/widgets/search_date_filter_bar.dart' show DateFilterSheet;
+import '../../1_ceo/widgets/search_date_filter_bar.dart'
+    show DateFilterSheet, DateFilterType;
 import '../widgets/collecteur_drawer.dart';
 import '../../../main.dart';
 import '../profilcom.dart';
@@ -38,6 +39,7 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
   int _compteur = 5;
   DateTime? _dateDebut;
   DateTime? _dateFin;
+  DateFilterType _dateFilterType = DateFilterType.enregistrement;
 
   bool get _dateFilterActive => _dateDebut != null || _dateFin != null;
   bool get _anyFilter =>
@@ -240,7 +242,22 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
       final matchStatut = _filtreStatut == null || e.statut == _filtreStatut;
       bool matchDate = true;
       if (_dateFilterActive) {
-        final raw = _parseDate(e.dateAjout);
+        DateTime? raw;
+        switch (_dateFilterType) {
+          case DateFilterType.enregistrement:
+            raw = _parseDate(e.dateAjout);
+            break;
+          case DateFilterType.livraisonEchantillon:
+            if (e.dateArriveeEchantillon != null) {
+              raw =
+                  _parseDate(e.dateArriveeEchantillon!) ??
+                  DateTime.tryParse(e.dateArriveeEchantillon!);
+            }
+            break;
+          case DateFilterType.arriveeStock:
+            raw = e.livraison?.dateExacte;
+            break;
+        }
         if (raw == null) {
           matchDate = false;
         } else {
@@ -321,16 +338,72 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
     showConfirmerAchatDialog(
       context: context,
       echantillon: e,
-      onConfirm: (prix, camion, livraison) {
+      onConfirm: (prix, camion, livraison, scellage) {
         setState(() {
           e.statut = StatutCollecteur.achatConfirme;
           e.achatConfirme = true;
           e.prixFinal = prix;
           if (camion != null) e.camionLivraison = camion;
           if (livraison != null) e.livraison = livraison;
+          if (scellage != null) e.scellage = scellage;
         });
-        _showSuccess('Achat confirmé pour "${e.referenceBouteille}"');
+        _showPropositionEnvoyeeDialog(e.referenceBouteille);
       },
+    );
+  }
+
+  void _showPropositionEnvoyeeDialog(String reference) {
+    showDialog<void>(
+      context: context,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        backgroundColor: Colors.white,
+        contentPadding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: const Color(0xFFE9F4EE),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.send_outlined, color: _green, size: 28),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Proposition envoyée',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: _dark,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 10),
+            Text(
+              'Votre proposition pour "$reference" a été transmise à la direction. '
+              'L\'achat sera finalisé après validation par le CEO.',
+              style: const TextStyle(
+                fontSize: 13,
+                color: Color(0xFF6B8E7A),
+                height: 1.5,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            style: TextButton.styleFrom(foregroundColor: _green),
+            child: const Text(
+              'Compris',
+              style: TextStyle(fontWeight: FontWeight.w700),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -524,11 +597,12 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
     showConfirmerAchatDialog(
       context: context,
       echantillon: e,
-      onConfirm: (prix, camion, livraison) {
+      onConfirm: (prix, camion, livraison, scellage) {
         setState(() {
           e.prixFinal = prix;
           if (camion != null) e.camionLivraison = camion;
           if (livraison != null) e.livraison = livraison;
+          if (scellage != null) e.scellage = scellage;
         });
         _showSuccess('Livraison mise à jour pour "${e.referenceBouteille}"');
       },
@@ -566,6 +640,17 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
         onClear: () => setState(() {
           _dateDebut = null;
           _dateFin = null;
+        }),
+        availableTypes: const [
+          DateFilterType.enregistrement,
+          DateFilterType.livraisonEchantillon,
+          DateFilterType.arriveeStock,
+        ],
+        initialType: _dateFilterType,
+        onApplyTyped: (debut, fin, type) => setState(() {
+          _dateDebut = debut;
+          _dateFin = fin;
+          _dateFilterType = type;
         }),
       ),
     );
@@ -743,7 +828,7 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
                       ),
                       const SizedBox(width: 7),
                       _StatutChip(
-                        label: 'Réceptionné',
+                        label: 'Enregistré',
                         activeBg: const Color(
                           0xFF3A6EA5,
                         ).withValues(alpha: 0.12),
@@ -757,7 +842,7 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
                       ),
                       const SizedBox(width: 7),
                       _StatutChip(
-                        label: 'En négociation',
+                        label: 'Négociation',
                         activeBg: const Color(
                           0xFFD07B2F,
                         ).withValues(alpha: 0.12),
@@ -772,7 +857,7 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
                       ),
                       const SizedBox(width: 7),
                       _StatutChip(
-                        label: 'Achat confirmé',
+                        label: 'Achat conclu',
                         activeBg: const Color(
                           0xFF38835A,
                         ).withValues(alpha: 0.12),

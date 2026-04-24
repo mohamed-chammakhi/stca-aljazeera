@@ -42,6 +42,7 @@ class _AnalyseLaboratoireCeoPageState extends State<AnalyseLaboratoireCeoPage> {
 
   DateTime? _dateDebut;
   DateTime? _dateFin;
+  DateFilterType _dateType = DateFilterType.enregistrement;
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
 
@@ -53,11 +54,24 @@ class _AnalyseLaboratoireCeoPageState extends State<AnalyseLaboratoireCeoPage> {
     super.dispose();
   }
 
+  String? _dateFieldFor(EchantillonCeoView e) {
+    switch (_dateType) {
+      case DateFilterType.enregistrement:
+        return e.dateAjout;
+      case DateFilterType.livraisonEchantillon:
+        return e.dateArriveeEchantillon ?? e.dateLivraisonPrevue;
+      case DateFilterType.arriveeStock:
+        return e.dateLivraisonStock;
+    }
+  }
+
   List<EchantillonCeoView> get _samples {
     var result = _allSamples;
     if (_dateDebut != null) {
       result = result.where((e) {
-        final d = _parseDate(e.dateAjout);
+        final dateStr = _dateFieldFor(e);
+        if (dateStr == null) return false;
+        final d = _parseDate(dateStr);
         if (d == null) return false;
         final day = DateTime(d.year, d.month, d.day);
         final debut = DateTime(
@@ -99,7 +113,8 @@ class _AnalyseLaboratoireCeoPageState extends State<AnalyseLaboratoireCeoPage> {
 
   DateTime? _parseDate(String s) {
     try {
-      final p = s.split('/');
+      final datePart = s.split(' ').first;
+      final p = datePart.split('/');
       if (p.length != 3) return null;
       return DateTime(int.parse(p[2]), int.parse(p[1]), int.parse(p[0]));
     } catch (_) {
@@ -124,6 +139,16 @@ class _AnalyseLaboratoireCeoPageState extends State<AnalyseLaboratoireCeoPage> {
         onClear: () => setState(() {
           _dateDebut = null;
           _dateFin = null;
+        }),
+        availableTypes: const [
+          DateFilterType.enregistrement,
+          DateFilterType.livraisonEchantillon,
+        ],
+        initialType: _dateType,
+        onApplyTyped: (d, f, type) => setState(() {
+          _dateDebut = d;
+          _dateFin = f;
+          _dateType = type;
         }),
       ),
     );
@@ -192,7 +217,9 @@ class _AnalyseLaboratoireCeoPageState extends State<AnalyseLaboratoireCeoPage> {
                       : const Color(0xFF6B8E7A),
                 ),
                 onPressed: _showDateFilter,
-                tooltip: 'Filtrer par date',
+                tooltip: _dateDebut != null
+                    ? 'Filtré par : ${_dateType.label}'
+                    : 'Filtrer par date',
               ),
               if (_dateDebut != null || _dateFin != null)
                 Positioned(
@@ -223,10 +250,10 @@ class _AnalyseLaboratoireCeoPageState extends State<AnalyseLaboratoireCeoPage> {
               onChanged: (v) => setState(() => _searchQuery = v.trim()),
               style: const TextStyle(fontSize: 14, color: _dark),
               decoration: InputDecoration(
-                hintText: 'Rechercher réf, fournisseur, gouvernorat…',
+                hintText: 'Réf, fournisseur, gouvernorat, variété, collecteur…',
                 hintStyle: const TextStyle(
                   color: Color(0xFF6B8E7A),
-                  fontSize: 13,
+                  fontSize: 11,
                 ),
                 prefixIcon: const Icon(
                   Icons.search,
@@ -492,7 +519,7 @@ class _RapportSection extends StatelessWidget {
                 const Spacer(),
                 if (hasAnalyse && e.analyse!.dateAnalyse != null)
                   Text(
-                    e.analyse!.dateAnalyse!,
+                    'Soumis le ${e.analyse!.dateAnalyse!}',
                     style: TextStyle(fontSize: 12, color: Colors.grey.shade400),
                   ),
                 const SizedBox(width: 6),
@@ -525,112 +552,194 @@ class _RapportSection extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// RAPPORT BLOCK
+// RAPPORT BLOCK  — criteria table matching taster's AnalyseCard style
 // ─────────────────────────────────────────────────────────────────────────────
+class _LabRow {
+  final String label;
+  final String value;
+  final String norm;
+  final bool? conforme;
+  const _LabRow({
+    required this.label,
+    required this.value,
+    required this.norm,
+    this.conforme,
+  });
+}
+
 class _RapportBlock extends StatelessWidget {
   final AnalyseLaboCeoView analyse;
   const _RapportBlock({required this.analyse});
 
-  Color _classifColor(String c) {
-    if (c == 'Extra Vierge') return const Color(0xFF38835A);
-    if (c == 'Vierge') return Colors.orange.shade700;
-    if (c == 'Lampante') return Colors.red.shade600;
-    return Colors.grey.shade500;
+  List<_LabRow> _buildRows(AnalyseLaboCeoView a) {
+    final rows = <_LabRow>[];
+    if (a.aciditeLibre != null) {
+      final v = a.aciditeLibre!;
+      rows.add(_LabRow(
+        label: 'Acidité libre',
+        value: '${v.toStringAsFixed(2)} %',
+        norm: '≤ 0.80 %',
+        conforme: v <= 0.80,
+      ));
+    }
+    if (a.indicePeroxyde != null) {
+      final v = a.indicePeroxyde!;
+      rows.add(_LabRow(
+        label: 'Ind. de peroxyde',
+        value: '${v.toStringAsFixed(1)} meqO₂/kg',
+        norm: '≤ 20',
+        conforme: v <= 20,
+      ));
+    }
+    if (a.k232 != null) {
+      final v = a.k232!;
+      rows.add(_LabRow(
+        label: 'K₂₃₂',
+        value: v.toStringAsFixed(2),
+        norm: '≤ 2.50',
+        conforme: v <= 2.50,
+      ));
+    }
+    if (a.k270 != null) {
+      final v = a.k270!;
+      rows.add(_LabRow(
+        label: 'K₂₇₀',
+        value: v.toStringAsFixed(2),
+        norm: '≤ 0.22',
+        conforme: v <= 0.22,
+      ));
+    }
+    if (a.deltaK != null) {
+      final v = a.deltaK!;
+      rows.add(_LabRow(
+        label: 'ΔK',
+        value: v.toStringAsFixed(3),
+        norm: '≤ 0.01',
+        conforme: v <= 0.01,
+      ));
+    }
+    if (a.polyphenolsTotaux != null) {
+      rows.add(_LabRow(
+        label: 'Polyphénols totaux',
+        value: '${a.polyphenolsTotaux!.toStringAsFixed(0)} mg/kg',
+        norm: '—',
+      ));
+    }
+    if (a.humidite != null) {
+      final v = a.humidite!;
+      rows.add(_LabRow(
+        label: 'Humidité',
+        value: '${v.toStringAsFixed(2)} %',
+        norm: '≤ 0.20 %',
+        conforme: v <= 0.20,
+      ));
+    }
+    if (a.impuretes != null) {
+      final v = a.impuretes!;
+      rows.add(_LabRow(
+        label: 'Impuretés',
+        value: '${v.toStringAsFixed(2)} %',
+        norm: '≤ 0.10 %',
+        conforme: v <= 0.10,
+      ));
+    }
+    if (a.acideOleique != null) {
+      rows.add(_LabRow(
+        label: 'Acide oléique',
+        value: '${a.acideOleique!.toStringAsFixed(1)} %',
+        norm: '—',
+      ));
+    }
+    if (a.acideLinoleique != null) {
+      rows.add(_LabRow(
+        label: 'Acide linoléique',
+        value: '${a.acideLinoleique!.toStringAsFixed(1)} %',
+        norm: '—',
+      ));
+    }
+    if (a.acidePalmitique != null) {
+      rows.add(_LabRow(
+        label: 'Acide palmitique',
+        value: '${a.acidePalmitique!.toStringAsFixed(1)} %',
+        norm: '—',
+      ));
+    }
+    if (a.tocopherols != null) {
+      rows.add(_LabRow(
+        label: 'Tocophérols',
+        value: '${a.tocopherols!.toStringAsFixed(0)} mg/kg',
+        norm: '—',
+      ));
+    }
+    return rows;
   }
 
   @override
   Widget build(BuildContext context) {
     final a = analyse;
-    final classifColor = _classifColor(a.classificationAuto);
+    final rows = _buildRows(a);
+    if (rows.isEmpty) return const SizedBox.shrink();
+
     return Container(
       margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: _bg,
+        color: const Color(0xFFFAFAFA),
         borderRadius: BorderRadius.circular(10),
         border: Border.all(color: Colors.grey.shade100),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Icon(
-                Icons.workspace_premium_outlined,
-                size: 13,
-                color: classifColor,
-              ),
-              const SizedBox(width: 5),
-              Text(
-                a.classificationAuto,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w800,
-                  color: classifColor,
-                ),
-              ),
-            ],
+          _LabTableRow(
+            label: 'Critère',
+            value: 'Valeur',
+            norm: 'Norme',
+            conforme: null,
+            isHeader: true,
           ),
-          const SizedBox(height: 10),
-          Divider(color: Colors.grey.shade100, height: 1),
-          const SizedBox(height: 8),
-          if (a.aciditeLibre != null)
-            _AnalRow(
-              'Acidité libre',
-              '${a.aciditeLibre!.toStringAsFixed(2)} %',
-              norm: '≤ 0.80',
-              warn: a.aciditeLibre! > 0.8,
+          const SizedBox(height: 2),
+          ...rows.map(
+            (r) => Padding(
+              padding: const EdgeInsets.only(bottom: 2),
+              child: _LabTableRow(
+                label: r.label,
+                value: r.value,
+                norm: r.norm,
+                conforme: r.conforme,
+              ),
             ),
-          if (a.indicePeroxyde != null)
-            _AnalRow(
-              'Indice de peroxyde',
-              '${a.indicePeroxyde!.toStringAsFixed(1)} meqO₂/kg',
-              norm: '≤ 20',
-              warn: a.indicePeroxyde! > 20,
-            ),
-          if (a.k232 != null)
-            _AnalRow(
-              'K₂₃₂',
-              a.k232!.toStringAsFixed(2),
-              norm: '≤ 2.50',
-              warn: a.k232! > 2.50,
-            ),
-          if (a.k270 != null)
-            _AnalRow(
-              'K₂₇₀',
-              a.k270!.toStringAsFixed(2),
-              norm: '≤ 0.22',
-              warn: a.k270! > 0.22,
-            ),
-          if (a.deltaK != null)
-            _AnalRow(
-              'ΔK',
-              a.deltaK!.toStringAsFixed(3),
-              norm: '≤ 0.01',
-              warn: a.deltaK! > 0.01,
-            ),
-          if (a.polyphenolsTotaux != null)
-            _AnalRow(
-              'Polyphénols totaux',
-              '${a.polyphenolsTotaux!.toStringAsFixed(0)} mg/kg',
-            ),
-          if (a.humidite != null)
-            _AnalRow(
-              'Humidité',
-              '${a.humidite!.toStringAsFixed(2)} %',
-              norm: '≤ 0.20',
-              warn: a.humidite! > 0.2,
-            ),
-          if (a.acideOleique != null)
-            _AnalRow(
-              'Acide oléique',
-              '${a.acideOleique!.toStringAsFixed(1)} %',
-            ),
+          ),
           if (a.notes != null && a.notes!.isNotEmpty) ...[
-            const SizedBox(height: 6),
-            Text(
-              'Notes : ${a.notes}',
-              style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+            const SizedBox(height: 8),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF7FAF8),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.grey.shade100),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(
+                    Icons.notes_outlined,
+                    size: 13,
+                    color: Colors.grey.shade400,
+                  ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      a.notes!,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ],
@@ -639,53 +748,120 @@ class _RapportBlock extends StatelessWidget {
   }
 }
 
-class _AnalRow extends StatelessWidget {
-  final String label, value;
-  final String? norm;
-  final bool warn;
-  const _AnalRow(this.label, this.value, {this.norm, this.warn = false});
+class _LabTableRow extends StatelessWidget {
+  final String label;
+  final String value;
+  final String norm;
+  final bool? conforme;
+  final bool isHeader;
+
+  const _LabTableRow({
+    required this.label,
+    required this.value,
+    required this.norm,
+    required this.conforme,
+    this.isHeader = false,
+  });
+
+  static const Color _redVal = Color(0xFFC62828);
+  static const Color _redBg = Color(0xFFFFEBEE);
+  static const Color _tableOlive = Color(0xFF6B8143);
+  static const Color _tableGreen = Color(0xFF38835A);
 
   @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 4),
-    child: Row(
-      children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
-              ),
-              if (norm != null)
-                Text(
-                  'Norme : $norm',
-                  style: TextStyle(fontSize: 11, color: Colors.grey.shade400),
+  Widget build(BuildContext context) {
+    final bg = isHeader
+        ? const Color(0xFFF1F8F4)
+        : conforme == false
+        ? _redBg
+        : Colors.white;
+
+    final barColor = isHeader
+        ? Colors.transparent
+        : conforme == false
+        ? _redVal
+        : _tableGreen;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.grey.shade100),
+      ),
+      child: IntrinsicHeight(
+        child: Row(
+          children: [
+            Container(
+              width: 3,
+              decoration: BoxDecoration(
+                color: barColor,
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(8),
+                  bottomLeft: Radius.circular(8),
                 ),
-            ],
-          ),
-        ),
-        if (warn)
-          Padding(
-            padding: const EdgeInsets.only(right: 4),
-            child: Icon(
-              Icons.warning_amber_rounded,
-              size: 13,
-              color: Colors.red.shade400,
+              ),
             ),
-          ),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w700,
-            color: warn ? Colors.red.shade600 : _dark,
-          ),
+            Expanded(
+              flex: 5,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: isHeader ? FontWeight.w700 : FontWeight.w500,
+                    color: isHeader ? _tableOlive : _dark,
+                  ),
+                ),
+              ),
+            ),
+            Container(width: 1, color: Colors.grey.shade100),
+            Expanded(
+              flex: 3,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
+                child: Text(
+                  value,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: isHeader
+                        ? _tableOlive
+                        : conforme == false
+                        ? _redVal
+                        : _tableGreen,
+                  ),
+                ),
+              ),
+            ),
+            Container(width: 1, color: Colors.grey.shade100),
+            Expanded(
+              flex: 4,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
+                child: Text(
+                  norm,
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: isHeader ? _tableOlive : Colors.grey.shade500,
+                  ),
+                ),
+              ),
+            ),
+            if (!isHeader && conforme != null)
+              Padding(
+                padding: const EdgeInsets.only(right: 6),
+                child: Icon(
+                  conforme! ? Icons.check_circle : Icons.cancel,
+                  color: conforme! ? _tableGreen : _redVal,
+                  size: 13,
+                ),
+              ),
+          ],
         ),
-      ],
-    ),
-  );
+      ),
+    );
+  }
 }
 
 class _EnAttenteHint extends StatelessWidget {

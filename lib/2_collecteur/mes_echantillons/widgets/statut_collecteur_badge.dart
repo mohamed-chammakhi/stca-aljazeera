@@ -54,21 +54,21 @@ _Cfg _cfg(StatutCollecteur s) {
         Color(0xFFE3F2FD),
         Color(0xFF1E88E5),
         Color(0xFF1E88E5),
-        'Réceptionné',
+        'Échantillon enregistré',
       );
     case StatutCollecteur.enNegociation:
       return const _Cfg(
         Color(0xFFFFF3E0),
         Color(0xFFF57C00),
         Color(0xFFF57C00),
-        'En négociation',
+        'Prix en négociation',
       );
     case StatutCollecteur.achatConfirme:
       return const _Cfg(
         Color(0xFFE8F5E9),
         Color(0xFF38835A),
         Color(0xFF38835A),
-        'Achat confirmé',
+        'Achat conclu',
       );
   }
 }

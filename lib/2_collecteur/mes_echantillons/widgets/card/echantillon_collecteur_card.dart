@@ -426,13 +426,17 @@ class _DetailPanel extends StatelessWidget {
 
               const SizedBox(height: 14),
 
-              // ── Delivery line ────────────────────────────────────────────
-              if (e.statut == StatutCollecteur.achatConfirme)
+              // ── Delivery lines ───────────────────────────────────────────
+              if (e.statut == StatutCollecteur.achatConfirme) ...[
+                // 1. Sample reception (always received at this stage)
+                _SampleDeliveryLine(e: e, onScheduleArrivee: null),
+                const SizedBox(height: 10),
+                // 2. Stock delivery
                 _StockDeliveryLine(
                   e: e,
                   onPlanifierLivraison: onPlanifierLivraison,
-                )
-              else
+                ),
+              ] else
                 _SampleDeliveryLine(e: e, onScheduleArrivee: onScheduleArrivee),
 
               // ── Remarques ────────────────────────────────────────────────

@@ -7,9 +7,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'models/analyse_labo.dart';
 import 'widgets/analyse_card.dart';
-import 'widgets/dialogs/formulaire_analyse_dialog.dart';
-import 'widgets/dialogs/suppression_analyse_dialog.dart';
-// date filter sheet + button
 import '../gestion_echantillons/widgets/search_filter_bar.dart';
 
 // app-wide imports
@@ -41,12 +38,18 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage> {
   String? _filtreStatutLabel; // null = all
   DateTime? _dateDebut;
   DateTime? _dateFin;
+  String _dateType = 'enregistrement';
 
-  bool get _anyFilter =>
-      _dateDebut != null ||
-      _dateFin != null ||
-      _recherche.isNotEmpty ||
-      _filtreStatutLabel != null;
+  static const _dateTypeOptions = [
+    (key: 'enregistrement',    label: "Date d'enregistrement"),
+    (key: 'receptionPhysique', label: 'Date de réception physique'),
+  ];
+
+  String get _dateTypeLabel => _dateTypeOptions
+      .firstWhere((t) => t.key == _dateType,
+          orElse: () => _dateTypeOptions.first)
+      .label;
+
 
   // ── NAVIGATION ───────────────────────────────────────────────────────────────
   void _goTo(Widget page) {
@@ -66,12 +69,20 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage> {
   final List<AnalyseLabo> _analyses = [
     AnalyseLabo(
       id: 'ANL-001',
-      echantillonId: 'OL-2024-001',
+      echantillonId: '2026/0001',
       echantillonNom: 'Chemlali - Lot A - Sfax',
       dateAnalyse: '18/02/2026',
       technicienNom: 'Karim B.',
       statut: StatutAnalyse.soumise,
       notes: 'Analyse conforme aux normes COI',
+      fournisseurNom: 'Domaine Bel-Air',
+      gouvernorat: 'Sfax',
+      delegation: 'Sfax Sud',
+      collecteurNom: 'Ahmed Dridi',
+      variete: 'Chemlali',
+      quantiteEstimee: '25',
+      dateEnregistrement: '01/03/2026',
+      dateReceptionPhysique: '15/03/2026',
       criteres: [
         CritereAnalyse(
           label: 'Acidité libre',
@@ -133,11 +144,19 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage> {
     ),
     AnalyseLabo(
       id: 'ANL-002',
-      echantillonId: 'OL-2024-002',
+      echantillonId: '2026/0003',
       echantillonNom: 'Chetoui - Lot B - Béja',
       dateAnalyse: '19/02/2026',
       technicienNom: 'Karim B.',
       statut: StatutAnalyse.soumise,
+      fournisseurNom: 'Ferme Al Jazira',
+      gouvernorat: 'Béja',
+      delegation: 'Béja Nord',
+      collecteurNom: 'Rania Hammami',
+      variete: 'Chetoui',
+      quantiteEstimee: '32',
+      dateEnregistrement: '21/02/2026',
+      dateReceptionPhysique: '28/02/2026',
       criteres: [
         CritereAnalyse(
           label: 'Acidité libre',
@@ -199,11 +218,18 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage> {
     ),
     AnalyseLabo(
       id: 'ANL-003',
-      echantillonId: 'OL-2024-003',
+      echantillonId: '2026/0004',
       echantillonNom: 'Zalmati - Gafsa',
       dateAnalyse: '01/03/2026',
       technicienNom: 'Sonia M.',
       statut: StatutAnalyse.enAttente,
+      fournisseurNom: 'Green Valley',
+      gouvernorat: 'Kairouan',
+      delegation: 'Kairouan Nord',
+      variete: 'Oueslati',
+      quantiteEstimee: '18',
+      dateEnregistrement: '23/02/2026',
+      dateReceptionPhysique: '05/03/2026',
       criteres: [
         CritereAnalyse(
           label: 'Acidité libre',
@@ -287,6 +313,14 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage> {
     }
   }
 
+  String? _dateFieldFor(AnalyseLabo a) {
+    switch (_dateType) {
+      case 'enregistrement':    return a.dateEnregistrement;
+      case 'receptionPhysique': return a.dateReceptionPhysique;
+      default:                  return null;
+    }
+  }
+
   List<AnalyseLabo> get _filtres {
     return _analyses.where((a) {
       final matchRecherche =
@@ -300,7 +334,7 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage> {
 
       bool matchDate = true;
       if (_dateDebut != null || _dateFin != null) {
-        final raw = _parseDate(a.dateAnalyse);
+        final raw = _parseDate(_dateFieldFor(a) ?? '');
         if (raw == null) {
           matchDate = false;
         } else {
@@ -325,42 +359,6 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage> {
     }).toList();
   }
 
-  // ── CRUD helpers ─────────────────────────────────────────────────────────────
-  int get _prochainNumero => _analyses.length + 1;
-
-  void _onAjouter(AnalyseLabo analyse) {
-    setState(() => _analyses.add(analyse));
-    _showSuccess('Analyse ajoutée pour ${analyse.echantillonNom}');
-  }
-
-  void _onModifier(AnalyseLabo analyse) {
-    setState(() {});
-    _showSuccess('Analyse modifiée');
-  }
-
-  void _onSupprimer(AnalyseLabo analyse) {
-    setState(() => _analyses.remove(analyse));
-    _showSuccess('Analyse supprimée');
-  }
-
-  void _showSuccess(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          msg,
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        backgroundColor: _green,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        margin: const EdgeInsets.all(20),
-      ),
-    );
-  }
-
   // ── Date filter sheet ─────────────────────────────────────────────────────────
   Future<void> _showDateFilter() async {
     await showModalBottomSheet(
@@ -368,11 +366,19 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage> {
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       builder: (_) => DateFilterSheet(
+        titre: 'Filtrer par date',
+        typeOptions: _dateTypeOptions,
+        initialType: _dateType,
         dateDebut: _dateDebut,
         dateFin: _dateFin,
         onApply: (debut, fin) => setState(() {
           _dateDebut = debut;
           _dateFin = fin;
+        }),
+        onApplyTyped: (debut, fin, type) => setState(() {
+          _dateDebut = debut;
+          _dateFin = fin;
+          _dateType = type;
         }),
         onClear: () => setState(() {
           _dateDebut = null;
@@ -397,23 +403,6 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage> {
 
     return Scaffold(
       backgroundColor: _bg,
-
-      // ── FAB ───────────────────────────────────────────────────────────────────
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => showFormulaireAnalyseDialog(
-          context,
-          analyse: null,
-          prochainNumero: _prochainNumero,
-          onSave: _onAjouter,
-        ),
-        backgroundColor: const Color.fromARGB(255, 197, 206, 201),
-        elevation: 2,
-        icon: const Icon(Icons.add, color: _dark),
-        label: const Text(
-          'Nouvelle analyse',
-          style: TextStyle(color: _dark, fontWeight: FontWeight.w700),
-        ),
-      ),
 
       // ── DRAWER ────────────────────────────────────────────────────────────────
       drawer: AppDrawer(
@@ -454,7 +443,9 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage> {
                   color: _dateFilterActive ? _green : const Color(0xFF6B8E7A),
                 ),
                 onPressed: _showDateFilter,
-                tooltip: 'Filtrer par date',
+                tooltip: _dateFilterActive
+                    ? 'Filtré par : $_dateTypeLabel'
+                    : 'Filtrer par date',
               ),
               if (_dateFilterActive)
                 Positioned(
@@ -489,10 +480,10 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage> {
                   onChanged: (v) => setState(() => _recherche = v.trim()),
                   style: const TextStyle(fontSize: 14, color: _dark),
                   decoration: InputDecoration(
-                    hintText: 'Rechercher échantillon, technicien, ID…',
+                    hintText: 'Réf · technicien · ID analyse…',
                     hintStyle: const TextStyle(
                       color: Color(0xFF6B8E7A),
-                      fontSize: 13,
+                      fontSize: 11,
                     ),
                     prefixIcon: const Icon(
                       Icons.search,
@@ -631,24 +622,11 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage> {
                 : Scrollbar(
                     thumbVisibility: true,
                     child: ListView.builder(
-                      padding: const EdgeInsets.fromLTRB(16, 10, 16, 110),
+                      padding: const EdgeInsets.fromLTRB(16, 10, 16, 24),
                       itemCount: filtres.length,
                       itemBuilder: (context, index) {
                         final a = filtres[index];
-                        return AnalyseCard(
-                          analyse: a,
-                          onModifier: () => showFormulaireAnalyseDialog(
-                            context,
-                            analyse: a,
-                            prochainNumero: _prochainNumero,
-                            onSave: _onModifier,
-                          ),
-                          onSupprimer: () => showSuppressionAnalyseDialog(
-                            context,
-                            analyse: a,
-                            onConfirmer: () => _onSupprimer(a),
-                          ),
-                        );
+                        return AnalyseCard(analyse: a);
                       },
                     ),
                   ),

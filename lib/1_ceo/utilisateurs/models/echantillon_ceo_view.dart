@@ -46,6 +46,8 @@ class EchantillonCeoView {
   String? noteInterne;
   bool stockArrive;
   String? dateLivraisonStock;
+  String? dateLivraisonStockFin; // end of range when stock delivery is a period
+  String? dateLivraisonPrevueFin; // end of range when sample delivery is a period
   String? remarques;
 
   EchantillonCeoView({
@@ -74,6 +76,8 @@ class EchantillonCeoView {
     this.noteInterne,
     this.stockArrive = false,
     this.dateLivraisonStock,
+    this.dateLivraisonStockFin,
+    this.dateLivraisonPrevueFin,
     this.remarques,
   });
 

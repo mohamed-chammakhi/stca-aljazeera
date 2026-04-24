@@ -38,6 +38,7 @@ class _AchatsConfirmesCeoPageState extends State<AchatsConfirmesCeoPage> {
 
   DateTime? _dateDebut;
   DateTime? _dateFin;
+  DateFilterType _dateType = DateFilterType.enregistrement;
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
 
@@ -49,11 +50,24 @@ class _AchatsConfirmesCeoPageState extends State<AchatsConfirmesCeoPage> {
     super.dispose();
   }
 
+  String? _dateFieldFor(EchantillonCeoView e) {
+    switch (_dateType) {
+      case DateFilterType.enregistrement:
+        return e.dateAjout;
+      case DateFilterType.livraisonEchantillon:
+        return e.dateArriveeEchantillon ?? e.dateLivraisonPrevue;
+      case DateFilterType.arriveeStock:
+        return e.dateLivraisonStock;
+    }
+  }
+
   List<EchantillonCeoView> get _achats {
     var result = _allAchats;
     if (_dateDebut != null) {
       result = result.where((e) {
-        final d = _parseDate(e.dateAjout);
+        final dateStr = _dateFieldFor(e);
+        if (dateStr == null) return false;
+        final d = _parseDate(dateStr);
         if (d == null) return false;
         final day = DateTime(d.year, d.month, d.day);
         final debut = DateTime(
@@ -92,7 +106,8 @@ class _AchatsConfirmesCeoPageState extends State<AchatsConfirmesCeoPage> {
 
   DateTime? _parseDate(String s) {
     try {
-      final p = s.split('/');
+      final datePart = s.split(' ').first;
+      final p = datePart.split('/');
       if (p.length != 3) return null;
       return DateTime(int.parse(p[2]), int.parse(p[1]), int.parse(p[0]));
     } catch (_) {
@@ -117,6 +132,16 @@ class _AchatsConfirmesCeoPageState extends State<AchatsConfirmesCeoPage> {
         onClear: () => setState(() {
           _dateDebut = null;
           _dateFin = null;
+        }),
+        availableTypes: const [
+          DateFilterType.enregistrement,
+          DateFilterType.arriveeStock,
+        ],
+        initialType: _dateType,
+        onApplyTyped: (d, f, type) => setState(() {
+          _dateDebut = d;
+          _dateFin = f;
+          _dateType = type;
         }),
       ),
     );
@@ -171,7 +196,9 @@ class _AchatsConfirmesCeoPageState extends State<AchatsConfirmesCeoPage> {
                       : const Color(0xFF6B8E7A),
                 ),
                 onPressed: _showDateFilter,
-                tooltip: 'Filtrer par date',
+                tooltip: _dateDebut != null
+                    ? 'Filtré par : ${_dateType.label}'
+                    : 'Filtrer par date',
               ),
               if (_dateDebut != null || _dateFin != null)
                 Positioned(
@@ -202,10 +229,10 @@ class _AchatsConfirmesCeoPageState extends State<AchatsConfirmesCeoPage> {
               onChanged: (v) => setState(() => _searchQuery = v.trim()),
               style: const TextStyle(fontSize: 14, color: _dark),
               decoration: InputDecoration(
-                hintText: 'Rechercher réf, fournisseur, gouvernorat…',
+                hintText: 'Réf, fournisseur, gouvernorat, variété, collecteur…',
                 hintStyle: const TextStyle(
                   color: Color(0xFF6B8E7A),
-                  fontSize: 13,
+                  fontSize: 11,
                 ),
                 prefixIcon: const Icon(
                   Icons.search,

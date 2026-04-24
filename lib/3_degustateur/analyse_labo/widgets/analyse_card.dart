@@ -25,15 +25,8 @@ Color _accentColor(StatutAnalyse s) {
 // ─────────────────────────────────────────────────────────────────────────────
 class AnalyseCard extends StatefulWidget {
   final AnalyseLabo analyse;
-  final VoidCallback? onModifier;
-  final VoidCallback? onSupprimer;
 
-  const AnalyseCard({
-    super.key,
-    required this.analyse,
-    this.onModifier,
-    this.onSupprimer,
-  });
+  const AnalyseCard({super.key, required this.analyse});
 
   @override
   State<AnalyseCard> createState() => _AnalyseCardState();
@@ -41,6 +34,7 @@ class AnalyseCard extends StatefulWidget {
 
 class _AnalyseCardState extends State<AnalyseCard> {
   bool _expanded = false;
+  bool _rapportExpanded = false;
 
   @override
   Widget build(BuildContext context) {
@@ -132,30 +126,6 @@ class _AnalyseCardState extends State<AnalyseCard> {
                               const SizedBox(width: 10),
 
                               const Spacer(),
-                              if (_expanded &&
-                                  (widget.onModifier != null ||
-                                      widget.onSupprimer != null)) ...[
-                                if (widget.onModifier != null)
-                                  Tooltip(
-                                    message: 'Modifier',
-                                    child: _SmallIconBtn(
-                                      icon: Icons.edit_outlined,
-                                      color: _olive,
-                                      onTap: widget.onModifier!,
-                                    ),
-                                  ),
-                                if (widget.onModifier != null)
-                                  const SizedBox(width: 2),
-                                if (widget.onSupprimer != null)
-                                  Tooltip(
-                                    message: 'Supprimer',
-                                    child: _SmallIconBtn(
-                                      icon: Icons.delete_outline,
-                                      color: Colors.red.shade300,
-                                      onTap: widget.onSupprimer!,
-                                    ),
-                                  ),
-                              ],
                             ],
                           ),
                         ],
@@ -170,7 +140,13 @@ class _AnalyseCardState extends State<AnalyseCard> {
           // ── Expandable detail panel ─────────────────────────────────────
           AnimatedCrossFade(
             firstChild: const SizedBox.shrink(),
-            secondChild: _DetailPanel(a: a, accent: accent),
+            secondChild: _DetailPanel(
+              a: a,
+              accent: accent,
+              rapportExpanded: _rapportExpanded,
+              onRapportToggle: () =>
+                  setState(() => _rapportExpanded = !_rapportExpanded),
+            ),
             crossFadeState: _expanded
                 ? CrossFadeState.showSecond
                 : CrossFadeState.showFirst,
@@ -183,124 +159,292 @@ class _AnalyseCardState extends State<AnalyseCard> {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// SMALL ICON BUTTON
-// ─────────────────────────────────────────────────────────────────────────────
-class _SmallIconBtn extends StatelessWidget {
-  final IconData icon;
-  final Color color;
-  final VoidCallback onTap;
-  const _SmallIconBtn({
-    required this.icon,
-    required this.color,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) => GestureDetector(
-    onTap: onTap,
-    behavior: HitTestBehavior.opaque,
-    child: Padding(
-      padding: const EdgeInsets.all(5),
-      child: Icon(icon, size: 18, color: color),
-    ),
-  );
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
 // DETAIL PANEL
 // ─────────────────────────────────────────────────────────────────────────────
 class _DetailPanel extends StatelessWidget {
   final AnalyseLabo a;
   final Color accent;
-  const _DetailPanel({required this.a, required this.accent});
+  final bool rapportExpanded;
+  final VoidCallback onRapportToggle;
+
+  const _DetailPanel({
+    required this.a,
+    required this.accent,
+    required this.rapportExpanded,
+    required this.onRapportToggle,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final hasAnalyse = a.statut == StatutAnalyse.soumise;
+
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Divider(color: Colors.grey.shade100, height: 1),
-        Container(
-          margin: const EdgeInsets.all(12),
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: Colors.grey.shade100),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Technicien row
-              Row(
-                children: [
-                  Icon(
-                    Icons.person_outline,
-                    size: 13,
-                    color: Colors.grey.shade400,
-                  ),
-                  const SizedBox(width: 5),
-                  Text(
-                    'Technicien : ',
-                    style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
-                  ),
-                  Text(
-                    a.technicienNom,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: _dark,
+
+        // ── Sample details ──────────────────────────────────────────────
+        if (a.fournisseurNom != null ||
+            a.gouvernorat != null ||
+            a.collecteurNom != null ||
+            a.variete != null)
+          Container(
+            margin: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF7FAF8),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.grey.shade100),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      Icons.inventory_2_outlined,
+                      size: 12,
+                      color: Colors.grey.shade400,
                     ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 12),
-
-              // Criteria table
-              _CriteresTable(criteres: a.criteres),
-
-              // Notes (optional)
-              if (a.notes != null && a.notes!.isNotEmpty) ...[
-                const SizedBox(height: 10),
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF7FAF8),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.grey.shade100),
-                  ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Icon(
-                        Icons.notes_outlined,
-                        size: 13,
-                        color: Colors.grey.shade400,
+                    const SizedBox(width: 5),
+                    Text(
+                      "Informations de l'échantillon",
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.grey.shade500,
+                        letterSpacing: 0.2,
                       ),
-                      const SizedBox(width: 6),
-                      Expanded(
-                        child: Text(
-                          a.notes!,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey.shade600,
-                          ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 60,
+                  runSpacing: 8,
+                  children: [
+                    _DetailItem('N° échantillon', a.echantillonId),
+                    if (a.fournisseurNom != null)
+                      _DetailItem('Fournisseur', a.fournisseurNom!),
+                    if (a.variete != null)
+                      _DetailItem('Variété', a.variete!),
+                    if (a.gouvernorat != null)
+                      _DetailItem(
+                        'Gouvernorat',
+                        a.delegation != null
+                            ? '${a.gouvernorat} — ${a.delegation}'
+                            : a.gouvernorat!,
+                      ),
+                    if (a.collecteurNom != null)
+                      _DetailItem('Collecteur', a.collecteurNom!),
+                    if (a.quantiteEstimee != null)
+                      _DetailItem('Quantité estimée', '${a.quantiteEstimee} T'),
+                  ],
+                ),
+              ],
+            ),
+          ),
+
+        // ── "Analyse soumise par … le …" attribution line ───────────────
+        Padding(
+          padding: const EdgeInsets.fromLTRB(14, 10, 14, 2),
+          child: Row(
+            children: [
+              Icon(Icons.person_outline, size: 13, color: Colors.grey.shade400),
+              const SizedBox(width: 6),
+              Expanded(
+                child: RichText(
+                  text: TextSpan(
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey.shade500,
+                    ),
+                    children: [
+                      const TextSpan(text: 'Analyse soumise par '),
+                      TextSpan(
+                        text: a.technicienNom,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w700,
+                          color: _dark,
                         ),
                       ),
+                      if (a.dateAnalyse.isNotEmpty)
+                        TextSpan(text: ' le ${a.dateAnalyse}'),
                     ],
                   ),
                 ),
-              ],
+              ),
             ],
           ),
+        ),
+
+        // ── Rapport section ─────────────────────────────────────────────
+        GestureDetector(
+          onTap: hasAnalyse ? onRapportToggle : null,
+          behavior: HitTestBehavior.opaque,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.biotech_outlined,
+                  size: 13,
+                  color: hasAnalyse ? _green : Colors.grey.shade300,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  'Rapport',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: hasAnalyse ? _green : Colors.grey.shade300,
+                  ),
+                ),
+                const Spacer(),
+                if (hasAnalyse && a.dateAnalyse.isNotEmpty)
+                  Text(
+                    'Soumis le ${a.dateAnalyse}',
+                    style: TextStyle(fontSize: 11, color: Colors.grey.shade400),
+                  ),
+                const SizedBox(width: 6),
+                AnimatedRotation(
+                  turns: rapportExpanded ? 0.5 : 0.0,
+                  duration: const Duration(milliseconds: 180),
+                  child: Icon(
+                    Icons.keyboard_arrow_down,
+                    size: 16,
+                    color: hasAnalyse ? _green : Colors.grey.shade300,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+
+        AnimatedCrossFade(
+          firstChild: const SizedBox.shrink(),
+          secondChild: hasAnalyse
+              ? _RapportBody(a: a)
+              : _EnAttenteHint(),
+          crossFadeState: rapportExpanded
+              ? CrossFadeState.showSecond
+              : CrossFadeState.showFirst,
+          duration: const Duration(milliseconds: 200),
         ),
       ],
     );
   }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// RAPPORT BODY  — criteria table + optional notes
+// ─────────────────────────────────────────────────────────────────────────────
+class _RapportBody extends StatelessWidget {
+  final AnalyseLabo a;
+  const _RapportBody({required this.a});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFAFAFA),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.grey.shade100),
+      ),
+      child: Column(
+        children: [
+          _CriteresTable(criteres: a.criteres),
+          if (a.notes != null && a.notes!.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF7FAF8),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.grey.shade100),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(Icons.notes_outlined, size: 13, color: Colors.grey.shade400),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      a.notes!,
+                      style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// EN ATTENTE HINT
+// ─────────────────────────────────────────────────────────────────────────────
+class _EnAttenteHint extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) => Container(
+    margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+    decoration: BoxDecoration(
+      color: Colors.orange.shade50,
+      borderRadius: BorderRadius.circular(10),
+      border: Border.all(color: Colors.orange.shade100),
+    ),
+    child: Row(
+      children: [
+        Icon(Icons.hourglass_top_outlined, size: 13, color: Colors.orange.shade700),
+        const SizedBox(width: 6),
+        Text(
+          'Analyse non encore soumise',
+          style: TextStyle(fontSize: 12, color: Colors.orange.shade800),
+        ),
+      ],
+    ),
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// DETAIL ITEM
+// ─────────────────────────────────────────────────────────────────────────────
+class _DetailItem extends StatelessWidget {
+  final String label;
+  final String value;
+  const _DetailItem(this.label, this.value);
+
+  @override
+  Widget build(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        label,
+        style: const TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+          color: Color(0xFFAAAAAA),
+          letterSpacing: 0.3,
+        ),
+      ),
+      const SizedBox(height: 2),
+      Text(
+        value,
+        style: const TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
+          color: _dark,
+        ),
+      ),
+    ],
+  );
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

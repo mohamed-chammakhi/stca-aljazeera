@@ -28,6 +28,7 @@ class EchantillonLaboCard extends StatefulWidget {
   final VoidCallback? onAjouterAnalyse;
   final VoidCallback? onVoirAnalyse;
   final VoidCallback? onModifierAnalyse;
+  final VoidCallback? onSupprimerAnalyse;
 
   const EchantillonLaboCard({
     super.key,
@@ -35,6 +36,7 @@ class EchantillonLaboCard extends StatefulWidget {
     this.onAjouterAnalyse,
     this.onVoirAnalyse,
     this.onModifierAnalyse,
+    this.onSupprimerAnalyse,
   });
 
   @override
@@ -137,19 +139,40 @@ class _EchantillonLaboCardState extends State<EchantillonLaboCard> {
                               const Spacer(),
                               if (_expanded) ...[
                                 if (!hasAnalyse)
-                                  Tooltip(
-                                    message: 'Ajouter une analyse',
-                                    child: _SmallIconBtn(
-                                      icon: Icons.add_circle_outline,
-                                      color: _green,
-                                      onTap: widget.onAjouterAnalyse ?? () {},
+                                  GestureDetector(
+                                    onTap: widget.onAjouterAnalyse ?? () {},
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 10, vertical: 5),
+                                      decoration: BoxDecoration(
+                                        color: _green.withValues(alpha: 0.08),
+                                        borderRadius: BorderRadius.circular(8),
+                                        border: Border.all(
+                                            color: _green.withValues(alpha: 0.25)),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(Icons.add_circle_outline,
+                                              size: 14, color: _green),
+                                          const SizedBox(width: 5),
+                                          Text(
+                                            'Ajouter une analyse',
+                                            style: TextStyle(
+                                              fontSize:   11,
+                                              fontWeight: FontWeight.w700,
+                                              color:      _green,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
                                     ),
                                   ),
                                 if (hasAnalyse) ...[
                                   Tooltip(
                                     message: 'Voir rapport',
                                     child: _SmallIconBtn(
-                                      icon: Icons.visibility_outlined,
+                                      icon:  Icons.visibility_outlined,
                                       color: _green,
                                       onTap: widget.onVoirAnalyse ?? () {},
                                     ),
@@ -158,9 +181,18 @@ class _EchantillonLaboCardState extends State<EchantillonLaboCard> {
                                   Tooltip(
                                     message: 'Modifier',
                                     child: _SmallIconBtn(
-                                      icon: Icons.edit_outlined,
+                                      icon:  Icons.edit_outlined,
                                       color: Colors.orange.shade700,
                                       onTap: widget.onModifierAnalyse ?? () {},
+                                    ),
+                                  ),
+                                  const SizedBox(width: 2),
+                                  Tooltip(
+                                    message: 'Supprimer l\'analyse',
+                                    child: _SmallIconBtn(
+                                      icon:  Icons.delete_outline,
+                                      color: Colors.red.shade600,
+                                      onTap: widget.onSupprimerAnalyse ?? () {},
                                     ),
                                   ),
                                 ],
@@ -288,12 +320,6 @@ class _DetailPanel extends StatelessWidget {
                   ),
                 ],
               ),
-
-              // ── Analysis summary (if submitted) ────────────────────────
-              if (e.analyse != null) ...[
-                const SizedBox(height: 12),
-                _AnalyseSummaryStrip(analyse: e.analyse!),
-              ],
             ],
           ),
         ),

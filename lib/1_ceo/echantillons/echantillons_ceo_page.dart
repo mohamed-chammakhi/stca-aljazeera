@@ -63,6 +63,7 @@ class EchantillonsCeoPage extends StatefulWidget {
 class _EchantillonsCeoPageState extends State<EchantillonsCeoPage> {
   DateTime? _dateDebut;
   DateTime? _dateFin;
+  DateFilterType _dateType = DateFilterType.enregistrement;
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
 
@@ -78,12 +79,25 @@ class _EchantillonsCeoPageState extends State<EchantillonsCeoPage> {
   }
 
   // ── Filtering ──────────────────────────────────────────────────────────────
+  String? _dateFieldFor(EchantillonCeoView e) {
+    switch (_dateType) {
+      case DateFilterType.enregistrement:
+        return e.dateAjout;
+      case DateFilterType.livraisonEchantillon:
+        return e.dateArriveeEchantillon ?? e.dateLivraisonPrevue;
+      case DateFilterType.arriveeStock:
+        return e.dateLivraisonStock;
+    }
+  }
+
   List<EchantillonCeoView> _applyFilters(List<EchantillonCeoView> list) {
     var result = list;
 
     if (_dateDebut != null) {
       result = result.where((e) {
-        final d = _parseDate(e.dateAjout);
+        final raw = _dateFieldFor(e);
+        if (raw == null) return false;
+        final d = _parseDate(raw);
         if (d == null) return false;
         final day = DateTime(d.year, d.month, d.day);
         final debut = DateTime(
@@ -166,12 +180,18 @@ class _EchantillonsCeoPageState extends State<EchantillonsCeoPage> {
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       builder: (_) => DateFilterSheet(
-        // ← from search_date_filter_bar.dart
         dateDebut: _dateDebut,
         dateFin: _dateFin,
+        availableTypes: DateFilterType.values,
+        initialType: _dateType,
         onApply: (debut, fin) => setState(() {
           _dateDebut = debut;
           _dateFin = fin;
+        }),
+        onApplyTyped: (debut, fin, type) => setState(() {
+          _dateDebut = debut;
+          _dateFin = fin;
+          _dateType = type;
         }),
         onClear: () => setState(() {
           _dateDebut = null;
@@ -235,7 +255,9 @@ class _EchantillonsCeoPageState extends State<EchantillonsCeoPage> {
                   color: _dateFilterActive ? _green : const Color(0xFF6B8E7A),
                 ),
                 onPressed: _showDateFilter,
-                tooltip: 'Filtrer par date',
+                tooltip: _dateFilterActive
+                    ? 'Filtré par : ${_dateType.label}'
+                    : 'Filtrer par date',
               ),
               if (_dateFilterActive)
                 Positioned(
@@ -266,10 +288,11 @@ class _EchantillonsCeoPageState extends State<EchantillonsCeoPage> {
               onChanged: (v) => setState(() => _searchQuery = v.trim()),
               style: const TextStyle(fontSize: 14, color: _dark),
               decoration: InputDecoration(
-                hintText: 'Rechercher réf, fournisseur, gouvernorat…',
+                hintText:
+                    'Réf, fournisseur, gouvernorat, variété, collecteur…',
                 hintStyle: const TextStyle(
                   color: Color(0xFF6B8E7A),
-                  fontSize: 13,
+                  fontSize: 11,
                 ),
                 prefixIcon: const Icon(
                   Icons.search,

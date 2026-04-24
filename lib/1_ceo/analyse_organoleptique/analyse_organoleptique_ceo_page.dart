@@ -74,6 +74,7 @@ class _AnalyseOrganoleptiqueCeoPageState
 
   DateTime? _dateDebut;
   DateTime? _dateFin;
+  DateFilterType _dateType = DateFilterType.enregistrement;
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
 
@@ -88,7 +89,8 @@ class _AnalyseOrganoleptiqueCeoPageState
 
   DateTime? _parseDate(String s) {
     try {
-      final p = s.split('/');
+      final datePart = s.split(' ').first;
+      final p = datePart.split('/');
       if (p.length != 3) return null;
       return DateTime(int.parse(p[2]), int.parse(p[1]), int.parse(p[0]));
     } catch (_) {
@@ -96,11 +98,24 @@ class _AnalyseOrganoleptiqueCeoPageState
     }
   }
 
+  String? _dateFieldFor(EchantillonCeoView e) {
+    switch (_dateType) {
+      case DateFilterType.enregistrement:
+        return e.dateAjout;
+      case DateFilterType.livraisonEchantillon:
+        return e.dateArriveeEchantillon ?? e.dateLivraisonPrevue;
+      case DateFilterType.arriveeStock:
+        return e.dateLivraisonStock;
+    }
+  }
+
   List<EchantillonCeoView> get _filtered {
     var result = _allEchantillons;
     if (_dateDebut != null) {
       result = result.where((e) {
-        final d = _parseDate(e.dateAjout);
+        final dateStr = _dateFieldFor(e);
+        if (dateStr == null) return false;
+        final d = _parseDate(dateStr);
         if (d == null) return false;
         final day = DateTime(d.year, d.month, d.day);
         final debut = DateTime(
@@ -149,6 +164,16 @@ class _AnalyseOrganoleptiqueCeoPageState
         onClear: () => setState(() {
           _dateDebut = null;
           _dateFin = null;
+        }),
+        availableTypes: const [
+          DateFilterType.enregistrement,
+          DateFilterType.livraisonEchantillon,
+        ],
+        initialType: _dateType,
+        onApplyTyped: (d, f, type) => setState(() {
+          _dateDebut = d;
+          _dateFin = f;
+          _dateType = type;
         }),
       ),
     );
@@ -292,10 +317,12 @@ class _AnalyseOrganoleptiqueCeoPageState
                         TextField(
                           controller: budgetController,
                           decoration: _ceoDeco(
-                            'ex: 9.50 TND/L',
+                            'ex: 9.50',
                             Icons.payments_outlined,
                           ),
-                          keyboardType: TextInputType.text,
+                          keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true,
+                          ),
                           style: const TextStyle(fontSize: 14),
                         ),
                         const SizedBox(height: 16),
@@ -598,7 +625,9 @@ class _AnalyseOrganoleptiqueCeoPageState
                       : const Color(0xFF6B8E7A),
                 ),
                 onPressed: _showDateFilter,
-                tooltip: 'Filtrer par date',
+                tooltip: _dateDebut != null
+                    ? 'Filtré par : ${_dateType.label}'
+                    : 'Filtrer par date',
               ),
               if (_dateDebut != null || _dateFin != null)
                 Positioned(
@@ -629,10 +658,10 @@ class _AnalyseOrganoleptiqueCeoPageState
               onChanged: (v) => setState(() => _searchQuery = v.trim()),
               style: const TextStyle(fontSize: 14, color: _dark),
               decoration: InputDecoration(
-                hintText: 'Rechercher réf, fournisseur, gouvernorat…',
+                hintText: 'Réf, fournisseur, gouvernorat, variété, collecteur…',
                 hintStyle: const TextStyle(
                   color: Color(0xFF6B8E7A),
-                  fontSize: 13,
+                  fontSize: 11,
                 ),
                 prefixIcon: const Icon(
                   Icons.search,
@@ -725,7 +754,6 @@ class _AnalyseOrganoleptiqueCeoPageState
                     itemCount: echantillons.length,
                     itemBuilder: (_, i) {
                       final e = echantillons[i];
-                      final majority = e.classificationMajoritaire;
                       final panelExp = _expandedPanel.contains(e.id);
 
                       return BaseSampleCard(
@@ -740,6 +768,34 @@ class _AnalyseOrganoleptiqueCeoPageState
                                 label: 'Qté : ${e.quantiteEstimee}T',
                                 color: _olive,
                               ),
+                            Tooltip(
+                              message: e.recuPhysiquement
+                                  ? 'Échantillon présent dans la société'
+                                  : 'Échantillon non encore livré à la société',
+                              triggerMode: TooltipTriggerMode.tap,
+                              preferBelow: false,
+                              child: Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: BoxDecoration(
+                                  color: e.recuPhysiquement
+                                      ? _olive.withValues(alpha: 0.12)
+                                      : const Color(0xFFEEEEEE),
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(
+                                    color: e.recuPhysiquement
+                                        ? _olive.withValues(alpha: 0.35)
+                                        : const Color(0xFFDDDDDD),
+                                  ),
+                                ),
+                                child: Icon(
+                                  Icons.check_circle_outline,
+                                  size: 13,
+                                  color: e.recuPhysiquement
+                                      ? _olive
+                                      : const Color(0xFFCCCCCC),
+                                ),
+                              ),
+                            ),
                           ],
                         ),
                         detailItems: [
@@ -765,7 +821,6 @@ class _AnalyseOrganoleptiqueCeoPageState
                         deliveryWidget: SampleDeliveryIndicator(e: e),
                         bottomSection: _PanelSection(
                           echantillon: e,
-                          majority: majority,
                           isExpanded: panelExp,
                           onToggle: () => setState(
                             () => panelExp
@@ -795,7 +850,6 @@ class _AnalyseOrganoleptiqueCeoPageState
 // ─────────────────────────────────────────────────────────────────────────────
 class _PanelSection extends StatelessWidget {
   final EchantillonCeoView echantillon;
-  final ClassificationHuile? majority;
   final bool isExpanded;
   final VoidCallback onToggle;
   final void Function(EvaluationOrganoleptique) onViewForm;
@@ -804,7 +858,6 @@ class _PanelSection extends StatelessWidget {
 
   const _PanelSection({
     required this.echantillon,
-    required this.majority,
     required this.isExpanded,
     required this.onToggle,
     required this.onViewForm,
@@ -849,19 +902,6 @@ class _PanelSection extends StatelessWidget {
                   onTap: onRefuser,
                 ),
                 const Spacer(),
-                if (majority != null) ...[
-                  CardBadge(
-                    label: majority!.label,
-                    color: Color(majority!.colorValue),
-                  ),
-                  const SizedBox(width: 8),
-                ] else if (e.evaluations.isNotEmpty) ...[
-                  Text(
-                    'En cours',
-                    style: TextStyle(fontSize: 12, color: Colors.grey.shade400),
-                  ),
-                  const SizedBox(width: 8),
-                ],
                 AnimatedRotation(
                   turns: isExpanded ? 0.5 : 0.0,
                   duration: const Duration(milliseconds: 180),

@@ -16,6 +16,7 @@ import 'package:flutter/services.dart';
 import '../../../analyse_labo.dart';
 import '../../models/echantillon_labo.dart';
 import 'scan_rapport_dialog.dart';
+import 'formulaire_analyse_labo_dialog.dart';
 
 const Color _green = Color(0xFF38835A);
 const Color _cream = Color(0xFFF9F6EF);
@@ -27,6 +28,7 @@ const Color _darkText = Color(0xFF1A2E1F);
 void showAnalyseChoiceSheet(
   BuildContext context, {
   required EchantillonLabo echantillon,
+  AnalyseLabo? existing,
   required void Function(AnalyseLabo) onSave,
 }) {
   showModalBottomSheet(
@@ -35,15 +37,24 @@ void showAnalyseChoiceSheet(
       borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
     ),
     backgroundColor: Colors.white,
-    builder: (_) => _ChoiceSheet(echantillon: echantillon, onSave: onSave),
+    builder: (_) => _ChoiceSheet(
+      echantillon: echantillon,
+      existing:    existing,
+      onSave:      onSave,
+    ),
   );
 }
 
 class _ChoiceSheet extends StatelessWidget {
   final EchantillonLabo echantillon;
+  final AnalyseLabo?    existing;
   final void Function(AnalyseLabo) onSave;
 
-  const _ChoiceSheet({required this.echantillon, required this.onSave});
+  const _ChoiceSheet({
+    required this.echantillon,
+    this.existing,
+    required this.onSave,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -104,10 +115,12 @@ class _ChoiceSheet extends StatelessWidget {
             color: _green,
             onTap: () {
               Navigator.pop(context);
-              showManuelAnalyseForm(
+              showFormulaireAnalyseLaboDialog(
                 context,
-                echantillon: echantillon,
-                onSave: onSave,
+                echantillonRef: echantillon.referenceBouteille,
+                echantillonId:  echantillon.id,
+                analyse:        existing,
+                onSave:         onSave,
               );
             },
           ),
