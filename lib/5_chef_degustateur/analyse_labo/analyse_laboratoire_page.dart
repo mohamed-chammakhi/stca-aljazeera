@@ -349,7 +349,10 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage> {
       SnackBar(
         content: Text(
           msg,
-          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+          ),
         ),
         backgroundColor: _green,
         behavior: SnackBarBehavior.floating,
@@ -422,9 +425,9 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage> {
         onAnalyseLaboratoire: () => _goTo(const AnalyseLaboratoirePage()),
         onSessionsDegustationPage: () => _goTo(const SessionsDegustationPage()),
         onMembredupanel: () => _goTo(const MembresPanelPage()),
-        onVueEnsembleEvaluations: () => _goTo(const VueEnsembleEvaluationsPage()),
+        onVueEnsembleEvaluations: () =>
+            _goTo(const VueEnsembleEvaluationsPage()),
         onProfil: () => _goTo(const ProfilePage()),
-        onAPropos: () => Navigator.pop(context),
         onDeconnexion: _goToLogin,
       ),
 
@@ -557,7 +560,8 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage> {
                         inactiveTextColor: const Color(0xFFD07B2F),
                         selected: _filtreStatutLabel == 'Analyse en attente',
                         onTap: () => setState(
-                            () => _filtreStatutLabel = 'Analyse en attente'),
+                          () => _filtreStatutLabel = 'Analyse en attente',
+                        ),
                       ),
                       const SizedBox(width: 7),
                       _StatutChip(
@@ -567,7 +571,8 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage> {
                         inactiveTextColor: const Color(0xFF38835A),
                         selected: _filtreStatutLabel == 'Analyse soumise',
                         onTap: () => setState(
-                            () => _filtreStatutLabel = 'Analyse soumise'),
+                          () => _filtreStatutLabel = 'Analyse soumise',
+                        ),
                       ),
                     ],
                   ),

@@ -133,7 +133,6 @@ class _ProfileCollecteurPageState extends State<ProfileCollecteurPage> {
             _showSuccess('numero mis à jour');
           }
           break;
-
       }
     });
   }
@@ -211,7 +210,6 @@ class _ProfileCollecteurPageState extends State<ProfileCollecteurPage> {
         onMesEchantillons: () => _goTo(const MesEchantillonsPage()),
         onCarte: () => _goTo(const Placeholder()),
         onMessagerie: () => _goTo(const Placeholder()),
-        onTableauDeBord: () => _goTo(const TableauDeBordCollecteurPage()),
         onProfil: () => Navigator.pop(context),
         onDeconnexion: _goToLogin,
       ),

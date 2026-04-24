@@ -129,7 +129,6 @@ class _HomePageState extends State<HomePage> {
         onVueEnsembleEvaluations: () =>
             _goTo(const VueEnsembleEvaluationsPage()),
         onProfil: () => _goTo(const ProfilePage()),
-        onAPropos: () => Navigator.pop(context),
         onDeconnexion: _goToLogin,
       ),
     );

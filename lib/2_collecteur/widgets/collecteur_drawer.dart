@@ -10,7 +10,6 @@ class CollecteurDrawer extends StatelessWidget {
   final VoidCallback onMesEchantillons;
   final VoidCallback onCarte;
   final VoidCallback onMessagerie;
-  final VoidCallback onTableauDeBord;
   final VoidCallback onProfil;
   final VoidCallback onDeconnexion;
 
@@ -19,7 +18,6 @@ class CollecteurDrawer extends StatelessWidget {
     required this.onMesEchantillons,
     required this.onCarte,
     required this.onMessagerie,
-    required this.onTableauDeBord,
     required this.onProfil,
     required this.onDeconnexion,
   });

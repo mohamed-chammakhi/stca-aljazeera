@@ -299,7 +299,6 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
         onSessionsDegustationPage: () => _goTo(const SessionsDegustationPage()),
         onMembredupanel: () => _goTo(const MembresPanelPage()),
         onProfil: () => _goTo(const ProfilePage()),
-        onAPropos: () => Navigator.pop(context),
         onDeconnexion: _goToLogin,
       ),
 

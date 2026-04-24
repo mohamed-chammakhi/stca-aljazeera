@@ -236,9 +236,9 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage> {
         onAnalyseLaboratoire: () => _goTo(const AnalyseLaboratoirePage()),
         onSessionsDegustationPage: () => _goTo(const SessionsDegustationPage()),
         onMembredupanel: () => _goTo(const MembresPanelPage()),
-        onVueEnsembleEvaluations: () => _goTo(const VueEnsembleEvaluationsPage()),
+        onVueEnsembleEvaluations: () =>
+            _goTo(const VueEnsembleEvaluationsPage()),
         onProfil: () => _goTo(const ProfilePage()),
-        onAPropos: () => Navigator.pop(context),
         onDeconnexion: _goToLogin,
       ),
 

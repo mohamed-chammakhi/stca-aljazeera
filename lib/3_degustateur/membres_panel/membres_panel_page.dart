@@ -239,7 +239,6 @@ class _MembresPanelPageState extends State<MembresPanelPage> {
         onMembredupanel: () => _goTo(const MembresPanelPage()),
         onProfil: () => _goTo(const ProfilePage()),
 
-        onAPropos: () => Navigator.pop(context),
         onDeconnexion: _goToLogin,
       ),
     );

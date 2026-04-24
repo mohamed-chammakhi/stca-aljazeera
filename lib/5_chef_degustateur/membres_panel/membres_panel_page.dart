@@ -238,10 +238,10 @@ class _MembresPanelPageState extends State<MembresPanelPage> {
         // OLD : ProfilePage from profil.dart (same level)
         // NEW : ProfilePage from ../profil.dart (one level up) ✅ done
         onMembredupanel: () => _goTo(const MembresPanelPage()),
-        onVueEnsembleEvaluations: () => _goTo(const VueEnsembleEvaluationsPage()),
+        onVueEnsembleEvaluations: () =>
+            _goTo(const VueEnsembleEvaluationsPage()),
         onProfil: () => _goTo(const ProfilePage()),
 
-        onAPropos: () => Navigator.pop(context),
         onDeconnexion: _goToLogin,
       ),
     );

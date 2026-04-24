@@ -140,7 +140,6 @@ class _HomePageState extends State<HomePage> {
         onSessionsDegustationPage: () => _goTo(const SessionsDegustationPage()),
         onMembredupanel: () => _goTo(const MembresPanelPage()),
         onProfil: () => _goTo(const ProfilePage()),
-        onAPropos: () => Navigator.pop(context),
         onDeconnexion: _goToLogin,
       ),
     );

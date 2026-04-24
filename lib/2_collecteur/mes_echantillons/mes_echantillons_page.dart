@@ -334,7 +334,6 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
     );
   }
 
-
   void _onScheduleArrivee(EchantillonCollecteur e) {
     bool active = e.dateArriveeEchantillon != null;
     ModePlanificationUI mode = ModePlanificationUI.dateExacte;
@@ -593,7 +592,6 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
         onMesEchantillons: () => Navigator.pop(context),
         onCarte: () => _goTo(CarteGeoPage(echantillons: _echantillons)),
         onMessagerie: () => _goTo(const Placeholder()),
-        onTableauDeBord: () => _goTo(const Placeholder()),
         onProfil: () => _goTo(const ProfileCollecteurPage()),
         onDeconnexion: _goToLogin,
       ),

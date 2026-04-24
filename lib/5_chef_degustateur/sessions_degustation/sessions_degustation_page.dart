@@ -35,7 +35,6 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
   static const Color _green = Color(0xFF38835A);
   static const Color _dark = Color(0xFF1A2E1F);
   static const Color _bg = Color(0xFFFFFFFF);
-  static const Color _purple = Color(0xFF7B3FC4);
 
   final TextEditingController _searchController = TextEditingController();
   String _recherche = '';
@@ -200,8 +199,9 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
     }).toList();
   }
 
-  int get _pendingCount =>
-      _sessions.where((s) => s.statut == StatutSession.enAttenteValidation).length;
+  int get _pendingCount => _sessions
+      .where((s) => s.statut == StatutSession.enAttenteValidation)
+      .length;
 
   int get _prochainNumero => _sessions.length + 1;
 
@@ -259,7 +259,10 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
       SnackBar(
         content: Text(
           msg,
-          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+          ),
         ),
         backgroundColor: _green,
         behavior: SnackBarBehavior.floating,
@@ -283,14 +286,15 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
       backgroundColor: _bg,
       drawer: AppDrawer(
         onaccueil: () => Navigator.pop(context),
-        onEvaluationEchantillons: () => _goTo(const EvaluationEchantillonsPage()),
+        onEvaluationEchantillons: () =>
+            _goTo(const EvaluationEchantillonsPage()),
         onGestionEchantillons: () => _goTo(const GestionEchantillonsPage()),
         onAnalyseLaboratoire: () => _goTo(const AnalyseLaboratoirePage()),
         onSessionsDegustationPage: () => _goTo(const SessionsDegustationPage()),
         onMembredupanel: () => _goTo(const MembresPanelPage()),
-        onVueEnsembleEvaluations: () => _goTo(const VueEnsembleEvaluationsPage()),
+        onVueEnsembleEvaluations: () =>
+            _goTo(const VueEnsembleEvaluationsPage()),
         onProfil: () => _goTo(const ProfilePage()),
-        onAPropos: () => Navigator.pop(context),
         onDeconnexion: _goToLogin,
       ),
       appBar: AppBar(
@@ -308,28 +312,6 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
         ),
         iconTheme: const IconThemeData(color: _dark),
         actions: [
-          if (_pendingCount > 0)
-            Padding(
-              padding: const EdgeInsets.only(right: 4),
-              child: Center(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: _purple.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: _purple.withValues(alpha: 0.3)),
-                  ),
-                  child: Text(
-                    '$_pendingCount en attente',
-                    style: const TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      color: _purple,
-                    ),
-                  ),
-                ),
-              ),
-            ),
           Stack(
             alignment: Alignment.center,
             children: [
@@ -340,7 +322,7 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
                   color: _dateFilterActive ? _green : const Color(0xFF6B8E7A),
                 ),
                 onPressed: _showDateFilter,
-                tooltip: 'Filtrer par date',
+                tooltip: 'Filtrer par date de la session',
               ),
               if (_dateFilterActive)
                 Positioned(
@@ -452,9 +434,9 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
                         inactiveColor: const Color(0xFFF3E8FF),
                         inactiveTextColor: const Color(0xFF7B3FC4),
                         selected: _filtreStatutLabel == 'En attente',
+                        hasActivity: _pendingCount > 0,
                         onTap: () =>
                             setState(() => _filtreStatutLabel = 'En attente'),
-                        badgeCount: _pendingCount > 0 ? _pendingCount : null,
                       ),
                       const SizedBox(width: 7),
                       _StatutChip(
@@ -594,8 +576,8 @@ class _StatutChip extends StatelessWidget {
   final Color inactiveColor;
   final Color inactiveTextColor;
   final bool selected;
+  final bool hasActivity;
   final VoidCallback onTap;
-  final int? badgeCount;
 
   const _StatutChip({
     required this.label,
@@ -604,7 +586,7 @@ class _StatutChip extends StatelessWidget {
     required this.inactiveTextColor,
     required this.selected,
     required this.onTap,
-    this.badgeCount,
+    this.hasActivity = false,
   });
 
   static const Color _inactiveBg = Color(0xFFF0F0F0);
@@ -619,9 +601,15 @@ class _StatutChip extends StatelessWidget {
     final Color border;
 
     if (!selected) {
-      bg = _inactiveBg;
-      fg = _inactiveFg;
-      border = _inactiveBorder;
+      if (hasActivity) {
+        bg = inactiveColor;
+        fg = inactiveTextColor;
+        border = inactiveTextColor.withValues(alpha: 0.35);
+      } else {
+        bg = _inactiveBg;
+        fg = _inactiveFg;
+        border = _inactiveBorder;
+      }
     } else if (isTous) {
       bg = const Color(0xFF757575);
       fg = Colors.white;
@@ -644,48 +632,22 @@ class _StatutChip extends StatelessWidget {
           boxShadow: selected
               ? [
                   BoxShadow(
-                    color: (isTous
-                            ? const Color(0xFF757575)
-                            : inactiveTextColor)
-                        .withValues(alpha: 0.22),
+                    color:
+                        (isTous ? const Color(0xFF757575) : inactiveTextColor)
+                            .withValues(alpha: 0.22),
                     blurRadius: 6,
                     offset: const Offset(0, 2),
                   ),
                 ]
               : null,
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: fg,
-              ),
-            ),
-            if (badgeCount != null && badgeCount! > 0) ...[
-              const SizedBox(width: 5),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-                decoration: BoxDecoration(
-                  color: selected
-                      ? inactiveTextColor.withValues(alpha: 0.2)
-                      : const Color(0xFF7B3FC4),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  '$badgeCount',
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w800,
-                    color: selected ? inactiveTextColor : Colors.white,
-                  ),
-                ),
-              ),
-            ],
-          ],
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: fg,
+          ),
         ),
       ),
     );

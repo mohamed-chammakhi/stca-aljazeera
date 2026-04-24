@@ -8,10 +8,10 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 const Color _headerBg = Color.fromARGB(255, 220, 233, 226);
-const Color _green    = Color(0xFF38835A);
-const Color _dark     = Color(0xFF1A2E1F);
-const Color _olive    = Color(0xFF6B8143);
-const Color _iconBg   = Color(0x1A38835A); // green at 10% opacity
+const Color _green = Color(0xFF38835A);
+const Color _dark = Color(0xFF1A2E1F);
+const Color _olive = Color(0xFF6B8143);
+const Color _iconBg = Color(0x1A38835A); // green at 10% opacity
 
 class AppDrawer extends StatelessWidget {
   final VoidCallback onaccueil;
@@ -21,7 +21,6 @@ class AppDrawer extends StatelessWidget {
   final VoidCallback onSessionsDegustationPage;
   final VoidCallback onMembredupanel;
   final VoidCallback onProfil;
-  final VoidCallback onAPropos;
   final VoidCallback onDeconnexion;
 
   const AppDrawer({
@@ -33,7 +32,6 @@ class AppDrawer extends StatelessWidget {
     required this.onSessionsDegustationPage,
     required this.onMembredupanel,
     required this.onProfil,
-    required this.onAPropos,
     required this.onDeconnexion,
   });
 
@@ -45,7 +43,6 @@ class AppDrawer extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
             // ── Header ───────────────────────────────────────────────────────
             Container(
               width: double.infinity,
@@ -103,9 +100,11 @@ class AppDrawer extends StatelessWidget {
             // ── Navigation items ─────────────────────────────────────────────
             Expanded(
               child: ListView(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
                 children: [
-
                   _SectionLabel('Tableau de bord'),
                   _DrawerItem(
                     icon: Icons.dashboard_outlined,
@@ -164,11 +163,6 @@ class AppDrawer extends StatelessWidget {
                     label: 'Votre profil',
                     onTap: onProfil,
                   ),
-                  _DrawerItem(
-                    icon: Icons.info_outline,
-                    label: 'À propos',
-                    onTap: onAPropos,
-                  ),
                 ],
               ),
             ),
@@ -213,9 +207,9 @@ class _SectionLabel extends StatelessWidget {
     child: Text(
       text.toUpperCase(),
       style: const TextStyle(
-        fontSize:      10,
-        fontWeight:    FontWeight.w700,
-        color:         _olive,
+        fontSize: 10,
+        fontWeight: FontWeight.w700,
+        color: _olive,
         letterSpacing: 1.1,
       ),
     ),
@@ -226,9 +220,9 @@ class _SectionLabel extends StatelessWidget {
 // DRAWER ITEM  — icon in green bg container + label, no trailing arrow
 // ─────────────────────────────────────────────────────────────────────────────
 class _DrawerItem extends StatelessWidget {
-  final IconData?  icon;
-  final Widget?    customIcon;
-  final String     label;
+  final IconData? icon;
+  final Widget? customIcon;
+  final String label;
   final VoidCallback onTap;
 
   const _DrawerItem({
@@ -251,10 +245,10 @@ class _DrawerItem extends StatelessWidget {
           children: [
             // Icon container
             Container(
-              width:  36,
+              width: 36,
               height: 36,
               decoration: BoxDecoration(
-                color:        _iconBg,
+                color: _iconBg,
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Center(
@@ -265,9 +259,9 @@ class _DrawerItem extends StatelessWidget {
             Text(
               label,
               style: const TextStyle(
-                fontSize:   14,
+                fontSize: 14,
                 fontWeight: FontWeight.w500,
-                color:      _dark,
+                color: _dark,
               ),
             ),
           ],

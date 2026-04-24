@@ -226,50 +226,28 @@ class _SessionCardState extends State<SessionCard> {
                                 ),
                               ),
                               const Spacer(),
-                              if (_expanded) ...[
-                                if (widget.session.statut ==
-                                    StatutSession.enAttenteValidation) ...[
-                                  if (widget.onRefuser != null)
-                                    Tooltip(
-                                      message: 'Refuser',
-                                      child: _SmallIconBtn(
-                                        icon: Icons.close_rounded,
-                                        color: Colors.red.shade400,
-                                        onTap: widget.onRefuser!,
-                                      ),
+                              if (_expanded &&
+                              widget.session.statut != StatutSession.enAttenteValidation) ...[
+                                if (widget.onModifier != null)
+                                  Tooltip(
+                                    message: 'Modifier',
+                                    child: _SmallIconBtn(
+                                      icon: Icons.edit_outlined,
+                                      color: _olive,
+                                      onTap: widget.onModifier!,
                                     ),
+                                  ),
+                                if (widget.onModifier != null)
                                   const SizedBox(width: 2),
-                                  if (widget.onApprouver != null)
-                                    Tooltip(
-                                      message: 'Approuver',
-                                      child: _SmallIconBtn(
-                                        icon: Icons.check_rounded,
-                                        color: const Color(0xFF38835A),
-                                        onTap: widget.onApprouver!,
-                                      ),
+                                if (widget.onSupprimer != null)
+                                  Tooltip(
+                                    message: 'Supprimer',
+                                    child: _SmallIconBtn(
+                                      icon: Icons.delete_outline,
+                                      color: Colors.red.shade300,
+                                      onTap: widget.onSupprimer!,
                                     ),
-                                ] else ...[
-                                  if (widget.onModifier != null)
-                                    Tooltip(
-                                      message: 'Modifier',
-                                      child: _SmallIconBtn(
-                                        icon: Icons.edit_outlined,
-                                        color: _olive,
-                                        onTap: widget.onModifier!,
-                                      ),
-                                    ),
-                                  if (widget.onModifier != null)
-                                    const SizedBox(width: 2),
-                                  if (widget.onSupprimer != null)
-                                    Tooltip(
-                                      message: 'Supprimer',
-                                      child: _SmallIconBtn(
-                                        icon: Icons.delete_outline,
-                                        color: Colors.red.shade300,
-                                        onTap: widget.onSupprimer!,
-                                      ),
-                                    ),
-                                ],
+                                  ),
                               ],
                             ],
                           ),
@@ -281,6 +259,14 @@ class _SessionCardState extends State<SessionCard> {
               ),
             ),
           ),
+
+          // ── Approve / Refuse row (pending sessions only, always visible) ──
+          if (s.statut == StatutSession.enAttenteValidation &&
+              (widget.onApprouver != null || widget.onRefuser != null))
+            _PendingActionRow(
+              onApprouver: widget.onApprouver,
+              onRefuser: widget.onRefuser,
+            ),
 
           // ── Expandable detail panel ─────────────────────────────────────
           AnimatedCrossFade(
@@ -319,6 +305,86 @@ class _SmallIconBtn extends StatelessWidget {
       child: Icon(icon, size: 18, color: color),
     ),
   );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PENDING ACTION ROW — approve / refuse pills, always visible for pending cards
+// ─────────────────────────────────────────────────────────────────────────────
+class _PendingActionRow extends StatelessWidget {
+  final VoidCallback? onApprouver;
+  final VoidCallback? onRefuser;
+
+  const _PendingActionRow({this.onApprouver, this.onRefuser});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(13, 8, 13, 9),
+      decoration: BoxDecoration(
+        border: Border(top: BorderSide(color: Colors.grey.shade100)),
+      ),
+      child: Row(
+        children: [
+          if (onApprouver != null)
+            _DecisionPill(
+              label: 'Approuver',
+              color: _green,
+              onTap: onApprouver!,
+            ),
+          if (onApprouver != null && onRefuser != null)
+            const SizedBox(width: 7),
+          if (onRefuser != null)
+            _DecisionPill(
+              label: 'Refuser',
+              color: Color(0xFFD32F2F),
+              onTap: onRefuser!,
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// DECISION PILL — pill-shaped action button (approve / refuse)
+// ─────────────────────────────────────────────────────────────────────────────
+class _DecisionPill extends StatelessWidget {
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _DecisionPill({
+    required this.label,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 5),
+        decoration: BoxDecoration(
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: color.withValues(alpha: 0.35),
+            width: 1.2,
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: color,
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
