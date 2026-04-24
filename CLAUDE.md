@@ -161,6 +161,36 @@ Once a sample is physically received (`recuPhysiquement = true`), any edit to it
 - **En cours** — analysis started but not submitted
 - **Soumis** — analysis submitted (read-only)
 
+### CEO delivery display rules (in expanded sample card — `SampleDetails`)
+
+The delivery section shown in the CEO's expanded sample card depends entirely on `statut`. Display as gray `— sentence —` text (no chips or icons).
+
+**`StatutCeo.selectionne` (Enregistré)** — show 4 sample delivery scenarios:
+| Condition | Text displayed |
+|---|---|
+| `recuPhysiquement == true` | `— Échantillon réceptionné le [dateArriveeEchantillon] —` |
+| `dateLivraisonPrevue != null && dateLivraisonPrevueFin != null` | `— Échantillon attendu entre le [d1] et le [d2] —` |
+| `dateLivraisonPrevue != null` | `— Échantillon attendu le [dateLivraisonPrevue] —` |
+| none of the above | `— Livraison de l'échantillon non planifiée —` |
+
+**`StatutCeo.enNegociation`** — sample has physically arrived; show reception only:
+- `— Échantillon réceptionné le [dateArriveeEchantillon] —`
+
+**`StatutCeo.achatConfirme`** — show sample reception, then 4 stock delivery scenarios below it:
+- Line 1: `— Échantillon réceptionné le [dateArriveeEchantillon] —`
+- Line 2 (stock):
+
+| Condition | Text displayed |
+|---|---|
+| `stockArrive == true` | `— Stock réceptionné le [dateLivraisonStock] —` |
+| `dateLivraisonStock != null && dateLivraisonStockFin != null` | `— Stock attendu entre le [d1] et le [d2] —` |
+| `dateLivraisonStock != null` | `— Stock attendu pour le [dateLivraisonStock] —` |
+| none of the above | `— Livraison du stock non encore planifiée —` |
+
+**`StatutCeo.refuse`** — no delivery section; show refusal reason instead.
+
+**Date/time format:** Arrival dates and exact expected dates include the time: `"03/03/2026 à 09h15"`. Date ranges (period start/end) show date only, without time.
+
 ---
 
 ## Key Features
@@ -425,6 +455,33 @@ Notifications are sent automatically to all active CEO accounts (`role='directio
 | `EVALUATIONS` | `AnalyseOrganoleptiqueCeoPage` |
 | `ANALYSES` | `AnalyseLaboratoireCeoPage` |
 | `ACHATS` | `AchatsConfirmesCeoPage` |
+
+---
+
+## Taster Dashboard — Business Logic
+
+### Urgency rule (Évaluations urgentes)
+A sample appears in the urgent panel if ALL of the following are true:
+- `recuPhysiquement == true` (sample physically at company)
+- The taster has NOT yet submitted their evaluation for this sample
+- Days waiting = `DateTime.now().difference(sample.dateReceptionEchantillon).inDays`
+  - 1 day  → amber badge: `"1j en attente"`
+  - 2+ days → red badge: `"Xj — critique"`
+
+### Délai de soumission formula
+- **Per evaluation:** `delai = date_evaluation_soumise − date_reception_echantillon` (in fractional days)
+- **Mon délai moy.:** AVG of all my delays for evaluations submitted within the chosen period
+- **Moy. panel:** AVG of all delays for ALL active tasters on the same period
+- Backend endpoints:
+  - `GET /api/degustateur/dashboard/delai/?date_debut=YYYY-MM-DD&date_fin=YYYY-MM-DD`
+  - Returns: `{ "mon_delai_moyen": 1.8, "panel_moyen": 1.4, "nb_evals": 23, "points": [...] }`
+
+### Activité récente — pagination
+- Page size: **5 items per load**
+- Auto-loads next batch when user scrolls to bottom (no explicit button)
+- Backend: `GET /api/activite/?date_debut=...&date_fin=...&offset=0&limit=5`
+- Follows Django paginated format: `{ "count": N, "results": [...] }`
+- Clearing the filter badge requires a confirmation dialog to prevent accidental clear
 
 ---
 
