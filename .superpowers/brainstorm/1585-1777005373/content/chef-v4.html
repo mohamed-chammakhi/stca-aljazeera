@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Chef Dashboard v4</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #1a1a2e; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; padding: 30px 20px 60px; min-height: 100vh; }
+  h2 { color: #fff; font-size: 15px; margin-bottom: 5px; text-align: center; }
+  .sub { color: #888; font-size: 11px; margin-bottom: 22px; text-align: center; }
+
+  .phone { width: 300px; background: #111; border-radius: 40px; padding: 10px; box-shadow: 0 0 0 2px #333, 0 30px 80px rgba(0,0,0,0.7); }
+  .notch { width: 70px; height: 14px; background: #111; border-radius: 0 0 10px 10px; margin: 0 auto 6px; }
+  .screen { background: #F9F6EF; border-radius: 32px; overflow: hidden; height: 640px; display: flex; flex-direction: column; }
+
+  .app-bar { background: #38835A; padding: 14px 16px; display: flex; align-items: center; flex-shrink: 0; }
+  .ham { font-size: 18px; color: white; margin-right: 10px; }
+  .bar-title { font-size: 15px; font-weight: 700; color: white; flex: 1; font-family: Georgia, serif; }
+  .bell-wrap { position: relative; }
+  .bell-badge { position: absolute; top: -4px; right: -5px; background: #e74c3c; width: 14px; height: 14px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 7px; font-weight: 800; color: white; border: 1.5px solid #38835A; }
+
+  .divider { height: 1px; background: rgba(0,0,0,0.06); flex-shrink: 0; }
+  .scroll { overflow-y: auto; flex: 1; padding: 12px; }
+  .scroll::-webkit-scrollbar { width: 3px; }
+  .scroll::-webkit-scrollbar-thumb { background: #ccc; border-radius: 2px; }
+
+  .card { background: white; border-radius: 14px; padding: 13px; margin-bottom: 11px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+  .sec { display: flex; align-items: center; gap: 6px; margin-bottom: 11px; }
+  .sec-bar { width: 3px; height: 16px; background: #38835A; border-radius: 2px; flex-shrink: 0; }
+  .sec-title { font-size: 12px; font-weight: 700; color: #1A2E1F; flex: 1; }
+  .date-chip { display: inline-flex; align-items: center; gap: 4px; background: #F0F2F1; border: 1px solid #E8EAE8; border-radius: 8px; padding: 4px 8px; font-size: 9px; font-weight: 700; color: #1A2E1F; white-space: nowrap; }
+  .date-chip.on { background: rgba(56,131,90,0.08); border-color: rgba(56,131,90,0.25); color: #38835A; }
+
+  /* Pipeline */
+  .pipeline { display: flex; align-items: center; gap: 4px; }
+  .pipe-col { flex: 1; text-align: center; }
+  .pipe-val { font-size: 20px; font-weight: 800; line-height: 1; }
+  .pipe-exact { font-size: 8px; color: #aaa; margin-top: 2px; }
+  .pipe-bar { height: 2px; margin: 5px 6px; border-radius: 2px; opacity: 0.3; }
+  .pipe-label { font-size: 8px; font-weight: 600; color: #aaa; margin-top: 4px; line-height: 1.3; }
+  .pipe-arrow { font-size: 12px; color: #E8EAE8; padding-bottom: 18px; flex-shrink: 0; }
+
+  /* Urgents */
+  .urgents { background: white; border-radius: 14px; margin-bottom: 11px; overflow: hidden; border: 1px solid rgba(192,57,43,0.15); box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+  .urg-header { background: #FDF4F3; padding: 10px 13px; display: flex; align-items: center; gap: 8px; }
+  .urg-dot { width: 8px; height: 8px; background: #C0392B; border-radius: 50%; box-shadow: 0 0 0 3px rgba(192,57,43,0.2); flex-shrink: 0; }
+  .urg-title { font-size: 11px; font-weight: 700; color: #C0392B; flex: 1; }
+  .urg-count { background: #C0392B; color: white; font-size: 9px; font-weight: 800; padding: 2px 7px; border-radius: 5px; }
+  .urg-row { padding: 10px 13px; border-bottom: 1px solid #f8f8f8; display: flex; align-items: center; gap: 8px; }
+  .urg-ref { font-size: 11px; font-weight: 700; color: #1A2E1F; }
+  .urg-meta { font-size: 9px; color: #bbb; margin-top: 1px; }
+  .urg-badge { padding: 3px 9px; border-radius: 7px; font-size: 10px; font-weight: 700; white-space: nowrap; }
+  .urg-badge.crit { background: rgba(192,57,43,0.08); border: 1px solid rgba(192,57,43,0.18); color: #C0392B; }
+  .urg-badge.warn { background: rgba(208,123,47,0.08); border: 1px solid rgba(208,123,47,0.18); color: #D07B2F; }
+  .urg-footer { background: #F8F8F8; padding: 7px 13px; font-size: 9px; color: #aaa; font-style: italic; text-align: center; }
+
+  /* Sessions */
+  .sess { border-radius: 12px; border: 1px solid rgba(123,63,196,0.2); padding: 12px; margin-bottom: 8px; background: white; box-shadow: 0 2px 6px rgba(123,63,196,0.05); }
+  .sess-row { display: flex; gap: 10px; margin-bottom: 9px; }
+  .sess-acc { width: 4px; border-radius: 2px; background: #7B3FC4; align-self: stretch; flex-shrink: 0; }
+  .sess-title { font-size: 12px; font-weight: 700; color: #1A2E1F; font-family: Georgia, serif; }
+  .sess-meta { font-size: 10px; color: #999; margin-top: 2px; }
+  .sess-by { font-size: 9px; color: rgba(123,63,196,0.7); font-weight: 500; margin-top: 1px; }
+  .sess-btns { display: flex; gap: 8px; }
+  .btn-r { flex: 1; padding: 7px; border-radius: 8px; border: 1px solid #ffcccc; font-size: 11px; font-weight: 700; color: #e74c3c; text-align: center; }
+  .btn-a { flex: 1; padding: 7px; border-radius: 8px; background: #38835A; font-size: 11px; font-weight: 700; color: white; text-align: center; }
+
+  /* Taster rows */
+  .tscroll { max-height: 114px; overflow-y: auto; }
+  .tscroll::-webkit-scrollbar { width: 2px; }
+  .tscroll::-webkit-scrollbar-thumb { background: #ddd; border-radius: 2px; }
+  .tr { display: flex; align-items: center; gap: 8px; padding: 7px 9px; border-radius: 9px; margin-bottom: 5px; border: 1px solid #eee; background: white; }
+  .tr.red { background: #FFF8F6; border-color: #ffd5cc; }
+  .tr.orange { background: #FFFAF5; border-color: #ffe8cc; }
+  .tr-name { font-size: 11px; font-weight: 700; width: 64px; flex-shrink: 0; }
+  .bar-w { flex: 1; height: 6px; background: #eee; border-radius: 3px; overflow: hidden; }
+  .bar-f { height: 100%; border-radius: 3px; }
+  .tr-val { font-size: 11px; font-weight: 800; width: 30px; text-align: right; }
+  .scroll-hint { font-size: 9px; color: #ccc; text-align: center; padding: 2px 0; }
+  .note { margin-top: 7px; padding: 7px 9px; background: #F7FAF8; border-radius: 8px; font-size: 10px; color: #6B8E7A; line-height: 1.5; border: 1px solid #E2EDE7; }
+
+  /* Classifications bar chart */
+  .legend-row { display: flex; gap: 12px; margin-top: 10px; justify-content: center; }
+  .leg { display: flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 600; color: #1A2E1F; }
+  .leg-sq { width: 9px; height: 9px; border-radius: 2px; }
+</style>
+</head>
+<body>
+<h2>Chef Dashboard v4</h2>
+<p class="sub">Défilez. Dites ce que vous voulez changer.</p>
+
+<div class="phone">
+  <div class="notch"></div>
+  <div class="screen">
+    <div class="app-bar">
+      <span class="ham">☰</span>
+      <span class="bar-title">Tableau de bord</span>
+      <div class="bell-wrap">
+        <span style="font-size:18px">🔔</span>
+        <div class="bell-badge">3</div>
+      </div>
+    </div>
+    <div class="divider"></div>
+
+    <div class="scroll">
+
+      <!-- 1. PIPELINE -->
+      <div class="card">
+        <div class="sec"><div class="sec-bar"></div><span class="sec-title">Pipeline des échantillons</span></div>
+        <div class="pipeline">
+          <div class="pipe-col">
+            <div class="pipe-val" style="color:#3A6EA5">2.4K</div>
+            <div class="pipe-exact">2 412</div>
+            <div class="pipe-bar" style="background:#3A6EA5"></div>
+            <div class="pipe-label">Réceptionné</div>
+          </div>
+          <div class="pipe-arrow">›</div>
+          <div class="pipe-col">
+            <div class="pipe-val" style="color:#D07B2F">187</div>
+            <div class="pipe-exact">187</div>
+            <div class="pipe-bar" style="background:#D07B2F"></div>
+            <div class="pipe-label">En attente éval.</div>
+          </div>
+          <div class="pipe-arrow">›</div>
+          <div class="pipe-col">
+            <div class="pipe-val" style="color:#7B3FC4">43</div>
+            <div class="pipe-exact">43</div>
+            <div class="pipe-bar" style="background:#7B3FC4"></div>
+            <div class="pipe-label">En cours</div>
+          </div>
+          <div class="pipe-arrow">›</div>
+          <div class="pipe-col">
+            <div class="pipe-val" style="color:#38835A">1.1K</div>
+            <div class="pipe-exact">1 089</div>
+            <div class="pipe-bar" style="background:#38835A"></div>
+            <div class="pipe-label">Soumis</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. URGENTS -->
+      <div class="urgents">
+        <div class="urg-header">
+          <div class="urg-dot"></div>
+          <span class="urg-title">Évaluations urgentes</span>
+          <span class="urg-count">2</span>
+        </div>
+        <div class="urg-row">
+          <div style="flex:1">
+            <div class="urg-ref">CHEMLALI-C1 · 2026/0001</div>
+            <div class="urg-meta">Ahmed D. · Domaine Bel-Air</div>
+          </div>
+          <span class="urg-badge crit">2j — critique</span>
+        </div>
+        <div class="urg-row" style="border-bottom:none">
+          <div style="flex:1">
+            <div class="urg-ref">CHETOUI-C3 · 2026/0003</div>
+            <div class="urg-meta">Rania H. · Ferme Al Jazira</div>
+          </div>
+          <span class="urg-badge warn">1j en attente</span>
+        </div>
+        <div class="urg-footer">Appuyez pour ouvrir l'évaluation organoleptique</div>
+      </div>
+
+      <!-- 3. SESSIONS -->
+      <div class="card" style="border:1px solid rgba(123,63,196,0.15)">
+        <div class="sec"><div class="sec-bar" style="background:#7B3FC4"></div><span class="sec-title">Sessions en attente d'approbation</span><span style="background:#F3E8FF;color:#7B3FC4;font-size:9px;font-weight:800;padding:2px 8px;border-radius:5px">2</span></div>
+        <div class="sess" style="margin-bottom:8px">
+          <div class="sess-row"><div class="sess-acc"></div><div><div class="sess-title">Session Oueslati — Lot C</div><div class="sess-meta">28/04/2026 · 09:00 · Salle A</div><div class="sess-by">Proposée par Lobna E.</div></div></div>
+          <div class="sess-btns"><div class="btn-r">✕ Refuser</div><div class="btn-a">✓ Approuver</div></div>
+        </div>
+        <div class="sess" style="margin-bottom:0">
+          <div class="sess-row"><div class="sess-acc"></div><div><div class="sess-title">Session Rkhami — Sfax</div><div class="sess-meta">02/05/2026 · 11:00 · Labo 1</div><div class="sess-by">Proposée par Ichrak C.</div></div></div>
+          <div class="sess-btns"><div class="btn-r">✕ Refuser</div><div class="btn-a">✓ Approuver</div></div>
+        </div>
+      </div>
+
+      <!-- 4. DÉLAI -->
+      <div class="card">
+        <div class="sec"><div class="sec-bar"></div><span class="sec-title">Délai de soumission</span><div class="date-chip on">📅 Jan → Avr</div></div>
+        <div class="tscroll">
+          <div class="tr red"><span class="tr-name" style="color:#C0392B">Maha O.</span><div class="bar-w"><div class="bar-f" style="width:88%;background:#C0392B"></div></div><span class="tr-val" style="color:#C0392B">3.8j</span></div>
+          <div class="tr orange"><span class="tr-name" style="color:#D07B2F">Yosra S.</span><div class="bar-w"><div class="bar-f" style="width:55%;background:#D07B2F"></div></div><span class="tr-val" style="color:#D07B2F">2.3j</span></div>
+          <div class="tr"><span class="tr-name" style="color:#1A2E1F">Lobna E.</span><div class="bar-w"><div class="bar-f" style="width:36%;background:#38835A"></div></div><span class="tr-val" style="color:#38835A">1.6j</span></div>
+          <div class="tr"><span class="tr-name" style="color:#1A2E1F">Nayrouz F.</span><div class="bar-w"><div class="bar-f" style="width:30%;background:#38835A"></div></div><span class="tr-val" style="color:#38835A">1.4j</span></div>
+          <div class="tr"><span class="tr-name" style="color:#1A2E1F">Ichrak C.</span><div class="bar-w"><div class="bar-f" style="width:24%;background:#38835A"></div></div><span class="tr-val" style="color:#38835A">1.2j</span></div>
+        </div>
+        <div class="scroll-hint">↕ défiler pour voir tous</div>
+        <div class="note">Délai moyen entre la réception d'un échantillon et la soumission de l'évaluation.</div>
+      </div>
+
+      <!-- 5. ALIGNEMENT -->
+      <div class="card">
+        <div class="sec"><div class="sec-bar"></div><span class="sec-title">Alignement avec le panel</span><div class="date-chip">📅 Filtrer</div></div>
+        <div class="tscroll">
+          <div class="tr red"><span class="tr-name" style="color:#C0392B">Maha O.</span><div class="bar-w"><div class="bar-f" style="width:62%;background:#C0392B"></div></div><span class="tr-val" style="color:#C0392B">62%</span></div>
+          <div class="tr orange"><span class="tr-name" style="color:#D07B2F">Yosra S.</span><div class="bar-w"><div class="bar-f" style="width:28%;background:#D07B2F"></div></div><span class="tr-val" style="color:#D07B2F">28%</span></div>
+          <div class="tr"><span class="tr-name" style="color:#1A2E1F">Nayrouz F.</span><div class="bar-w"><div class="bar-f" style="width:12%;background:#38835A"></div></div><span class="tr-val" style="color:#38835A">12%</span></div>
+          <div class="tr"><span class="tr-name" style="color:#1A2E1F">Lobna E.</span><div class="bar-w"><div class="bar-f" style="width:8%;background:#38835A"></div></div><span class="tr-val" style="color:#38835A">8%</span></div>
+          <div class="tr"><span class="tr-name" style="color:#1A2E1F">Ichrak C.</span><div class="bar-w"><div class="bar-f" style="width:5%;background:#38835A"></div></div><span class="tr-val" style="color:#38835A">5%</span></div>
+        </div>
+        <div class="scroll-hint">↕ défiler pour voir tous</div>
+        <div class="note">Plus le % est élevé, plus le dégustateur classe différemment du reste du panel.</div>
+      </div>
+
+      <!-- 6. MES CLASSIFICATIONS -->
+      <div class="card">
+        <div class="sec"><div class="sec-bar"></div><span class="sec-title">Mes classifications</span><div class="date-chip on">📅 Oct → Avr</div></div>
+        <div style="height:130px;display:flex;align-items:flex-end;gap:5px;border-bottom:1px solid #f5f5f5;padding-bottom:18px;position:relative">
+          <div style="position:absolute;top:0;left:0;right:0;height:1px;background:#f5f5f5"></div>
+          <div style="position:absolute;top:33%;left:0;right:0;height:1px;background:#f5f5f5"></div>
+          <div style="position:absolute;top:66%;left:0;right:0;height:1px;background:#f5f5f5"></div>
+          <div style="flex:1;display:flex;align-items:flex-end;gap:1px"><div style="flex:1;height:18px;background:#38835A;border-radius:2px 2px 0 0"></div><div style="flex:1;height:0;background:#6B8143;border-radius:2px 2px 0 0"></div><div style="flex:1;height:10px;background:#D07B2F;border-radius:2px 2px 0 0"></div></div>
+          <div style="flex:1;display:flex;align-items:flex-end;gap:1px"><div style="flex:1;height:22px;background:#38835A;border-radius:2px 2px 0 0"></div><div style="flex:1;height:10px;background:#6B8143;border-radius:2px 2px 0 0"></div><div style="flex:1;height:0;background:#D07B2F;border-radius:2px 2px 0 0"></div></div>
+          <div style="flex:1;display:flex;align-items:flex-end;gap:1px"><div style="flex:1;height:35px;background:#38835A;border-radius:2px 2px 0 0"></div><div style="flex:1;height:12px;background:#6B8143;border-radius:2px 2px 0 0"></div><div style="flex:1;height:0;background:#D07B2F;border-radius:2px 2px 0 0"></div></div>
+          <div style="flex:1;display:flex;align-items:flex-end;gap:1px"><div style="flex:1;height:50px;background:#38835A;border-radius:2px 2px 0 0"></div><div style="flex:1;height:20px;background:#6B8143;border-radius:2px 2px 0 0"></div><div style="flex:1;height:0;background:#D07B2F;border-radius:2px 2px 0 0"></div></div>
+          <div style="flex:1;display:flex;align-items:flex-end;gap:1px"><div style="flex:1;height:22px;background:#38835A;border-radius:2px 2px 0 0"></div><div style="flex:1;height:10px;background:#6B8143;border-radius:2px 2px 0 0"></div><div style="flex:1;height:10px;background:#D07B2F;border-radius:2px 2px 0 0"></div></div>
+          <div style="flex:1;display:flex;align-items:flex-end;gap:1px"><div style="flex:1;height:12px;background:#38835A;border-radius:2px 2px 0 0"></div><div style="flex:1;height:10px;background:#6B8143;border-radius:2px 2px 0 0"></div><div style="flex:1;height:0;background:#D07B2F;border-radius:2px 2px 0 0"></div></div>
+          <div style="flex:1;display:flex;align-items:flex-end;gap:1px"><div style="flex:1;height:12px;background:#38835A;border-radius:2px 2px 0 0"></div><div style="flex:1;height:0;background:#6B8143;border-radius:2px 2px 0 0"></div><div style="flex:1;height:0;background:#D07B2F;border-radius:2px 2px 0 0"></div></div>
+          <div style="position:absolute;bottom:2px;left:0;right:0;display:flex">
+            <span style="flex:1;text-align:center;font-size:8px;color:#aaa">Oct</span>
+            <span style="flex:1;text-align:center;font-size:8px;color:#aaa">Nov</span>
+            <span style="flex:1;text-align:center;font-size:8px;color:#aaa">Déc</span>
+            <span style="flex:1;text-align:center;font-size:8px;color:#aaa">Jan</span>
+            <span style="flex:1;text-align:center;font-size:8px;color:#aaa">Fév</span>
+            <span style="flex:1;text-align:center;font-size:8px;color:#aaa">Mar</span>
+            <span style="flex:1;text-align:center;font-size:8px;color:#aaa">Avr</span>
+          </div>
+        </div>
+        <div class="legend-row">
+          <div class="leg"><div class="leg-sq" style="background:#38835A"></div>Extra Vierge</div>
+          <div class="leg"><div class="leg-sq" style="background:#6B8143"></div>Vierge</div>
+          <div class="leg"><div class="leg-sq" style="background:#D07B2F"></div>Lampante</div>
+        </div>
+      </div>
+
+      <div style="height:20px"></div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

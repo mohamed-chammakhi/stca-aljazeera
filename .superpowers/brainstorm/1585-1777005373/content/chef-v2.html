@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Chef Dashboard v2</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #1a1a2e; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; padding: 30px 20px 60px; min-height: 100vh; }
+  h2 { color: #fff; font-size: 15px; margin-bottom: 5px; text-align: center; }
+  .sub { color: #888; font-size: 11px; margin-bottom: 22px; text-align: center; }
+
+  .phone { width: 300px; background: #111; border-radius: 40px; padding: 10px; box-shadow: 0 0 0 2px #333, 0 30px 80px rgba(0,0,0,0.7); }
+  .notch { width: 70px; height: 14px; background: #111; border-radius: 0 0 10px 10px; margin: 0 auto 6px; }
+  .screen { background: #F9F6EF; border-radius: 32px; overflow: hidden; height: 640px; display: flex; flex-direction: column; }
+
+  .app-bar { background: #38835A; padding: 14px 16px; display: flex; align-items: center; flex-shrink: 0; }
+  .ham { font-size: 18px; color: white; margin-right: 10px; }
+  .bar-title { font-size: 15px; font-weight: 700; color: white; flex: 1; font-family: Georgia, serif; }
+  .bell-wrap { position: relative; }
+  .bell-badge { position: absolute; top: -4px; right: -5px; background: #e74c3c; width: 14px; height: 14px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 7px; font-weight: 800; color: white; border: 1.5px solid #38835A; }
+
+  .divider { height: 1px; background: rgba(0,0,0,0.06); flex-shrink: 0; }
+
+  .scroll { overflow-y: auto; flex: 1; padding: 12px; }
+  .scroll::-webkit-scrollbar { width: 3px; }
+  .scroll::-webkit-scrollbar-thumb { background: #ccc; border-radius: 2px; }
+
+  /* Cards */
+  .card { background: white; border-radius: 14px; padding: 13px; margin-bottom: 11px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+
+  /* Section label */
+  .sec { display: flex; align-items: center; gap: 6px; margin-bottom: 11px; }
+  .sec-bar { width: 3px; height: 16px; background: #38835A; border-radius: 2px; flex-shrink: 0; }
+  .sec-title { font-size: 12px; font-weight: 700; color: #1A2E1F; flex: 1; }
+  .date-chip { display: inline-flex; align-items: center; gap: 4px; background: #F0F2F1; border: 1px solid #E8EAE8; border-radius: 8px; padding: 4px 8px; font-size: 9px; font-weight: 700; color: #1A2E1F; white-space: nowrap; }
+  .date-chip.on { background: rgba(56,131,90,0.08); border-color: rgba(56,131,90,0.25); color: #38835A; }
+
+  /* Urgents */
+  .urgents { background: white; border-radius: 14px; margin-bottom: 11px; overflow: hidden; border: 1px solid rgba(192,57,43,0.15); box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+  .urg-header { background: #FDF4F3; padding: 10px 13px; display: flex; align-items: center; gap: 8px; }
+  .urg-dot { width: 8px; height: 8px; background: #C0392B; border-radius: 50%; box-shadow: 0 0 0 3px rgba(192,57,43,0.2); }
+  .urg-title { font-size: 11px; font-weight: 700; color: #C0392B; flex: 1; }
+  .urg-count { background: #C0392B; color: white; font-size: 9px; font-weight: 800; padding: 2px 7px; border-radius: 5px; }
+  .urg-row { padding: 10px 13px; border-bottom: 1px solid #f8f8f8; display: flex; align-items: center; gap: 8px; }
+  .urg-ref { font-size: 11px; font-weight: 700; color: #1A2E1F; }
+  .urg-meta { font-size: 9px; color: #bbb; margin-top: 1px; }
+  .urg-badge { padding: 3px 9px; border-radius: 7px; font-size: 10px; font-weight: 700; white-space: nowrap; }
+  .urg-badge.crit { background: rgba(192,57,43,0.08); border: 1px solid rgba(192,57,43,0.18); color: #C0392B; }
+  .urg-badge.warn { background: rgba(208,123,47,0.08); border: 1px solid rgba(208,123,47,0.18); color: #D07B2F; }
+  .urg-footer { background: #F8F8F8; padding: 7px 13px; font-size: 9px; color: #aaa; font-style: italic; text-align: center; }
+
+  /* Pipeline */
+  .pipeline { display: flex; align-items: center; gap: 4px; }
+  .pipe-col { flex: 1; text-align: center; }
+  .pipe-val { font-size: 20px; font-weight: 800; line-height: 1; }
+  .pipe-exact { font-size: 8px; color: #aaa; margin-top: 1px; }
+  .pipe-bar { height: 2px; margin: 5px 6px; border-radius: 2px; opacity: 0.3; }
+  .pipe-label { font-size: 8px; font-weight: 600; color: #aaa; margin-top: 4px; line-height: 1.3; }
+  .pipe-arrow { font-size: 12px; color: #E8EAE8; padding-bottom: 16px; flex-shrink: 0; }
+
+  /* Taster rows */
+  .tscroll { max-height: 114px; overflow-y: auto; }
+  .tscroll::-webkit-scrollbar { width: 2px; }
+  .tscroll::-webkit-scrollbar-thumb { background: #ddd; border-radius: 2px; }
+  .tr { display: flex; align-items: center; gap: 8px; padding: 7px 9px; border-radius: 9px; margin-bottom: 5px; border: 1px solid #eee; background: white; }
+  .tr.red { background: #FFF8F6; border-color: #ffd5cc; }
+  .tr.orange { background: #FFFAF5; border-color: #ffe8cc; }
+  .tr-name { font-size: 11px; font-weight: 700; width: 64px; flex-shrink: 0; }
+  .bar-w { flex: 1; height: 6px; background: #eee; border-radius: 3px; overflow: hidden; }
+  .bar-f { height: 100%; border-radius: 3px; }
+  .tr-val { font-size: 11px; font-weight: 800; width: 30px; text-align: right; }
+  .scroll-hint { font-size: 9px; color: #ccc; text-align: center; padding: 2px 0; }
+  .note { margin-top: 7px; padding: 7px 9px; background: #F7FAF8; border-radius: 8px; font-size: 10px; color: #6B8E7A; line-height: 1.5; border: 1px solid #E2EDE7; }
+
+  /* Cohérence */
+  .coh-row { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 10px; margin-bottom: 5px; }
+  .coh-row.out { background: #FFF3E0; border: 1px solid #ffe0b2; }
+  .coh-row.ok { background: white; border: 1px solid #eee; }
+  .coh-name { font-size: 11px; font-weight: 700; color: #1A2E1F; flex: 1; }
+  .out-badge { background: #ffe0b2; border-radius: 5px; padding: 2px 5px; font-size: 8px; font-weight: 700; color: #D07B2F; }
+  .coh-bw { width: 60px; height: 5px; background: #eee; border-radius: 3px; overflow: hidden; }
+  .coh-pct { font-size: 11px; font-weight: 800; width: 30px; text-align: right; }
+
+  /* Donut chart */
+  .donut-wrap { display: flex; align-items: center; gap: 16px; padding: 4px 0; }
+  .donut-legend { display: flex; flex-direction: column; gap: 8px; }
+  .leg-row { display: flex; align-items: center; gap: 7px; }
+  .leg-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+  .leg-label { font-size: 11px; color: #1A2E1F; font-weight: 600; }
+  .leg-pct { font-size: 11px; font-weight: 800; margin-left: auto; }
+
+  /* Sessions */
+  .sess { border-radius: 12px; border: 1px solid rgba(123,63,196,0.2); padding: 12px; margin-bottom: 8px; background: white; box-shadow: 0 2px 6px rgba(123,63,196,0.05); }
+  .sess-row { display: flex; gap: 10px; margin-bottom: 9px; }
+  .sess-acc { width: 4px; border-radius: 2px; background: #7B3FC4; align-self: stretch; flex-shrink: 0; }
+  .sess-title { font-size: 12px; font-weight: 700; color: #1A2E1F; font-family: Georgia, serif; }
+  .sess-meta { font-size: 10px; color: #999; margin-top: 2px; }
+  .sess-by { font-size: 9px; color: rgba(123,63,196,0.7); font-weight: 500; margin-top: 1px; }
+  .sess-btns { display: flex; gap: 8px; }
+  .btn-r { flex: 1; padding: 7px; border-radius: 8px; border: 1px solid #ffcccc; font-size: 11px; font-weight: 700; color: #e74c3c; text-align: center; }
+  .btn-a { flex: 1; padding: 7px; border-radius: 8px; background: #38835A; font-size: 11px; font-weight: 700; color: white; text-align: center; }
+</style>
+</head>
+<body>
+<h2>Chef Dashboard v2</h2>
+<p class="sub">Défilez dans le téléphone. Dites ce que vous voulez changer.</p>
+
+<div class="phone">
+  <div class="notch"></div>
+  <div class="screen">
+    <div class="app-bar">
+      <span class="ham">☰</span>
+      <span class="bar-title">Tableau de bord</span>
+      <div class="bell-wrap">
+        <span style="font-size:18px">🔔</span>
+        <div class="bell-badge">3</div>
+      </div>
+    </div>
+    <div class="divider"></div>
+
+    <div class="scroll">
+
+      <!-- 1. URGENTS -->
+      <div class="urgents">
+        <div class="urg-header">
+          <div class="urg-dot"></div>
+          <span class="urg-title">Évaluations urgentes</span>
+          <span class="urg-count">2</span>
+        </div>
+        <div class="urg-row">
+          <div style="flex:1">
+            <div class="urg-ref">CHEMLALI-C1 · 2026/0001</div>
+            <div class="urg-meta">Ahmed D. · Domaine Bel-Air</div>
+          </div>
+          <span class="urg-badge crit">2j — critique</span>
+        </div>
+        <div class="urg-row" style="border-bottom:none">
+          <div style="flex:1">
+            <div class="urg-ref">CHETOUI-C3 · 2026/0003</div>
+            <div class="urg-meta">Rania H. · Ferme Al Jazira</div>
+          </div>
+          <span class="urg-badge warn">1j en attente</span>
+        </div>
+        <div class="urg-footer">Appuyez pour ouvrir l'évaluation organoleptique</div>
+      </div>
+
+      <!-- 2. PIPELINE -->
+      <div class="card">
+        <div class="sec"><div class="sec-bar"></div><span class="sec-title">Pipeline des échantillons</span></div>
+        <div class="pipeline">
+          <div class="pipe-col">
+            <div class="pipe-val" style="color:#3A6EA5">2.4K</div>
+            <div class="pipe-exact">2 412</div>
+            <div class="pipe-bar" style="background:#3A6EA5"></div>
+            <div class="pipe-label">Réceptionné</div>
+          </div>
+          <div class="pipe-arrow">›</div>
+          <div class="pipe-col">
+            <div class="pipe-val" style="color:#D07B2F">187</div>
+            <div class="pipe-exact">187</div>
+            <div class="pipe-bar" style="background:#D07B2F"></div>
+            <div class="pipe-label">En attente éval.</div>
+          </div>
+          <div class="pipe-arrow">›</div>
+          <div class="pipe-col">
+            <div class="pipe-val" style="color:#7B3FC4">43</div>
+            <div class="pipe-exact">43</div>
+            <div class="pipe-bar" style="background:#7B3FC4"></div>
+            <div class="pipe-label">En cours</div>
+          </div>
+          <div class="pipe-arrow">›</div>
+          <div class="pipe-col">
+            <div class="pipe-val" style="color:#38835A">1.1K</div>
+            <div class="pipe-exact">1 089</div>
+            <div class="pipe-bar" style="background:#38835A"></div>
+            <div class="pipe-label">Soumis</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. DÉLAI -->
+      <div class="card">
+        <div class="sec"><div class="sec-bar"></div><span class="sec-title">Délai de soumission</span><div class="date-chip on">📅 Jan → Avr</div></div>
+        <div class="tscroll">
+          <div class="tr red"><span class="tr-name" style="color:#C0392B">Maha O.</span><div class="bar-w"><div class="bar-f" style="width:88%;background:#C0392B"></div></div><span class="tr-val" style="color:#C0392B">3.8j</span></div>
+          <div class="tr orange"><span class="tr-name" style="color:#D07B2F">Yosra S.</span><div class="bar-w"><div class="bar-f" style="width:55%;background:#D07B2F"></div></div><span class="tr-val" style="color:#D07B2F">2.3j</span></div>
+          <div class="tr"><span class="tr-name" style="color:#1A2E1F">Lobna E.</span><div class="bar-w"><div class="bar-f" style="width:36%;background:#38835A"></div></div><span class="tr-val" style="color:#38835A">1.6j</span></div>
+          <div class="tr"><span class="tr-name" style="color:#1A2E1F">Nayrouz F.</span><div class="bar-w"><div class="bar-f" style="width:30%;background:#38835A"></div></div><span class="tr-val" style="color:#38835A">1.4j</span></div>
+          <div class="tr"><span class="tr-name" style="color:#1A2E1F">Ichrak C.</span><div class="bar-w"><div class="bar-f" style="width:24%;background:#38835A"></div></div><span class="tr-val" style="color:#38835A">1.2j</span></div>
+        </div>
+        <div class="scroll-hint">↕ défiler pour voir tous</div>
+        <div class="note">Délai moyen entre la réception d'un échantillon et la soumission de l'évaluation.</div>
+      </div>
+
+      <!-- 4. ALIGNEMENT -->
+      <div class="card">
+        <div class="sec"><div class="sec-bar"></div><span class="sec-title">Alignement avec le panel</span><div class="date-chip">📅 Filtrer</div></div>
+        <div class="tscroll">
+          <div class="tr red"><span class="tr-name" style="color:#C0392B">Maha O.</span><div class="bar-w"><div class="bar-f" style="width:62%;background:#C0392B"></div></div><span class="tr-val" style="color:#C0392B">62%</span></div>
+          <div class="tr orange"><span class="tr-name" style="color:#D07B2F">Yosra S.</span><div class="bar-w"><div class="bar-f" style="width:28%;background:#D07B2F"></div></div><span class="tr-val" style="color:#D07B2F">28%</span></div>
+          <div class="tr"><span class="tr-name" style="color:#1A2E1F">Nayrouz F.</span><div class="bar-w"><div class="bar-f" style="width:12%;background:#38835A"></div></div><span class="tr-val" style="color:#38835A">12%</span></div>
+          <div class="tr"><span class="tr-name" style="color:#1A2E1F">Lobna E.</span><div class="bar-w"><div class="bar-f" style="width:8%;background:#38835A"></div></div><span class="tr-val" style="color:#38835A">8%</span></div>
+          <div class="tr"><span class="tr-name" style="color:#1A2E1F">Ichrak C.</span><div class="bar-w"><div class="bar-f" style="width:5%;background:#38835A"></div></div><span class="tr-val" style="color:#38835A">5%</span></div>
+        </div>
+        <div class="scroll-hint">↕ défiler pour voir tous</div>
+        <div class="note">Plus le % est élevé, plus le dégustateur classe différemment du reste du panel.</div>
+      </div>
+
+      <!-- 5. COHÉRENCE (scores organoleptiques) -->
+      <div class="card">
+        <div class="sec"><div class="sec-bar"></div><span class="sec-title">Cohérence des scores</span></div>
+        <div style="font-size:10px;color:#aaa;margin-bottom:10px">Accord sur les scores organoleptiques (fruité, amer, piquant…) avec la médiane du panel</div>
+        <div class="coh-row ok"><span class="coh-name">Ichrak C.</span><div class="coh-bw"><div class="bar-f" style="width:91%;background:#38835A"></div></div><span class="coh-pct" style="color:#38835A">91%</span></div>
+        <div class="coh-row ok"><span class="coh-name">Lobna E.</span><div class="coh-bw"><div class="bar-f" style="width:88%;background:#38835A"></div></div><span class="coh-pct" style="color:#38835A">88%</span></div>
+        <div class="coh-row out">
+          <span class="coh-name" style="color:#D07B2F">Maha O.</span>
+          <span class="out-badge">⚠</span>
+          <div class="coh-bw"><div class="bar-f" style="width:62%;background:#D07B2F"></div></div>
+          <span class="coh-pct" style="color:#D07B2F">62%</span>
+        </div>
+        <div class="coh-row ok"><span class="coh-name">Nayrouz F.</span><div class="coh-bw"><div class="bar-f" style="width:85%;background:#38835A"></div></div><span class="coh-pct" style="color:#38835A">85%</span></div>
+        <div class="coh-row ok"><span class="coh-name">Yosra S.</span><div class="coh-bw"><div class="bar-f" style="width:89%;background:#38835A"></div></div><span class="coh-pct" style="color:#38835A">89%</span></div>
+      </div>
+
+      <!-- 6. CLASSIFICATIONS PANEL (donut) -->
+      <div class="card">
+        <div class="sec"><div class="sec-bar"></div><span class="sec-title">Classifications du panel</span><div class="date-chip on">📅 Avr 2026</div></div>
+        <div class="donut-wrap">
+          <!-- SVG donut: EV 58%, Vierge 30%, Lampante 12% -->
+          <svg width="110" height="110" viewBox="0 0 110 110">
+            <circle cx="55" cy="55" r="38" fill="none" stroke="#E6F4ED" stroke-width="20"/>
+            <!-- Lampante 12% = 43.2deg from 0 -->
+            <circle cx="55" cy="55" r="38" fill="none" stroke="#D07B2F" stroke-width="20"
+              stroke-dasharray="28.7 239.6" stroke-dashoffset="0"
+              transform="rotate(-90 55 55)"/>
+            <!-- Vierge 30% = 108deg -->
+            <circle cx="55" cy="55" r="38" fill="none" stroke="#6B8143" stroke-width="20"
+              stroke-dasharray="71.6 196.7" stroke-dashoffset="-28.7"
+              transform="rotate(-90 55 55)"/>
+            <!-- Extra Vierge 58% -->
+            <circle cx="55" cy="55" r="38" fill="none" stroke="#38835A" stroke-width="20"
+              stroke-dasharray="138.5 129.8" stroke-dashoffset="-100.3"
+              transform="rotate(-90 55 55)"/>
+            <text x="55" y="50" text-anchor="middle" style="font-size:13px;font-weight:800;fill:#1A2E1F">58%</text>
+            <text x="55" y="63" text-anchor="middle" style="font-size:8px;fill:#aaa">Extra Vierge</text>
+          </svg>
+          <div class="donut-legend">
+            <div class="leg-row"><div class="leg-dot" style="background:#38835A"></div><span class="leg-label">Extra Vierge</span><span class="leg-pct" style="color:#38835A">58%</span></div>
+            <div class="leg-row"><div class="leg-dot" style="background:#6B8143"></div><span class="leg-label">Vierge</span><span class="leg-pct" style="color:#6B8143">30%</span></div>
+            <div class="leg-row"><div class="leg-dot" style="background:#D07B2F"></div><span class="leg-label">Lampante</span><span class="leg-pct" style="color:#D07B2F">12%</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 7. SESSIONS -->
+      <div class="sec" style="margin-bottom:9px"><div class="sec-bar"></div><span class="sec-title">Sessions en attente d'approbation</span></div>
+      <div class="sess">
+        <div class="sess-row"><div class="sess-acc"></div><div><div class="sess-title">Session Oueslati — Lot C</div><div class="sess-meta">28/04/2026 · 09:00 · Salle A</div><div class="sess-by">Proposée par Lobna E.</div></div></div>
+        <div class="sess-btns"><div class="btn-r">✕ Refuser</div><div class="btn-a">✓ Approuver</div></div>
+      </div>
+      <div class="sess">
+        <div class="sess-row"><div class="sess-acc"></div><div><div class="sess-title">Session Rkhami — Sfax</div><div class="sess-meta">02/05/2026 · 11:00 · Labo 1</div><div class="sess-by">Proposée par Ichrak C.</div></div></div>
+        <div class="sess-btns"><div class="btn-r">✕ Refuser</div><div class="btn-a">✓ Approuver</div></div>
+      </div>
+
+      <div style="height:20px"></div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

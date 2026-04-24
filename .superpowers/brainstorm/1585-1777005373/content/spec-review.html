@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Spec Review</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #1a1a2e; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; display: flex; gap: 24px; padding: 24px; min-height: 100vh; align-items: flex-start; }
+
+  /* Left: phone preview */
+  .left { flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 10px; position: sticky; top: 24px; }
+  .left-label { color: #fff; font-size: 12px; font-weight: 700; }
+  .left-sub { color: #888; font-size: 10px; text-align: center; max-width: 200px; line-height: 1.4; }
+
+  .phone { width: 260px; background: #111; border-radius: 36px; padding: 9px; box-shadow: 0 0 0 2px #333, 0 20px 60px rgba(0,0,0,0.6); }
+  .notch { width: 65px; height: 13px; background: #111; border-radius: 0 0 9px 9px; margin: 0 auto 5px; }
+  .screen { background: #F9F6EF; border-radius: 28px; overflow: hidden; height: 540px; display: flex; flex-direction: column; }
+  .app-bar { background: #dce9e2; padding: 10px 13px; display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+  .bar-title { font-size: 13px; font-weight: 700; color: #1A2E1F; flex: 1; font-family: Georgia, serif; }
+  .divider { height: 1px; background: rgba(0,0,0,0.06); flex-shrink: 0; }
+  .scroll { overflow-y: auto; flex: 1; }
+  .scroll::-webkit-scrollbar { width: 3px; }
+  .scroll::-webkit-scrollbar-thumb { background: #ccc; border-radius: 2px; }
+  .header-zone { background: #dce9e2; padding: 10px 13px 13px; }
+  .greeting { font-size: 14px; font-weight: 700; color: #1A2E1F; font-family: Georgia, serif; }
+  .greeting-sub { font-size: 10px; color: #666; margin-top: 1px; display: flex; align-items: center; gap: 5px; }
+  .badge-purple { background: #F3E8FF; border-radius: 20px; padding: 2px 7px; font-size: 8px; color: #7B3FC4; font-weight: 600; display: flex; align-items: center; gap: 3px; }
+  .tabs { display: flex; background: rgba(255,255,255,0.6); border-radius: 8px; padding: 2px; margin-top: 9px; }
+  .tab { flex: 1; text-align: center; padding: 4px 0; font-size: 9px; border-radius: 6px; color: #888; }
+  .tab.active { background: white; color: #38835A; font-weight: 700; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+  .period-nav { display: flex; align-items: center; justify-content: space-between; margin-top: 7px; }
+  .nav-btn { width: 25px; height: 25px; background: rgba(255,255,255,0.7); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 14px; color: #1A2E1F; }
+  .period-label { font-size: 11px; font-weight: 700; color: #1A2E1F; }
+  .stats-strip { background: #fff; padding: 5px 13px; font-size: 9px; color: #bbb; display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+  .content { padding: 10px; }
+  .kpi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-bottom: 9px; }
+  .kpi { background: white; border-radius: 11px; padding: 9px; box-shadow: 0 2px 6px rgba(0,0,0,0.04); }
+  .kpi-icon { width: 24px; height: 24px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 11px; margin-bottom: 5px; }
+  .kpi-val { font-size: 18px; font-weight: 800; line-height: 1; }
+  .kpi-label { font-size: 8px; color: #999; margin-top: 2px; line-height: 1.3; }
+  .card { background: white; border-radius: 11px; padding: 10px; margin-bottom: 9px; box-shadow: 0 2px 6px rgba(0,0,0,0.04); }
+  .sec { display: flex; align-items: center; gap: 5px; margin-bottom: 8px; }
+  .sec-bar { width: 3px; height: 13px; background: #38835A; border-radius: 2px; flex-shrink: 0; }
+  .sec-title { font-size: 10px; font-weight: 700; color: #1A2E1F; flex: 1; }
+  .date-chip { background: #F0F2F1; border: 1px solid #E8EAE8; border-radius: 6px; padding: 2px 6px; font-size: 7px; font-weight: 700; color: #1A2E1F; white-space: nowrap; }
+  .taster-scroll { max-height: 96px; overflow-y: auto; }
+  .tr { display: flex; align-items: center; gap: 5px; padding: 5px 6px; border-radius: 7px; margin-bottom: 4px; border: 1px solid #eee; }
+  .tr.red { background: #FFF8F6; border-color: #ffd5cc; }
+  .tr.orange { background: #FFFAF5; border-color: #ffe8cc; }
+  .tr-name { font-size: 9px; font-weight: 700; width: 50px; flex-shrink: 0; }
+  .bar-w { flex: 1; height: 4px; background: #eee; border-radius: 2px; overflow: hidden; }
+  .bar-f { height: 100%; border-radius: 2px; }
+  .tr-val { font-size: 9px; font-weight: 800; width: 24px; text-align: right; }
+  .scroll-hint { font-size: 7px; color: #ccc; text-align: center; padding: 2px 0; }
+  .bottom-note { margin-top: 5px; padding: 5px 7px; background: #F7FAF8; border-radius: 6px; font-size: 7px; color: #6B8E7A; line-height: 1.5; border: 1px solid #E2EDE7; }
+  .bar-chart { display: flex; align-items: flex-end; gap: 4px; height: 50px; padding-bottom: 3px; border-bottom: 1px solid #f0f0f0; margin-bottom: 5px; }
+  .bc-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  .bc-bar { width: 100%; border-radius: 2px 2px 0 0; }
+  .bc-name { font-size: 7px; color: #aaa; }
+  .coh-row { display: flex; align-items: center; gap: 5px; padding: 5px 7px; border-radius: 7px; margin-bottom: 4px; }
+  .coh-row.out { background: #FFF3E0; border: 1px solid #ffe0b2; }
+  .coh-row.ok { background: white; border: 1px solid #eee; }
+  .out-badge { background: #ffe0b2; border-radius: 4px; padding: 1px 4px; font-size: 6px; font-weight: 700; color: #D07B2F; }
+  .sess-card { border-radius: 9px; border: 1px solid rgba(123,63,196,0.2); padding: 9px; margin-bottom: 7px; background: white; }
+  .sess-row { display: flex; gap: 7px; margin-bottom: 7px; }
+  .sess-acc { width: 3px; height: 30px; background: #7B3FC4; border-radius: 2px; flex-shrink: 0; }
+  .sess-title { font-size: 9px; font-weight: 700; color: #1A2E1F; }
+  .sess-meta { font-size: 7px; color: #999; margin-top: 2px; }
+  .sess-actions { display: flex; gap: 6px; }
+  .btn-r { flex: 1; padding: 5px; border-radius: 6px; border: 1px solid #ffcccc; font-size: 8px; font-weight: 700; color: #e74c3c; text-align: center; }
+  .btn-a { flex: 1; padding: 5px; border-radius: 6px; background: #38835A; font-size: 8px; font-weight: 700; color: white; text-align: center; }
+  svg.radar { overflow: visible; }
+
+  /* Right: spec panel */
+  .right { flex: 1; min-width: 0; }
+  .spec-title { color: #fff; font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+  .spec-sub { color: #888; font-size: 11px; margin-bottom: 20px; }
+
+  .spec-section { margin-bottom: 16px; }
+  .spec-section-title { color: #dce9e2; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid #2a2a4a; }
+
+  .spec-row { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 8px; padding: 10px 12px; border-radius: 10px; background: #22223a; }
+  .spec-row.new { border-left: 3px solid #38835A; }
+  .spec-row.keep { border-left: 3px solid #444; }
+  .spec-row.changed { border-left: 3px solid #D07B2F; }
+  .spec-num { font-size: 11px; font-weight: 800; color: #666; min-width: 18px; }
+  .spec-body { flex: 1; }
+  .spec-name { font-size: 12px; font-weight: 700; color: #fff; margin-bottom: 3px; display: flex; align-items: center; gap: 7px; }
+  .tag { font-size: 9px; font-weight: 700; padding: 2px 7px; border-radius: 20px; }
+  .tag.new { background: #38835A22; color: #38835A; border: 1px solid #38835A44; }
+  .tag.keep { background: #33333355; color: #888; border: 1px solid #444; }
+  .tag.changed { background: #D07B2F22; color: #D07B2F; border: 1px solid #D07B2F44; }
+  .spec-desc { font-size: 10px; color: #aaa; line-height: 1.5; }
+  .spec-detail { margin-top: 5px; font-size: 9px; color: #777; line-height: 1.6; }
+  .spec-detail li { margin-left: 14px; margin-bottom: 2px; }
+
+  .logic-box { background: #1a2e1f; border: 1px solid #38835A33; border-radius: 8px; padding: 10px 12px; margin-top: 8px; font-size: 9px; color: #90c4a4; line-height: 1.7; }
+  .logic-box strong { color: #dce9e2; }
+
+  .arch-box { background: #1a1a35; border: 1px solid #3a3a6a; border-radius: 8px; padding: 10px 12px; font-size: 9px; color: #aaa; line-height: 1.8; font-family: 'Courier New', monospace; }
+  .arch-box .new-file { color: #38835A; font-weight: 700; }
+  .arch-box .changed-file { color: #D07B2F; font-weight: 700; }
+  .arch-box .keep-file { color: #666; }
+
+  .approve-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #22223a; border-top: 1px solid #3a3a5a; padding: 12px 24px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .approve-btn { padding: 10px 24px; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer; border: none; }
+  .approve-btn.yes { background: #38835A; color: white; }
+  .approve-btn.change { background: #22223a; color: #aaa; border: 1px solid #3a3a5a; }
+  .approve-label { color: #888; font-size: 11px; }
+  .selected-msg { position: fixed; bottom: 0; left: 0; right: 0; background: #38835A; color: white; text-align: center; padding: 13px; font-size: 13px; font-weight: 700; display: none; }
+  .selected-msg.on { display: block; }
+
+  body { padding-bottom: 80px; }
+</style>
+</head>
+<body>
+
+<!-- LEFT: phone -->
+<div class="left">
+  <div class="left-label">Aperçu mobile</div>
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="screen">
+      <div class="app-bar">
+        <span style="font-size:14px;color:#1A2E1F;margin-right:8px">☰</span>
+        <span class="bar-title">Accueil</span>
+        <span style="font-size:14px">🔔</span>
+      </div>
+      <div class="divider"></div>
+      <div class="scroll">
+        <div class="header-zone">
+          <div class="greeting">Bonjour, Chef 👋</div>
+          <div class="greeting-sub">Activité du panel <span class="badge-purple"><span style="width:4px;height:4px;background:#7B3FC4;border-radius:50%;display:inline-block"></span>2 en attente</span></div>
+          <div class="tabs"><div class="tab">Jour</div><div class="tab active">Semaine</div><div class="tab">Mois</div><div class="tab">Année</div></div>
+          <div class="period-nav"><div class="nav-btn">‹</div><div class="period-label">14–20 Avr 2026 ⌄</div><div class="nav-btn">›</div></div>
+        </div>
+        <div class="divider"></div>
+        <div class="stats-strip">👥 18 évals · 5 dégustateurs · 1 alerte</div>
+        <div class="divider"></div>
+        <div class="content">
+          <div class="kpi-grid">
+            <div class="kpi"><div class="kpi-icon" style="background:#F3E8FF">📋</div><div class="kpi-val" style="color:#7B3FC4">2</div><div class="kpi-label">Sessions en attente</div></div>
+            <div class="kpi"><div class="kpi-icon" style="background:#E8F5E9">✍️</div><div class="kpi-val" style="color:#38835A">18</div><div class="kpi-label">Évaluations panel</div></div>
+            <div class="kpi"><div class="kpi-icon" style="background:#E3F2FD">👥</div><div class="kpi-val" style="color:#1565C0">85%</div><div class="kpi-label">Accord moyen</div></div>
+            <div class="kpi"><div class="kpi-icon" style="background:#FFF3E0">⚠️</div><div class="kpi-val" style="color:#E65100">1</div><div class="kpi-label">Alertes cohérence</div></div>
+          </div>
+          <div class="card">
+            <div class="sec"><div class="sec-bar"></div><span class="sec-title">Activité du panel</span></div>
+            <div class="bar-chart">
+              <div class="bc-col"><div class="bc-bar" style="height:34px;background:rgba(56,131,90,0.75)"></div><span class="bc-name">Ichrak</span></div>
+              <div class="bc-col"><div class="bc-bar" style="height:20px;background:rgba(56,131,90,0.75)"></div><span class="bc-name">Lobna</span></div>
+              <div class="bc-col"><div class="bc-bar" style="height:27px;background:#E65100cc"></div><span class="bc-name" style="color:#E65100">Maha</span></div>
+              <div class="bc-col"><div class="bc-bar" style="height:24px;background:rgba(56,131,90,0.75)"></div><span class="bc-name">Nayrouz</span></div>
+              <div class="bc-col"><div class="bc-bar" style="height:16px;background:rgba(56,131,90,0.75)"></div><span class="bc-name">Yosra</span></div>
+            </div>
+          </div>
+          <!-- NEW: Délai -->
+          <div class="card" style="border-left:3px solid #38835A">
+            <div class="sec"><div class="sec-bar"></div><span class="sec-title">Délai de soumission</span><div class="date-chip">📅 Jan→Avr</div></div>
+            <div class="taster-scroll">
+              <div class="tr red"><span class="tr-name" style="color:#C0392B">Maha O.</span><div class="bar-w"><div class="bar-f" style="width:88%;background:#C0392B"></div></div><span class="tr-val" style="color:#C0392B">3.8j</span></div>
+              <div class="tr orange"><span class="tr-name" style="color:#D07B2F">Yosra S.</span><div class="bar-w"><div class="bar-f" style="width:55%;background:#D07B2F"></div></div><span class="tr-val" style="color:#D07B2F">2.3j</span></div>
+              <div class="tr"><span class="tr-name" style="color:#1A2E1F">Lobna E.</span><div class="bar-w"><div class="bar-f" style="width:36%;background:#38835A"></div></div><span class="tr-val" style="color:#38835A">1.6j</span></div>
+              <div class="tr"><span class="tr-name" style="color:#1A2E1F">Nayrouz F.</span><div class="bar-w"><div class="bar-f" style="width:30%;background:#38835A"></div></div><span class="tr-val" style="color:#38835A">1.4j</span></div>
+              <div class="tr"><span class="tr-name" style="color:#1A2E1F">Ichrak C.</span><div class="bar-w"><div class="bar-f" style="width:24%;background:#38835A"></div></div><span class="tr-val" style="color:#38835A">1.2j</span></div>
+            </div>
+            <div class="scroll-hint">↕ défiler pour voir tous</div>
+            <div class="bottom-note">Délai moyen entre la réception d'un échantillon et la soumission de l'évaluation.</div>
+          </div>
+          <!-- NEW: Alignement -->
+          <div class="card" style="border-left:3px solid #38835A">
+            <div class="sec"><div class="sec-bar"></div><span class="sec-title">Alignement avec le panel</span><div class="date-chip">📅 Filtrer</div></div>
+            <div class="taster-scroll">
+              <div class="tr red"><span class="tr-name" style="color:#C0392B">Maha O.</span><div class="bar-w"><div class="bar-f" style="width:62%;background:#C0392B"></div></div><span class="tr-val" style="color:#C0392B">62%</span></div>
+              <div class="tr orange"><span class="tr-name" style="color:#D07B2F">Yosra S.</span><div class="bar-w"><div class="bar-f" style="width:28%;background:#D07B2F"></div></div><span class="tr-val" style="color:#D07B2F">28%</span></div>
+              <div class="tr"><span class="tr-name" style="color:#1A2E1F">Nayrouz F.</span><div class="bar-w"><div class="bar-f" style="width:12%;background:#38835A"></div></div><span class="tr-val" style="color:#38835A">12%</span></div>
+              <div class="tr"><span class="tr-name" style="color:#1A2E1F">Lobna E.</span><div class="bar-w"><div class="bar-f" style="width:8%;background:#38835A"></div></div><span class="tr-val" style="color:#38835A">8%</span></div>
+              <div class="tr"><span class="tr-name" style="color:#1A2E1F">Ichrak C.</span><div class="bar-w"><div class="bar-f" style="width:5%;background:#38835A"></div></div><span class="tr-val" style="color:#38835A">5%</span></div>
+            </div>
+            <div class="scroll-hint">↕ défiler pour voir tous</div>
+            <div class="bottom-note">Plus le % est élevé, plus le dégustateur classe différemment du reste du panel.</div>
+          </div>
+          <!-- Cohérence -->
+          <div class="card">
+            <div class="sec"><div class="sec-bar"></div><span class="sec-title">Cohérence des dégustateurs</span></div>
+            <div class="coh-row ok"><span style="font-size:9px;font-weight:700;color:#1A2E1F;width:50px">Ichrak C.</span><div style="flex:1;height:4px;background:#eee;border-radius:2px;overflow:hidden"><div style="width:91%;height:100%;background:#38835A;border-radius:2px"></div></div><span style="font-size:9px;font-weight:800;color:#38835A;width:24px;text-align:right">91%</span></div>
+            <div class="coh-row out"><span style="font-size:9px;font-weight:700;color:#D07B2F;width:50px">Maha O.</span><span class="out-badge">⚠</span><div style="flex:1;height:4px;background:#eee;border-radius:2px;overflow:hidden"><div style="width:62%;height:100%;background:#D07B2F;border-radius:2px"></div></div><span style="font-size:9px;font-weight:800;color:#D07B2F;width:24px;text-align:right">62%</span></div>
+            <div class="coh-row ok"><span style="font-size:9px;font-weight:700;color:#1A2E1F;width:50px">Nayrouz</span><div style="flex:1;height:4px;background:#eee;border-radius:2px;overflow:hidden"><div style="width:85%;height:100%;background:#38835A;border-radius:2px"></div></div><span style="font-size:9px;font-weight:800;color:#38835A;width:24px;text-align:right">85%</span></div>
+          </div>
+          <!-- Radar -->
+          <div class="card">
+            <div class="sec"><div class="sec-bar"></div><span class="sec-title">Profil sensoriel consensus</span></div>
+            <div style="display:flex;justify-content:center">
+              <svg class="radar" width="140" height="140" viewBox="-70 -70 140 140">
+                <polygon points="0,-45 39,-22 39,22 0,45 -39,22 -39,-22" fill="none" stroke="#e8e8e8" stroke-width="1"/>
+                <polygon points="0,-30 26,-15 26,15 0,30 -26,15 -26,-15" fill="none" stroke="#e8e8e8" stroke-width="1"/>
+                <polygon points="0,-15 13,-7 13,7 0,15 -13,7 -13,-7" fill="none" stroke="#e8e8e8" stroke-width="1"/>
+                <line x1="0" y1="0" x2="0" y2="-45" stroke="#e8e8e8" stroke-width="1"/>
+                <line x1="0" y1="0" x2="39" y2="-22" stroke="#e8e8e8" stroke-width="1"/>
+                <line x1="0" y1="0" x2="39" y2="22" stroke="#e8e8e8" stroke-width="1"/>
+                <line x1="0" y1="0" x2="0" y2="45" stroke="#e8e8e8" stroke-width="1"/>
+                <line x1="0" y1="0" x2="-39" y2="22" stroke="#e8e8e8" stroke-width="1"/>
+                <line x1="0" y1="0" x2="-39" y2="-22" stroke="#e8e8e8" stroke-width="1"/>
+                <polygon points="0,-36 33,-19 32,19 0,34 -33,20 -30,-17" fill="rgba(56,131,90,0.15)" stroke="#38835A" stroke-width="1.5"/>
+                <text x="0" y="-50" text-anchor="middle" style="font-size:7px;fill:#1A2E1F;font-weight:600">Fruité</text>
+                <text x="46" y="-26" text-anchor="start" style="font-size:7px;fill:#1A2E1F;font-weight:600">Amer</text>
+                <text x="46" y="30" text-anchor="start" style="font-size:7px;fill:#1A2E1F;font-weight:600">Piquant</text>
+                <text x="0" y="58" text-anchor="middle" style="font-size:7px;fill:#1A2E1F;font-weight:600">Doux</text>
+                <text x="-46" y="30" text-anchor="end" style="font-size:7px;fill:#1A2E1F;font-weight:600">Floral</text>
+                <text x="-46" y="-26" text-anchor="end" style="font-size:7px;fill:#1A2E1F;font-weight:600">Terreux</text>
+              </svg>
+            </div>
+          </div>
+          <!-- Sessions -->
+          <div class="sec" style="margin-bottom:8px"><div class="sec-bar"></div><span class="sec-title">Sessions en attente</span></div>
+          <div class="sess-card">
+            <div class="sess-row"><div class="sess-acc"></div><div><div class="sess-title">Session Oueslati — Lot C</div><div class="sess-meta">28/04/2026 · 09:00 · Salle A</div></div></div>
+            <div class="sess-actions"><div class="btn-r">✕ Refuser</div><div class="btn-a">✓ Approuver</div></div>
+          </div>
+          <div style="height:16px"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="left-sub">Défilez dans le téléphone pour voir toutes les sections</div>
+</div>
+
+<!-- RIGHT: spec -->
+<div class="right">
+  <div class="spec-title">Spec — Dashboard Chef Dégustateur</div>
+  <div class="spec-sub">Revue avant implémentation — approuvez ou demandez des modifications</div>
+
+  <div class="spec-section">
+    <div class="spec-section-title">Sections du dashboard</div>
+
+    <div class="spec-row keep"><span class="spec-num">1</span><div class="spec-body"><div class="spec-name">Header zone <span class="tag keep">conservé</span></div><div class="spec-desc">Bonjour Chef · onglets Jour/Semaine/Mois/Année · navigateur de période · badge sessions en attente</div></div></div>
+    <div class="spec-row keep"><span class="spec-num">2</span><div class="spec-body"><div class="spec-name">Stats strip <span class="tag keep">conservé</span></div><div class="spec-desc">X évaluations · Y dégustateurs actifs · Z alerte(s)</div></div></div>
+    <div class="spec-row keep"><span class="spec-num">3</span><div class="spec-body"><div class="spec-name">KPI Grid <span class="tag keep">conservé</span></div><div class="spec-desc">Sessions en attente · Évaluations panel · Accord moyen · Alertes cohérence</div></div></div>
+    <div class="spec-row keep"><span class="spec-num">4</span><div class="spec-body"><div class="spec-name">Activité du panel <span class="tag keep">conservé</span></div><div class="spec-desc">Bar chart évaluations par dégustateur. Barre orange = hors consensus.</div></div></div>
+
+    <div class="spec-row new"><span class="spec-num">5</span><div class="spec-body">
+      <div class="spec-name">Délai de soumission <span class="tag new">nouveau</span></div>
+      <div class="spec-desc">Vue panel — qui soumet le plus lentement, trié pire → meilleur, 3 lignes visibles + scroll.</div>
+      <ul class="spec-detail">
+        <li>Chaque ligne : nom · barre de progression · valeur en jours</li>
+        <li>Rouge si délai > 150% de la moyenne · Orange > 110% · Vert = normal</li>
+        <li>Filtre date à droite (même chip que les autres sections)</li>
+        <li>Note bas : "Délai moyen entre la réception d'un échantillon et la soumission de l'évaluation."</li>
+      </ul>
+    </div></div>
+
+    <div class="spec-row new"><span class="spec-num">6</span><div class="spec-body">
+      <div class="spec-name">Alignement avec le panel <span class="tag new">nouveau</span></div>
+      <div class="spec-desc">Qui classe le plus différemment du groupe, trié pire → meilleur, 3 lignes visibles + scroll.</div>
+      <ul class="spec-detail">
+        <li>Chaque ligne : nom · barre de progression · % de divergence</li>
+        <li>Rouge ≥ 40% · Orange ≥ 20% · Vert en dessous</li>
+        <li>Filtre date à droite</li>
+        <li>Note bas : "Plus le % est élevé, plus le dégustateur classe différemment du reste du panel."</li>
+      </ul>
+      <div class="logic-box">
+        <strong>Logique de calcul :</strong><br>
+        Pour chaque échantillon où tous les dégustateurs ont soumis :<br>
+        → trouver la classification majoritaire (EV / Vierge / Lampante)<br>
+        → si un dégustateur diffère de <strong>2 niveaux</strong> (EV ↔ Lampante) → divergence comptée<br>
+        → si différence d'<strong>1 niveau</strong> (EV ↔ Vierge ou Vierge ↔ Lampante) → acceptable, ignoré<br>
+        → si pas de majorité claire (ex. 3 EV, 3 Vierge) → échantillon ignoré dans le calcul
+      </div>
+    </div></div>
+
+    <div class="spec-row keep"><span class="spec-num">7</span><div class="spec-body"><div class="spec-name">Cohérence des dégustateurs <span class="tag keep">conservé</span></div><div class="spec-desc">Taux d'accord avec la médiane panel. &lt; 75% = badge "Hors consensus".</div></div></div>
+    <div class="spec-row keep"><span class="spec-num">8</span><div class="spec-body"><div class="spec-name">Profil sensoriel consensus <span class="tag keep">conservé</span></div><div class="spec-desc">Radar chart — scores moyens pondérés sur toutes les évaluations soumises.</div></div></div>
+    <div class="spec-row keep"><span class="spec-num">9</span><div class="spec-body"><div class="spec-name">Sessions en attente d'approbation <span class="tag keep">conservé</span></div><div class="spec-desc">Cards avec boutons Refuser / Approuver.</div></div></div>
+  </div>
+
+  <div class="spec-section">
+    <div class="spec-section-title">Architecture</div>
+    <div class="arch-box">
+lib/5_chef_degustateur/tableau_de_bord/<br>
+&nbsp;&nbsp;models/<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="new-file">dashboard_chef_degustateur.dart &nbsp;← à créer</span><br>
+&nbsp;&nbsp;services/<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="new-file">dashboard_chef_degustateur_service.dart &nbsp;← à créer</span><br>
+&nbsp;&nbsp;widgets/<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="changed-file">home_body.dart &nbsp;← réécriture complète</span><br>
+&nbsp;&nbsp;<span class="keep-file">homepage_page.dart &nbsp;← aucun changement</span>
+    </div>
+  </div>
+</div>
+
+<div class="approve-bar">
+  <span class="approve-label">Le design vous convient ?</span>
+  <button class="approve-btn change" onclick="respond('change')">✏ Modifier quelque chose</button>
+  <button class="approve-btn yes" onclick="respond('approve')">✓ Approuvé — on implémente</button>
+</div>
+
+<div class="selected-msg" id="msg"></div>
+
+<script>
+function respond(choice) {
+  const m = document.getElementById('msg');
+  m.textContent = choice === 'approve' ? '✓ Design approuvé — retournez dans le terminal pour continuer' : '✏ Modification demandée — décrivez dans le terminal';
+  m.classList.add('on');
+  if (window.recordChoice) window.recordChoice(choice, m.textContent);
+}
+</script>
+</body>
+</html>

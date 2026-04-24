@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Classification Performance — Mobile</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #1a1a2e; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; padding: 30px 20px 60px; min-height: 100vh; }
+  h2 { color: #fff; font-size: 16px; margin-bottom: 6px; text-align: center; }
+  .subtitle { color: #aaa; font-size: 12px; margin-bottom: 24px; text-align: center; max-width: 500px; line-height: 1.5; }
+
+  .phones { display: flex; gap: 32px; flex-wrap: wrap; justify-content: center; }
+
+  .phone-wrap { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+  .phone-label { color: #fff; font-size: 13px; font-weight: 700; }
+  .phone-sublabel { color: #aaa; font-size: 11px; text-align: center; max-width: 200px; line-height: 1.4; }
+
+  .phone {
+    width: 280px;
+    background: #111;
+    border-radius: 36px;
+    padding: 10px;
+    box-shadow: 0 0 0 2px #333, 0 20px 60px rgba(0,0,0,0.6);
+    cursor: pointer;
+    transition: box-shadow 0.2s, transform 0.15s;
+    border: 2px solid transparent;
+  }
+  .phone:hover { transform: translateY(-3px); box-shadow: 0 0 0 2px #555, 0 28px 70px rgba(0,0,0,0.7); }
+  .phone.selected { border-color: #38835A; box-shadow: 0 0 0 3px #38835A44, 0 20px 60px rgba(56,131,90,0.3); }
+
+  .phone-notch {
+    width: 70px; height: 14px;
+    background: #111;
+    border-radius: 0 0 10px 10px;
+    margin: 0 auto 6px;
+  }
+
+  .phone-screen {
+    background: #F9F6EF;
+    border-radius: 28px;
+    overflow: hidden;
+    height: 520px;
+  }
+
+  /* App chrome */
+  .app-bar {
+    background: #dce9e2;
+    padding: 10px 14px 10px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .app-bar-title { font-size: 13px; font-weight: 700; color: #1A2E1F; flex: 1; }
+  .app-bar-icon { width: 28px; height: 28px; background: #38835A22; border-radius: 8px; display:flex;align-items:center;justify-content:center;font-size:13px; }
+
+  .divider { height: 1px; background: rgba(0,0,0,0.06); }
+
+  .scroll-area { overflow-y: auto; height: calc(520px - 48px); padding: 12px; }
+  .scroll-area::-webkit-scrollbar { width: 3px; }
+  .scroll-area::-webkit-scrollbar-thumb { background: #ccc; border-radius: 2px; }
+
+  /* Section label */
+  .section-label {
+    display: flex; align-items: center; gap: 5px; margin-bottom: 10px; margin-top: 4px;
+  }
+  .section-bar { width: 3px; height: 14px; background: #38835A; border-radius: 2px; }
+  .section-title { font-size: 11px; font-weight: 700; color: #1A2E1F; }
+
+  /* Date chip */
+  .date-chip {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: #F0F2F1; border: 1px solid #E8EAE8;
+    border-radius: 7px; padding: 3px 8px; font-size: 9px; font-weight: 700; color: #1A2E1F;
+    margin-left: auto;
+  }
+
+  /* Card */
+  .card {
+    background: white; border-radius: 12px; padding: 12px; margin-bottom: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+
+  /* OPTION A — taux divergence */
+  .taster-row {
+    display: flex; align-items: center; gap: 7px;
+    padding: 7px 8px; border-radius: 8px; margin-bottom: 6px;
+    border: 1px solid #eee;
+  }
+  .taster-row.outlier { background: #FFF3E0; border-color: #ffe0b2; }
+  .taster-name { font-size: 10px; font-weight: 700; color: #1A2E1F; width: 58px; flex-shrink: 0; }
+  .taster-name.red { color: #C0392B; }
+  .bar-wrap { flex: 1; height: 5px; background: #eee; border-radius: 3px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 3px; }
+  .taster-pct { font-size: 10px; font-weight: 800; width: 28px; text-align: right; }
+  .taster-flag { font-size: 9px; width: 42px; text-align: right; color: #aaa; }
+  .scroll-note { font-size: 9px; color: #aaa; text-align: center; padding: 3px 0 2px; font-style: italic; }
+
+  /* OPTION C — expandable */
+  .taster-card {
+    border-radius: 9px; margin-bottom: 7px; overflow: hidden;
+    border: 1px solid #eee;
+  }
+  .taster-card-header {
+    padding: 8px 10px; display: flex; align-items: center; justify-content: space-between;
+  }
+  .taster-card-header.flagged { background: #FFF3E0; border-bottom: 1px solid #ffe0b2; }
+  .taster-card-header.ok { background: white; }
+  .taster-card-name { font-size: 11px; font-weight: 700; }
+  .taster-card-name.red { color: #C0392B; }
+  .taster-card-stat { font-size: 11px; font-weight: 800; color: #C0392B; }
+  .taster-card-stat.green { color: #38835A; }
+  .chevron { font-size: 9px; color: #ccc; }
+  .taster-detail { background: white; padding: 8px 10px; font-size: 9px; color: #666; line-height: 1.6; }
+  .detail-sample { display: flex; gap: 5px; align-items: flex-start; margin-bottom: 2px; }
+  .detail-dot { width: 5px; height: 5px; background: #C0392B; border-radius: 50%; margin-top: 4px; flex-shrink: 0; }
+
+  /* Info note */
+  .info-note {
+    background: #FFF3E0; border-radius: 8px; padding: 8px 10px;
+    display: flex; gap: 6px; align-items: flex-start; margin-top: 8px;
+  }
+  .info-note-text { font-size: 9px; color: #D07B2F; line-height: 1.5; font-weight: 500; }
+
+  /* Selected badge */
+  .selected-badge {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: #38835A; color: white; text-align: center;
+    padding: 12px; font-size: 13px; font-weight: 700;
+    display: none;
+  }
+  .selected-badge.visible { display: block; }
+</style>
+</head>
+<body>
+
+<h2>Classification Performance — mobile mockup</h2>
+<p class="subtitle">Cliquez sur un téléphone pour le sélectionner. Option A = taux par dégustateur. Option C = taux + détails dépliables.</p>
+
+<div class="phones">
+
+  <!-- OPTION A -->
+  <div class="phone-wrap">
+    <div class="phone" id="phone-a" onclick="selectPhone('a')">
+      <div class="phone-notch"></div>
+      <div class="phone-screen">
+        <div class="app-bar">
+          <div class="app-bar-title">Tableau de bord</div>
+          <div class="app-bar-icon">🔔</div>
+        </div>
+        <div class="divider"></div>
+        <div class="scroll-area">
+
+          <!-- Classification perf section -->
+          <div class="card">
+            <div style="display:flex;align-items:center;margin-bottom:10px">
+              <div class="section-label" style="margin:0;flex:1">
+                <div class="section-bar"></div>
+                <span class="section-title">Classification — divergences</span>
+              </div>
+              <div class="date-chip">📅 Filtrer</div>
+            </div>
+
+            <!-- scrollable list, 3 visible -->
+            <div style="max-height:168px;overflow-y:auto;padding-right:2px">
+              <!-- worst first -->
+              <div class="taster-row outlier">
+                <span class="taster-name red">Maha O.</span>
+                <div class="bar-wrap"><div class="bar-fill" style="width:62%;background:#C0392B"></div></div>
+                <span class="taster-pct" style="color:#C0392B">62%</span>
+                <span class="taster-flag" style="color:#C0392B">⚠ 8 éch.</span>
+              </div>
+              <div class="taster-row outlier">
+                <span class="taster-name red">Yosra S.</span>
+                <div class="bar-wrap"><div class="bar-fill" style="width:28%;background:#D07B2F"></div></div>
+                <span class="taster-pct" style="color:#D07B2F">28%</span>
+                <span class="taster-flag" style="color:#D07B2F">⚠ 2 éch.</span>
+              </div>
+              <div class="taster-row">
+                <span class="taster-name">Nayrouz F.</span>
+                <div class="bar-wrap"><div class="bar-fill" style="width:12%;background:#38835A"></div></div>
+                <span class="taster-pct" style="color:#38835A">12%</span>
+                <span class="taster-flag">1 éch.</span>
+              </div>
+              <!-- below fold, scroll to see -->
+              <div class="taster-row">
+                <span class="taster-name">Lobna E.</span>
+                <div class="bar-wrap"><div class="bar-fill" style="width:8%;background:#38835A"></div></div>
+                <span class="taster-pct" style="color:#38835A">8%</span>
+                <span class="taster-flag">0 éch.</span>
+              </div>
+              <div class="taster-row">
+                <span class="taster-name">Ichrak C.</span>
+                <div class="bar-wrap"><div class="bar-fill" style="width:5%;background:#38835A"></div></div>
+                <span class="taster-pct" style="color:#38835A">5%</span>
+                <span class="taster-flag">0 éch.</span>
+              </div>
+            </div>
+            <div class="scroll-note">↕ défiler pour voir tous</div>
+
+            <div class="info-note">
+              <span style="font-size:11px">ℹ️</span>
+              <span class="info-note-text">Divergence = classification à 2 niveaux d'écart du consensus (ex: Lampante vs Extra Vierge).</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+    <div class="phone-label">Option A</div>
+    <div class="phone-sublabel">Vue simple — taux de divergence par dégustateur</div>
+  </div>
+
+  <!-- OPTION C -->
+  <div class="phone-wrap">
+    <div class="phone" id="phone-c" onclick="selectPhone('c')">
+      <div class="phone-notch"></div>
+      <div class="phone-screen">
+        <div class="app-bar">
+          <div class="app-bar-title">Tableau de bord</div>
+          <div class="app-bar-icon">🔔</div>
+        </div>
+        <div class="divider"></div>
+        <div class="scroll-area">
+
+          <div class="card">
+            <div style="display:flex;align-items:center;margin-bottom:10px">
+              <div class="section-label" style="margin:0;flex:1">
+                <div class="section-bar"></div>
+                <span class="section-title">Classification — divergences</span>
+              </div>
+              <div class="date-chip">📅 Filtrer</div>
+            </div>
+
+            <div style="max-height:200px;overflow-y:auto;padding-right:2px">
+              <!-- worst first, expanded -->
+              <div class="taster-card">
+                <div class="taster-card-header flagged">
+                  <span class="taster-card-name red">⚠ Maha O.</span>
+                  <span class="taster-card-stat">62% — 8 éch.</span>
+                  <span class="chevron">▲</span>
+                </div>
+                <div class="taster-detail">
+                  <div class="detail-sample"><div class="detail-dot"></div><span>CHEMLALI-C4 — dit <b>Lampante</b>, groupe : Extra Vierge</span></div>
+                  <div class="detail-sample"><div class="detail-dot"></div><span>OUESLATI-C1 — dit <b>Lampante</b>, groupe : Vierge</span></div>
+                  <div style="color:#aaa;font-size:9px;margin-top:2px;padding-left:10px">+ 6 autres échantillons…</div>
+                </div>
+              </div>
+
+              <div class="taster-card">
+                <div class="taster-card-header flagged">
+                  <span class="taster-card-name red">⚠ Yosra S.</span>
+                  <span class="taster-card-stat">28% — 2 éch.</span>
+                  <span class="chevron">▶</span>
+                </div>
+              </div>
+
+              <!-- below fold -->
+              <div class="taster-card">
+                <div class="taster-card-header ok">
+                  <span class="taster-card-name">Nayrouz F.</span>
+                  <span class="taster-card-stat green">12% — 1 éch.</span>
+                  <span class="chevron">▶</span>
+                </div>
+              </div>
+              <div class="taster-card">
+                <div class="taster-card-header ok">
+                  <span class="taster-card-name">Lobna E.</span>
+                  <span class="taster-card-stat green">8% — 0 éch.</span>
+                  <span class="chevron">▶</span>
+                </div>
+              </div>
+              <div class="taster-card">
+                <div class="taster-card-header ok">
+                  <span class="taster-card-name">Ichrak C.</span>
+                  <span class="taster-card-stat green">5% — 0 éch.</span>
+                  <span class="chevron">▶</span>
+                </div>
+              </div>
+            </div>
+            <div class="scroll-note">↕ défiler pour voir tous</div>
+
+            <div class="info-note">
+              <span style="font-size:11px">ℹ️</span>
+              <span class="info-note-text">Divergence = classification à 2 niveaux d'écart du consensus (ex: Lampante vs Extra Vierge).</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+    <div class="phone-label">Option C</div>
+    <div class="phone-sublabel">Résumé + détails dépliables par échantillon</div>
+  </div>
+
+</div>
+
+<div class="selected-badge" id="badge"></div>
+
+<script>
+function selectPhone(choice) {
+  document.querySelectorAll('.phone').forEach(p => p.classList.remove('selected'));
+  document.getElementById('phone-' + choice).classList.add('selected');
+  const badge = document.getElementById('badge');
+  badge.textContent = choice === 'a' ? '✓ Option A sélectionnée — taux de divergence simple' : '✓ Option C sélectionnée — résumé + détails dépliables';
+  badge.classList.add('visible');
+  if (window.recordChoice) window.recordChoice(choice, badge.textContent);
+}
+</script>
+</body>
+</html>

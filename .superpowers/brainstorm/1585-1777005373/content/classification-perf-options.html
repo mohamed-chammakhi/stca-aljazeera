@@ -1,0 +1,87 @@
+<h2>Classification Performance — vue Chef</h2>
+<p class="subtitle">Pour chaque échantillon, si un dégustateur classe très différemment du groupe (ex: Lampante alors que tous disent Extra Vierge), son vote est marqué "hors consensus". Comment afficher cette info pour le Chef ?</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Vue par dégustateur — taux de divergence</h3>
+      <p>Chaque dégustateur a une ligne avec son % de classifications hors consensus. Le chef voit d'un coup d'œil qui diverge souvent. Similaire à la section "Cohérence" existante.</p>
+      <div style="margin-top:12px;padding:12px;background:#f8faf8;border-radius:10px;font-size:12px">
+        <div style="margin-bottom:6px;padding:7px 10px;background:white;border-radius:8px;border:1px solid #eee;display:flex;align-items:center;gap:8px">
+          <span style="width:80px;font-weight:600;color:#333">Ichrak C.</span>
+          <div style="flex:1;height:6px;background:#eee;border-radius:3px;overflow:hidden"><div style="width:5%;height:100%;background:#38835A;border-radius:3px"></div></div>
+          <span style="color:#38835A;font-weight:700">5%</span>
+          <span style="color:#aaa;font-size:10px">0 flagué</span>
+        </div>
+        <div style="margin-bottom:6px;padding:7px 10px;background:#FFF3E0;border-radius:8px;border:1px solid #ffe0b2;display:flex;align-items:center;gap:8px">
+          <span style="width:80px;font-weight:600;color:#C0392B">Maha O.</span>
+          <div style="flex:1;height:6px;background:#eee;border-radius:3px;overflow:hidden"><div style="width:62%;height:100%;background:#C0392B;border-radius:3px"></div></div>
+          <span style="color:#C0392B;font-weight:700">62%</span>
+          <span style="font-size:10px">⚠ 8 flagués</span>
+        </div>
+        <div style="padding:7px 10px;background:white;border-radius:8px;border:1px solid #eee;display:flex;align-items:center;gap:8px">
+          <span style="width:80px;font-weight:600;color:#333">Nayrouz F.</span>
+          <div style="flex:1;height:6px;background:#eee;border-radius:3px;overflow:hidden"><div style="width:12%;height:100%;background:#38835A;border-radius:3px"></div></div>
+          <span style="color:#38835A;font-weight:700">12%</span>
+          <span style="color:#aaa;font-size:10px">1 flagué</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Vue par échantillon — qui a divergé sur quel échantillon</h3>
+      <p>Liste des échantillons avec conflits de classification. Pour chaque échantillon, on voit le vote majoritaire et le vote isolé. Plus détaillé mais plus long.</p>
+      <div style="margin-top:12px;padding:12px;background:#f8faf8;border-radius:10px;font-size:11px">
+        <div style="margin-bottom:8px;padding:8px;background:white;border-radius:8px;border:1px solid #eee">
+          <div style="font-weight:700;color:#333;margin-bottom:4px">CHEMLALI-C4 · 2026/0012</div>
+          <div style="display:flex;gap:6px;align-items:center">
+            <span style="background:#E6F4ED;color:#38835A;padding:2px 7px;border-radius:5px;font-size:10px;font-weight:700">4× Extra Vierge</span>
+            <span style="color:#aaa;font-size:10px">vs</span>
+            <span style="background:#FFF3E0;color:#C0392B;padding:2px 7px;border-radius:5px;font-size:10px;font-weight:700">1× Lampante (Maha)</span>
+          </div>
+          <div style="margin-top:4px;font-size:10px;color:#C0392B">⚠ Divergence significative — vote Maha ignoré</div>
+        </div>
+        <div style="padding:8px;background:white;border-radius:8px;border:1px solid #eee">
+          <div style="font-weight:700;color:#333;margin-bottom:4px">OUESLATI-C2 · 2026/0008</div>
+          <div style="display:flex;gap:6px;align-items:center">
+            <span style="background:#E6F4ED;color:#38835A;padding:2px 7px;border-radius:5px;font-size:10px;font-weight:700">3× Extra Vierge</span>
+            <span style="color:#aaa;font-size:10px">vs</span>
+            <span style="background:#FEF3E8;color:#D07B2F;padding:2px 7px;border-radius:5px;font-size:10px;font-weight:700">2× Vierge</span>
+          </div>
+          <div style="margin-top:4px;font-size:10px;color:#aaa">✓ Écart acceptable — aucun vote ignoré</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Combiné : résumé par dégustateur + détail par échantillon dépliable</h3>
+      <p>Tableau par dégustateur (taux divergence). Chaque ligne est dépliable pour voir exactement sur quels échantillons il a divergé. Meilleure lisibilité globale.</p>
+      <div style="margin-top:12px;padding:12px;background:#f8faf8;border-radius:10px;font-size:11px">
+        <div style="margin-bottom:6px;padding:8px 10px;background:#FFF3E0;border-radius:8px;border:1px solid #ffe0b2">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <span style="font-weight:700;color:#C0392B">⚠ Maha O.</span>
+            <span style="color:#C0392B;font-weight:800">62% — 8 échantillons</span>
+            <span style="color:#aaa;font-size:10px">▼ voir détails</span>
+          </div>
+          <div style="margin-top:8px;padding:8px;background:white;border-radius:6px;font-size:10px;color:#666">
+            CHEMLALI-C4 — a dit <b>Lampante</b>, groupe dit Extra Vierge<br>
+            OUESLATI-C1 — a dit <b>Lampante</b>, groupe dit Vierge<br>
+            <span style="color:#aaa">+ 6 autres…</span>
+          </div>
+        </div>
+        <div style="padding:8px 10px;background:white;border-radius:8px;border:1px solid #eee;display:flex;align-items:center;justify-content:space-between">
+          <span style="font-weight:600;color:#333">Ichrak C.</span>
+          <span style="color:#38835A;font-weight:700">5% — 0 flagué</span>
+          <span style="color:#ccc;font-size:10px">▶</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

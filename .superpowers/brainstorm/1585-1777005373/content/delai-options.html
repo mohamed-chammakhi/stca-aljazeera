@@ -1,0 +1,102 @@
+<h2>Délai de soumission — vue Chef</h2>
+<p class="subtitle">Dans le tableau du dégustateur, cette section montre "Mon délai vs la moyenne panel". Pour le Chef, elle doit montrer <strong>tous les membres du panel</strong>. Quelle visualisation préférez-vous ?</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Tableau classé avec barres de progression</h3>
+      <p>Chaque dégustateur a une ligne avec son délai moyen et une barre de progression. Ligne de référence = moyenne panel. Les lents sont en rouge, les rapides en vert.</p>
+      <div style="margin-top:12px;padding:12px;background:#f8faf8;border-radius:10px;font-size:12px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+          <span style="width:80px;color:#333;font-weight:600">Ichrak C.</span>
+          <div style="flex:1;height:8px;background:#eee;border-radius:4px;overflow:hidden"><div style="width:72%;height:100%;background:#38835A;border-radius:4px"></div></div>
+          <span style="color:#38835A;font-weight:700;width:32px;text-align:right">1.2j</span>
+          <span style="color:#aaa;font-size:10px">✓</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+          <span style="width:80px;color:#333;font-weight:600">Lobna E.</span>
+          <div style="flex:1;height:8px;background:#eee;border-radius:4px;overflow:hidden"><div style="width:55%;height:100%;background:#38835A;border-radius:4px"></div></div>
+          <span style="color:#38835A;font-weight:700;width:32px;text-align:right">1.6j</span>
+          <span style="color:#aaa;font-size:10px">✓</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+          <span style="width:80px;color:#C0392B;font-weight:600">Maha O.</span>
+          <div style="flex:1;height:8px;background:#eee;border-radius:4px;overflow:hidden"><div style="width:92%;height:100%;background:#C0392B;border-radius:4px"></div></div>
+          <span style="color:#C0392B;font-weight:700;width:32px;text-align:right">3.8j</span>
+          <span style="font-size:10px">⚠️</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px">
+          <span style="width:80px;color:#333;font-weight:600">Nayrouz F.</span>
+          <div style="flex:1;height:8px;background:#eee;border-radius:4px;overflow:hidden"><div style="width:65%;height:100%;background:#38835A;border-radius:4px"></div></div>
+          <span style="color:#38835A;font-weight:700;width:32px;text-align:right">1.4j</span>
+          <span style="color:#aaa;font-size:10px">✓</span>
+        </div>
+        <div style="margin-top:8px;padding:6px 8px;background:#FFF3E0;border-radius:6px;font-size:10px;color:#D07B2F">⚠ Maha O. dépasse la moyenne panel de +2.4j — intervention recommandée</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Graphique à barres groupées (même style que le dégustateur)</h3>
+      <p>Barres verticales pour chaque dégustateur, avec une ligne pointillée horizontale = moyenne panel. Les barres dépassant la ligne sont en rouge/orange.</p>
+      <div style="margin-top:12px;padding:12px;background:#f8faf8;border-radius:10px;">
+        <div style="display:flex;align-items:flex-end;gap:6px;height:70px;padding-bottom:4px;border-bottom:1px dashed #ddd">
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px">
+            <div style="width:100%;background:#38835A;border-radius:3px 3px 0 0;height:22px;opacity:0.8"></div>
+            <span style="font-size:9px;color:#aaa">Ichrak</span>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px">
+            <div style="width:100%;background:#38835A;border-radius:3px 3px 0 0;height:30px;opacity:0.8"></div>
+            <span style="font-size:9px;color:#aaa">Lobna</span>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px">
+            <div style="width:100%;background:#C0392B;border-radius:3px 3px 0 0;height:60px;opacity:0.9"></div>
+            <span style="font-size:9px;color:#C0392B;font-weight:700">Maha ⚠</span>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px">
+            <div style="width:100%;background:#38835A;border-radius:3px 3px 0 0;height:25px;opacity:0.8"></div>
+            <span style="font-size:9px;color:#aaa">Nayrouz</span>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px">
+            <div style="width:100%;background:#38835A;border-radius:3px 3px 0 0;height:20px;opacity:0.8"></div>
+            <span style="font-size:9px;color:#aaa">Yosra</span>
+          </div>
+        </div>
+        <div style="font-size:10px;color:#aaa;margin-top:4px">── ligne pointillée = moy. panel (1.4j)</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Les deux : résumé en haut + détail par personne en bas</h3>
+      <p>En-tête avec la moyenne globale du panel + nombre de lents. En dessous, tableau compact avec chaque dégustateur, son délai moyen, et son trend (flèche hausse/baisse vs semaine précédente).</p>
+      <div style="margin-top:12px;padding:10px;background:#f8faf8;border-radius:10px;font-size:11px">
+        <div style="display:flex;gap:8px;margin-bottom:10px">
+          <div style="flex:1;padding:8px;background:white;border-radius:8px;text-align:center;border:1px solid #eee">
+            <div style="font-size:16px;font-weight:800;color:#D07B2F">1.8j</div>
+            <div style="font-size:9px;color:#aaa">Moy. panel</div>
+          </div>
+          <div style="flex:1;padding:8px;background:#FFF3E0;border-radius:8px;text-align:center;border:1px solid #ffe0b2">
+            <div style="font-size:16px;font-weight:800;color:#C0392B">1</div>
+            <div style="font-size:9px;color:#aaa">Lent(s) ⚠</div>
+          </div>
+          <div style="flex:1;padding:8px;background:white;border-radius:8px;text-align:center;border:1px solid #eee">
+            <div style="font-size:16px;font-weight:800;color:#38835A">4</div>
+            <div style="font-size:9px;color:#aaa">Dans la norme</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:5px 8px;background:white;border-radius:6px;margin-bottom:4px;border:1px solid #eee">
+          <span style="font-weight:600;color:#333">Ichrak C.</span><span style="color:#38835A;font-weight:700">1.2j</span><span style="color:#38835A;font-size:10px">↓ meilleur</span>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:5px 8px;background:#FFF3E0;border-radius:6px;border:1px solid #ffe0b2">
+          <span style="font-weight:600;color:#C0392B">Maha O. ⚠</span><span style="color:#C0392B;font-weight:700">3.8j</span><span style="color:#C0392B;font-size:10px">↑ dégradé</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

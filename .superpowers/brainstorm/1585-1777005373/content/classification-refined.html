@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Classification — Refined</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #1a1a2e; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; padding: 30px 20px 60px; min-height: 100vh; }
+  h2 { color: #fff; font-size: 15px; margin-bottom: 6px; text-align: center; }
+  .subtitle { color: #aaa; font-size: 12px; margin-bottom: 28px; text-align: center; max-width: 520px; line-height: 1.5; }
+
+  .phones { display: flex; gap: 28px; flex-wrap: wrap; justify-content: center; }
+
+  .phone-wrap { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .phone-label { color: #fff; font-size: 12px; font-weight: 700; }
+  .phone-sublabel { color: #888; font-size: 10px; text-align: center; max-width: 180px; line-height: 1.4; }
+
+  .phone {
+    width: 270px; background: #111; border-radius: 36px; padding: 9px;
+    box-shadow: 0 0 0 2px #333, 0 20px 60px rgba(0,0,0,0.6);
+    cursor: pointer; transition: box-shadow 0.2s, transform 0.15s;
+    border: 2px solid transparent;
+  }
+  .phone:hover { transform: translateY(-2px); }
+  .phone.selected { border-color: #38835A; box-shadow: 0 0 0 3px #38835A44, 0 20px 60px rgba(56,131,90,0.3); }
+
+  .phone-notch { width: 65px; height: 13px; background: #111; border-radius: 0 0 9px 9px; margin: 0 auto 5px; }
+
+  .phone-screen { background: #F9F6EF; border-radius: 28px; overflow: hidden; height: 480px; }
+
+  .app-bar { background: #dce9e2; padding: 10px 13px; display: flex; align-items: center; gap: 8px; }
+  .app-bar-title { font-size: 13px; font-weight: 700; color: #1A2E1F; flex: 1; }
+
+  .divider { height: 1px; background: rgba(0,0,0,0.06); }
+  .scroll-area { overflow-y: auto; height: calc(480px - 44px); padding: 11px; }
+
+  .card { background: white; border-radius: 12px; padding: 11px; margin-bottom: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+
+  .card-header { display: flex; align-items: center; margin-bottom: 10px; }
+  .section-bar { width: 3px; height: 14px; background: #38835A; border-radius: 2px; margin-right: 6px; flex-shrink: 0; }
+  .section-icon { font-size: 11px; margin-right: 5px; }
+  .section-title { font-size: 11px; font-weight: 700; color: #1A2E1F; flex: 1; }
+  .date-chip {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: #F0F2F1; border: 1px solid #E8EAE8;
+    border-radius: 7px; padding: 3px 7px; font-size: 9px; font-weight: 700; color: #1A2E1F;
+  }
+
+  .taster-row {
+    display: flex; align-items: center; gap: 7px;
+    padding: 6px 8px; border-radius: 8px; margin-bottom: 5px;
+    border: 1px solid #eee; background: white;
+  }
+  .taster-row.bad { background: #FFF8F6; border-color: #ffd5cc; }
+  .taster-name { font-size: 10px; font-weight: 700; color: #1A2E1F; width: 60px; flex-shrink: 0; }
+  .taster-name.red { color: #C0392B; }
+  .bar-wrap { flex: 1; height: 5px; background: #eee; border-radius: 3px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 3px; }
+  .taster-pct { font-size: 10px; font-weight: 800; width: 26px; text-align: right; }
+
+  .bottom-note {
+    margin-top: 8px; padding: 7px 9px; background: #F7FAF8;
+    border-radius: 8px; font-size: 9px; color: #6B8E7A; line-height: 1.5;
+    border: 1px solid #E2EDE7;
+  }
+
+  .scroll-hint { font-size: 9px; color: #bbb; text-align: center; padding: 3px 0 1px; letter-spacing: 0.3px; }
+
+  .badge { position: fixed; bottom: 0; left: 0; right: 0; background: #38835A; color: white; text-align: center; padding: 12px; font-size: 13px; font-weight: 700; display: none; }
+  .badge.on { display: block; }
+</style>
+</head>
+<body>
+
+<h2>Proposition de titre + note de bas de section</h2>
+<p class="subtitle">3 versions — même layout, titres et notes différents. Choisissez celle qui vous semble la plus claire et naturelle.</p>
+
+<div class="phones">
+
+  <!-- VERSION 1 -->
+  <div class="phone-wrap">
+    <div class="phone" id="p1" onclick="sel('1')">
+      <div class="phone-notch"></div>
+      <div class="phone-screen">
+        <div class="app-bar"><span class="app-bar-title">Tableau de bord</span></div>
+        <div class="divider"></div>
+        <div class="scroll-area">
+          <div class="card">
+            <div class="card-header">
+              <div class="section-bar"></div>
+              <span class="section-icon">🎯</span>
+              <span class="section-title">Alignement avec le panel</span>
+              <div class="date-chip">📅 Filtrer</div>
+            </div>
+            <div style="max-height:158px;overflow-y:auto">
+              <div class="taster-row bad"><span class="taster-name red">Maha O.</span><div class="bar-wrap"><div class="bar-fill" style="width:62%;background:#C0392B"></div></div><span class="taster-pct" style="color:#C0392B">62%</span></div>
+              <div class="taster-row bad"><span class="taster-name red">Yosra S.</span><div class="bar-wrap"><div class="bar-fill" style="width:28%;background:#D07B2F"></div></div><span class="taster-pct" style="color:#D07B2F">28%</span></div>
+              <div class="taster-row"><span class="taster-name">Nayrouz F.</span><div class="bar-wrap"><div class="bar-fill" style="width:12%;background:#38835A"></div></div><span class="taster-pct" style="color:#38835A">12%</span></div>
+              <div class="taster-row"><span class="taster-name">Lobna E.</span><div class="bar-wrap"><div class="bar-fill" style="width:8%;background:#38835A"></div></div><span class="taster-pct" style="color:#38835A">8%</span></div>
+              <div class="taster-row"><span class="taster-name">Ichrak C.</span><div class="bar-wrap"><div class="bar-fill" style="width:5%;background:#38835A"></div></div><span class="taster-pct" style="color:#38835A">5%</span></div>
+            </div>
+            <div class="scroll-hint">↕ défiler</div>
+            <div class="bottom-note">Plus le % est élevé, plus le dégustateur classe différemment du reste du panel.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="phone-label">Version 1</div>
+    <div class="phone-sublabel">"Alignement avec le panel"</div>
+  </div>
+
+  <!-- VERSION 2 -->
+  <div class="phone-wrap">
+    <div class="phone" id="p2" onclick="sel('2')">
+      <div class="phone-notch"></div>
+      <div class="phone-screen">
+        <div class="app-bar"><span class="app-bar-title">Tableau de bord</span></div>
+        <div class="divider"></div>
+        <div class="scroll-area">
+          <div class="card">
+            <div class="card-header">
+              <div class="section-bar"></div>
+              <span class="section-icon">📊</span>
+              <span class="section-title">Fiabilité des classifications</span>
+              <div class="date-chip">📅 Filtrer</div>
+            </div>
+            <div style="max-height:158px;overflow-y:auto">
+              <div class="taster-row bad"><span class="taster-name red">Maha O.</span><div class="bar-wrap"><div class="bar-fill" style="width:62%;background:#C0392B"></div></div><span class="taster-pct" style="color:#C0392B">62%</span></div>
+              <div class="taster-row bad"><span class="taster-name red">Yosra S.</span><div class="bar-wrap"><div class="bar-fill" style="width:28%;background:#D07B2F"></div></div><span class="taster-pct" style="color:#D07B2F">28%</span></div>
+              <div class="taster-row"><span class="taster-name">Nayrouz F.</span><div class="bar-wrap"><div class="bar-fill" style="width:12%;background:#38835A"></div></div><span class="taster-pct" style="color:#38835A">12%</span></div>
+              <div class="taster-row"><span class="taster-name">Lobna E.</span><div class="bar-wrap"><div class="bar-fill" style="width:8%;background:#38835A"></div></div><span class="taster-pct" style="color:#38835A">8%</span></div>
+              <div class="taster-row"><span class="taster-name">Ichrak C.</span><div class="bar-wrap"><div class="bar-fill" style="width:5%;background:#38835A"></div></div><span class="taster-pct" style="color:#38835A">5%</span></div>
+            </div>
+            <div class="scroll-hint">↕ défiler</div>
+            <div class="bottom-note">% de fois où ce dégustateur a classé un échantillon très différemment du groupe — rouge = à surveiller.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="phone-label">Version 2</div>
+    <div class="phone-sublabel">"Fiabilité des classifications"</div>
+  </div>
+
+  <!-- VERSION 3 -->
+  <div class="phone-wrap">
+    <div class="phone" id="p3" onclick="sel('3')">
+      <div class="phone-notch"></div>
+      <div class="phone-screen">
+        <div class="app-bar"><span class="app-bar-title">Tableau de bord</span></div>
+        <div class="divider"></div>
+        <div class="scroll-area">
+          <div class="card">
+            <div class="card-header">
+              <div class="section-bar"></div>
+              <span class="section-icon">🏷️</span>
+              <span class="section-title">Divergences de classification</span>
+              <div class="date-chip">📅 Filtrer</div>
+            </div>
+            <div style="max-height:158px;overflow-y:auto">
+              <div class="taster-row bad"><span class="taster-name red">Maha O.</span><div class="bar-wrap"><div class="bar-fill" style="width:62%;background:#C0392B"></div></div><span class="taster-pct" style="color:#C0392B">62%</span></div>
+              <div class="taster-row bad"><span class="taster-name red">Yosra S.</span><div class="bar-wrap"><div class="bar-fill" style="width:28%;background:#D07B2F"></div></div><span class="taster-pct" style="color:#D07B2F">28%</span></div>
+              <div class="taster-row"><span class="taster-name">Nayrouz F.</span><div class="bar-wrap"><div class="bar-fill" style="width:12%;background:#38835A"></div></div><span class="taster-pct" style="color:#38835A">12%</span></div>
+              <div class="taster-row"><span class="taster-name">Lobna E.</span><div class="bar-wrap"><div class="bar-fill" style="width:8%;background:#38835A"></div></div><span class="taster-pct" style="color:#38835A">8%</span></div>
+              <div class="taster-row"><span class="taster-name">Ichrak C.</span><div class="bar-wrap"><div class="bar-fill" style="width:5%;background:#38835A"></div></div><span class="taster-pct" style="color:#38835A">5%</span></div>
+            </div>
+            <div class="scroll-hint">↕ défiler</div>
+            <div class="bottom-note">Qui classe souvent à l'opposé du groupe ? Rouge = vote régulièrement ignoré dans le calcul final.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="phone-label">Version 3</div>
+    <div class="phone-sublabel">"Divergences de classification"</div>
+  </div>
+
+</div>
+
+<div class="badge" id="badge"></div>
+
+<script>
+function sel(v) {
+  ['1','2','3'].forEach(i => document.getElementById('p'+i).classList.remove('selected'));
+  document.getElementById('p'+v).classList.add('selected');
+  const labels = { '1': 'Version 1 — "Alignement avec le panel"', '2': 'Version 2 — "Fiabilité des classifications"', '3': 'Version 3 — "Divergences de classification"' };
+  const b = document.getElementById('badge');
+  b.textContent = '✓ ' + labels[v] + ' sélectionnée';
+  b.classList.add('on');
+  if (window.recordChoice) window.recordChoice(v, labels[v]);
+}
+</script>
+</body>
+</html>
