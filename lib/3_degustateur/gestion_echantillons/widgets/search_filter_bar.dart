@@ -183,6 +183,7 @@ class DateFilterSheet extends StatefulWidget {
   final DateTime? dateFin;
   final void Function(DateTime debut, DateTime? fin) onApply;
   final VoidCallback onClear;
+  final String titre;
 
   const DateFilterSheet({
     super.key,
@@ -190,6 +191,7 @@ class DateFilterSheet extends StatefulWidget {
     required this.dateFin,
     required this.onApply,
     required this.onClear,
+    this.titre = 'Filtrer par date',
   });
 
   @override
@@ -267,7 +269,7 @@ class _DateFilterSheetState extends State<DateFilterSheet> {
             const Icon(Icons.calendar_today_outlined, size: 16, color: _green),
             const SizedBox(width: 8),
             Text(
-              'Filtrer par date',
+              widget.titre,
               style: GoogleFonts.domine(
                 fontSize:   17,
                 fontWeight: FontWeight.w700,
