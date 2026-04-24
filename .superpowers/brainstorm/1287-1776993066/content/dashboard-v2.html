@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tableau de Bord — Dégustateur</title>
+<link href="https://fonts.googleapis.com/css2?family=Domine:wght@400;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root{--green:#38835A;--dark:#1A2E1F;--hbg:#DCE9E2;--pg:#F2F4F2;--amber:#D07B2F;--blue:#3A6EA5;--red:#C0392B;--olive:#6B8143;--white:#fff;--sh:0 2px 10px rgba(0,0,0,.06),0 0 0 1px rgba(0,0,0,.04);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Inter',sans-serif;background:var(--pg);color:var(--dark);min-height:100vh;}
+
+  .appbar{background:var(--hbg);height:65px;display:flex;align-items:center;padding:0 16px;border-bottom:1px solid rgba(0,0,0,.07);position:sticky;top:0;z-index:100;}
+  .appbar-menu{width:38px;height:38px;display:flex;align-items:center;justify-content:center;cursor:pointer;border-radius:8px;color:var(--dark);margin-right:12px;}
+  .appbar-title{font-family:'Domine',serif;font-size:18px;font-weight:700;color:var(--dark);flex:1;}
+
+  .body{padding:14px 14px 60px;display:flex;flex-direction:column;gap:12px;max-width:420px;margin:0 auto;}
+
+  .card{background:var(--white);border-radius:14px;box-shadow:var(--sh);overflow:hidden;}
+  .cp{padding:14px 16px 16px;}
+
+  .sl{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--dark);}
+  .sl::before{content:'';display:block;width:3px;height:16px;background:var(--green);border-radius:2px;flex-shrink:0;}
+  .sl svg{width:13px;height:13px;color:var(--green);flex-shrink:0;}
+
+  /* date chip */
+  .dc{display:inline-flex;align-items:center;gap:5px;background:#F0F2F1;border:1px solid #E8EAE8;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:700;color:var(--dark);cursor:pointer;transition:all .15s;}
+  .dc.on{background:rgba(56,131,90,.08);border-color:rgba(56,131,90,.25);color:var(--green);}
+  .dc svg{width:11px;height:11px;}
+  .dcdot{width:6px;height:6px;border-radius:50%;background:var(--green);}
+
+  /* urgent */
+  .uh{background:#FDF4F3;padding:11px 14px;display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(192,57,43,.08);}
+  .udot{width:8px;height:8px;background:var(--red);border-radius:50%;box-shadow:0 0 0 3px rgba(192,57,43,.15);flex-shrink:0;}
+  .utitle{font-size:12px;font-weight:700;color:var(--red);flex:1;}
+  .ucnt{background:var(--red);color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px;}
+  .ur{padding:12px 14px;display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(0,0,0,.03);cursor:pointer;}
+  .ur:last-of-type{border-bottom:none;}
+  .uinfo{flex:1;}
+  .uref{font-size:13px;font-weight:700;color:var(--dark);}
+  .umeta{font-size:11px;color:#AAA;margin-top:2px;}
+  .ubadge{padding:4px 10px;border-radius:7px;font-size:11px;font-weight:700;}
+  .bc{background:rgba(192,57,43,.08);border:1px solid rgba(192,57,43,.18);color:var(--red);}
+  .bw{background:rgba(208,123,47,.08);border:1px solid rgba(208,123,47,.18);color:var(--amber);}
+  .chev{color:#DDD;font-size:13px;}
+  .uhint{background:#F8F8F8;text-align:center;font-size:11px;color:#AAA;font-style:italic;padding:8px 14px;}
+
+  /* pipeline */
+  .pr{display:flex;align-items:center;}
+  .pc{flex:1;text-align:center;}
+  .pnum{font-size:20px;font-weight:800;line-height:1;margin-bottom:4px;}
+  .pbar{height:2px;border-radius:2px;margin-top:6px;opacity:.25;}
+  .plbl{font-size:9px;font-weight:600;color:#AAA;line-height:1.2;}
+  .parr{color:#EEE;font-size:14px;padding:0 4px;align-self:center;margin-bottom:20px;}
+
+  /* classifications chart */
+  .cw{position:relative;height:150px;margin-top:4px;}
+
+  /* presence */
+  .arow{display:flex;align-items:center;gap:12px;margin-bottom:14px;}
+  .aring{position:relative;width:78px;height:78px;flex-shrink:0;}
+  .aring canvas{width:78px!important;height:78px!important;}
+  .arc{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;}
+  .arcp{font-size:15px;font-weight:800;color:var(--green);line-height:1;}
+  .arcl{font-size:8px;color:#AAA;margin-top:2px;}
+  .asts{flex:1;}
+  .ast{display:flex;align-items:center;justify-content:space-between;margin-bottom:7px;}
+  .ast:last-child{margin-bottom:0;}
+  .astl{font-size:11px;color:#777;display:flex;align-items:center;gap:6px;}
+  .adot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+  .astv{font-size:12px;font-weight:700;color:var(--dark);}
+  .nxt{background:#F7FAF8;border-radius:8px;padding:9px 12px;border:1px solid rgba(56,131,90,.12);display:flex;align-items:center;gap:10px;}
+
+  /* delai */
+  .sstrip{display:flex;gap:0;background:#F7FAF8;border-radius:10px;overflow:hidden;margin:10px 0 10px;}
+  .si{flex:1;padding:10px 8px;text-align:center;position:relative;}
+  .si+.si::before{content:'';position:absolute;left:0;top:20%;height:60%;width:1px;background:rgba(0,0,0,.07);}
+  .slbl{font-size:9px;font-weight:700;color:#AAA;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px;}
+  .sval{font-size:18px;font-weight:800;line-height:1;}
+  .ssub{font-size:9px;color:#AAA;margin-top:3px;}
+  .dbadge{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px;margin-top:4px;}
+  .bad{background:rgba(192,57,43,.08);color:var(--red);}
+  .dw{position:relative;height:120px;margin-top:6px;}
+  .leg{display:flex;align-items:center;gap:14px;margin-top:8px;justify-content:center;}
+  .li{display:flex;align-items:center;gap:5px;font-size:10px;font-weight:600;color:var(--dark);}
+  .ll{width:16px;height:2px;border-radius:1px;}
+  .lld{background:repeating-linear-gradient(90deg,#B8DCC8 0,#B8DCC8 4px,transparent 4px,transparent 7px);}
+
+  /* activity */
+  .fbadge{display:flex;align-items:center;gap:6px;background:rgba(56,131,90,.06);border:1px solid rgba(56,131,90,.15);border-radius:8px;padding:5px 10px;margin-bottom:10px;font-size:11px;font-weight:700;color:var(--green);}
+  .clrbtn{margin-left:auto;font-size:10px;font-weight:600;color:#AAA;cursor:pointer;background:rgba(0,0,0,.05);padding:2px 7px;border-radius:4px;}
+  .tw{height:210px;overflow-y:auto;padding-right:4px;}
+  .tw::-webkit-scrollbar{width:3px;}
+  .tw::-webkit-scrollbar-thumb{background:rgba(56,131,90,.2);border-radius:2px;}
+  .tl{position:relative;padding-left:20px;}
+  .tl::before{content:'';position:absolute;left:6px;top:6px;bottom:0;width:1px;background:linear-gradient(to bottom,var(--green),rgba(56,131,90,.1));}
+  .ti{position:relative;margin-bottom:14px;}
+  .ti:last-child{margin-bottom:0;}
+  .tdot{position:absolute;left:-20px;top:4px;width:12px;height:12px;border-radius:50%;border:2px solid var(--white);box-shadow:0 0 0 1px rgba(0,0,0,.08);}
+  .ta{font-size:12px;font-weight:600;color:var(--dark);line-height:1.3;}
+  .tt{font-size:10px;color:#BBB;margin-top:2px;}
+  .lf{padding:8px 16px 10px;border-top:1px solid rgba(0,0,0,.05);background:#F7FAF8;display:flex;align-items:center;justify-content:space-between;}
+  .lc{font-size:10px;color:#AAA;font-weight:600;}
+  .ld span{display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--green);opacity:.4;margin:0 2px;animation:p 1.2s infinite;}
+  .ld span:nth-child(2){animation-delay:.2s;}.ld span:nth-child(3){animation-delay:.4s;}
+  @keyframes p{0%,80%,100%{opacity:.2;transform:scale(.85);}40%{opacity:1;transform:scale(1);}}
+
+  /* dialog */
+  .dlg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:300;align-items:center;justify-content:center;}
+  .dlg.show{display:flex;}
+  .db{background:white;border-radius:16px;padding:20px;max-width:280px;width:90%;box-shadow:0 20px 40px rgba(0,0,0,.2);}
+  .dt{font-size:14px;font-weight:700;margin-bottom:8px;}
+  .dd{font-size:12px;color:#666;line-height:1.5;margin-bottom:16px;}
+  .da{display:flex;gap:8px;}
+  .dcanc{flex:1;padding:9px;border-radius:10px;background:#F0F2F1;font-size:12px;font-weight:700;text-align:center;cursor:pointer;}
+  .dconf{flex:1;padding:9px;border-radius:10px;background:var(--red);color:white;font-size:12px;font-weight:700;text-align:center;cursor:pointer;}
+
+  /* sheet */
+  .sho{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;align-items:flex-end;justify-content:center;}
+  .sho.show{display:flex;}
+  .sh{background:#F9F6EF;border-radius:20px 20px 0 0;padding:16px 20px 32px;width:100%;max-width:420px;}
+  .shh{width:40px;height:4px;background:#D0D0D0;border-radius:2px;margin:0 auto 16px;}
+  .sht{font-family:'Domine',serif;font-size:17px;font-weight:700;color:var(--dark);margin-bottom:5px;}
+  .shhint{font-size:11px;color:#AAA;margin-bottom:14px;font-style:italic;}
+  .mt{background:#EBEBEB;border-radius:10px;padding:3px;display:flex;margin-bottom:14px;}
+  .ms{flex:1;text-align:center;padding:9px;border-radius:8px;font-size:12px;font-weight:600;color:#888;cursor:pointer;transition:all .15s;}
+  .ms.on{background:white;color:var(--dark);box-shadow:0 1px 4px rgba(26,46,31,.07);}
+  .df{background:white;border-radius:10px;border:1.5px solid var(--green);padding:12px 14px;display:flex;align-items:center;gap:10px;margin-bottom:10px;cursor:pointer;}
+  .df.em{border-color:#E0E0E0;border-width:1px;}
+  .fll{font-size:13px;color:#AAA;}
+  .flv{font-size:13px;font-weight:700;color:var(--dark);}
+  .sbb{display:flex;gap:12px;margin-top:4px;}
+  .scl{flex:1;padding:11px;border-radius:10px;border:1px solid #D0D0D0;background:white;font-size:12px;font-weight:700;color:#666;text-align:center;cursor:pointer;}
+  .sap{flex:2;padding:11px;border-radius:10px;background:var(--green);color:white;font-size:12px;font-weight:700;text-align:center;cursor:pointer;}
+
+  @keyframes fu{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+  .card{animation:fu .35s ease both;}
+  .card:nth-child(1){animation-delay:.04s;}.card:nth-child(2){animation-delay:.09s;}.card:nth-child(3){animation-delay:.14s;}
+  .card:nth-child(4){animation-delay:.19s;}.card:nth-child(5){animation-delay:.24s;}.card:nth-child(6){animation-delay:.29s;}
+</style>
+</head>
+<body>
+
+<div class="appbar">
+  <div class="appbar-menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></div>
+  <div class="appbar-title">Tableau de Bord</div>
+</div>
+
+<div class="body">
+
+  <!-- 1. URGENT -->
+  <div class="card">
+    <div class="uh">
+      <div class="udot"></div>
+      <div class="utitle">Évaluations urgentes</div>
+      <div class="ucnt">2</div>
+    </div>
+    <div class="ur">
+      <div class="uinfo">
+        <div class="uref">CHEMLALI-C1 · 2026/0001</div>
+        <div class="umeta">Ahmed Dridi · Domaine Bel-Air</div>
+      </div>
+      <div class="ubadge bc">2j — critique</div>
+      <div class="chev">›</div>
+    </div>
+    <div class="ur">
+      <div class="uinfo">
+        <div class="uref">CHETOUI-C3 · 2026/0003</div>
+        <div class="umeta">Rania Hammami · Ferme Al Jazira</div>
+      </div>
+      <div class="ubadge bw">1j en attente</div>
+      <div class="chev">›</div>
+    </div>
+    <div class="uhint">Appuyez pour ouvrir l'évaluation organoleptique</div>
+  </div>
+
+  <!-- 2. PIPELINE -->
+  <div class="card cp">
+    <div class="sl" style="margin-bottom:14px">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Pipeline de mes évaluations
+    </div>
+    <div class="pr">
+      <div class="pc">
+        <div class="pnum" style="color:var(--blue)">5</div>
+        <div class="pbar" style="background:var(--blue)"></div>
+        <div class="plbl">Non<br>évaluée</div>
+      </div>
+      <div class="parr">›</div>
+      <div class="pc">
+        <div class="pnum" style="color:var(--amber)">3</div>
+        <div class="pbar" style="background:var(--amber)"></div>
+        <div class="plbl">En<br>cours</div>
+      </div>
+      <div class="parr">›</div>
+      <div class="pc">
+        <div class="pnum" style="color:var(--green)">23</div>
+        <div class="pbar" style="background:var(--green)"></div>
+        <div class="plbl">Soumise</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. CLASSIFICATIONS -->
+  <div class="card cp">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <div class="sl">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        Mes classifications
+      </div>
+      <div class="dc on" onclick="openSheet('class')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Avr 2026 <div class="dcdot"></div>
+      </div>
+    </div>
+    <div class="cw"><canvas id="classChart"></canvas></div>
+    <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-top:8px">
+      <div style="display:flex;align-items:center;gap:4px;font-size:10px;font-weight:600"><div style="width:10px;height:10px;border-radius:3px;background:#38835A"></div>Extra Vierge</div>
+      <div style="display:flex;align-items:center;gap:4px;font-size:10px;font-weight:600"><div style="width:10px;height:10px;border-radius:3px;background:#6B8143"></div>Vierge</div>
+      <div style="display:flex;align-items:center;gap:4px;font-size:10px;font-weight:600"><div style="width:10px;height:10px;border-radius:3px;background:#D07B2F"></div>Lampante</div>
+    </div>
+  </div>
+
+  <!-- 4. PRESENCE -->
+  <div class="card cp">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <div class="sl">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Présence aux séances
+      </div>
+      <div class="dc" onclick="openSheet('pres')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Filtrer
+      </div>
+    </div>
+    <div class="arow">
+      <div class="aring">
+        <canvas id="attChart"></canvas>
+        <div class="arc"><div class="arcp">87%</div><div class="arcl">présence</div></div>
+      </div>
+      <div class="asts">
+        <div class="ast"><div class="astl"><div class="adot" style="background:#38835A"></div>Présent</div><div class="astv" style="color:#38835A">13</div></div>
+        <div class="ast"><div class="astl"><div class="adot" style="background:#C0392B"></div>Manquées</div><div class="astv" style="color:#C0392B">2</div></div>
+        <div class="ast"><div class="astl"><div class="adot" style="background:#E5E7E5"></div>Total</div><div class="astv">15</div></div>
+      </div>
+    </div>
+    <div class="nxt">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#38835A" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <div style="flex:1"><div style="font-size:11px;font-weight:700">Prochaine : 28 Avr 2026</div><div style="font-size:10px;color:#AAA">Salle A · 09h00</div></div>
+      <div style="font-size:10px;font-weight:700;color:#38835A;background:rgba(56,131,90,.10);padding:3px 8px;border-radius:5px">4j</div>
+    </div>
+  </div>
+
+  <!-- 5. DELAI DE SOUMISSION -->
+  <div class="card cp">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0">
+      <div class="sl">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Délai de soumission
+      </div>
+      <div class="dc on" onclick="openSheet('delai')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Jan → Avr 2026 <div class="dcdot"></div>
+      </div>
+    </div>
+    <div class="sstrip">
+      <div class="si">
+        <div class="slbl">Mon délai moy.</div>
+        <div class="sval" style="color:var(--amber)">1.8j</div>
+        <div class="dbadge bad">↓ +0.4j vs panel</div>
+      </div>
+      <div class="si">
+        <div class="slbl">Moy. panel</div>
+        <div class="sval" style="color:var(--green)">1.4j</div>
+        <div class="ssub">sur la période</div>
+      </div>
+      <div class="si">
+        <div class="slbl">Évals.</div>
+        <div class="sval" style="color:var(--dark)">23</div>
+        <div class="ssub">comptées</div>
+      </div>
+    </div>
+    <div class="dw"><canvas id="delaiChart"></canvas></div>
+    <div class="leg">
+      <div class="li"><div class="ll" style="background:var(--amber)"></div>Mon délai</div>
+      <div class="li"><div class="ll lld"></div>Moy. panel</div>
+    </div>
+  </div>
+
+  <!-- 6. ACTIVITE RECENTE -->
+  <div class="card">
+    <div class="cp" style="padding-bottom:0">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div class="sl">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Activité récente
+        </div>
+        <div class="dc on" onclick="openSheet('act')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          1–24 Avr <div class="dcdot"></div>
+        </div>
+      </div>
+      <div class="fbadge" id="fb">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#38835A" stroke-width="2"><polyline points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+        1 Avr → 24 Avr 2026
+        <div class="clrbtn" onclick="askClear()">✕ Effacer</div>
+      </div>
+    </div>
+    <div style="padding:0 16px 4px">
+      <div class="tw" onscroll="onScroll(this)">
+        <div class="tl" id="tl">
+          <div class="ti"><div class="tdot" style="background:#38835A"></div><div class="ta">Évaluation soumise — CHEMLALI-C4</div><div class="tt">24 Avr · 10h32</div></div>
+          <div class="ti"><div class="tdot" style="background:#3A6EA5"></div><div class="ta">Séance de dégustation rejointe — Séance #14</div><div class="tt">23 Avr · 09h00</div></div>
+          <div class="ti"><div class="tdot" style="background:#38835A"></div><div class="ta">Évaluation soumise — OUESLATI-C2</div><div class="tt">21 Avr · 14h15</div></div>
+          <div class="ti"><div class="tdot" style="background:#C0392B"></div><div class="ta">Séance manquée — Séance #13</div><div class="tt">19 Avr · 09h00</div></div>
+          <div class="ti"><div class="tdot" style="background:#38835A"></div><div class="ta">Évaluation soumise — CHETOUI-C2</div><div class="tt">19 Avr · 11h47</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="lf">
+      <div class="lc" id="lc">1–5 sur 23</div>
+      <div class="ld" id="ld" style="display:none"><span></span><span></span><span></span></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- DIALOG -->
+<div class="dlg" id="dlg">
+  <div class="db">
+    <div class="dt">Effacer le filtre ?</div>
+    <div class="dd">Le filtre (1 Avr → 24 Avr 2026) sera supprimé.</div>
+    <div class="da"><div class="dcanc" onclick="closeDlg()">Annuler</div><div class="dconf" onclick="confirmClear()">Effacer</div></div>
+  </div>
+</div>
+
+<!-- DATE SHEET -->
+<div class="sho" id="sho" onclick="closeSho(event)">
+  <div class="sh" onclick="event.stopPropagation()">
+    <div class="shh"></div>
+    <div class="sht" id="sht">Filtrer par date</div>
+    <div class="shhint" id="shHint">Sélectionne une période. Pour un jour précis : même date pour Du et Au.</div>
+    <div id="modeRow"></div>
+    <div id="fieldA" class="df"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#38835A" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span class="fll" id="lblA">Du :</span>&nbsp;<span class="flv" id="valA">01 / 01 / 2026</span></div>
+    <div id="fieldB" class="df"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#38835A" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span class="fll">Au :</span>&nbsp;<span class="flv">24 / 04 / 2026</span></div>
+    <div class="sbb"><div class="scl" onclick="closeSho({target:document.getElementById('sho')})">Effacer</div><div class="sap" onclick="closeSho({target:document.getElementById('sho')})">Appliquer</div></div>
+  </div>
+</div>
+
+<script>
+// ── CHARTS ──────────────────────────────────────────────────────────
+// Classifications
+const cCtx = document.getElementById('classChart').getContext('2d');
+new Chart(cCtx,{
+  type:'bar',
+  data:{
+    labels:['Oct','Nov','Déc','Jan','Fév','Mar','Avr'],
+    datasets:[
+      {label:'Extra Vierge',data:[1,2,3,5,2,1,1],backgroundColor:'#38835A',borderRadius:5,borderSkipped:false},
+      {label:'Vierge',data:[0,1,1,2,1,1,0],backgroundColor:'#6B8143',borderRadius:5,borderSkipped:false},
+      {label:'Lampante',data:[1,0,0,0,1,0,0],backgroundColor:'#D07B2F',borderRadius:5,borderSkipped:false},
+    ]
+  },
+  options:{
+    animation:{duration:1000,easing:'easeOutQuart'},
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${c.raw} éval.`}}},
+    scales:{
+      x:{grid:{display:false},ticks:{font:{size:9,weight:'600'},color:'#AAA'},border:{display:false}},
+      y:{grid:{color:'rgba(0,0,0,0.05)'},ticks:{font:{size:9},color:'#CCC',stepSize:2},border:{display:false},max:7}
+    },
+    responsive:true,maintainAspectRatio:false,
+  },
+  plugins:[{id:'vl',afterDatasetsDraw(chart){
+    const {ctx}=chart;
+    chart.data.datasets.forEach((ds,di)=>{
+      chart.getDatasetMeta(di).data.forEach((bar,i)=>{
+        const v=ds.data[i];if(!v)return;
+        const {x,y,height}=bar;
+        if(height<14)return;
+        ctx.save();ctx.font='bold 9px Inter,sans-serif';ctx.fillStyle='#fff';ctx.textAlign='center';ctx.textBaseline='middle';
+        ctx.fillText(v,x,y+height/2);ctx.restore();
+      });
+    });
+  }}]
+});
+
+// Attendance donut
+new Chart(document.getElementById('attChart').getContext('2d'),{
+  type:'doughnut',
+  data:{datasets:[{data:[13,2],backgroundColor:['#38835A','#F1F4F1'],borderWidth:0,borderRadius:4}]},
+  options:{cutout:'70%',animation:{duration:1200,easing:'easeOutQuart'},plugins:{legend:{display:false},tooltip:{enabled:false}},responsive:true,maintainAspectRatio:true}
+});
+
+// Delai line chart
+const dlbls=['2 Jan','9 Jan','15 Jan','22 Jan','5 Fév','12 Fév','1 Mar','14 Mar','2 Avr','10 Avr','19 Avr','21 Avr'];
+const myD=[1.0,2.5,1.2,3.0,1.5,0.8,2.0,1.8,2.2,1.0,1.5,1.9];
+const panD=[1.2,1.3,1.4,1.5,1.4,1.3,1.4,1.5,1.4,1.3,1.4,1.4];
+new Chart(document.getElementById('delaiChart').getContext('2d'),{
+  type:'line',
+  data:{labels:dlbls,datasets:[
+    {label:'Mon délai',data:myD,borderColor:'#D07B2F',backgroundColor:'rgba(208,123,47,0.07)',borderWidth:2,pointBackgroundColor:'#D07B2F',pointRadius:3.5,pointHoverRadius:5,tension:0.35,fill:true},
+    {label:'Moy. panel',data:panD,borderColor:'#B8DCC8',backgroundColor:'transparent',borderWidth:1.5,borderDash:[5,4],pointRadius:0,tension:0.3,fill:false}
+  ]},
+  options:{
+    animation:{duration:1200,easing:'easeOutQuart'},
+    interaction:{mode:'index',intersect:false},
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${c.dataset.label}: ${c.raw}j`}}},
+    scales:{
+      x:{grid:{display:false},ticks:{font:{size:8,weight:'600'},color:'#AAA',maxRotation:30,maxTicksLimit:6},border:{display:false}},
+      y:{grid:{color:'rgba(0,0,0,0.05)'},ticks:{font:{size:9},color:'#CCC',callback:v=>v+'j',stepSize:1},border:{display:false},min:0,max:4}
+    },
+    responsive:true,maintainAspectRatio:false,
+  }
+});
+
+// ── ACTIVITY SCROLL ──────────────────────────────────────────────────
+let loaded=5,loading=false;
+const more=[
+  {c:'#3A6EA5',a:'Séance rejointe — Séance #12',t:'15 Avr · 09h00'},
+  {c:'#38835A',a:'Évaluation soumise — ZALMATI-C1',t:'14 Avr · 16h40'},
+  {c:'#38835A',a:'Évaluation soumise — CHEMLALI-C2',t:'12 Avr · 10h05'},
+  {c:'#D07B2F',a:'Profil mis à jour',t:'08 Avr · 08h30'},
+  {c:'#38835A',a:'Évaluation soumise — OUESLATI-C1',t:'05 Avr · 14h00'},
+];
+function onScroll(el){
+  if(!loading&&el.scrollTop+el.clientHeight>=el.scrollHeight-20&&loaded<23)loadMore();
+}
+function loadMore(){
+  loading=true;
+  document.getElementById('ld').style.display='flex';
+  setTimeout(()=>{
+    const tl=document.getElementById('tl');
+    more.slice(0,Math.min(5,23-loaded)).forEach(item=>{
+      const d=document.createElement('div');d.className='ti';
+      d.innerHTML=`<div class="tdot" style="background:${item.c}"></div><div class="ta">${item.a}</div><div class="tt">${item.t}</div>`;
+      tl.appendChild(d);
+    });
+    loaded=Math.min(loaded+5,23);
+    document.getElementById('ld').style.display='none';
+    document.getElementById('lc').textContent=loaded>=23?'23 sur 23 — tout chargé':`1–${loaded} sur 23`;
+    loading=false;
+  },700);
+}
+
+// ── SHEET ────────────────────────────────────────────────────────────
+const sheetCfg={
+  class:{title:'Filtrer les classifications',hint:'Choisir une période.',mode:'period'},
+  pres:{title:'Filtrer les séances',hint:'Choisir une période.',mode:'period'},
+  delai:{title:'Délai de soumission — période',hint:'Pour un jour précis : même date pour Du et Au.',mode:'period'},
+  act:{title:"Filtrer l'activité",hint:'Choisir une période ou un jour précis.',mode:'both'},
+};
+function openSheet(id){
+  const c=sheetCfg[id];
+  document.getElementById('sht').textContent=c.title;
+  document.getElementById('shHint').textContent=c.hint;
+  // hide mode toggle for period-only
+  const mr=document.getElementById('modeRow');
+  if(c.mode==='both'){
+    mr.innerHTML=`<div class="mt"><div class="ms on" onclick="setMode('period',this)">Période</div><div class="ms" onclick="setMode('exact',this)">Jour exact</div></div>`;
+  } else { mr.innerHTML=''; }
+  document.getElementById('fieldB').style.display='';
+  document.getElementById('sho').classList.add('show');
+}
+function closeSho(e){if(e.target===document.getElementById('sho'))document.getElementById('sho').classList.remove('show');}
+function setMode(m,el){
+  document.querySelectorAll('#modeRow .ms').forEach(s=>s.classList.remove('on'));
+  el.classList.add('on');
+  document.getElementById('fieldB').style.display=m==='exact'?'none':'';
+  document.getElementById('lblA').textContent=m==='exact'?'Date :':'Du :';
+}
+
+// ── CLEAR ────────────────────────────────────────────────────────────
+function askClear(){document.getElementById('dlg').classList.add('show');}
+function closeDlg(){document.getElementById('dlg').classList.remove('show');}
+function confirmClear(){document.getElementById('fb').style.display='none';closeDlg();}
+</script>
+</body>
+</html>

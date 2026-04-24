@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DateFilterSheet — tel quel</title>
+<link href="https://fonts.googleapis.com/css2?family=Domine:wght@400;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green: #38835A;
+    --dark: #1A2E1F;
+    --header-bg: #DCE9E2;
+    --cream: #F9F6EF;
+    --page-bg: #F2F4F2;
+    --white: #fff;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: var(--page-bg); color: var(--dark); padding: 20px 16px 60px; }
+
+  h2 { font-family: 'Domine', serif; font-size: 17px; font-weight: 700; margin-bottom: 6px; }
+  .subtitle { font-size: 12px; color: #777; margin-bottom: 20px; line-height: 1.5; }
+
+  .phone-frame { max-width: 380px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
+
+  /* ── STEP LABEL ── */
+  .step-label {
+    font-size: 11px; font-weight: 700; color: #AAA;
+    text-transform: uppercase; letter-spacing: 0.6px;
+    margin-bottom: 8px;
+  }
+
+  /* ── CARD ── */
+  .card { background: var(--white); border-radius: 16px; box-shadow: 0 2px 10px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04); overflow: hidden; }
+
+  /* ── CALENDAR ICON BUTTON (in card header) ── */
+  .date-icon-btn {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: #F0F2F1; border: 1px solid #E8EAE8; border-radius: 8px;
+    padding: 6px 10px; font-size: 11px; font-weight: 700; color: var(--dark);
+    cursor: pointer;
+  }
+  .date-icon-btn.active {
+    background: rgba(56,131,90,0.08);
+    border-color: rgba(56,131,90,0.25); color: var(--green);
+  }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); }
+
+  /* ── BOTTOM SHEET (simulated) ── */
+  .sheet {
+    background: var(--cream);
+    border-radius: 16px;
+    padding: 16px 20px 24px;
+    box-shadow: 0 -2px 20px rgba(0,0,0,0.1);
+  }
+  .sheet-handle { width: 40px; height: 4px; background: #D0D0D0; border-radius: 2px; margin: 0 auto 16px; }
+
+  .sheet-title-row { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
+  .sheet-title-row svg { color: var(--green); }
+  .sheet-title { font-family: 'Domine', serif; font-size: 17px; font-weight: 700; color: var(--dark); }
+
+  /* ── MODE TOGGLE ── */
+  .mode-toggle {
+    background: #EBEBEB; border-radius: 10px; padding: 3px;
+    display: flex; gap: 0; margin-bottom: 14px;
+  }
+  .mode-seg {
+    flex: 1; text-align: center; padding: 9px;
+    border-radius: 8px; font-size: 12px; font-weight: 600;
+    color: #888; cursor: pointer; transition: all 0.15s;
+  }
+  .mode-seg.active {
+    background: white;
+    color: var(--dark);
+    box-shadow: 0 1px 4px rgba(26,46,31,0.07);
+  }
+
+  /* ── DATE PICKER FIELD ── */
+  .date-field {
+    background: white; border-radius: 10px;
+    border: 1.5px solid var(--green);
+    padding: 13px 14px; display: flex; align-items: center; gap: 10px;
+    margin-bottom: 10px; cursor: pointer;
+  }
+  .date-field.empty { border-color: #E0E0E0; border-width: 1px; }
+  .date-field svg { flex-shrink: 0; }
+  .field-label { font-size: 13px; color: #AAA; }
+  .field-value { font-size: 13px; font-weight: 700; color: var(--dark); }
+  .field-placeholder { font-size: 13px; color: #BBB; }
+
+  /* ── NATIVE CALENDAR MOCK ── */
+  .calendar-mock {
+    background: white; border-radius: 14px;
+    padding: 14px; margin-bottom: 10px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+  }
+  .cal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .cal-month { font-size: 14px; font-weight: 700; color: var(--dark); }
+  .cal-nav { width: 32px; height: 32px; border-radius: 50%; background: #F0F2F1; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 14px; color: #555; }
+  .cal-days-header { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; margin-bottom: 6px; }
+  .cal-day-hdr { font-size: 10px; font-weight: 600; color: #AAA; padding: 3px 0; }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+  .cal-day {
+    aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 500; color: var(--dark); border-radius: 50%;
+    cursor: pointer;
+  }
+  .cal-day.empty { color: transparent; }
+  .cal-day.other { color: #CCC; }
+  .cal-day:hover:not(.selected):not(.empty) { background: rgba(56,131,90,0.1); }
+  .cal-day.selected { background: var(--green); color: white; font-weight: 700; }
+  .cal-day.today { border: 1.5px solid var(--green); color: var(--green); font-weight: 700; }
+
+  /* ── BUTTONS ── */
+  .btn-row { display: flex; gap: 12px; }
+  .btn-clear {
+    flex: 1; padding: 12px; border-radius: 10px;
+    border: 1px solid #D0D0D0; background: white;
+    font-size: 12px; font-weight: 700; color: #666; cursor: pointer; text-align: center;
+  }
+  .btn-apply {
+    flex: 2; padding: 12px; border-radius: 10px;
+    background: var(--green); color: white;
+    font-size: 12px; font-weight: 700; cursor: pointer; text-align: center;
+  }
+  .btn-apply.disabled { background: #C5D6C8; cursor: default; }
+
+  /* ── ANNOTATION ── */
+  .note {
+    background: rgba(56,131,90,0.06); border: 1px solid rgba(56,131,90,0.12);
+    border-radius: 10px; padding: 10px 12px;
+    font-size: 11px; color: #555; line-height: 1.5;
+  }
+  .note strong { color: var(--dark); }
+</style>
+</head>
+<body>
+
+<h2>DateFilterSheet — identique à Gestion des échantillons</h2>
+<p class="subtitle">
+  Même composant réutilisé pour toutes les sections du tableau de bord.<br>
+  Cliquer sur le bouton calendrier → le sheet s'ouvre par le bas.
+</p>
+
+<div class="phone-frame">
+
+  <!-- Step 1: the trigger button -->
+  <div>
+    <div class="step-label">① Le bouton déclencheur (dans la carte)</div>
+    <div style="display:flex;gap:10px;align-items:center">
+      <div class="date-icon-btn" onclick="showSheet()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Filtrer par date
+      </div>
+      <span style="font-size:11px;color:#AAA">→ inactif</span>
+
+      <div class="date-icon-btn active" onclick="showSheet()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        1 Avr → 24 Avr
+        <div class="dot"></div>
+      </div>
+      <span style="font-size:11px;color:#AAA">→ actif</span>
+    </div>
+  </div>
+
+  <!-- Step 2: the sheet itself -->
+  <div>
+    <div class="step-label">② Le sheet (s'ouvre par le bas) — cliquer le bouton ↑ pour voir en vrai</div>
+    <div class="sheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-title-row">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#38835A" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <div class="sheet-title">Filtrer par date</div>
+      </div>
+
+      <!-- Mode toggle -->
+      <div class="mode-toggle">
+        <div class="mode-seg active" id="modeJour" onclick="setMode('jour')">Jour exact</div>
+        <div class="mode-seg" id="modePeriode" onclick="setMode('periode')">Période</div>
+      </div>
+
+      <!-- Date fields -->
+      <div id="fieldJour">
+        <div class="date-field" onclick="showCal()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#38835A" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <span class="field-label">Date :&nbsp;</span>
+          <span class="field-value" id="dateVal">01 / 04 / 2026</span>
+        </div>
+      </div>
+
+      <div id="fieldPeriode" style="display:none">
+        <div class="date-field" onclick="showCal()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#38835A" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <span class="field-label">Du :&nbsp;</span>
+          <span class="field-value">01 / 04 / 2026</span>
+        </div>
+        <div class="date-field" onclick="showCal()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#38835A" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <span class="field-label">Au :&nbsp;</span>
+          <span class="field-value">24 / 04 / 2026</span>
+        </div>
+      </div>
+
+      <!-- Calendar mock (appears when field tapped) -->
+      <div class="calendar-mock" id="calMock" style="display:none">
+        <div class="cal-header">
+          <div class="cal-nav" onclick="prevMonth()">‹</div>
+          <div class="cal-month" id="calMonth">Avril 2026</div>
+          <div class="cal-nav" onclick="nextMonth()">›</div>
+        </div>
+        <div class="cal-days-header">
+          <div class="cal-day-hdr">L</div><div class="cal-day-hdr">M</div>
+          <div class="cal-day-hdr">M</div><div class="cal-day-hdr">J</div>
+          <div class="cal-day-hdr">V</div><div class="cal-day-hdr">S</div>
+          <div class="cal-day-hdr">D</div>
+        </div>
+        <div class="cal-grid" id="calGrid"></div>
+      </div>
+
+      <div class="btn-row" style="margin-top:4px">
+        <div class="btn-clear">Effacer</div>
+        <div class="btn-apply">Appliquer</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="note">
+    <strong>Ce composant existe déjà</strong> dans <code>search_filter_bar.dart</code> — on le réutilise tel quel pour toutes les sections du tableau de bord (activité, classifications, présence). Aucun nouveau composant à créer.
+    <br><br>
+    Le même <code>DateFilterSheet</code> remplace aussi le <code>_PeriodSheet</code> du tableau de bord CEO — cohérence totale.
+  </div>
+
+</div>
+
+<!-- Full-screen sheet overlay -->
+<div id="sheetOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:200;align-items:flex-end;justify-content:center;" onclick="closeSheetOverlay(event)">
+  <div style="background:#F9F6EF;border-radius:20px 20px 0 0;padding:16px 20px 32px;width:100%;max-width:420px" onclick="event.stopPropagation()">
+    <div style="width:40px;height:4px;background:#D0D0D0;border-radius:2px;margin:0 auto 16px"></div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#38835A" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      <div style="font-family:Domine,serif;font-size:17px;font-weight:700;color:#1A2E1F">Filtrer par date d'activité</div>
+    </div>
+    <div style="background:#EBEBEB;border-radius:10px;padding:3px;display:flex;margin-bottom:14px" id="overlayToggle">
+      <div class="mode-seg active" id="oModeJour" onclick="oSetMode('jour')" style="flex:1;text-align:center;padding:9px;border-radius:8px;background:white;font-size:12px;font-weight:600;color:#1A2E1F;cursor:pointer;box-shadow:0 1px 4px rgba(26,46,31,0.07)">Jour exact</div>
+      <div class="mode-seg" id="oModePeriode" onclick="oSetMode('periode')" style="flex:1;text-align:center;padding:9px;border-radius:8px;font-size:12px;font-weight:600;color:#888;cursor:pointer">Période</div>
+    </div>
+    <div id="oFieldJour">
+      <div style="background:white;border-radius:10px;border:1.5px solid #38835A;padding:13px 14px;display:flex;align-items:center;gap:10px;margin-bottom:14px;cursor:pointer">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#38835A" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <span style="font-size:13px;color:#AAA">Date :&nbsp;</span>
+        <span style="font-size:13px;font-weight:700;color:#1A2E1F">Choisir une date</span>
+      </div>
+    </div>
+    <div id="oFieldPeriode" style="display:none">
+      <div style="background:white;border-radius:10px;border:1px solid #E0E0E0;padding:13px 14px;display:flex;align-items:center;gap:10px;margin-bottom:10px;cursor:pointer">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#BBB" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <span style="font-size:13px;color:#AAA">Du :&nbsp;</span><span style="font-size:13px;color:#BBB">Choisir une date</span>
+      </div>
+      <div style="background:white;border-radius:10px;border:1px solid #E0E0E0;padding:13px 14px;display:flex;align-items:center;gap:10px;margin-bottom:14px;cursor:pointer">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#BBB" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <span style="font-size:13px;color:#AAA">Au :&nbsp;</span><span style="font-size:13px;color:#BBB">Choisir une date</span>
+      </div>
+    </div>
+    <div style="display:flex;gap:12px">
+      <div style="flex:1;padding:12px;border-radius:10px;border:1px solid #D0D0D0;background:white;font-size:12px;font-weight:700;color:#666;cursor:pointer;text-align:center" onclick="closeSheetOverlay({target:document.getElementById('sheetOverlay')})">Effacer</div>
+      <div style="flex:2;padding:12px;border-radius:10px;background:#38835A;color:white;font-size:12px;font-weight:700;cursor:pointer;text-align:center" onclick="closeSheetOverlay({target:document.getElementById('sheetOverlay')})">Appliquer</div>
+    </div>
+  </div>
+</div>
+
+<script>
+let mode = 'jour';
+let calMonth = 3, calYear = 2026;
+const months = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+
+function setMode(m) {
+  mode = m;
+  document.getElementById('modeJour').classList.toggle('active', m === 'jour');
+  document.getElementById('modePeriode').classList.toggle('active', m === 'periode');
+  document.getElementById('modeJour').style.background = m === 'jour' ? 'white' : 'transparent';
+  document.getElementById('modePeriode').style.background = m === 'periode' ? 'white' : 'transparent';
+  document.getElementById('modeJour').style.color = m === 'jour' ? '#1A2E1F' : '#888';
+  document.getElementById('modePeriode').style.color = m === 'periode' ? '#1A2E1F' : '#888';
+  document.getElementById('fieldJour').style.display = m === 'jour' ? '' : 'none';
+  document.getElementById('fieldPeriode').style.display = m === 'periode' ? '' : 'none';
+}
+
+function showCal() {
+  document.getElementById('calMock').style.display = 'block';
+  renderCal();
+}
+
+function renderCal() {
+  document.getElementById('calMonth').textContent = months[calMonth] + ' ' + calYear;
+  const grid = document.getElementById('calGrid');
+  grid.innerHTML = '';
+  const first = new Date(calYear, calMonth, 1).getDay();
+  const offset = first === 0 ? 6 : first - 1;
+  const days = new Date(calYear, calMonth + 1, 0).getDate();
+  for (let i = 0; i < offset; i++) {
+    const d = document.createElement('div'); d.className = 'cal-day empty'; d.textContent = '·'; grid.appendChild(d);
+  }
+  for (let d = 1; d <= days; d++) {
+    const el = document.createElement('div');
+    el.className = 'cal-day' + (d === 1 ? ' selected' : '') + (d === 24 ? ' today' : '');
+    el.textContent = d;
+    el.onclick = () => {
+      document.querySelectorAll('.cal-day').forEach(x => x.classList.remove('selected'));
+      el.classList.add('selected');
+      document.getElementById('dateVal').textContent = `${String(d).padStart(2,'0')} / ${String(calMonth+1).padStart(2,'0')} / ${calYear}`;
+      setTimeout(() => document.getElementById('calMock').style.display = 'none', 200);
+    };
+    grid.appendChild(el);
+  }
+}
+
+function prevMonth() { if (calMonth === 0) { calMonth = 11; calYear--; } else calMonth--; renderCal(); }
+function nextMonth() { if (calMonth === 11) { calMonth = 0; calYear++; } else calMonth++; renderCal(); }
+
+function showSheet() { document.getElementById('sheetOverlay').style.display = 'flex'; }
+function closeSheetOverlay(e) { if (e.target === document.getElementById('sheetOverlay') || e.target.textContent === 'Effacer' || e.target.textContent === 'Appliquer') { document.getElementById('sheetOverlay').style.display = 'none'; } }
+
+function oSetMode(m) {
+  document.getElementById('oModeJour').style.cssText = `flex:1;text-align:center;padding:9px;border-radius:8px;background:${m==='jour'?'white':'transparent'};font-size:12px;font-weight:600;color:${m==='jour'?'#1A2E1F':'#888'};cursor:pointer;${m==='jour'?'box-shadow:0 1px 4px rgba(26,46,31,0.07)':''}`;
+  document.getElementById('oModePeriode').style.cssText = `flex:1;text-align:center;padding:9px;border-radius:8px;background:${m==='periode'?'white':'transparent'};font-size:12px;font-weight:600;color:${m==='periode'?'#1A2E1F':'#888'};cursor:pointer;${m==='periode'?'box-shadow:0 1px 4px rgba(26,46,31,0.07)':''}`;
+  document.getElementById('oFieldJour').style.display = m === 'jour' ? '' : 'none';
+  document.getElementById('oFieldPeriode').style.display = m === 'periode' ? '' : 'none';
+}
+</script>
+</body>
+</html>

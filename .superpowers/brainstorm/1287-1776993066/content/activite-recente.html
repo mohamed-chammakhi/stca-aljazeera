@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Activité récente — Options</title>
+<link href="https://fonts.googleapis.com/css2?family=Domine:wght@400;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green: #38835A;
+    --dark: #1A2E1F;
+    --header-bg: #DCE9E2;
+    --page-bg: #F2F4F2;
+    --amber: #D07B2F;
+    --blue: #3A6EA5;
+    --red: #C0392B;
+    --white: #fff;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: var(--page-bg); color: var(--dark); min-height: 100vh; padding: 20px 16px 60px; }
+
+  h2 { font-family: 'Domine', serif; font-size: 18px; font-weight: 700; color: var(--dark); margin-bottom: 6px; }
+  .subtitle { font-size: 13px; color: #777; margin-bottom: 24px; line-height: 1.5; }
+
+  .options-col {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    max-width: 480px;
+    margin: 0 auto;
+  }
+
+  .option-card {
+    background: var(--white);
+    border-radius: 16px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04);
+    overflow: hidden;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .option-card:hover { border-color: rgba(56,131,90,0.3); }
+  .option-card.selected { border-color: var(--green); box-shadow: 0 4px 16px rgba(56,131,90,0.2); }
+
+  .option-header {
+    background: var(--header-bg);
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .option-letter {
+    width: 26px; height: 26px;
+    background: var(--green);
+    color: white;
+    font-size: 12px; font-weight: 800;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .option-title { font-size: 13px; font-weight: 700; color: var(--dark); }
+  .option-tag {
+    margin-left: auto;
+    font-size: 10px; font-weight: 700;
+    padding: 3px 8px; border-radius: 6px;
+  }
+  .tag-clean { background: rgba(56,131,90,0.1); color: var(--green); }
+  .tag-flexible { background: rgba(58,110,165,0.1); color: var(--blue); }
+  .tag-smart { background: rgba(208,123,47,0.1); color: var(--amber); }
+
+  .option-body { padding: 14px; }
+
+  /* Timeline mock */
+  .timeline { padding-left: 18px; position: relative; }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 5px; top: 6px; bottom: 6px;
+    width: 1px;
+    background: linear-gradient(to bottom, var(--green), rgba(56,131,90,0.1));
+  }
+  .tl-item { position: relative; margin-bottom: 11px; }
+  .tl-item:last-child { margin-bottom: 0; }
+  .tl-dot {
+    position: absolute; left: -18px; top: 4px;
+    width: 11px; height: 11px; border-radius: 50%;
+    border: 2px solid var(--white);
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.1);
+  }
+  .tl-action { font-size: 12px; font-weight: 600; color: var(--dark); }
+  .tl-time { font-size: 10px; color: #BBB; margin-top: 1px; }
+
+  .divider {
+    height: 1px; background: rgba(0,0,0,0.05);
+    margin: 12px 0;
+  }
+
+  .voir-tout-btn {
+    display: flex; align-items: center; justify-content: center;
+    gap: 6px;
+    width: 100%;
+    padding: 9px;
+    background: rgba(56,131,90,0.06);
+    border-radius: 8px;
+    font-size: 12px; font-weight: 700;
+    color: var(--green);
+    border: 1px dashed rgba(56,131,90,0.25);
+    margin-top: 12px;
+  }
+
+  .option-desc {
+    font-size: 11px; color: #777; line-height: 1.5;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(0,0,0,0.05);
+  }
+
+  .faded { opacity: 0.35; }
+
+  .selected-indicator {
+    display: none;
+    text-align: center;
+    padding: 9px;
+    background: rgba(56,131,90,0.08);
+    color: var(--green);
+    font-size: 12px; font-weight: 700;
+    border-top: 1px solid rgba(56,131,90,0.12);
+  }
+  .option-card.selected .selected-indicator { display: block; }
+</style>
+</head>
+<body>
+
+<h2>Section « Activité récente »</h2>
+<p class="subtitle">
+  Cette section affiche l'historique de tes actions dans l'application.<br>
+  <strong>Jusqu'où doit-elle remonter ?</strong>
+</p>
+
+<div class="options-col">
+
+  <!-- Option A: Last 10 -->
+  <div class="option-card" id="optA" onclick="selectOption('A')">
+    <div class="option-header">
+      <div class="option-letter">A</div>
+      <div class="option-title">Les 10 dernières actions</div>
+      <div class="option-tag tag-clean">Simple</div>
+    </div>
+    <div class="option-body">
+      <div class="timeline">
+        <div class="tl-item">
+          <div class="tl-dot" style="background:#38835A"></div>
+          <div class="tl-action">Évaluation soumise — CHEMLALI-C4</div>
+          <div class="tl-time">Aujourd'hui · 10h32</div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot" style="background:#3A6EA5"></div>
+          <div class="tl-action">Séance rejointe — Séance #14</div>
+          <div class="tl-time">Hier · 09h00</div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot" style="background:#38835A"></div>
+          <div class="tl-action">Évaluation soumise — OUESLATI-C2</div>
+          <div class="tl-time">21 Avr · 14h15</div>
+        </div>
+        <div class="tl-item faded">
+          <div class="tl-dot" style="background:#C0392B"></div>
+          <div class="tl-action">Séance manquée — Séance #13</div>
+          <div class="tl-time">19 Avr · 09h00</div>
+        </div>
+        <div class="tl-item faded">
+          <div class="tl-dot" style="background:#38835A"></div>
+          <div class="tl-action">... 6 autres actions</div>
+          <div class="tl-time">jusqu'au 10 Avr</div>
+        </div>
+      </div>
+      <div class="option-desc">
+        Affiche toujours exactement les 10 actions les plus récentes. Rapide, léger, pas de pagination.
+      </div>
+    </div>
+    <div class="selected-indicator">✓ Sélectionné</div>
+  </div>
+
+  <!-- Option B: Last 30 days -->
+  <div class="option-card" id="optB" onclick="selectOption('B')">
+    <div class="option-header">
+      <div class="option-letter">B</div>
+      <div class="option-title">Les 30 derniers jours</div>
+      <div class="option-tag tag-flexible">Par période</div>
+    </div>
+    <div class="option-body">
+      <div class="timeline">
+        <div class="tl-item">
+          <div class="tl-dot" style="background:#38835A"></div>
+          <div class="tl-action">Évaluation soumise — CHEMLALI-C4</div>
+          <div class="tl-time">Aujourd'hui · 10h32</div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot" style="background:#3A6EA5"></div>
+          <div class="tl-action">Séance rejointe — Séance #14</div>
+          <div class="tl-time">Hier · 09h00</div>
+        </div>
+        <div class="tl-item faded">
+          <div class="tl-dot" style="background:#38835A"></div>
+          <div class="tl-action">... toutes les actions du mois</div>
+          <div class="tl-time">depuis le 25 Mar</div>
+        </div>
+      </div>
+      <div class="option-desc">
+        Affiche tout ce qui s'est passé dans les 30 derniers jours. La liste peut être longue en période active.
+      </div>
+    </div>
+    <div class="selected-indicator">✓ Sélectionné</div>
+  </div>
+
+  <!-- Option C: 5 items + "Voir tout" -->
+  <div class="option-card" id="optC" onclick="selectOption('C')">
+    <div class="option-header">
+      <div class="option-letter">C</div>
+      <div class="option-title">5 actions + bouton « Voir tout »</div>
+      <div class="option-tag tag-smart">Recommandé</div>
+    </div>
+    <div class="option-body">
+      <div class="timeline">
+        <div class="tl-item">
+          <div class="tl-dot" style="background:#38835A"></div>
+          <div class="tl-action">Évaluation soumise — CHEMLALI-C4</div>
+          <div class="tl-time">Aujourd'hui · 10h32</div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot" style="background:#3A6EA5"></div>
+          <div class="tl-action">Séance rejointe — Séance #14</div>
+          <div class="tl-time">Hier · 09h00</div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot" style="background:#38835A"></div>
+          <div class="tl-action">Évaluation soumise — OUESLATI-C2</div>
+          <div class="tl-time">21 Avr · 14h15</div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot" style="background:#C0392B"></div>
+          <div class="tl-action">Séance manquée — Séance #13</div>
+          <div class="tl-time">19 Avr · 09h00</div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot" style="background:#38835A"></div>
+          <div class="tl-action">Évaluation soumise — CHETOUI-C2</div>
+          <div class="tl-time">19 Avr · 11h47</div>
+        </div>
+      </div>
+      <div class="voir-tout-btn">↓ Voir tout l'historique</div>
+      <div class="option-desc">
+        Le dashboard affiche les 5 plus récentes. Un bouton ouvre la liste complète. Dashboard toujours léger.
+      </div>
+    </div>
+    <div class="selected-indicator">✓ Sélectionné</div>
+  </div>
+
+</div>
+
+<script>
+function selectOption(letter) {
+  document.querySelectorAll('.option-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById('opt' + letter).classList.add('selected');
+  if (window.__superpowers_select) window.__superpowers_select(letter, 'Option ' + letter);
+}
+</script>
+
+</body>
+</html>

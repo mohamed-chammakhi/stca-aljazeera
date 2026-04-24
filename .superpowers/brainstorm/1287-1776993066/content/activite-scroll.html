@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Activité récente — Mockup</title>
+<link href="https://fonts.googleapis.com/css2?family=Domine:wght@400;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green: #38835A;
+    --dark: #1A2E1F;
+    --header-bg: #DCE9E2;
+    --page-bg: #F2F4F2;
+    --amber: #D07B2F;
+    --blue: #3A6EA5;
+    --red: #C0392B;
+    --white: #fff;
+    --card-shadow: 0 2px 10px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--page-bg);
+    color: var(--dark);
+    min-height: 100vh;
+    padding: 20px 16px 60px;
+  }
+
+  h2 { font-family: 'Domine', serif; font-size: 18px; font-weight: 700; color: var(--dark); margin-bottom: 6px; }
+  .subtitle { font-size: 13px; color: #777; margin-bottom: 24px; line-height: 1.5; }
+
+  .phone-frame {
+    max-width: 380px;
+    margin: 0 auto;
+  }
+
+  /* ── CARD ── */
+  .card {
+    background: var(--white);
+    border-radius: 16px;
+    box-shadow: var(--card-shadow);
+    overflow: hidden;
+  }
+
+  .card-pad { padding: 16px; }
+
+  .section-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--dark);
+    margin-bottom: 12px;
+  }
+  .section-label::before {
+    content: '';
+    display: block;
+    width: 3px; height: 16px;
+    background: var(--green);
+    border-radius: 2px;
+  }
+
+  /* ── DATE FILTER ROW ── */
+  .filter-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 12px;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 2px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .filter-row::-webkit-scrollbar { display: none; }
+
+  .filter-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 5px 10px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+
+  .chip-active {
+    background: var(--green);
+    color: white;
+    box-shadow: 0 2px 6px rgba(56,131,90,0.3);
+  }
+
+  .chip-inactive {
+    background: #F0F2F1;
+    color: #666;
+    border-color: #E8EAE8;
+  }
+
+  .date-range-display {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(56,131,90,0.06);
+    border: 1px solid rgba(56,131,90,0.15);
+    border-radius: 8px;
+    padding: 6px 10px;
+    margin-bottom: 12px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--green);
+  }
+
+  .date-range-display .clear-btn {
+    margin-left: auto;
+    font-size: 10px;
+    font-weight: 600;
+    color: #AAA;
+    cursor: pointer;
+    background: rgba(0,0,0,0.05);
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+
+  /* ── SCROLLABLE TIMELINE CONTAINER ── */
+  .timeline-container {
+    height: 240px;
+    overflow-y: auto;
+    padding-right: 4px;
+    position: relative;
+  }
+
+  .timeline-container::-webkit-scrollbar {
+    width: 3px;
+  }
+  .timeline-container::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .timeline-container::-webkit-scrollbar-thumb {
+    background: rgba(56,131,90,0.2);
+    border-radius: 2px;
+  }
+
+  /* ── TIMELINE ── */
+  .timeline {
+    padding-left: 20px;
+    position: relative;
+  }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 6px; top: 6px; bottom: 0;
+    width: 1px;
+    background: linear-gradient(to bottom, var(--green), rgba(56,131,90,0.1));
+  }
+  .tl-item {
+    position: relative;
+    margin-bottom: 14px;
+  }
+  .tl-item:last-child { margin-bottom: 0; }
+  .tl-dot {
+    position: absolute;
+    left: -20px; top: 4px;
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    border: 2px solid var(--white);
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.08);
+  }
+  .tl-action {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--dark);
+    line-height: 1.3;
+  }
+  .tl-time {
+    font-size: 10px;
+    color: #BBB;
+    margin-top: 2px;
+  }
+
+  /* ── LOAD MORE ── */
+  .load-more-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    background: #F7FAF8;
+    border-top: 1px solid rgba(0,0,0,0.05);
+  }
+
+  .load-more-btn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--green);
+    cursor: pointer;
+    background: rgba(56,131,90,0.08);
+    border: 1px solid rgba(56,131,90,0.15);
+    border-radius: 7px;
+    padding: 5px 10px;
+  }
+
+  .load-counter {
+    font-size: 10px;
+    color: #AAA;
+    font-weight: 600;
+  }
+
+  /* ── ANNOTATION ── */
+  .annotation {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    background: rgba(58,110,165,0.06);
+    border: 1px solid rgba(58,110,165,0.12);
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin-top: 14px;
+  }
+  .annotation-icon { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+  .annotation-text { font-size: 11px; color: #555; line-height: 1.5; }
+  .annotation-text strong { color: var(--dark); }
+</style>
+</head>
+<body>
+
+<h2>Activité récente — Aperçu</h2>
+<p class="subtitle">
+  Filtre par date + conteneur fixe défilable verticalement + chargement 10 par 10.
+</p>
+
+<div class="phone-frame">
+
+  <div class="card">
+    <div class="card-pad" style="padding-bottom: 0">
+
+      <div class="section-label">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#38835A" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Activité récente
+      </div>
+
+      <!-- Filter chips -->
+      <div class="filter-row">
+        <div class="filter-chip chip-inactive" onclick="setFilter(this,'jour')">Jour exact</div>
+        <div class="filter-chip chip-active"  onclick="setFilter(this,'periode')">Période</div>
+        <div class="filter-chip chip-inactive" onclick="setFilter(this,'mois')">Mois</div>
+        <div class="filter-chip chip-inactive" onclick="setFilter(this,'annee')">Année</div>
+      </div>
+
+      <!-- Active filter display -->
+      <div class="date-range-display">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#38835A" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        1 Avr 2026 → 24 Avr 2026
+        <div class="clear-btn">✕ Effacer</div>
+      </div>
+
+    </div>
+
+    <!-- Scrollable timeline -->
+    <div style="padding: 0 16px 4px">
+      <div class="timeline-container">
+        <div class="timeline">
+          <div class="tl-item">
+            <div class="tl-dot" style="background:#38835A"></div>
+            <div class="tl-action">Évaluation soumise — CHEMLALI-C4</div>
+            <div class="tl-time">24 Avr · 10h32</div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-dot" style="background:#3A6EA5"></div>
+            <div class="tl-action">Séance de dégustation rejointe — Séance #14</div>
+            <div class="tl-time">23 Avr · 09h00</div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-dot" style="background:#38835A"></div>
+            <div class="tl-action">Évaluation soumise — OUESLATI-C2</div>
+            <div class="tl-time">21 Avr · 14h15</div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-dot" style="background:#C0392B"></div>
+            <div class="tl-action">Séance manquée — Séance #13</div>
+            <div class="tl-time">19 Avr · 09h00</div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-dot" style="background:#38835A"></div>
+            <div class="tl-action">Évaluation soumise — CHETOUI-C2</div>
+            <div class="tl-time">19 Avr · 11h47</div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-dot" style="background:#3A6EA5"></div>
+            <div class="tl-action">Séance de dégustation rejointe — Séance #12</div>
+            <div class="tl-time">15 Avr · 09h00</div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-dot" style="background:#38835A"></div>
+            <div class="tl-action">Évaluation soumise — ZALMATI-C1</div>
+            <div class="tl-time">14 Avr · 16h40</div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-dot" style="background:#38835A"></div>
+            <div class="tl-action">Évaluation soumise — CHEMLALI-C2</div>
+            <div class="tl-time">12 Avr · 10h05</div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-dot" style="background:#D07B2F"></div>
+            <div class="tl-action">Profil mis à jour</div>
+            <div class="tl-time">08 Avr · 08h30</div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-dot" style="background:#38835A"></div>
+            <div class="tl-action">Évaluation soumise — OUESLATI-C1</div>
+            <div class="tl-time">05 Avr · 14h00</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Load more footer -->
+    <div class="load-more-row">
+      <div class="load-counter">Affichage 1–10 sur 23 résultats</div>
+      <div class="load-more-btn">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+        Charger 10 de plus
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Annotation -->
+  <div class="annotation">
+    <div class="annotation-icon">💡</div>
+    <div class="annotation-text">
+      <strong>Comment ça fonctionne :</strong> le filtre date réduit la requête côté backend avant de charger quoi que ce soit. Le conteneur a une hauteur fixe et défile verticalement. 10 actions sont chargées à la fois — appuyer sur "Charger 10 de plus" récupère le lot suivant sans recharger la page.
+    </div>
+  </div>
+
+</div>
+
+<script>
+function setFilter(el, type) {
+  document.querySelectorAll('.filter-chip').forEach(c => {
+    c.classList.remove('chip-active');
+    c.classList.add('chip-inactive');
+  });
+  el.classList.remove('chip-inactive');
+  el.classList.add('chip-active');
+  if (window.__superpowers_select) window.__superpowers_select(type, el.textContent.trim());
+}
+</script>
+
+</body>
+</html>

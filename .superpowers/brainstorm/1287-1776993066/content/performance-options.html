@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Performance vs Panel — Options</title>
+<link href="https://fonts.googleapis.com/css2?family=Domine:wght@400;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{--green:#38835A;--dark:#1A2E1F;--header-bg:#DCE9E2;--page-bg:#F2F4F2;--amber:#D07B2F;--red:#C0392B;--white:#fff;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Inter',sans-serif;background:var(--page-bg);color:var(--dark);padding:20px 16px 60px;}
+
+  h2{font-family:'Domine',serif;font-size:17px;font-weight:700;margin-bottom:6px;}
+  .subtitle{font-size:12px;color:#777;margin-bottom:6px;line-height:1.5;}
+  .explain{font-size:11px;color:#555;background:rgba(56,131,90,0.07);border:1px solid rgba(56,131,90,0.15);border-radius:8px;padding:9px 12px;margin-bottom:20px;line-height:1.6;}
+  .explain strong{color:var(--dark);}
+
+  .options-col{display:flex;flex-direction:column;gap:14px;max-width:380px;margin:0 auto;}
+
+  .option-wrap{cursor:pointer;border-radius:16px;border:2px solid transparent;transition:border-color .2s,box-shadow .2s;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,0.06),0 0 0 1px rgba(0,0,0,0.04);}
+  .option-wrap:hover{border-color:rgba(56,131,90,0.3);}
+  .option-wrap.selected{border-color:var(--green);box-shadow:0 4px 16px rgba(56,131,90,0.2);}
+
+  .option-header{background:var(--header-bg);padding:11px 14px;display:flex;align-items:center;gap:8px;}
+  .opt-letter{width:26px;height:26px;background:var(--green);color:white;font-size:12px;font-weight:800;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .opt-title{font-size:13px;font-weight:700;color:var(--dark);flex:1;}
+  .opt-tag{font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px;}
+  .tag-rec{background:rgba(56,131,90,0.12);color:var(--green);}
+  .tag-min{background:rgba(58,110,165,0.10);color:#3A6EA5;}
+  .tag-vis{background:rgba(208,123,47,0.10);color:var(--amber);}
+
+  .option-body{background:white;padding:14px;}
+
+  .selected-bar{display:none;text-align:center;padding:9px;background:rgba(56,131,90,0.08);color:var(--green);font-size:12px;font-weight:700;border-top:1px solid rgba(56,131,90,0.12);}
+  .option-wrap.selected .selected-bar{display:block;}
+
+  /* ── SECTION LABEL ── */
+  .section-label{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--dark);margin-bottom:14px;}
+  .section-label::before{content:'';display:block;width:3px;height:16px;background:var(--green);border-radius:2px;}
+
+  /* ── OPTION A: Two big numbers side by side ── */
+  .metric-pair{display:flex;gap:10px;}
+  .metric-box{flex:1;background:#F7FAF8;border-radius:12px;padding:14px 10px;text-align:center;border:1px solid rgba(0,0,0,0.04);}
+  .metric-name{font-size:10px;font-weight:700;color:#AAA;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;line-height:1.3;}
+  .metric-mine{font-size:26px;font-weight:800;line-height:1;margin-bottom:2px;}
+  .metric-vs{font-size:10px;color:#BBB;margin-bottom:6px;}
+  .metric-diff{display:inline-flex;align-items:center;gap:3px;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;}
+  .diff-good{background:rgba(56,131,90,0.10);color:var(--green);}
+  .diff-bad{background:rgba(192,57,43,0.08);color:var(--red);}
+  .metric-desc{font-size:10px;color:#999;margin-top:8px;line-height:1.4;}
+
+  /* ── OPTION B: Horizontal bar comparison ── */
+  .compare-row{margin-bottom:16px;}
+  .compare-row:last-child{margin-bottom:0;}
+  .compare-top{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px;}
+  .compare-label{font-size:12px;font-weight:700;color:var(--dark);}
+  .compare-vals{font-size:11px;color:#AAA;}
+  .compare-vals strong{color:var(--dark);}
+  .bar-track{height:10px;background:#EEF2EF;border-radius:6px;position:relative;overflow:visible;}
+  .bar-mine{height:10px;border-radius:6px;position:absolute;left:0;top:0;transition:width .8s cubic-bezier(.34,1.56,.64,1);}
+  .bar-panel-marker{position:absolute;top:-3px;width:2px;height:16px;background:rgba(0,0,0,0.2);border-radius:1px;}
+  .bar-panel-label{position:absolute;top:-18px;font-size:8px;color:#AAA;font-weight:600;transform:translateX(-50%);}
+  .compare-footer{display:flex;justify-content:flex-end;margin-top:4px;}
+  .diff-chip{font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px;}
+
+  /* ── OPTION C: Minimal two-line stats ── */
+  .mini-stat{display:flex;align-items:center;padding:12px 0;border-bottom:1px solid rgba(0,0,0,0.05);}
+  .mini-stat:last-child{border-bottom:none;padding-bottom:0;}
+  .mini-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-right:12px;}
+  .mini-info{flex:1;}
+  .mini-label{font-size:12px;font-weight:700;color:var(--dark);margin-bottom:2px;}
+  .mini-sub{font-size:10px;color:#AAA;}
+  .mini-right{text-align:right;}
+  .mini-val{font-size:20px;font-weight:800;line-height:1;}
+  .mini-badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:6px;margin-top:3px;display:inline-block;}
+</style>
+</head>
+<body>
+
+<h2>Performance vs panel — nouveau design</h2>
+<p class="subtitle">2 métriques seulement, simples et claires.</p>
+<div class="explain">
+  <strong>Accord avec le panel (%)</strong> — sur tous les échantillons que tu as évalués, combien de fois ta classification (Ex. Vierge / Vierge / Lampante) correspond à la décision finale validée par le panel ? Backend : un simple COUNT.<br><br>
+  <strong>Délai de soumission (jours)</strong> — en moyenne, combien de jours s'écoulent entre la réception physique d'un échantillon et ta soumission d'évaluation ? Backend : AVG(date_soumission − date_reception).
+</div>
+
+<div class="options-col">
+
+  <!-- OPTION A: Big numbers -->
+  <div class="option-wrap" id="optA" onclick="pick('A')">
+    <div class="option-header">
+      <div class="opt-letter">A</div>
+      <div class="opt-title">Deux grands chiffres</div>
+      <div class="opt-tag tag-rec">Recommandé</div>
+    </div>
+    <div class="option-body">
+      <div class="section-label">Performance vs panel</div>
+      <div class="metric-pair">
+        <div class="metric-box">
+          <div class="metric-name">Accord<br>avec le panel</div>
+          <div class="metric-mine" style="color:var(--green)">89%</div>
+          <div class="metric-vs">panel moy. : 83%</div>
+          <div class="metric-diff diff-good">↑ +6%</div>
+          <div class="metric-desc">Tes classifications correspondent à celles du panel dans 89% des cas</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-name">Délai moy.<br>de soumission</div>
+          <div class="metric-mine" style="color:var(--amber)">1.8j</div>
+          <div class="metric-vs">panel moy. : 1.4j</div>
+          <div class="metric-diff diff-bad">↓ −0.4j</div>
+          <div class="metric-desc">Tu soumets en moyenne 0.4 jours plus tard que le reste du panel</div>
+        </div>
+      </div>
+    </div>
+    <div class="selected-bar">✓ Sélectionné</div>
+  </div>
+
+  <!-- OPTION B: Horizontal bars -->
+  <div class="option-wrap" id="optB" onclick="pick('B')">
+    <div class="option-header">
+      <div class="opt-letter">B</div>
+      <div class="opt-title">Barres de comparaison</div>
+      <div class="opt-tag tag-vis">Visuel</div>
+    </div>
+    <div class="option-body">
+      <div class="section-label">Performance vs panel</div>
+
+      <div class="compare-row">
+        <div class="compare-top">
+          <div class="compare-label">Accord avec le panel</div>
+          <div class="compare-vals">Toi : <strong>89%</strong> · Panel : 83%</div>
+        </div>
+        <div class="bar-track">
+          <div class="bar-mine" style="width:89%;background:var(--green)"></div>
+          <div class="bar-panel-marker" style="left:83%">
+            <div class="bar-panel-label" style="left:0">panel</div>
+          </div>
+        </div>
+        <div class="compare-footer">
+          <div class="diff-chip diff-good" style="background:rgba(56,131,90,0.10);color:var(--green)">↑ +6% vs panel</div>
+        </div>
+      </div>
+
+      <div class="compare-row">
+        <div class="compare-top">
+          <div class="compare-label">Délai de soumission</div>
+          <div class="compare-vals">Toi : <strong>1.8j</strong> · Panel : 1.4j</div>
+        </div>
+        <div class="bar-track">
+          <div class="bar-mine" style="width:64%;background:var(--amber)"></div>
+          <div class="bar-panel-marker" style="left:50%">
+            <div class="bar-panel-label" style="left:0">panel</div>
+          </div>
+        </div>
+        <div class="compare-footer">
+          <div class="diff-chip" style="background:rgba(192,57,43,0.08);color:var(--red)">↓ 0.4j de retard</div>
+        </div>
+      </div>
+    </div>
+    <div class="selected-bar">✓ Sélectionné</div>
+  </div>
+
+  <!-- OPTION C: Minimal rows -->
+  <div class="option-wrap" id="optC" onclick="pick('C')">
+    <div class="option-header">
+      <div class="opt-letter">C</div>
+      <div class="opt-title">Liste minimaliste</div>
+      <div class="opt-tag tag-min">Simple</div>
+    </div>
+    <div class="option-body">
+      <div class="section-label">Performance vs panel</div>
+
+      <div class="mini-stat">
+        <div class="mini-icon" style="background:rgba(56,131,90,0.10)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#38835A" stroke-width="2"><path d="M9 11l3 3L22 4"/></svg>
+        </div>
+        <div class="mini-info">
+          <div class="mini-label">Accord avec le panel</div>
+          <div class="mini-sub">Moyenne du panel : 83%</div>
+        </div>
+        <div class="mini-right">
+          <div class="mini-val" style="color:var(--green)">89%</div>
+          <div class="mini-badge" style="background:rgba(56,131,90,0.10);color:var(--green)">↑ +6%</div>
+        </div>
+      </div>
+
+      <div class="mini-stat">
+        <div class="mini-icon" style="background:rgba(208,123,47,0.10)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D07B2F" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <div class="mini-info">
+          <div class="mini-label">Délai de soumission</div>
+          <div class="mini-sub">Moyenne du panel : 1.4 jours</div>
+        </div>
+        <div class="mini-right">
+          <div class="mini-val" style="color:var(--amber)">1.8j</div>
+          <div class="mini-badge" style="background:rgba(192,57,43,0.08);color:var(--red)">↓ +0.4j</div>
+        </div>
+      </div>
+
+    </div>
+    <div class="selected-bar">✓ Sélectionné</div>
+  </div>
+
+</div>
+
+<script>
+function pick(l){
+  document.querySelectorAll('.option-wrap').forEach(c=>c.classList.remove('selected'));
+  document.getElementById('opt'+l).classList.add('selected');
+  if(window.__superpowers_select) window.__superpowers_select(l,'Option '+l);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Type de graphique — Classifications</title>
+<link href="https://fonts.googleapis.com/css2?family=Domine:wght@400;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --green: #38835A;
+    --dark: #1A2E1F;
+    --header-bg: #DCE9E2;
+    --page-bg: #F2F4F2;
+    --amber: #D07B2F;
+    --blue: #3A6EA5;
+    --olive: #6B8143;
+    --white: #fff;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: var(--page-bg); color: var(--dark); min-height: 100vh; padding: 20px 16px 60px; }
+
+  h2 { font-family: 'Domine', serif; font-size: 18px; font-weight: 700; color: var(--dark); margin-bottom: 6px; }
+  .subtitle { font-size: 13px; color: #777; margin-bottom: 24px; line-height: 1.5; }
+
+  .options-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    max-width: 680px;
+    margin: 0 auto;
+  }
+
+  .option-card {
+    background: var(--white);
+    border-radius: 16px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04);
+    overflow: hidden;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .option-card:hover { border-color: rgba(56,131,90,0.3); box-shadow: 0 4px 16px rgba(0,0,0,0.10); }
+  .option-card.selected { border-color: var(--green); box-shadow: 0 4px 16px rgba(56,131,90,0.2); }
+
+  .option-header {
+    background: var(--header-bg);
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .option-letter {
+    width: 26px; height: 26px;
+    background: var(--green);
+    color: white;
+    font-size: 12px;
+    font-weight: 800;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .option-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--dark);
+  }
+
+  .option-body { padding: 14px; }
+
+  .chart-preview {
+    height: 160px;
+    position: relative;
+    margin-bottom: 10px;
+  }
+
+  .option-desc {
+    font-size: 11px;
+    color: #777;
+    line-height: 1.5;
+  }
+
+  .date-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: #F0F2F1;
+    border: 1px solid #E8EAE8;
+    border-radius: 7px;
+    padding: 4px 8px;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--dark);
+    margin-bottom: 10px;
+  }
+
+  .selected-indicator {
+    display: none;
+    text-align: center;
+    padding: 10px;
+    background: rgba(56,131,90,0.08);
+    color: var(--green);
+    font-size: 12px;
+    font-weight: 700;
+    border-top: 1px solid rgba(56,131,90,0.12);
+  }
+
+  .option-card.selected .selected-indicator { display: block; }
+</style>
+</head>
+<body>
+
+<h2>Section « Mes classifications »</h2>
+<p class="subtitle">
+  Cette section remplace le tableau des classifications récentes.<br>
+  Elle montre les classifications que tu as soumises sur une période choisie.<br>
+  <strong>Quel type de graphique préfères-tu ?</strong>
+</p>
+
+<div class="options-grid">
+
+  <!-- Option A: Bar chart grouped by type -->
+  <div class="option-card" id="optA" onclick="selectOption('A')">
+    <div class="option-header">
+      <div class="option-letter">A</div>
+      <div class="option-title">Barres groupées par type</div>
+    </div>
+    <div class="option-body">
+      <div class="date-chip">📅 Avr 2026 ▾</div>
+      <div class="chart-preview">
+        <canvas id="barChart"></canvas>
+      </div>
+      <div class="option-desc">
+        Montre le nombre de chaque classification (Extra Vierge / Vierge / Lampante) pour la période choisie. Idéal pour comparer les volumes.
+      </div>
+    </div>
+    <div class="selected-indicator">✓ Sélectionné</div>
+  </div>
+
+  <!-- Option B: Donut -->
+  <div class="option-card" id="optB" onclick="selectOption('B')">
+    <div class="option-header">
+      <div class="option-letter">B</div>
+      <div class="option-title">Anneau + liste détaillée</div>
+    </div>
+    <div class="option-body">
+      <div class="date-chip">📅 Saison 25/26 ▾</div>
+      <div class="chart-preview">
+        <canvas id="donutChart"></canvas>
+      </div>
+      <div class="option-desc">
+        Répartition en pourcentage des types de classification. Bonne lecture de la distribution globale.
+      </div>
+    </div>
+    <div class="selected-indicator">✓ Sélectionné</div>
+  </div>
+
+</div>
+
+<script>
+function selectOption(letter) {
+  document.querySelectorAll('.option-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById('opt' + letter).classList.add('selected');
+  if (window.__superpowers_select) window.__superpowers_select(letter, 'Option ' + letter);
+}
+
+// Bar chart
+const barCtx = document.getElementById('barChart').getContext('2d');
+new Chart(barCtx, {
+  type: 'bar',
+  data: {
+    labels: ['Oct', 'Nov', 'Déc', 'Jan', 'Fév', 'Mar', 'Avr'],
+    datasets: [
+      { label: 'Extra Vierge', data: [1,2,3,5,2,1,1], backgroundColor: '#38835A', borderRadius: 4 },
+      { label: 'Vierge',       data: [0,1,1,2,1,1,0], backgroundColor: '#6B8143', borderRadius: 4 },
+      { label: 'Lampante',     data: [1,0,0,0,1,0,0], backgroundColor: '#D07B2F', borderRadius: 4 },
+    ]
+  },
+  options: {
+    animation: false,
+    plugins: {
+      legend: { display: true, position: 'bottom', labels: { font: { size: 9 }, boxWidth: 10, padding: 8 } },
+      tooltip: { enabled: true }
+    },
+    scales: {
+      x: { grid: { display: false }, ticks: { font: { size: 9 }, color: '#AAA' }, border: { display: false } },
+      y: { grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { font: { size: 9 }, color: '#CCC', stepSize: 2 }, border: { display: false }, max: 8 }
+    },
+    responsive: true, maintainAspectRatio: false,
+  }
+});
+
+// Donut chart
+const donutCtx = document.getElementById('donutChart').getContext('2d');
+new Chart(donutCtx, {
+  type: 'doughnut',
+  data: {
+    labels: ['Extra Vierge', 'Vierge', 'Lampante'],
+    datasets: [{
+      data: [15, 6, 2],
+      backgroundColor: ['#38835A', '#6B8143', '#D07B2F'],
+      borderWidth: 0,
+      borderRadius: 4,
+    }]
+  },
+  options: {
+    animation: false,
+    cutout: '62%',
+    plugins: {
+      legend: { display: true, position: 'bottom', labels: { font: { size: 9 }, boxWidth: 10, padding: 8 } },
+      tooltip: { enabled: true }
+    },
+    responsive: true, maintainAspectRatio: false,
+  }
+});
+</script>
+
+</body>
+</html>

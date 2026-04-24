@@ -1,0 +1,1065 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tableau de Bord — Dégustateur</title>
+<link href="https://fonts.googleapis.com/css2?family=Domine:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --green: #38835A;
+    --dark-green: #3D5C49;
+    --dark: #1A2E1F;
+    --header-bg: #DCE9E2;
+    --page-bg: #F2F4F2;
+    --white: #FFFFFF;
+    --amber: #D07B2F;
+    --blue: #3A6EA5;
+    --red: #C0392B;
+    --olive: #6B8143;
+    --card-shadow: 0 2px 10px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: var(--page-bg);
+    color: var(--dark);
+    min-height: 100vh;
+  }
+
+  /* ── APPBAR ─────────────────────────────────────────────────── */
+  .appbar {
+    background: var(--header-bg);
+    height: 65px;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    border-bottom: 1px solid rgba(0,0,0,0.07);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .appbar-menu {
+    width: 38px; height: 38px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; border-radius: 8px;
+    color: var(--dark);
+    margin-right: 12px;
+  }
+  .appbar-menu svg { width: 22px; height: 22px; }
+
+  .appbar-title {
+    font-family: 'Domine', serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--dark);
+    flex: 1;
+  }
+
+  .appbar-actions {
+    display: flex; align-items: center; gap: 4px;
+  }
+
+  .notif-btn {
+    position: relative;
+    width: 40px; height: 40px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; border-radius: 8px;
+    color: var(--dark);
+  }
+  .notif-btn svg { width: 22px; height: 22px; }
+
+  .notif-badge {
+    position: absolute;
+    top: 8px; right: 8px;
+    background: #F59E0B;
+    color: white;
+    font-size: 8px;
+    font-weight: 800;
+    width: 14px; height: 14px;
+    border-radius: 7px;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  /* ── SCROLLABLE BODY ──────────────────────────────────────── */
+  .body {
+    padding: 14px 14px 60px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-width: 420px;
+    margin: 0 auto;
+  }
+
+  /* ── CARD ──────────────────────────────────────────────────── */
+  .card {
+    background: var(--white);
+    border-radius: 14px;
+    box-shadow: var(--card-shadow);
+    overflow: hidden;
+  }
+
+  .card-pad { padding: 16px; }
+
+  .section-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--dark);
+  }
+
+  .section-label::before {
+    content: '';
+    display: block;
+    width: 3px; height: 16px;
+    background: var(--green);
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+
+  .section-label svg {
+    width: 14px; height: 14px;
+    color: var(--green);
+    flex-shrink: 0;
+  }
+
+  /* ── KPI GRID ──────────────────────────────────────────────── */
+  .kpi-card {
+    background: #3D5C49;
+    border-radius: 14px;
+    padding: 18px;
+  }
+
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+  }
+
+  .kpi-item {
+    padding: 12px;
+  }
+
+  .kpi-item:first-child { padding-left: 0; }
+  .kpi-item:nth-child(2) { border-left: 1px solid rgba(255,255,255,0.10); padding-left: 16px; }
+  .kpi-item:nth-child(3) { border-top: 1px solid rgba(255,255,255,0.10); padding-left: 0; padding-top: 16px; }
+  .kpi-item:nth-child(4) { border-top: 1px solid rgba(255,255,255,0.10); border-left: 1px solid rgba(255,255,255,0.10); padding-left: 16px; padding-top: 16px; }
+
+  .kpi-label {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.7px;
+    color: rgba(255,255,255,0.5);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .kpi-value {
+    font-size: 24px;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: -0.5px;
+    line-height: 1;
+  }
+
+  .kpi-value span {
+    font-size: 11px;
+    font-weight: 400;
+    color: #9DCBB3;
+    margin-left: 3px;
+  }
+
+  .kpi-sub {
+    font-size: 10px;
+    color: rgba(255,255,255,0.55);
+    font-weight: 600;
+    margin-top: 5px;
+  }
+
+  .kpi-sub.good { color: #7EC99E; }
+  .kpi-sub.warn { color: #F5C97A; }
+
+  /* ── URGENT PANEL ──────────────────────────────────────────── */
+  .urgent-header {
+    background: #FDF4F3;
+    padding: 11px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1px solid rgba(192,57,43,0.08);
+  }
+
+  .urgent-dot {
+    width: 8px; height: 8px;
+    background: var(--red);
+    border-radius: 50%;
+    box-shadow: 0 0 0 3px rgba(192,57,43,0.15);
+    flex-shrink: 0;
+  }
+
+  .urgent-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--red);
+    flex: 1;
+  }
+
+  .urgent-count {
+    background: var(--red);
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 6px;
+  }
+
+  .urgent-row {
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1px solid rgba(0,0,0,0.03);
+  }
+
+  .urgent-row:last-child { border-bottom: none; }
+
+  .urgent-info { flex: 1; }
+  .urgent-ref { font-size: 13px; font-weight: 700; color: var(--dark); }
+  .urgent-meta { font-size: 11px; color: #AAA; margin-top: 2px; }
+
+  .urgent-badge {
+    padding: 4px 10px;
+    border-radius: 7px;
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  .urgent-badge.critical {
+    background: rgba(192,57,43,0.08);
+    border: 1px solid rgba(192,57,43,0.18);
+    color: var(--red);
+  }
+
+  .urgent-badge.warn {
+    background: rgba(208,123,47,0.08);
+    border: 1px solid rgba(208,123,47,0.18);
+    color: var(--amber);
+  }
+
+  .chevron-r { color: #DDD; font-size: 13px; }
+
+  .urgent-hint {
+    background: #F8F8F8;
+    text-align: center;
+    font-size: 11px;
+    color: #AAA;
+    font-style: italic;
+    padding: 8px 14px;
+  }
+
+  /* ── PIPELINE ──────────────────────────────────────────────── */
+  .pipeline-row {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+  }
+
+  .pipe-step {
+    flex: 1;
+    display: flex;
+    align-items: center;
+  }
+
+  .pipe-col {
+    flex: 1;
+    text-align: center;
+  }
+
+  .pipe-num {
+    font-size: 20px;
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .pipe-label {
+    font-size: 9px;
+    font-weight: 600;
+    color: #AAA;
+    line-height: 1.2;
+  }
+
+  .pipe-bar {
+    height: 2px;
+    border-radius: 2px;
+    margin-top: 6px;
+    opacity: 0.25;
+  }
+
+  .pipe-arrow {
+    color: #EEE;
+    font-size: 14px;
+    padding: 0 4px;
+    align-self: center;
+    margin-bottom: 20px;
+  }
+
+  /* ── DATE CHIP ─────────────────────────────────────────────── */
+  .date-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: #F0F2F1;
+    border: 1px solid #E8EAE8;
+    border-radius: 8px;
+    padding: 5px 9px;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--dark);
+    cursor: pointer;
+  }
+
+  .date-chip svg { width: 11px; height: 11px; color: var(--green); }
+  .date-chip-arrow { color: var(--green); font-size: 11px; }
+
+  /* ── CLASSIFICATIONS TABLE ─────────────────────────────────── */
+  .classif-row {
+    display: flex;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(0,0,0,0.04);
+    gap: 10px;
+  }
+  .classif-row:last-child { border-bottom: none; padding-bottom: 0; }
+
+  .classif-ref {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--dark);
+    flex: 1;
+  }
+
+  .classif-date {
+    font-size: 10px;
+    color: #AAA;
+    flex-shrink: 0;
+  }
+
+  .classif-badge {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 6px;
+    flex-shrink: 0;
+  }
+
+  .badge-extra {
+    background: rgba(56,131,90,0.10);
+    color: var(--green);
+    border: 1px solid rgba(56,131,90,0.2);
+  }
+  .badge-vierge {
+    background: rgba(107,129,67,0.10);
+    color: var(--olive);
+    border: 1px solid rgba(107,129,67,0.2);
+  }
+  .badge-lampante {
+    background: rgba(208,123,47,0.10);
+    color: var(--amber);
+    border: 1px solid rgba(208,123,47,0.2);
+  }
+
+  /* ── ATTENDANCE ───────────────────────────────────────────── */
+  .attendance-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+
+  .attendance-ring {
+    position: relative;
+    width: 80px;
+    height: 80px;
+    flex-shrink: 0;
+  }
+
+  .attendance-ring canvas { width: 80px !important; height: 80px !important; }
+
+  .attendance-ring-center {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+  }
+
+  .attendance-ring-pct {
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--green);
+    line-height: 1;
+  }
+
+  .attendance-ring-label {
+    font-size: 8px;
+    color: #AAA;
+    line-height: 1.3;
+    margin-top: 2px;
+  }
+
+  .attendance-stats { flex: 1; }
+
+  .att-stat {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+
+  .att-stat-label {
+    font-size: 11px;
+    color: #777;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .att-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .att-stat-val {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--dark);
+  }
+
+  /* ── PERFORMANCE ──────────────────────────────────────────── */
+  .perf-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .perf-metric {
+    flex: 1;
+    background: #F7FAF8;
+    border-radius: 10px;
+    padding: 10px;
+    text-align: center;
+    border: 1px solid rgba(0,0,0,0.04);
+  }
+
+  .perf-metric-val {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--green);
+    line-height: 1;
+    margin-bottom: 3px;
+  }
+
+  .perf-metric-label {
+    font-size: 9px;
+    color: #AAA;
+    font-weight: 600;
+    line-height: 1.3;
+  }
+
+  .vs-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 9px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 5px;
+    margin-top: 4px;
+  }
+
+  .vs-better {
+    background: rgba(56,131,90,0.10);
+    color: var(--green);
+  }
+
+  .vs-below {
+    background: rgba(192,57,43,0.08);
+    color: var(--red);
+  }
+
+  /* ── TIMELINE ─────────────────────────────────────────────── */
+  .timeline {
+    position: relative;
+    padding-left: 20px;
+  }
+
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 6px;
+    top: 6px;
+    bottom: 6px;
+    width: 1px;
+    background: linear-gradient(to bottom, var(--green), rgba(56,131,90,0.1));
+  }
+
+  .timeline-item {
+    position: relative;
+    margin-bottom: 14px;
+  }
+
+  .timeline-item:last-child { margin-bottom: 0; }
+
+  .timeline-dot {
+    position: absolute;
+    left: -20px;
+    top: 4px;
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    border: 2px solid var(--white);
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.08);
+    flex-shrink: 0;
+  }
+
+  .timeline-content { }
+
+  .timeline-action {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--dark);
+    line-height: 1.3;
+  }
+
+  .timeline-time {
+    font-size: 10px;
+    color: #BBB;
+    margin-top: 2px;
+  }
+
+  /* ── CHARTS ───────────────────────────────────────────────── */
+  .chart-wrap {
+    position: relative;
+    height: 140px;
+  }
+
+  /* ── ANIMATIONS ───────────────────────────────────────────── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .kpi-card { animation: fadeUp 0.4s ease both; }
+  .card:nth-child(2) { animation: fadeUp 0.4s 0.07s ease both; }
+  .card:nth-child(3) { animation: fadeUp 0.4s 0.12s ease both; }
+  .card:nth-child(4) { animation: fadeUp 0.4s 0.17s ease both; }
+  .card:nth-child(5) { animation: fadeUp 0.4s 0.22s ease both; }
+  .card:nth-child(6) { animation: fadeUp 0.4s 0.27s ease both; }
+  .card:nth-child(7) { animation: fadeUp 0.4s 0.32s ease both; }
+  .card:nth-child(8) { animation: fadeUp 0.4s 0.37s ease both; }
+  .card:nth-child(9) { animation: fadeUp 0.4s 0.42s ease both; }
+
+  /* ── BAR ANIM ───────────────────────────────────────────── */
+  @keyframes growBar {
+    from { transform: scaleY(0); }
+    to   { transform: scaleY(1); }
+  }
+
+  .bar-animated {
+    transform-origin: bottom;
+    animation: growBar 0.9s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  }
+
+  .bar-animated:nth-child(1) { animation-delay: 0.05s; }
+  .bar-animated:nth-child(2) { animation-delay: 0.12s; }
+  .bar-animated:nth-child(3) { animation-delay: 0.19s; }
+  .bar-animated:nth-child(4) { animation-delay: 0.26s; }
+
+  /* ── COUNTER ANIM ───────────────────────────────────────── */
+  .kpi-value { transition: opacity 0.3s; }
+</style>
+</head>
+<body>
+
+<!-- ── APPBAR ──────────────────────────────────────────────── -->
+<div class="appbar">
+  <div class="appbar-menu">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <line x1="3" y1="6" x2="21" y2="6"/>
+      <line x1="3" y1="12" x2="21" y2="12"/>
+      <line x1="3" y1="18" x2="21" y2="18"/>
+    </svg>
+  </div>
+  <div class="appbar-title">Tableau de Bord</div>
+  <div class="appbar-actions">
+    <div class="notif-btn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+        <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+      </svg>
+      <div class="notif-badge">3</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── BODY ────────────────────────────────────────────────── -->
+<div class="body">
+
+  <!-- 1. KPI GRID -->
+  <div class="kpi-card">
+    <div class="kpi-grid">
+      <div class="kpi-item">
+        <div class="kpi-label">Évaluations complétées</div>
+        <div class="kpi-value" id="kpi1">23<span>éval.</span></div>
+        <div class="kpi-sub good">↑ 4 vs mois dernier</div>
+      </div>
+      <div class="kpi-item">
+        <div class="kpi-label">Échantillons en attente</div>
+        <div class="kpi-value" id="kpi2" style="color:#FCD34D">5<span>à évaluer</span></div>
+        <div class="kpi-sub warn">⚠ 2 urgents</div>
+      </div>
+      <div class="kpi-item">
+        <div class="kpi-label">Taux de présence</div>
+        <div class="kpi-value" id="kpi3">87<span>%</span></div>
+        <div class="kpi-sub good">13/15 séances</div>
+      </div>
+      <div class="kpi-item">
+        <div class="kpi-label">Score performance</div>
+        <div class="kpi-value" id="kpi4">82<span>/100</span></div>
+        <div class="kpi-sub good">+3 pts vs panel</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. URGENT PENDING EVALUATIONS -->
+  <div class="card">
+    <div class="urgent-header">
+      <div class="urgent-dot"></div>
+      <div class="urgent-title">Évaluations urgentes</div>
+      <div class="urgent-count">2</div>
+    </div>
+    <div class="urgent-row">
+      <div class="urgent-info">
+        <div class="urgent-ref">CHEMLALI-C1 · 2026/0001</div>
+        <div class="urgent-meta">Ahmed Dridi · Domaine Bel-Air</div>
+      </div>
+      <div class="urgent-badge critical">2j — critique</div>
+      <div class="chevron-r">›</div>
+    </div>
+    <div class="urgent-row">
+      <div class="urgent-info">
+        <div class="urgent-ref">CHETOUI-C3 · 2026/0003</div>
+        <div class="urgent-meta">Rania Hammami · Ferme Al Jazira</div>
+      </div>
+      <div class="urgent-badge warn">1j en attente</div>
+      <div class="chevron-r">›</div>
+    </div>
+    <div class="urgent-hint">Appuyez pour ouvrir l'évaluation organoleptique</div>
+  </div>
+
+  <!-- 3. PIPELINE -->
+  <div class="card card-pad">
+    <div class="section-label" style="margin-bottom:14px">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+      </svg>
+      Pipeline de mes évaluations
+    </div>
+    <div class="pipeline-row">
+
+      <div class="pipe-step">
+        <div class="pipe-col">
+          <div class="pipe-num" style="color:#3A6EA5">5</div>
+          <div style="height:2px;background:#3A6EA5;opacity:0.25;border-radius:2px;margin-bottom:4px"></div>
+          <div class="pipe-label">Non<br>évaluée</div>
+        </div>
+      </div>
+
+      <div class="pipe-arrow">›</div>
+
+      <div class="pipe-step">
+        <div class="pipe-col">
+          <div class="pipe-num" style="color:#D07B2F">3</div>
+          <div style="height:2px;background:#D07B2F;opacity:0.25;border-radius:2px;margin-bottom:4px"></div>
+          <div class="pipe-label">En<br>cours</div>
+        </div>
+      </div>
+
+      <div class="pipe-arrow">›</div>
+
+      <div class="pipe-step">
+        <div class="pipe-col">
+          <div class="pipe-num" style="color:#38835A">23</div>
+          <div style="height:2px;background:#38835A;opacity:0.25;border-radius:2px;margin-bottom:4px"></div>
+          <div class="pipe-label">Soumise</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 4. MES CLASSIFICATIONS RÉCENTES -->
+  <div class="card card-pad">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <div class="section-label">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+        </svg>
+        Mes classifications récentes
+      </div>
+      <div class="date-chip">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+          <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
+          <line x1="3" y1="10" x2="21" y2="10"/>
+        </svg>
+        Avr 2026 <span class="date-chip-arrow">▾</span>
+      </div>
+    </div>
+
+    <div class="classif-row">
+      <div class="classif-ref">CHEMLALI-C4 · 2026/0002</div>
+      <div class="classif-date">22 Avr</div>
+      <div class="classif-badge badge-extra">Extra Vierge</div>
+    </div>
+    <div class="classif-row">
+      <div class="classif-ref">OUESLATI-C2 · 2026/0004</div>
+      <div class="classif-date">21 Avr</div>
+      <div class="classif-badge badge-extra">Extra Vierge</div>
+    </div>
+    <div class="classif-row">
+      <div class="classif-ref">CHETOUI-C2 · 2026/0005</div>
+      <div class="classif-date">19 Avr</div>
+      <div class="classif-badge badge-vierge">Vierge</div>
+    </div>
+    <div class="classif-row">
+      <div class="classif-ref">ZALMATI-C1 · 2026/0006</div>
+      <div class="classif-date">17 Avr</div>
+      <div class="classif-badge badge-lampante">Lampante</div>
+    </div>
+  </div>
+
+  <!-- 5. PRÉSENCE AUX SÉANCES -->
+  <div class="card card-pad">
+    <div class="section-label" style="margin-bottom:14px">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+        <circle cx="9" cy="7" r="4"/>
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+      </svg>
+      Présence aux séances
+    </div>
+    <div class="attendance-row">
+      <div class="attendance-ring">
+        <canvas id="attendanceChart"></canvas>
+        <div class="attendance-ring-center">
+          <div class="attendance-ring-pct">87%</div>
+          <div class="attendance-ring-label">présence</div>
+        </div>
+      </div>
+      <div class="attendance-stats">
+        <div class="att-stat">
+          <div class="att-stat-label">
+            <div class="att-dot" style="background:#38835A"></div>
+            Séances présent
+          </div>
+          <div class="att-stat-val" style="color:#38835A">13</div>
+        </div>
+        <div class="att-stat">
+          <div class="att-stat-label">
+            <div class="att-dot" style="background:#C0392B"></div>
+            Séances manquées
+          </div>
+          <div class="att-stat-val" style="color:#C0392B">2</div>
+        </div>
+        <div class="att-stat" style="margin-bottom:0">
+          <div class="att-stat-label">
+            <div class="att-dot" style="background:#E5E7E5"></div>
+            Total cette saison
+          </div>
+          <div class="att-stat-val">15</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Upcoming session teaser -->
+    <div style="background:#F7FAF8;border-radius:8px;padding:10px 12px;border:1px solid rgba(56,131,90,0.12);display:flex;align-items:center;gap:10px">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#38835A" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+      </svg>
+      <div style="flex:1">
+        <div style="font-size:11px;font-weight:700;color:#1A2E1F">Prochaine séance : 28 Avr 2026</div>
+        <div style="font-size:10px;color:#AAA">Salle de dégustation A · 09h00</div>
+      </div>
+      <div style="font-size:10px;font-weight:700;color:#38835A;background:rgba(56,131,90,0.10);padding:3px 8px;border-radius:5px">4j</div>
+    </div>
+  </div>
+
+  <!-- 6. PERFORMANCE VS PANEL -->
+  <div class="card card-pad">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <div class="section-label">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+          <polyline points="17 6 23 6 23 12"/>
+        </svg>
+        Performance vs panel
+      </div>
+      <div class="date-chip">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+          <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
+          <line x1="3" y1="10" x2="21" y2="10"/>
+        </svg>
+        Saison 25/26 <span class="date-chip-arrow">▾</span>
+      </div>
+    </div>
+
+    <div class="perf-row">
+      <div class="perf-metric">
+        <div class="perf-metric-val">89%</div>
+        <div class="perf-metric-label">Accord avec<br>résultat final</div>
+        <div class="vs-badge vs-better">↑ +6% vs panel</div>
+      </div>
+      <div class="perf-metric">
+        <div class="perf-metric-val">94%</div>
+        <div class="perf-metric-label">Cohérence<br>interne</div>
+        <div class="vs-badge vs-better">↑ +4% vs panel</div>
+      </div>
+      <div class="perf-metric">
+        <div class="perf-metric-val" style="color:#D07B2F">1.8j</div>
+        <div class="perf-metric-label">Délai moyen<br>d'évaluation</div>
+        <div class="vs-badge vs-below">↓ panel: 1.4j</div>
+      </div>
+    </div>
+
+    <!-- Radar chart -->
+    <div style="height:160px;position:relative">
+      <canvas id="performanceChart"></canvas>
+    </div>
+    <div style="display:flex;align-items:center;gap:16px;margin-top:10px;justify-content:center">
+      <div style="display:flex;align-items:center;gap:5px;font-size:10px;font-weight:600;color:#1A2E1F">
+        <div style="width:16px;height:2px;background:#38835A;border-radius:1px"></div> Moi
+      </div>
+      <div style="display:flex;align-items:center;gap:5px;font-size:10px;font-weight:600;color:#AAA">
+        <div style="width:16px;height:2px;background:#C5D6C8;border-radius:1px;border:1px dashed #C5D6C8"></div> Panel moyen
+      </div>
+    </div>
+  </div>
+
+  <!-- 7. PROGRESSION MENSUELLE -->
+  <div class="card card-pad">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <div class="section-label">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="18" height="18" rx="2"/>
+          <path d="M3 9h18M9 21V9"/>
+        </svg>
+        Progression mensuelle
+      </div>
+      <div class="date-chip">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+          <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
+          <line x1="3" y1="10" x2="21" y2="10"/>
+        </svg>
+        Saison 25/26 <span class="date-chip-arrow">▾</span>
+      </div>
+    </div>
+    <div style="font-size:10px;color:#AAA;font-style:italic;margin-bottom:14px">Évaluations soumises par mois</div>
+    <div class="chart-wrap">
+      <canvas id="monthlyChart"></canvas>
+    </div>
+    <!-- Bottom KPI strip -->
+    <div style="border-top:1px solid rgba(0,0,0,0.05);margin-top:14px;padding-top:12px;display:flex;gap:0">
+      <div style="flex:1;text-align:center">
+        <div style="font-size:15px;font-weight:800;color:#38835A">23</div>
+        <div style="font-size:9px;color:#AAA;margin-top:2px">Total saison</div>
+      </div>
+      <div style="width:1px;background:rgba(0,0,0,0.06)"></div>
+      <div style="flex:1;text-align:center">
+        <div style="font-size:15px;font-weight:800;color:#D07B2F">4.6</div>
+        <div style="font-size:9px;color:#AAA;margin-top:2px">Moy. / mois</div>
+      </div>
+      <div style="width:1px;background:rgba(0,0,0,0.06)"></div>
+      <div style="flex:1;text-align:center">
+        <div style="font-size:15px;font-weight:800;color:#1A2E1F">7</div>
+        <div style="font-size:9px;color:#AAA;margin-top:2px">Record (Jan)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 8. ACTIVITÉ RÉCENTE -->
+  <div class="card card-pad">
+    <div class="section-label" style="margin-bottom:14px">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/>
+        <polyline points="12 6 12 12 16 14"/>
+      </svg>
+      Activité récente
+    </div>
+    <div class="timeline">
+      <div class="timeline-item">
+        <div class="timeline-dot" style="background:#38835A"></div>
+        <div class="timeline-content">
+          <div class="timeline-action">Évaluation soumise — CHEMLALI-C4</div>
+          <div class="timeline-time">Aujourd'hui · 10h32</div>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot" style="background:#3A6EA5"></div>
+        <div class="timeline-content">
+          <div class="timeline-action">Séance de dégustation rejointe — Séance #14</div>
+          <div class="timeline-time">Hier · 09h00</div>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot" style="background:#38835A"></div>
+        <div class="timeline-content">
+          <div class="timeline-action">Évaluation soumise — OUESLATI-C2</div>
+          <div class="timeline-time">21 Avr · 14h15</div>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot" style="background:#C0392B"></div>
+        <div class="timeline-content">
+          <div class="timeline-action">Séance manquée — Séance #13</div>
+          <div class="timeline-time">19 Avr · 09h00</div>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot" style="background:#38835A"></div>
+        <div class="timeline-content">
+          <div class="timeline-action">Évaluation soumise — CHETOUI-C2</div>
+          <div class="timeline-time">19 Avr · 11h47</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /body -->
+
+<script>
+// ── ATTENDANCE DONUT ─────────────────────────────────────────
+const attCtx = document.getElementById('attendanceChart').getContext('2d');
+new Chart(attCtx, {
+  type: 'doughnut',
+  data: {
+    datasets: [{
+      data: [13, 2],
+      backgroundColor: ['#38835A', '#F1F4F1'],
+      borderWidth: 0,
+      borderRadius: 4,
+    }]
+  },
+  options: {
+    cutout: '70%',
+    animation: { duration: 1200, easing: 'easeOutQuart' },
+    plugins: { legend: { display: false }, tooltip: { enabled: false } },
+    responsive: true,
+    maintainAspectRatio: true,
+  }
+});
+
+// ── PERFORMANCE RADAR ────────────────────────────────────────
+const perfCtx = document.getElementById('performanceChart').getContext('2d');
+new Chart(perfCtx, {
+  type: 'radar',
+  data: {
+    labels: ['Accord\nfinal', 'Cohérence', 'Rapidité', 'Précision', 'Répétabilité'],
+    datasets: [
+      {
+        label: 'Moi',
+        data: [89, 94, 72, 87, 91],
+        borderColor: '#38835A',
+        backgroundColor: 'rgba(56,131,90,0.12)',
+        borderWidth: 2,
+        pointBackgroundColor: '#38835A',
+        pointRadius: 3,
+      },
+      {
+        label: 'Panel moyen',
+        data: [83, 90, 86, 82, 88],
+        borderColor: '#C5D6C8',
+        backgroundColor: 'rgba(197,214,200,0.08)',
+        borderWidth: 1.5,
+        borderDash: [4, 3],
+        pointBackgroundColor: '#C5D6C8',
+        pointRadius: 2,
+      }
+    ]
+  },
+  options: {
+    animation: { duration: 1400, easing: 'easeOutQuart' },
+    scales: {
+      r: {
+        min: 60, max: 100,
+        ticks: { display: false, stepSize: 10 },
+        grid: { color: 'rgba(0,0,0,0.06)' },
+        pointLabels: {
+          font: { size: 9, weight: '600' },
+          color: '#999',
+        },
+        angleLines: { color: 'rgba(0,0,0,0.06)' },
+      }
+    },
+    plugins: { legend: { display: false }, tooltip: { enabled: true } },
+    responsive: true,
+    maintainAspectRatio: false,
+  }
+});
+
+// ── MONTHLY BAR CHART ────────────────────────────────────────
+const monthCtx = document.getElementById('monthlyChart').getContext('2d');
+new Chart(monthCtx, {
+  type: 'bar',
+  data: {
+    labels: ['Oct', 'Nov', 'Déc', 'Jan', 'Fév', 'Mar', 'Avr'],
+    datasets: [{
+      data: [2, 3, 4, 7, 4, 2, 1],
+      backgroundColor: (ctx) => {
+        const colors = ['#8BBDA8','#75B097','#5CA383','#38835A','#5CA383','#75B097','#D07B2F'];
+        return colors[ctx.dataIndex] || '#8BBDA8';
+      },
+      borderRadius: 6,
+      borderSkipped: false,
+    }]
+  },
+  options: {
+    animation: { duration: 1000, easing: 'easeOutQuart' },
+    plugins: { legend: { display: false }, tooltip: {
+      callbacks: {
+        label: (ctx) => ` ${ctx.raw} évaluation${ctx.raw > 1 ? 's' : ''}`
+      }
+    }},
+    scales: {
+      x: {
+        grid: { display: false },
+        ticks: { font: { size: 9, weight: '600' }, color: '#AAA' },
+        border: { display: false },
+      },
+      y: {
+        grid: { color: 'rgba(0,0,0,0.05)', drawBorder: false },
+        ticks: {
+          stepSize: 2,
+          font: { size: 9 },
+          color: '#CCC',
+        },
+        border: { display: false },
+        max: 8,
+      }
+    },
+    responsive: true,
+    maintainAspectRatio: false,
+  }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Délai de soumission</title>
+<link href="https://fonts.googleapis.com/css2?family=Domine:wght@400;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root{--green:#38835A;--dark:#1A2E1F;--header-bg:#DCE9E2;--page-bg:#F2F4F2;--amber:#D07B2F;--red:#C0392B;--white:#fff;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Inter',sans-serif;background:var(--page-bg);color:var(--dark);padding:20px 16px 60px;}
+  h2{font-family:'Domine',serif;font-size:17px;font-weight:700;margin-bottom:6px;}
+  .subtitle{font-size:12px;color:#777;margin-bottom:20px;line-height:1.5;}
+  .frame{max-width:380px;margin:0 auto;display:flex;flex-direction:column;gap:14px;}
+
+  /* CARD */
+  .card{background:var(--white);border-radius:14px;box-shadow:0 2px 10px rgba(0,0,0,0.06),0 0 0 1px rgba(0,0,0,0.04);overflow:hidden;}
+  .card-pad{padding:14px 16px 16px;}
+
+  /* SECTION LABEL */
+  .section-label{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--dark);}
+  .section-label::before{content:'';display:block;width:3px;height:16px;background:var(--green);border-radius:2px;}
+
+  /* DATE CHIP */
+  .date-chip{display:inline-flex;align-items:center;gap:5px;background:rgba(56,131,90,0.08);border:1px solid rgba(56,131,90,0.25);border-radius:8px;padding:5px 9px;font-size:10px;font-weight:700;color:var(--green);cursor:pointer;}
+  .date-chip svg{width:11px;height:11px;}
+  .date-chip-dot{width:6px;height:6px;border-radius:50%;background:var(--green);}
+
+  /* SUMMARY STRIP */
+  .summary-strip{display:flex;gap:0;background:#F7FAF8;border-radius:10px;overflow:hidden;margin:12px 0 10px;}
+  .s-item{flex:1;padding:10px 8px;text-align:center;position:relative;}
+  .s-item+.s-item::before{content:'';position:absolute;left:0;top:20%;height:60%;width:1px;background:rgba(0,0,0,0.07);}
+  .s-label{font-size:9px;font-weight:700;color:#AAA;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;}
+  .s-val{font-size:18px;font-weight:800;line-height:1;}
+  .s-sub{font-size:9px;color:#AAA;margin-top:3px;}
+
+  /* DIFF BADGE */
+  .diff-badge{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px;margin-top:4px;}
+  .good{background:rgba(56,131,90,0.10);color:var(--green);}
+  .bad{background:rgba(192,57,43,0.08);color:var(--red);}
+
+  /* CHART */
+  .chart-wrap{position:relative;height:130px;margin-top:6px;}
+
+  /* LEGEND */
+  .legend{display:flex;align-items:center;gap:14px;margin-top:8px;justify-content:center;}
+  .leg-item{display:flex;align-items:center;gap:5px;font-size:10px;font-weight:600;color:var(--dark);}
+  .leg-line{width:18px;height:2px;border-radius:1px;}
+  .leg-line.dashed{background:repeating-linear-gradient(90deg,#B8DCC8 0,#B8DCC8 4px,transparent 4px,transparent 7px);}
+
+  /* PERIOD SHEET */
+  .sheet-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:200;align-items:flex-end;justify-content:center;}
+  .sheet-overlay.show{display:flex;}
+  .sheet{background:#F9F6EF;border-radius:20px 20px 0 0;padding:16px 20px 32px;width:100%;max-width:420px;}
+  .sheet-handle{width:40px;height:4px;background:#D0D0D0;border-radius:2px;margin:0 auto 16px;}
+  .sheet-title-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+  .sheet-title{font-family:'Domine',serif;font-size:17px;font-weight:700;color:var(--dark);}
+  .sheet-hint{font-size:11px;color:#AAA;margin-bottom:14px;font-style:italic;}
+  .date-field{background:white;border-radius:10px;border:1.5px solid var(--green);padding:12px 14px;display:flex;align-items:center;gap:10px;margin-bottom:10px;cursor:pointer;}
+  .field-lbl{font-size:13px;color:#AAA;}
+  .field-val{font-size:13px;font-weight:700;color:var(--dark);}
+  .sheet-btns{display:flex;gap:12px;margin-top:4px;}
+  .s-clear{flex:1;padding:11px;border-radius:10px;border:1px solid #D0D0D0;background:white;font-size:12px;font-weight:700;color:#666;text-align:center;cursor:pointer;}
+  .s-apply{flex:2;padding:11px;border-radius:10px;background:var(--green);color:white;font-size:12px;font-weight:700;text-align:center;cursor:pointer;}
+
+  /* NOTE */
+  .note{background:rgba(56,131,90,0.06);border:1px solid rgba(56,131,90,0.12);border-radius:10px;padding:10px 12px;font-size:11px;color:#555;line-height:1.6;}
+  .note strong{color:var(--dark);}
+</style>
+</head>
+<body>
+
+<h2>Délai de soumission vs panel</h2>
+<p class="subtitle">Un seul graphique ligne, élégant et clair. Filtre par période uniquement.</p>
+
+<div class="frame">
+
+  <div class="card card-pad">
+
+    <!-- Header row -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0">
+      <div class="section-label">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#38835A" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Délai de soumission
+      </div>
+      <div class="date-chip" onclick="openSheet()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Jan → Avr 2026
+        <div class="date-chip-dot"></div>
+      </div>
+    </div>
+
+    <!-- Summary strip -->
+    <div class="summary-strip">
+      <div class="s-item">
+        <div class="s-label">Mon délai moy.</div>
+        <div class="s-val" style="color:var(--amber)">1.8j</div>
+        <div class="diff-badge bad">↓ +0.4j vs panel</div>
+      </div>
+      <div class="s-item">
+        <div class="s-label">Moy. panel</div>
+        <div class="s-val" style="color:var(--green)">1.4j</div>
+        <div class="s-sub">sur la période</div>
+      </div>
+      <div class="s-item">
+        <div class="s-label">Évals. comptées</div>
+        <div class="s-val" style="color:var(--dark)">23</div>
+        <div class="s-sub">sur la période</div>
+      </div>
+    </div>
+
+    <!-- Line chart -->
+    <div class="chart-wrap">
+      <canvas id="delaiChart"></canvas>
+    </div>
+
+    <!-- Legend -->
+    <div class="legend">
+      <div class="leg-item">
+        <div class="leg-line" style="background:var(--amber)"></div>
+        Mon délai
+      </div>
+      <div class="leg-item">
+        <div class="leg-line dashed"></div>
+        Moy. panel
+      </div>
+    </div>
+
+  </div>
+
+  <div class="note">
+    <strong>Calcul backend :</strong><br>
+    · <strong>Mon délai</strong> = pour chaque évaluation soumise dans la période : <code>date_soumission − date_reception_echantillon</code> (en jours). Moyenne de tous ces délais.<br>
+    · <strong>Moy. panel</strong> = même calcul pour tous les dégustateurs actifs sur la même période.<br>
+    · <strong>Le graphique</strong> = un point par évaluation soumise (axe X = date de soumission). La ligne pointillée est la moyenne glissante du panel recalculée dynamiquement selon la période choisie.<br>
+    · <strong>Même date → même date</strong> = filtre sur un seul jour, calcul sur ce jour uniquement.
+  </div>
+
+</div>
+
+<!-- PERIOD SHEET -->
+<div class="sheet-overlay" id="sheetOverlay" onclick="closeSheet(event)">
+  <div class="sheet" onclick="event.stopPropagation()">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title-row">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#38835A" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      <div class="sheet-title">Choisir une période</div>
+    </div>
+    <div class="sheet-hint">Pour un jour précis, sélectionne la même date pour Du et Au.</div>
+    <div class="date-field">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#38835A" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      <span class="field-lbl">Du :&nbsp;</span><span class="field-val">01 / 01 / 2026</span>
+    </div>
+    <div class="date-field">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#38835A" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      <span class="field-lbl">Au :&nbsp;</span><span class="field-val">24 / 04 / 2026</span>
+    </div>
+    <div class="sheet-btns">
+      <div class="s-clear" onclick="closeSheet({target:document.getElementById('sheetOverlay')})">Effacer</div>
+      <div class="s-apply" onclick="closeSheet({target:document.getElementById('sheetOverlay')})">Appliquer</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Line chart: my delay per evaluation + panel rolling avg
+const labels = ['2 Jan','9 Jan','15 Jan','22 Jan','5 Fév','12 Fév','1 Mar','14 Mar','2 Avr','10 Avr','19 Avr','21 Avr'];
+const myDelays =    [1.0, 2.5, 1.2, 3.0, 1.5, 0.8, 2.0, 1.8, 2.2, 1.0, 1.5, 1.9];
+const panelAvg =    [1.2, 1.3, 1.4, 1.5, 1.4, 1.3, 1.4, 1.5, 1.4, 1.3, 1.4, 1.4];
+
+const ctx = document.getElementById('delaiChart').getContext('2d');
+new Chart(ctx, {
+  type: 'line',
+  data: {
+    labels,
+    datasets: [
+      {
+        label: 'Mon délai (j)',
+        data: myDelays,
+        borderColor: '#D07B2F',
+        backgroundColor: 'rgba(208,123,47,0.08)',
+        borderWidth: 2,
+        pointBackgroundColor: '#D07B2F',
+        pointRadius: 3.5,
+        pointHoverRadius: 5,
+        tension: 0.35,
+        fill: true,
+      },
+      {
+        label: 'Moy. panel (j)',
+        data: panelAvg,
+        borderColor: '#B8DCC8',
+        backgroundColor: 'transparent',
+        borderWidth: 1.5,
+        borderDash: [5, 4],
+        pointRadius: 0,
+        tension: 0.3,
+        fill: false,
+      }
+    ]
+  },
+  options: {
+    animation: { duration: 1200, easing: 'easeOutQuart' },
+    interaction: { mode: 'index', intersect: false },
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: ctx => ` ${ctx.dataset.label}: ${ctx.raw}j`
+        }
+      }
+    },
+    scales: {
+      x: {
+        grid: { display: false },
+        ticks: { font: { size: 8, weight: '600' }, color: '#AAA', maxRotation: 30 },
+        border: { display: false },
+      },
+      y: {
+        grid: { color: 'rgba(0,0,0,0.05)' },
+        ticks: {
+          font: { size: 9 }, color: '#CCC',
+          callback: v => v + 'j',
+          stepSize: 1,
+        },
+        border: { display: false },
+        min: 0, max: 4,
+      }
+    },
+    responsive: true,
+    maintainAspectRatio: false,
+  }
+});
+
+function openSheet(){ document.getElementById('sheetOverlay').classList.add('show'); }
+function closeSheet(e){ if(e.target===document.getElementById('sheetOverlay')) document.getElementById('sheetOverlay').classList.remove('show'); }
+</script>
+</body>
+</html>

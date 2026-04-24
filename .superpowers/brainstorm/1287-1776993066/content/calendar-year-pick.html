@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sélecteur de date — navigation année</title>
+<link href="https://fonts.googleapis.com/css2?family=Domine:wght@400;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root { --green:#38835A; --dark:#1A2E1F; --page-bg:#F2F4F2; --cream:#F9F6EF; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:'Inter',sans-serif; background:var(--page-bg); color:var(--dark); padding:20px 16px 60px; }
+  h2 { font-family:'Domine',serif; font-size:17px; font-weight:700; margin-bottom:6px; }
+  .subtitle { font-size:12px; color:#777; margin-bottom:20px; line-height:1.5; }
+  .frame { max-width:340px; margin:0 auto; }
+
+  /* ── CALENDAR CARD ── */
+  .cal-card {
+    background:white; border-radius:14px;
+    box-shadow:0 2px 12px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.05);
+    overflow:hidden;
+  }
+
+  /* ── HEADER ── */
+  .cal-header {
+    background:var(--green); padding:16px 18px 14px;
+    color:white;
+  }
+  .cal-header-label { font-size:11px; font-weight:600; opacity:0.7; text-transform:uppercase; letter-spacing:0.6px; margin-bottom:4px; }
+  .cal-header-date { font-size:22px; font-weight:800; letter-spacing:-0.3px; }
+
+  /* ── TOOLBAR ── */
+  .cal-toolbar {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:12px 14px 8px;
+  }
+  .cal-month-year-btn {
+    display:flex; align-items:center; gap:4px;
+    font-size:14px; font-weight:700; color:var(--dark);
+    cursor:pointer; padding:4px 8px; border-radius:8px;
+    border:none; background:transparent;
+    transition:background 0.15s;
+  }
+  .cal-month-year-btn:hover { background:rgba(56,131,90,0.08); }
+  .cal-month-year-btn .arrow { font-size:12px; color:var(--green); transition:transform 0.2s; }
+  .cal-month-year-btn.open .arrow { transform:rotate(180deg); }
+
+  .cal-nav-btns { display:flex; gap:4px; }
+  .cal-nav { width:32px; height:32px; border-radius:50%; background:#F0F2F1; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:15px; color:#555; transition:background 0.15s; }
+  .cal-nav:hover { background:#DCE9E2; color:var(--green); }
+  .cal-nav.hidden { visibility:hidden; }
+
+  /* ── MONTH VIEW ── */
+  #monthView { padding:0 10px 14px; }
+  .cal-days-header { display:grid; grid-template-columns:repeat(7,1fr); text-align:center; margin-bottom:4px; }
+  .cal-day-hdr { font-size:10px; font-weight:700; color:#AAA; padding:4px 0; }
+  .cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:1px; }
+  .cal-day {
+    aspect-ratio:1; display:flex; align-items:center; justify-content:center;
+    font-size:12px; font-weight:500; color:var(--dark); border-radius:50%; cursor:pointer;
+    transition:background 0.12s;
+  }
+  .cal-day.empty { pointer-events:none; }
+  .cal-day.other { color:#CCC; }
+  .cal-day:hover:not(.empty):not(.selected) { background:rgba(56,131,90,0.1); }
+  .cal-day.selected { background:var(--green); color:white; font-weight:700; }
+  .cal-day.today { outline:2px solid var(--green); outline-offset:-1px; color:var(--green); font-weight:700; }
+  .cal-day.today.selected { color:white; }
+
+  /* ── YEAR VIEW ── */
+  #yearView { display:none; padding:10px; }
+  .year-grid {
+    display:grid; grid-template-columns:repeat(3,1fr); gap:6px;
+    max-height:210px; overflow-y:auto; padding:4px 2px;
+  }
+  .year-grid::-webkit-scrollbar { width:3px; }
+  .year-grid::-webkit-scrollbar-thumb { background:rgba(56,131,90,0.2); border-radius:2px; }
+  .year-item {
+    padding:10px 4px; text-align:center; border-radius:10px;
+    font-size:13px; font-weight:600; color:var(--dark); cursor:pointer;
+    transition:all 0.12s; border:1.5px solid transparent;
+  }
+  .year-item:hover { background:rgba(56,131,90,0.08); }
+  .year-item.selected { background:var(--green); color:white; font-weight:700; }
+  .year-item.current-year { border-color:var(--green); color:var(--green); font-weight:700; }
+  .year-item.current-year.selected { color:white; }
+
+  /* ── HINT ── */
+  .tap-hint {
+    text-align:center; padding:6px 0 10px;
+    font-size:10px; color:#AAA; font-style:italic;
+  }
+
+  /* ── ACTION BTNS ── */
+  .action-row { display:flex; gap:10px; padding:10px 14px 16px; border-top:1px solid rgba(0,0,0,0.05); }
+  .btn-cancel { flex:1; padding:10px; border-radius:10px; background:#F0F2F1; border:1px solid #E0E0E0; font-size:12px; font-weight:700; color:#666; cursor:pointer; text-align:center; }
+  .btn-ok { flex:2; padding:10px; border-radius:10px; background:var(--green); color:white; font-size:12px; font-weight:700; cursor:pointer; text-align:center; }
+
+  /* ── NOTE ── */
+  .note { background:rgba(56,131,90,0.06); border:1px solid rgba(56,131,90,0.12); border-radius:10px; padding:10px 12px; font-size:11px; color:#555; line-height:1.5; margin-top:14px; }
+  .note strong { color:var(--dark); }
+</style>
+</head>
+<body>
+
+<h2>Navigation année directe</h2>
+<p class="subtitle">
+  Taper sur <strong>le mois + l'année</strong> en haut du calendrier ouvre la grille des années.<br>
+  Choisir l'année → retour automatique au calendrier du mois correspondant.
+</p>
+
+<div class="frame">
+
+  <div class="cal-card">
+
+    <!-- Green header -->
+    <div class="cal-header">
+      <div class="cal-header-label">Date sélectionnée</div>
+      <div class="cal-header-date" id="selectedDisplay">01 Avril 2026</div>
+    </div>
+
+    <!-- Toolbar: month+year btn + nav arrows -->
+    <div class="cal-toolbar">
+      <button class="cal-month-year-btn" id="monthYearBtn" onclick="toggleYearView()">
+        <span id="monthYearLabel">Avril 2026</span>
+        <span class="arrow">▼</span>
+      </button>
+      <div class="cal-nav-btns">
+        <div class="cal-nav" id="navPrev" onclick="prevMonth()">‹</div>
+        <div class="cal-nav" id="navNext" onclick="nextMonth()">›</div>
+      </div>
+    </div>
+
+    <!-- MONTH VIEW -->
+    <div id="monthView">
+      <div class="cal-days-header">
+        <div class="cal-day-hdr">L</div><div class="cal-day-hdr">M</div>
+        <div class="cal-day-hdr">M</div><div class="cal-day-hdr">J</div>
+        <div class="cal-day-hdr">V</div><div class="cal-day-hdr">S</div>
+        <div class="cal-day-hdr">D</div>
+      </div>
+      <div class="cal-grid" id="calGrid"></div>
+      <div class="tap-hint">Tapez sur « Avril 2026 » ↑ pour choisir l'année directement</div>
+    </div>
+
+    <!-- YEAR VIEW -->
+    <div id="yearView">
+      <div class="year-grid" id="yearGrid"></div>
+      <div class="tap-hint">Choisir une année → retour au calendrier</div>
+    </div>
+
+    <div class="action-row">
+      <div class="btn-cancel">Annuler</div>
+      <div class="btn-ok" onclick="applyDate()">OK</div>
+    </div>
+
+  </div>
+
+  <div class="note">
+    <strong>C'est le comportement natif du Flutter date picker</strong> — taper sur l'en-tête mois/année bascule vers la grille des années. Aucun code supplémentaire nécessaire, Flutter le gère nativement.
+  </div>
+
+</div>
+
+<script>
+const monthsFr = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+const monthsAbr = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
+
+let curMonth = 3, curYear = 2026, selectedDay = 1, selectedMonth = 3, selectedYear = 2026;
+let yearViewOpen = false;
+
+function renderCalendar() {
+  document.getElementById('monthYearLabel').textContent = monthsFr[curMonth] + ' ' + curYear;
+  const grid = document.getElementById('calGrid');
+  grid.innerHTML = '';
+  const first = new Date(curYear, curMonth, 1).getDay();
+  const offset = first === 0 ? 6 : first - 1;
+  const days = new Date(curYear, curMonth + 1, 0).getDate();
+  const prevDays = new Date(curYear, curMonth, 0).getDate();
+
+  for (let i = 0; i < offset; i++) {
+    const d = document.createElement('div');
+    d.className = 'cal-day other';
+    d.textContent = prevDays - offset + 1 + i;
+    grid.appendChild(d);
+  }
+  for (let d = 1; d <= days; d++) {
+    const el = document.createElement('div');
+    const isSel = d === selectedDay && curMonth === selectedMonth && curYear === selectedYear;
+    const isToday = d === 24 && curMonth === 3 && curYear === 2026;
+    el.className = 'cal-day' + (isSel ? ' selected' : '') + (isToday && !isSel ? ' today' : '');
+    el.textContent = d;
+    el.onclick = () => {
+      selectedDay = d; selectedMonth = curMonth; selectedYear = curYear;
+      renderCalendar();
+      updateHeader();
+    };
+    grid.appendChild(el);
+  }
+}
+
+function renderYearGrid() {
+  const grid = document.getElementById('yearGrid');
+  grid.innerHTML = '';
+  for (let y = 2020; y <= 2030; y++) {
+    const el = document.createElement('div');
+    el.className = 'year-item' + (y === curYear ? ' selected' : '') + (y === 2026 && y !== curYear ? ' current-year' : '');
+    el.textContent = y;
+    el.onclick = () => {
+      curYear = y;
+      toggleYearView();
+      renderCalendar();
+    };
+    grid.appendChild(el);
+    if (y === curYear) setTimeout(() => el.scrollIntoView({ block: 'center' }), 50);
+  }
+}
+
+function toggleYearView() {
+  yearViewOpen = !yearViewOpen;
+  document.getElementById('monthView').style.display = yearViewOpen ? 'none' : '';
+  document.getElementById('yearView').style.display = yearViewOpen ? '' : 'none';
+  document.getElementById('navPrev').classList.toggle('hidden', yearViewOpen);
+  document.getElementById('navNext').classList.toggle('hidden', yearViewOpen);
+  document.getElementById('monthYearBtn').classList.toggle('open', yearViewOpen);
+  if (yearViewOpen) renderYearGrid();
+}
+
+function prevMonth() {
+  if (curMonth === 0) { curMonth = 11; curYear--; } else curMonth--;
+  renderCalendar();
+}
+function nextMonth() {
+  if (curMonth === 11) { curMonth = 0; curYear++; } else curMonth++;
+  renderCalendar();
+}
+
+function updateHeader() {
+  document.getElementById('selectedDisplay').textContent =
+    String(selectedDay).padStart(2,'0') + ' ' + monthsFr[selectedMonth] + ' ' + selectedYear;
+}
+
+function applyDate() {
+  updateHeader();
+}
+
+renderCalendar();
+</script>
+</body>
+</html>
