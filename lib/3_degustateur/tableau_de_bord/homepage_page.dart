@@ -81,16 +81,6 @@ class _HomePageState extends State<HomePage> {
 
   // ── ACTIONS — all setState calls live here ───────────────────────────────
 
-  void _addNotification(String message) {
-    setState(() {
-      _notifications.insert(
-        0,
-        NotificationItem(message: message, time: "À l'instant"),
-      );
-      _notificationCount++;
-    });
-  }
-
   void _markAllAsRead() {
     setState(() => _notificationCount = 0);
   }
@@ -140,10 +130,7 @@ class _HomePageState extends State<HomePage> {
       ),
 
       // HomeBody — from widgets/home_body.dart
-      body: HomeBody(
-        onSimulerNotification: () =>
-            _addNotification('Nouveau rapport disponible'),
-      ),
+      body: const HomeBody(),
       drawer: AppDrawer(
         onaccueil: () => Navigator.pop(context),
         onEvaluationEchantillons: () =>
