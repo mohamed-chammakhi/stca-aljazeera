@@ -27,6 +27,7 @@ import 'navigation/widgets/echantillon_card.dart';
 import '../../../core/widgets/empty_state.dart';
 import '../gestion_echantillons/widgets/search_filter_bar.dart';
 import '../widgets/statut_chip.dart';
+import '../widgets/deg_colors.dart';
 
 class EvaluationEchantillonsPage extends StatefulWidget {
   const EvaluationEchantillonsPage({super.key});
@@ -39,12 +40,6 @@ class EvaluationEchantillonsPage extends StatefulWidget {
 class _EvaluationEchantillonsPageState
     extends State<EvaluationEchantillonsPage> {
   final _service = EvaluationService();
-
-  // ── COLORS ──────────────────────────────────────────────────────────────────
-  static const Color _headerBg = Color.fromARGB(255, 220, 233, 226);
-  static const Color _green = Color(0xFF38835A);
-  static const Color _dark = Color(0xFF1A2E1F);
-  static const Color _bg = Color.fromARGB(255, 255, 255, 255);
 
   // ── STATE ────────────────────────────────────────────────────────────────────
   final TextEditingController _searchController = TextEditingController();
@@ -233,7 +228,7 @@ class _EvaluationEchantillonsPageState
     final filtres = _echantillonsFiltres;
 
     return Scaffold(
-      backgroundColor: _bg,
+      backgroundColor: degBg,
 
       drawer: AppDrawer(
         onaccueil: () => _goTo(const HomePage()),
@@ -248,7 +243,7 @@ class _EvaluationEchantillonsPageState
       ),
 
       appBar: AppBar(
-        backgroundColor: _headerBg,
+        backgroundColor: degHeaderBg,
         elevation: 0,
         centerTitle: false,
         toolbarHeight: 65,
@@ -257,10 +252,10 @@ class _EvaluationEchantillonsPageState
           style: GoogleFonts.domine(
             fontSize: 18,
             fontWeight: FontWeight.w700,
-            color: _dark,
+            color: degDark,
           ),
         ),
-        iconTheme: const IconThemeData(color: _dark),
+        iconTheme: const IconThemeData(color: degDark),
         actions: [
           Stack(
             alignment: Alignment.center,
@@ -269,7 +264,7 @@ class _EvaluationEchantillonsPageState
                 icon: Icon(
                   Icons.calendar_today_outlined,
                   size: 20,
-                  color: _dateFilterActive ? _green : const Color(0xFF6B8E7A),
+                  color: _dateFilterActive ? degGreen : const Color(0xFF6B8E7A),
                 ),
                 onPressed: _showDateFilter,
                 tooltip: 'Filtrer par date',
@@ -282,7 +277,7 @@ class _EvaluationEchantillonsPageState
                     width: 8,
                     height: 8,
                     decoration: const BoxDecoration(
-                      color: _green,
+                      color: degGreen,
                       shape: BoxShape.circle,
                     ),
                   ),
@@ -297,7 +292,7 @@ class _EvaluationEchantillonsPageState
         children: [
           // ── UNIFIED HEADER ZONE ────────────────────────────────────────────
           Container(
-            color: _headerBg,
+            color: degHeaderBg,
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
             child: Column(
               children: [
@@ -305,7 +300,7 @@ class _EvaluationEchantillonsPageState
                 TextField(
                   controller: _searchController,
                   onChanged: (v) => setState(() => _recherche = v.trim()),
-                  style: const TextStyle(fontSize: 14, color: _dark),
+                  style: const TextStyle(fontSize: 14, color: degDark),
                   decoration: InputDecoration(
                     hintText: 'Rechercher réf, fournisseur, gouvernorat…',
                     hintStyle: const TextStyle(
@@ -346,7 +341,7 @@ class _EvaluationEchantillonsPageState
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: _green, width: 1.5),
+                      borderSide: const BorderSide(color: degGreen, width: 1.5),
                     ),
                   ),
                 ),
@@ -411,7 +406,7 @@ class _EvaluationEchantillonsPageState
 
           // ── STATS STRIP ────────────────────────────────────────────────────
           Container(
-            color: _bg,
+            color: degBg,
             padding: const EdgeInsets.fromLTRB(16, 9, 16, 6),
             child: Row(
               children: [

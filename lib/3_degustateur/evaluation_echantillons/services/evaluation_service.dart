@@ -23,5 +23,6 @@ class EvaluationService {
   }
 
   // TODO: remove when backend is ready
-  List<Echantillon> _mockEchantillons() => List.from(mockEchantillonsEvaluation);
+  List<Echantillon> _mockEchantillons() =>
+      List.from(mockEchantillonsEvaluation);
 }

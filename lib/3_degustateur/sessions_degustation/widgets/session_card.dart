@@ -43,9 +43,9 @@ class SessionCard extends StatefulWidget {
 }
 
 class _SessionCardState extends State<SessionCard> {
-  bool _expanded          = false;
+  bool _expanded = false;
   bool _presenceConfirmed = false;
-  bool _showPresenceMsg   = false;
+  bool _showPresenceMsg = false;
   Timer? _msgTimer;
 
   @override
@@ -59,12 +59,12 @@ class _SessionCardState extends State<SessionCard> {
     if (_presenceConfirmed) {
       setState(() {
         _presenceConfirmed = false;
-        _showPresenceMsg   = false;
+        _showPresenceMsg = false;
       });
     } else {
       setState(() {
         _presenceConfirmed = true;
-        _showPresenceMsg   = true;
+        _showPresenceMsg = true;
       });
       _msgTimer = Timer(const Duration(seconds: 6), () {
         if (mounted) setState(() => _showPresenceMsg = false);
@@ -140,7 +140,9 @@ class _SessionCardState extends State<SessionCard> {
                                         ),
                                         decoration: BoxDecoration(
                                           color: _green,
-                                          borderRadius: BorderRadius.circular(6),
+                                          borderRadius: BorderRadius.circular(
+                                            6,
+                                          ),
                                         ),
                                         child: const Row(
                                           mainAxisSize: MainAxisSize.min,
@@ -345,8 +347,10 @@ class _DetailPanel extends StatelessWidget {
                 const Text(
                   'PARTICIPANTS',
                   style: TextStyle(
-                    fontSize: 11, fontWeight: FontWeight.w600,
-                    color: Color(0xFFAAAAAA), letterSpacing: 0.3,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFFAAAAAA),
+                    letterSpacing: 0.3,
                   ),
                 ),
                 const SizedBox(height: 6),
@@ -354,10 +358,12 @@ class _DetailPanel extends StatelessWidget {
                   spacing: 6,
                   runSpacing: 6,
                   children: allNoms
-                      .map((nom) => _PresenceChip(
-                            name: nom,
-                            confirmed: confirmedNoms.contains(nom),
-                          ))
+                      .map(
+                        (nom) => _PresenceChip(
+                          name: nom,
+                          confirmed: confirmedNoms.contains(nom),
+                        ),
+                      )
                       .toList(),
                 ),
               ] else
@@ -459,9 +465,7 @@ class _PresenceChip extends StatelessWidget {
       color: confirmed ? const Color(0xFFE6F4ED) : const Color(0xFFF5F5F5),
       borderRadius: BorderRadius.circular(20),
       border: Border.all(
-        color: confirmed
-            ? _green.withValues(alpha: 0.3)
-            : Colors.grey.shade200,
+        color: confirmed ? _green.withValues(alpha: 0.3) : Colors.grey.shade200,
       ),
     ),
     child: Row(

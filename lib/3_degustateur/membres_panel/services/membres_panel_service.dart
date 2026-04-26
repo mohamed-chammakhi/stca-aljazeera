@@ -10,45 +10,45 @@ class MembresPanelService {
 
   // TODO: remove when backend is ready
   List<MembrePanel> _mockMembres() => const [
-        MembrePanel(
-          id: '001',
-          nom: 'Chammakhi',
-          prenom: 'Ichrak',
-          role: 'Dégustateur',
-          membreDepuis: 'Jan 2026',
-          estEnLigne: true,
-        ),
-        MembrePanel(
-          id: '002',
-          nom: 'Ennouri',
-          prenom: 'Lobna',
-          role: 'Dégustateur',
-          membreDepuis: 'Jan 2026',
-          estEnLigne: false,
-        ),
-        MembrePanel(
-          id: '003',
-          nom: 'Ouni',
-          prenom: 'Maha',
-          role: 'Dégustateur',
-          membreDepuis: 'Fév 2026',
-          estEnLigne: true,
-        ),
-        MembrePanel(
-          id: '004',
-          nom: 'Fezai',
-          prenom: 'Nayrouz',
-          role: 'Dégustateur',
-          membreDepuis: 'Fév 2026',
-          estEnLigne: false,
-        ),
-        MembrePanel(
-          id: '005',
-          nom: 'Smaali',
-          prenom: 'Yosra',
-          role: 'Dégustateur',
-          membreDepuis: 'Mar 2026',
-          estEnLigne: false,
-        ),
-      ];
+    MembrePanel(
+      id: '001',
+      nom: 'Chammakhi',
+      prenom: 'Ichrak',
+      role: 'Dégustateur',
+      membreDepuis: 'Jan 2026',
+      estEnLigne: true,
+    ),
+    MembrePanel(
+      id: '002',
+      nom: 'Ennouri',
+      prenom: 'Lobna',
+      role: 'Dégustateur',
+      membreDepuis: 'Jan 2026',
+      estEnLigne: false,
+    ),
+    MembrePanel(
+      id: '003',
+      nom: 'Ouni',
+      prenom: 'Maha',
+      role: 'Dégustateur',
+      membreDepuis: 'Fév 2026',
+      estEnLigne: true,
+    ),
+    MembrePanel(
+      id: '004',
+      nom: 'Fezai',
+      prenom: 'Nayrouz',
+      role: 'Dégustateur',
+      membreDepuis: 'Fév 2026',
+      estEnLigne: false,
+    ),
+    MembrePanel(
+      id: '005',
+      nom: 'Smaali',
+      prenom: 'Yosra',
+      role: 'Dégustateur',
+      membreDepuis: 'Mar 2026',
+      estEnLigne: false,
+    ),
+  ];
 }

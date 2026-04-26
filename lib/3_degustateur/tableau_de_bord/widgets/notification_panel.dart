@@ -9,8 +9,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../models/notification_item.dart';
 
-const Color _green    = Color(0xFF38835A);
-const Color _cream    = Color(0xFFF9F6EF);
+const Color _green = Color(0xFF38835A);
+const Color _cream = Color(0xFFF9F6EF);
 const Color _darkText = Color(0xFF1A2E1F);
 
 // Function — called from homepage like :
@@ -27,19 +27,18 @@ void showNotificationPanel(
     isScrollControlled: true,
     builder: (BuildContext context) {
       return DraggableScrollableSheet(
-        expand:          false,
+        expand: false,
         initialChildSize: 0.5,
-        maxChildSize:    0.85,
-        minChildSize:    0.3,
+        maxChildSize: 0.85,
+        minChildSize: 0.3,
         builder: (context, scrollController) {
           return Container(
             decoration: const BoxDecoration(
-              color:        Colors.white,
+              color: Colors.white,
               borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
             ),
             child: Column(
               children: [
-
                 // ── HEADER ──
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 20, 8, 0),
@@ -49,13 +48,13 @@ void showNotificationPanel(
                       Text(
                         'Notifications',
                         style: GoogleFonts.domine(
-                          fontSize:   20,
+                          fontSize: 20,
                           fontWeight: FontWeight.w700,
-                          color:      _darkText,
+                          color: _darkText,
                         ),
                       ),
                       IconButton(
-                        icon:      const Icon(Icons.close),
+                        icon: const Icon(Icons.close),
                         onPressed: () => Navigator.pop(context),
                       ),
                     ],
@@ -69,7 +68,7 @@ void showNotificationPanel(
                       ? _buildEmptyNotifications()
                       : ListView.builder(
                           controller: scrollController,
-                          itemCount:  notifications.length,
+                          itemCount: notifications.length,
                           itemBuilder: (context, index) =>
                               _buildNotificationCard(notifications[index]),
                         ),
@@ -90,11 +89,9 @@ Widget _buildNotificationCard(NotificationItem notif) {
     child: Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color:        _cream,
+        color: _cream,
         borderRadius: BorderRadius.circular(12),
-        border: Border(
-          left: BorderSide(color: _green, width: 4),
-        ),
+        border: Border(left: BorderSide(color: _green, width: 4)),
       ),
       child: Row(
         children: [
@@ -107,9 +104,9 @@ Widget _buildNotificationCard(NotificationItem notif) {
                 Text(
                   notif.message,
                   style: const TextStyle(
-                    fontSize:   14,
+                    fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color:      _darkText,
+                    color: _darkText,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -132,7 +129,11 @@ Widget _buildEmptyNotifications() {
     child: Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Icon(Icons.notifications_off_outlined, size: 50, color: Colors.grey.shade300),
+        Icon(
+          Icons.notifications_off_outlined,
+          size: 50,
+          color: Colors.grey.shade300,
+        ),
         const SizedBox(height: 12),
         Text(
           'Aucune notification',

@@ -23,6 +23,7 @@ import '../evaluation_echantillons/evaluation_echantillons_page.dart';
 import '../membres_panel/membres_panel_page.dart';
 import '../analyse_labo/analyse_laboratoire_page.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../widgets/deg_colors.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // MyApp
@@ -35,10 +36,6 @@ class MyApp extends StatefulWidget {
   @override
   State<MyApp> createState() => _MyAppState();
 }
-
-const Color _headerBg = Color.fromARGB(255, 220, 233, 226);
-
-const Color _dark = Color(0xFF1A2E1F);
 
 class _MyAppState extends State<MyApp> {
   @override
@@ -66,8 +63,6 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  static const Color green = Color(0xFF38835A);
-
   // ── Notifications ─────────────────────────────────────────────────────────
   final _notifService = NotificationDegustateurService();
   int _unreadCount = 0;
@@ -150,7 +145,7 @@ class _HomePageState extends State<HomePage> {
       backgroundColor: const Color(0xFFF9F6EF),
 
       appBar: AppBar(
-        backgroundColor: _headerBg,
+        backgroundColor: degHeaderBg,
         elevation: 0,
         toolbarHeight: 65,
         title: Text(
@@ -158,15 +153,15 @@ class _HomePageState extends State<HomePage> {
           style: GoogleFonts.domine(
             fontSize: 18,
             fontWeight: FontWeight.w700,
-            color: _dark,
+            color: degDark,
           ),
         ),
-        iconTheme: const IconThemeData(color: _dark, size: 28),
+        iconTheme: const IconThemeData(color: degDark, size: 28),
         actions: [
           Stack(
             children: [
               IconButton(
-                icon: const Icon(Icons.notifications_outlined, color: _dark),
+                icon: const Icon(Icons.notifications_outlined, color: degDark),
                 onPressed: _openNotifications,
               ),
               if (_unreadCount > 0)

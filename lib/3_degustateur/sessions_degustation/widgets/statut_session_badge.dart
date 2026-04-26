@@ -19,25 +19,27 @@ class StatutSessionBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color:        config.bg,
+        color: config.bg,
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            width: 6, height: 6,
+            width: 6,
+            height: 6,
             decoration: BoxDecoration(
-              color: config.dot, shape: BoxShape.circle,
+              color: config.dot,
+              shape: BoxShape.circle,
             ),
           ),
           const SizedBox(width: 5),
           Text(
             config.label,
             style: TextStyle(
-              fontSize:   11,
+              fontSize: 11,
               fontWeight: FontWeight.w600,
-              color:      config.text,
+              color: config.text,
             ),
           ),
         ],
@@ -48,9 +50,9 @@ class StatutSessionBadge extends StatelessWidget {
 
 // ── config helper ─────────────────────────────────────────────────────────────
 class _BadgeConfig {
-  final Color  bg;
-  final Color  dot;
-  final Color  text;
+  final Color bg;
+  final Color dot;
+  final Color text;
   final String label;
   const _BadgeConfig(this.bg, this.dot, this.text, this.label);
 }

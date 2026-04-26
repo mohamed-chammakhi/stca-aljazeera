@@ -11,8 +11,8 @@ import 'package:flutter/material.dart';
 const Color _green = Color(0xFF38835A);
 
 class FiltreChip extends StatelessWidget {
-  final String    label;
-  final bool      isSelected;
+  final String label;
+  final bool isSelected;
   final VoidCallback onTap; // VoidCallback = function that returns nothing
 
   const FiltreChip({
@@ -29,9 +29,7 @@ class FiltreChip extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
         decoration: BoxDecoration(
-          color: isSelected
-              ? Colors.white
-              : Colors.white.withOpacity(0.2),
+          color: isSelected ? Colors.white : Colors.white.withOpacity(0.2),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: isSelected ? Colors.white : Colors.transparent,
@@ -40,8 +38,8 @@ class FiltreChip extends StatelessWidget {
         child: Text(
           label,
           style: TextStyle(
-            color:      isSelected ? _green : Colors.white,
-            fontSize:   12,
+            color: isSelected ? _green : Colors.white,
+            fontSize: 12,
             fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
           ),
         ),

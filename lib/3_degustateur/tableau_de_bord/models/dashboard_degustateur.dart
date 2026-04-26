@@ -5,7 +5,8 @@ class EvaluationUrgente {
   final String reference;
   final String collecteurNom;
   final String fournisseurNom;
-  final int joursEnAttente; // DateTime.now().difference(dateReceptionEchantillon).inDays
+  final int
+  joursEnAttente; // DateTime.now().difference(dateReceptionEchantillon).inDays
 
   const EvaluationUrgente({
     required this.id,
@@ -15,13 +16,14 @@ class EvaluationUrgente {
     required this.joursEnAttente,
   });
 
-  factory EvaluationUrgente.fromJson(Map<String, dynamic> json) => EvaluationUrgente(
-    id: json['id'] as String,
-    reference: json['reference'] as String,
-    collecteurNom: json['collecteur_nom'] as String,
-    fournisseurNom: json['fournisseur_nom'] as String,
-    joursEnAttente: json['jours_en_attente'] as int,
-  );
+  factory EvaluationUrgente.fromJson(Map<String, dynamic> json) =>
+      EvaluationUrgente(
+        id: json['id'] as String,
+        reference: json['reference'] as String,
+        collecteurNom: json['collecteur_nom'] as String,
+        fournisseurNom: json['fournisseur_nom'] as String,
+        joursEnAttente: json['jours_en_attente'] as int,
+      );
 
   Map<String, dynamic> toJson() => {
     'id': id,
@@ -46,12 +48,13 @@ class EvaluationUrgenteCeo {
     required this.fournisseurNom,
   });
 
-  factory EvaluationUrgenteCeo.fromJson(Map<String, dynamic> json) => EvaluationUrgenteCeo(
-    id: json['id'] as String,
-    reference: json['reference'] as String,
-    collecteurNom: json['collecteur_nom'] as String,
-    fournisseurNom: json['fournisseur_nom'] as String,
-  );
+  factory EvaluationUrgenteCeo.fromJson(Map<String, dynamic> json) =>
+      EvaluationUrgenteCeo(
+        id: json['id'] as String,
+        reference: json['reference'] as String,
+        collecteurNom: json['collecteur_nom'] as String,
+        fournisseurNom: json['fournisseur_nom'] as String,
+      );
 
   Map<String, dynamic> toJson() => {
     'id': id,
@@ -100,12 +103,13 @@ class ClassificationPoint {
     required this.lampante,
   });
 
-  factory ClassificationPoint.fromJson(Map<String, dynamic> json) => ClassificationPoint(
-    label: json['label'] as String,
-    extraVierge: json['extra_vierge'] as int,
-    vierge: json['vierge'] as int,
-    lampante: json['lampante'] as int,
-  );
+  factory ClassificationPoint.fromJson(Map<String, dynamic> json) =>
+      ClassificationPoint(
+        label: json['label'] as String,
+        extraVierge: json['extra_vierge'] as int,
+        vierge: json['vierge'] as int,
+        lampante: json['lampante'] as int,
+      );
 
   Map<String, dynamic> toJson() => {
     'label': label,
@@ -157,7 +161,11 @@ class DelaiPoint {
   final DateTime date;
   final double monDelai;
   final double panelMoyen;
-  const DelaiPoint({required this.date, required this.monDelai, required this.panelMoyen});
+  const DelaiPoint({
+    required this.date,
+    required this.monDelai,
+    required this.panelMoyen,
+  });
 
   factory DelaiPoint.fromJson(Map<String, dynamic> json) => DelaiPoint(
     date: DateTime.parse(json['date'] as String),
@@ -188,7 +196,9 @@ class DelaiSummary {
     monDelaiMoyen: (json['mon_delai_moyen'] as num).toDouble(),
     panelMoyen: (json['panel_moyen'] as num).toDouble(),
     nbEvals: json['nb_evals'] as int,
-    points: (json['points'] as List).map((e) => DelaiPoint.fromJson(e)).toList(),
+    points: (json['points'] as List)
+        .map((e) => DelaiPoint.fromJson(e))
+        .toList(),
   );
 
   Map<String, dynamic> toJson() => {
@@ -203,7 +213,8 @@ class ActiviteItem {
   final String id;
   final String action;
   final String horodatage;
-  final String type; // "evaluation" | "seance_presente" | "seance_manquee" | "profil"
+  final String
+  type; // "evaluation" | "seance_presente" | "seance_manquee" | "profil"
   const ActiviteItem({
     required this.id,
     required this.action,

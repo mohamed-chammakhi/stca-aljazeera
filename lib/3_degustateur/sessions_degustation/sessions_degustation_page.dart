@@ -36,6 +36,7 @@ import '../evaluation_echantillons/evaluation_echantillons_page.dart';
 import '../../../main.dart';
 import '../analyse_labo/analyse_laboratoire_page.dart';
 import '../widgets/statut_chip.dart';
+import '../widgets/deg_colors.dart';
 
 class SessionsDegustationPage extends StatefulWidget {
   const SessionsDegustationPage({super.key});
@@ -49,13 +50,8 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
   final _service = SessionsService();
 
   // ───────────────────────────────────────────────────────────────────────────
-  // 1. COLORS
+  // 1. COLORS — see lib/3_degustateur/widgets/deg_colors.dart
   // ───────────────────────────────────────────────────────────────────────────
-
-  static const Color _headerBg = Color.fromARGB(255, 220, 233, 226);
-  static const Color _green = Color(0xFF38835A);
-  static const Color _dark = Color(0xFF1A2E1F);
-  static const Color _bg = Color(0xFFFFFFFF);
 
   // ───────────────────────────────────────────────────────────────────────────
   // 2. STATE
@@ -216,7 +212,7 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
             fontWeight: FontWeight.w600,
           ),
         ),
-        backgroundColor: _green,
+        backgroundColor: degGreen,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         margin: const EdgeInsets.all(20),
@@ -239,7 +235,7 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
     final items = _filtres;
 
     return Scaffold(
-      backgroundColor: _bg,
+      backgroundColor: degBg,
 
       // ── DRAWER ─────────────────────────────────────────────────────────────
       drawer: AppDrawer(
@@ -256,7 +252,7 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
 
       // ── APPBAR ─────────────────────────────────────────────────────────────
       appBar: AppBar(
-        backgroundColor: _headerBg,
+        backgroundColor: degHeaderBg,
         elevation: 0,
         centerTitle: false,
         toolbarHeight: 65,
@@ -265,10 +261,10 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
           style: GoogleFonts.domine(
             fontSize: 18,
             fontWeight: FontWeight.w700,
-            color: _dark,
+            color: degDark,
           ),
         ),
-        iconTheme: const IconThemeData(color: _dark),
+        iconTheme: const IconThemeData(color: degDark),
         actions: [
           Stack(
             alignment: Alignment.center,
@@ -277,7 +273,7 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
                 icon: Icon(
                   Icons.calendar_today_outlined,
                   size: 20,
-                  color: _dateFilterActive ? _green : const Color(0xFF6B8E7A),
+                  color: _dateFilterActive ? degGreen : const Color(0xFF6B8E7A),
                 ),
                 onPressed: _showDateFilter,
                 tooltip: 'Filtrer par date de séance',
@@ -290,7 +286,7 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
                     width: 8,
                     height: 8,
                     decoration: const BoxDecoration(
-                      color: _green,
+                      color: degGreen,
                       shape: BoxShape.circle,
                     ),
                   ),
@@ -311,10 +307,10 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
         ),
         backgroundColor: const Color.fromARGB(255, 197, 206, 201),
         elevation: 2,
-        icon: const Icon(Icons.add, color: _dark),
+        icon: const Icon(Icons.add, color: degDark),
         label: const Text(
           'Nouvelle session',
-          style: TextStyle(color: _dark, fontWeight: FontWeight.w700),
+          style: TextStyle(color: degDark, fontWeight: FontWeight.w700),
         ),
       ),
 
@@ -322,7 +318,7 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
         children: [
           // ── UNIFIED HEADER ZONE ─────────────────────────────────────────
           Container(
-            color: _headerBg,
+            color: degHeaderBg,
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
             child: Column(
               children: [
@@ -330,7 +326,7 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
                 TextField(
                   controller: _searchController,
                   onChanged: (v) => setState(() => _recherche = v.trim()),
-                  style: const TextStyle(fontSize: 14, color: _dark),
+                  style: const TextStyle(fontSize: 14, color: degDark),
                   decoration: InputDecoration(
                     hintText: 'Titre · lieu · réf · organisateur…',
                     hintStyle: const TextStyle(
@@ -371,7 +367,7 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: _green, width: 1.5),
+                      borderSide: const BorderSide(color: degGreen, width: 1.5),
                     ),
                   ),
                 ),
@@ -424,7 +420,7 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
 
           // ── STATS STRIP ───────────────────────────────────────────────────
           Container(
-            color: _bg,
+            color: degBg,
             padding: const EdgeInsets.fromLTRB(16, 9, 16, 6),
             child: Row(
               children: [

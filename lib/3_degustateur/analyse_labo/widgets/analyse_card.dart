@@ -226,8 +226,7 @@ class _DetailPanel extends StatelessWidget {
                     _DetailItem('N° échantillon', a.echantillonId),
                     if (a.fournisseurNom != null)
                       _DetailItem('Fournisseur', a.fournisseurNom!),
-                    if (a.variete != null)
-                      _DetailItem('Variété', a.variete!),
+                    if (a.variete != null) _DetailItem('Variété', a.variete!),
                     if (a.gouvernorat != null)
                       _DetailItem(
                         'Gouvernorat',
@@ -255,10 +254,7 @@ class _DetailPanel extends StatelessWidget {
               Expanded(
                 child: RichText(
                   text: TextSpan(
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey.shade500,
-                    ),
+                    style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
                     children: [
                       const TextSpan(text: 'Analyse soumise par '),
                       TextSpan(
@@ -323,9 +319,7 @@ class _DetailPanel extends StatelessWidget {
 
         AnimatedCrossFade(
           firstChild: const SizedBox.shrink(),
-          secondChild: hasAnalyse
-              ? _RapportBody(a: a)
-              : _EnAttenteHint(),
+          secondChild: hasAnalyse ? _RapportBody(a: a) : _EnAttenteHint(),
           crossFadeState: rapportExpanded
               ? CrossFadeState.showSecond
               : CrossFadeState.showFirst,
@@ -369,12 +363,19 @@ class _RapportBody extends StatelessWidget {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(Icons.notes_outlined, size: 13, color: Colors.grey.shade400),
+                  Icon(
+                    Icons.notes_outlined,
+                    size: 13,
+                    color: Colors.grey.shade400,
+                  ),
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(
                       a.notes!,
-                      style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey.shade600,
+                      ),
                     ),
                   ),
                 ],
@@ -402,7 +403,11 @@ class _EnAttenteHint extends StatelessWidget {
     ),
     child: Row(
       children: [
-        Icon(Icons.hourglass_top_outlined, size: 13, color: Colors.orange.shade700),
+        Icon(
+          Icons.hourglass_top_outlined,
+          size: 13,
+          color: Colors.orange.shade700,
+        ),
         const SizedBox(width: 6),
         Text(
           'Analyse non encore soumise',

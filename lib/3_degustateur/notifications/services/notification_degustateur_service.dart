@@ -29,14 +29,18 @@ class NotificationDegustateurService {
     //   'echantillon_id': echantillonId,
     //   'echantillon_reference': echantillonReference,
     // });
-    await Future.delayed(const Duration(milliseconds: 200)); // TODO: remove when backend is ready
+    await Future.delayed(
+      const Duration(milliseconds: 200),
+    ); // TODO: remove when backend is ready
   }
 
   Future<int> fetchUnreadCount() async {
     // TODO: replace with: final data = await _api.get('/degustateur/notifications/unread-count/');
     // TODO: return data['count'] as int;
     await Future.delayed(const Duration(milliseconds: 100));
-    return _mockNotifications().where((n) => !n.isRead).length; // TODO: remove when backend is ready
+    return _mockNotifications()
+        .where((n) => !n.isRead)
+        .length; // TODO: remove when backend is ready
   }
 
   // TODO: remove when backend is ready

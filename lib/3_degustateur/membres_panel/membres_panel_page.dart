@@ -16,12 +16,9 @@ import '../tableau_de_bord/widgets/app_drawer.dart';
 import '../sessions_degustation/sessions_degustation_page.dart';
 import '../analyse_labo/analyse_laboratoire_page.dart';
 import '../tableau_de_bord/homepage_page.dart';
+import '../widgets/deg_colors.dart';
 
 const Color gray = Color.fromARGB(255, 81, 82, 81);
-
-const Color _green = Color(0xFF38835A);
-//const Color _oliveGreen = Color(0xFF6B8143);
-const Color _darkText = Color(0xFF1A2E1F);
 
 class MembresPanelPage extends StatefulWidget {
   const MembresPanelPage({super.key});
@@ -90,10 +87,10 @@ class _MembresPanelPageState extends State<MembresPanelPage> {
           style: GoogleFonts.domine(
             fontSize: 18,
             fontWeight: FontWeight.w700,
-            color: _darkText,
+            color: degDark,
           ),
         ),
-        iconTheme: const IconThemeData(color: _darkText),
+        iconTheme: const IconThemeData(color: degDark),
       ),
 
       body: Padding(
@@ -104,11 +101,11 @@ class _MembresPanelPageState extends State<MembresPanelPage> {
             TextField(
               controller: _searchCtrl,
               onChanged: (v) => setState(() => _recherche = v),
-              style: const TextStyle(fontSize: 14, color: _darkText),
+              style: const TextStyle(fontSize: 14, color: degDark),
               decoration: InputDecoration(
                 hintText: 'Rechercher un membre...',
                 hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 13),
-                prefixIcon: const Icon(Icons.search, color: _green, size: 20),
+                prefixIcon: const Icon(Icons.search, color: degGreen, size: 20),
                 suffixIcon: _recherche.isNotEmpty
                     ? IconButton(
                         icon: Icon(
@@ -138,7 +135,7 @@ class _MembresPanelPageState extends State<MembresPanelPage> {
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: _green, width: 1.8),
+                  borderSide: const BorderSide(color: degGreen, width: 1.8),
                 ),
               ),
             ),

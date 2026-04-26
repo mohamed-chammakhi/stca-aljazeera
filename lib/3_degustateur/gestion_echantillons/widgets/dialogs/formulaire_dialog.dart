@@ -465,10 +465,7 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
                           controller: _remarquesCtrl,
                           maxLines: 3,
                           minLines: 2,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            color: _dark,
-                          ),
+                          style: const TextStyle(fontSize: 14, color: _dark),
                           decoration: InputDecoration(
                             hintText: 'Notes, observations particulières...',
                             hintStyle: TextStyle(
@@ -480,13 +477,15 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
                             contentPadding: const EdgeInsets.all(12),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),
-                              borderSide:
-                                  BorderSide(color: Colors.grey.shade200),
+                              borderSide: BorderSide(
+                                color: Colors.grey.shade200,
+                              ),
                             ),
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),
-                              borderSide:
-                                  BorderSide(color: Colors.grey.shade200),
+                              borderSide: BorderSide(
+                                color: Colors.grey.shade200,
+                              ),
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),

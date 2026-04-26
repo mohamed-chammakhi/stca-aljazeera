@@ -18,7 +18,6 @@ const Color _fieldFill = Color(0xFFF7FAF8);
 // Section accent colors
 const Color _sectionSession = Color(0xFF38835A); // green
 
-
 // ─────────────────────────────────────────────────────────────────────────────
 // SCROLL-WHEEL TIME SHEET  (AM/PM)
 // ─────────────────────────────────────────────────────────────────────────────
@@ -152,9 +151,7 @@ Future<TimeOfDay?> _showScrollTimeSheet(
                                     fontWeight: sel
                                         ? FontWeight.w700
                                         : FontWeight.w400,
-                                    color: sel
-                                        ? _dark
-                                        : Colors.grey.shade400,
+                                    color: sel ? _dark : Colors.grey.shade400,
                                   ),
                                 ),
                               );
@@ -195,9 +192,7 @@ Future<TimeOfDay?> _showScrollTimeSheet(
                                     fontWeight: sel
                                         ? FontWeight.w700
                                         : FontWeight.w400,
-                                    color: sel
-                                        ? _dark
-                                        : Colors.grey.shade400,
+                                    color: sel ? _dark : Colors.grey.shade400,
                                   ),
                                 ),
                               );
@@ -324,8 +319,9 @@ Future<void> showFormulaireSessionDialog(
       : StatutSession.planifiee;
 
   // Participants: pre-fill from session when editing
-  List<String> selectedParticipantIds =
-      isEdit ? List.from(session.participantIds) : [];
+  List<String> selectedParticipantIds = isEdit
+      ? List.from(session.participantIds)
+      : [];
 
   return showModalBottomSheet(
     context: context,
@@ -371,8 +367,7 @@ Future<void> showFormulaireSessionDialog(
               builder: (_, setInner) => Container(
                 decoration: const BoxDecoration(
                   color: Colors.white,
-                  borderRadius:
-                      BorderRadius.vertical(top: Radius.circular(20)),
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
                 ),
                 padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
                 child: Column(
@@ -431,9 +426,7 @@ Future<void> showFormulaireSessionDialog(
                                 width: 22,
                                 height: 22,
                                 decoration: BoxDecoration(
-                                  color: selected
-                                      ? _green
-                                      : Colors.transparent,
+                                  color: selected ? _green : Colors.transparent,
                                   border: Border.all(
                                     color: selected
                                         ? _green
@@ -562,9 +555,10 @@ Future<void> showFormulaireSessionDialog(
           final nomsList = selectedParticipantIds.isEmpty
               ? null
               : selectedParticipantIds
-                  .map((id) =>
-                      membres.firstWhere((m) => m.id == id).nomComplet)
-                  .toList();
+                    .map(
+                      (id) => membres.firstWhere((m) => m.id == id).nomComplet,
+                    )
+                    .toList();
 
           if (isEdit) {
             session
@@ -594,7 +588,8 @@ Future<void> showFormulaireSessionDialog(
                 nombreEchantillonsPrevus: nbEch,
                 participantIds: selectedParticipantIds,
                 participantNoms: nomsList,
-                createdBy: 'mock-user-001', // TODO: replace with logged-in user ID
+                createdBy:
+                    'mock-user-001', // TODO: replace with logged-in user ID
                 createdAt: DateTime.now().toIso8601String(),
               ),
             );
@@ -879,11 +874,7 @@ class _PickerButton extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(
-            icon,
-            size: 16,
-            color: isEmpty ? Colors.grey.shade400 : _green,
-          ),
+          Icon(icon, size: 16, color: isEmpty ? Colors.grey.shade400 : _green),
           const SizedBox(width: 8),
           Expanded(
             child: Text(

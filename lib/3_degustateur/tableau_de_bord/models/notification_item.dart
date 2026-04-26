@@ -7,18 +7,13 @@ class NotificationItem {
   final String message;
   final String time;
 
-  NotificationItem({
-    required this.message,
-    required this.time,
-  });
+  NotificationItem({required this.message, required this.time});
 
-  factory NotificationItem.fromJson(Map<String, dynamic> json) => NotificationItem(
+  factory NotificationItem.fromJson(Map<String, dynamic> json) =>
+      NotificationItem(
         message: json['message'] as String,
         time: json['time'] as String,
       );
 
-  Map<String, dynamic> toJson() => {
-        'message': message,
-        'time': time,
-      };
+  Map<String, dynamic> toJson() => {'message': message, 'time': time};
 }

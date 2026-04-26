@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../models/membre_panel.dart';
 
-const Color _green    = Color(0xFF38835A);
+const Color _green = Color(0xFF38835A);
 const Color _darkText = Color(0xFF1A2E1F);
 
 class MembreCard extends StatelessWidget {
@@ -20,14 +20,14 @@ class MembreCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
-        color:        Colors.white,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border:       Border.all(color: const Color(0xFFEEEEEE)),
+        border: Border.all(color: const Color(0xFFEEEEEE)),
         boxShadow: [
           BoxShadow(
-            color:      Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 6,
-            offset:     const Offset(0, 2),
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -35,13 +35,12 @@ class MembreCard extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         child: Row(
           children: [
-
             // AVATAR — initials circle
             Container(
-              width:  46,
+              width: 46,
               height: 46,
               decoration: BoxDecoration(
-                color:        _green.withValues(alpha: 0.10),
+                color: _green.withValues(alpha: 0.10),
                 borderRadius: BorderRadius.circular(23),
                 border: Border.all(
                   color: _green.withValues(alpha: 0.25),
@@ -52,9 +51,9 @@ class MembreCard extends StatelessWidget {
                 child: Text(
                   membre.initiales,
                   style: GoogleFonts.domine(
-                    fontSize:   15,
+                    fontSize: 15,
                     fontWeight: FontWeight.w700,
-                    color:      _green,
+                    color: _green,
                   ),
                 ),
               ),
@@ -70,22 +69,25 @@ class MembreCard extends StatelessWidget {
                   Text(
                     membre.nomComplet,
                     style: GoogleFonts.domine(
-                      fontSize:   15,
+                      fontSize: 15,
                       fontWeight: FontWeight.w700,
-                      color:      _darkText,
+                      color: _darkText,
                     ),
                   ),
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      Icon(Icons.calendar_today_outlined,
-                          size: 12, color: Colors.grey.shade400),
+                      Icon(
+                        Icons.calendar_today_outlined,
+                        size: 12,
+                        color: Colors.grey.shade400,
+                      ),
                       const SizedBox(width: 4),
                       Text(
                         'Membre depuis ${membre.membreDepuis}',
                         style: TextStyle(
                           fontSize: 12,
-                          color:    Colors.grey.shade500,
+                          color: Colors.grey.shade500,
                         ),
                       ),
                     ],
