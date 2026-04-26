@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../models/dashboard_degustateur.dart';
 import '../services/dashboard_degustateur_service.dart';
-import '../../gestion_echantillons/widgets/search_filter_bar.dart';
+import '../../../../core/widgets/search_filter_bar.dart';
 import '../../evaluation_echantillons/evaluation_echantillons_page.dart';
 
 const Color _green = Color(0xFF38835A);

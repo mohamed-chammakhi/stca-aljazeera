@@ -8,7 +8,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'models/analyse_labo.dart';
 import 'services/analyse_labo_service.dart';
 import 'widgets/analyse_card.dart';
-import '../gestion_echantillons/widgets/search_filter_bar.dart';
+import '../../../core/widgets/search_filter_bar.dart';
 import '../widgets/statut_chip.dart';
 import '../tableau_de_bord/homepage_page.dart';
 // app-wide imports

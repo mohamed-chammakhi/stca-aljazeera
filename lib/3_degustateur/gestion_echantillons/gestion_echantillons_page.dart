@@ -10,7 +10,7 @@ import 'widgets/echantillon_card.dart';
 import '../../../core/widgets/empty_state.dart';
 import 'widgets/dialogs/formulaire_dialog.dart';
 import 'widgets/dialogs/suppression_dialog.dart';
-import 'widgets/search_filter_bar.dart';
+import '../../../core/widgets/search_filter_bar.dart';
 import '../evaluation_echantillons/evaluation_echantillons_page.dart';
 import '../profil/profil_page.dart';
 import '../tableau_de_bord/widgets/app_drawer.dart';

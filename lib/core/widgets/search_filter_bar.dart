@@ -12,7 +12,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'filtre_chip.dart';
+import '../../../3_degustateur/gestion_echantillons/widgets/filtre_chip.dart';
 
 const Color _green = Color(0xFF38835A);
 const Color _oliveGreen = Color(0xFF6B8143);
