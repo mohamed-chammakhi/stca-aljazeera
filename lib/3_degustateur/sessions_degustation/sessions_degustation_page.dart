@@ -5,7 +5,7 @@
 // SECTIONS :
 //   1. COLORS
 //   2. STATE         — search, statut filter, date range
-//   3. NAVIGATION    — _goTo, _goToLogin
+//   3. NAVIGATION    — _goTo, goToLogin
 //   4. MOCK DATA     — replace with API call later
 //   5. FILTER LOGIC  — _filtres getter, _parseDate
 //   6. ACTIONS       — add, edit, delete, snackbar
@@ -33,10 +33,10 @@ import '../tableau_de_bord/widgets/app_drawer.dart';
 import '../membres_panel/membres_panel_page.dart';
 import '../gestion_echantillons/gestion_echantillons_page.dart';
 import '../evaluation_echantillons/evaluation_echantillons_page.dart';
-import '../../../main.dart';
 import '../analyse_labo/analyse_laboratoire_page.dart';
 import '../widgets/statut_chip.dart';
 import '../widgets/deg_colors.dart';
+import '../widgets/nav_mixin.dart';
 
 class SessionsDegustationPage extends StatefulWidget {
   const SessionsDegustationPage({super.key});
@@ -46,7 +46,8 @@ class SessionsDegustationPage extends StatefulWidget {
       _SessionsDegustationPageState();
 }
 
-class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
+class _SessionsDegustationPageState extends State<SessionsDegustationPage>
+    with DegustateurNavMixin {
   final _service = SessionsService();
 
   // ───────────────────────────────────────────────────────────────────────────
@@ -82,19 +83,6 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
   // ───────────────────────────────────────────────────────────────────────────
   // 3. NAVIGATION
   // ───────────────────────────────────────────────────────────────────────────
-
-  void _goTo(Widget page) {
-    Navigator.pop(context);
-    Navigator.push(context, MaterialPageRoute(builder: (_) => page));
-  }
-
-  void _goToLogin() {
-    Navigator.pop(context);
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => LoginPage()),
-    );
-  }
 
   // ───────────────────────────────────────────────────────────────────────────
   // 5. FILTER LOGIC
@@ -239,15 +227,16 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
 
       // ── DRAWER ─────────────────────────────────────────────────────────────
       drawer: AppDrawer(
-        onaccueil: () => _goTo(const HomePage()),
+        onaccueil: () => goToPage(const HomePage()),
         onEvaluationEchantillons: () =>
-            _goTo(const EvaluationEchantillonsPage()),
-        onGestionEchantillons: () => _goTo(const GestionEchantillonsPage()),
-        onAnalyseLaboratoire: () => _goTo(const AnalyseLaboratoirePage()),
-        onSessionsDegustationPage: () => _goTo(const SessionsDegustationPage()),
-        onMembredupanel: () => _goTo(const MembresPanelPage()),
-        onProfil: () => _goTo(const ProfilePage()),
-        onDeconnexion: _goToLogin,
+            goToPage(const EvaluationEchantillonsPage()),
+        onGestionEchantillons: () => goToPage(const GestionEchantillonsPage()),
+        onAnalyseLaboratoire: () => goToPage(const AnalyseLaboratoirePage()),
+        onSessionsDegustationPage: () =>
+            goToPage(const SessionsDegustationPage()),
+        onMembredupanel: () => goToPage(const MembresPanelPage()),
+        onProfil: () => goToPage(const ProfilePage()),
+        onDeconnexion: goToLogin,
       ),
 
       // ── APPBAR ─────────────────────────────────────────────────────────────

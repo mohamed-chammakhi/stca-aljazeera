@@ -4,11 +4,11 @@ import '../tableau_de_bord/homepage_page.dart';
 import '../evaluation_echantillons/evaluation_echantillons_page.dart';
 import '../tableau_de_bord/widgets/app_drawer.dart';
 import '../membres_panel/membres_panel_page.dart';
-import '../../../../main.dart';
 import '../gestion_echantillons/gestion_echantillons_page.dart';
 import '../sessions_degustation/sessions_degustation_page.dart';
 import '../analyse_labo/analyse_laboratoire_page.dart';
 import '../widgets/deg_colors.dart';
+import '../widgets/nav_mixin.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -17,21 +17,7 @@ class ProfilePage extends StatefulWidget {
   _ProfilePageState createState() => _ProfilePageState();
 }
 
-class _ProfilePageState extends State<ProfilePage> {
-  void _goTo(Widget page) {
-    Navigator.pop(context); // close drawer
-    Navigator.push(context, MaterialPageRoute(builder: (_) => page));
-  }
-
-  // Closes drawer then replaces the whole stack — no back button to homepage
-  void _goToLogin() {
-    Navigator.pop(context);
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => LoginPage()),
-    );
-  }
-
+class _ProfilePageState extends State<ProfilePage> with DegustateurNavMixin {
   // ── Brand Colors ──────────────────────────────────────────────────────────
   static const Color oliveGreen = Color(0xFF6B8143);
 
@@ -209,15 +195,16 @@ class _ProfilePageState extends State<ProfilePage> {
     return Scaffold(
       backgroundColor: Colors.white,
       drawer: AppDrawer(
-        onaccueil: () => _goTo(const HomePage()),
+        onaccueil: () => goToPage(const HomePage()),
         onEvaluationEchantillons: () =>
-            _goTo(const EvaluationEchantillonsPage()),
-        onGestionEchantillons: () => _goTo(const GestionEchantillonsPage()),
-        onAnalyseLaboratoire: () => _goTo(const AnalyseLaboratoirePage()),
-        onSessionsDegustationPage: () => _goTo(const SessionsDegustationPage()),
-        onMembredupanel: () => _goTo(const MembresPanelPage()),
-        onProfil: () => _goTo(const ProfilePage()),
-        onDeconnexion: _goToLogin,
+            goToPage(const EvaluationEchantillonsPage()),
+        onGestionEchantillons: () => goToPage(const GestionEchantillonsPage()),
+        onAnalyseLaboratoire: () => goToPage(const AnalyseLaboratoirePage()),
+        onSessionsDegustationPage: () =>
+            goToPage(const SessionsDegustationPage()),
+        onMembredupanel: () => goToPage(const MembresPanelPage()),
+        onProfil: () => goToPage(const ProfilePage()),
+        onDeconnexion: goToLogin,
       ),
       appBar: AppBar(
         backgroundColor: degHeaderBg,

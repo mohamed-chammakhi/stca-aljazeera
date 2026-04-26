@@ -18,8 +18,8 @@ import '../membres_panel/membres_panel_page.dart';
 import '../gestion_echantillons/gestion_echantillons_page.dart';
 import '../evaluation_echantillons/evaluation_echantillons_page.dart';
 import '../sessions_degustation/sessions_degustation_page.dart';
-import '../../../main.dart';
 import '../widgets/deg_colors.dart';
+import '../widgets/nav_mixin.dart';
 
 class AnalyseLaboratoirePage extends StatefulWidget {
   const AnalyseLaboratoirePage({super.key});
@@ -28,7 +28,8 @@ class AnalyseLaboratoirePage extends StatefulWidget {
   _AnalyseLaboratoirePageState createState() => _AnalyseLaboratoirePageState();
 }
 
-class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage> {
+class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage>
+    with DegustateurNavMixin {
   final _service = AnalyseLaboService();
 
   // ── STATE ────────────────────────────────────────────────────────────────────
@@ -63,20 +64,6 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage> {
   Future<void> _loadData() async {
     final data = await _service.fetchAnalyses();
     setState(() => _analyses = data);
-  }
-
-  // ── NAVIGATION ───────────────────────────────────────────────────────────────
-  void _goTo(Widget page) {
-    Navigator.pop(context);
-    Navigator.push(context, MaterialPageRoute(builder: (_) => page));
-  }
-
-  void _goToLogin() {
-    Navigator.pop(context);
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => LoginPage()),
-    );
   }
 
   // ── FILTER LOGIC ─────────────────────────────────────────────────────────────
@@ -197,15 +184,16 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage> {
 
       // ── DRAWER ────────────────────────────────────────────────────────────────
       drawer: AppDrawer(
-        onaccueil: () => _goTo(const HomePage()),
+        onaccueil: () => goToPage(const HomePage()),
         onEvaluationEchantillons: () =>
-            _goTo(const EvaluationEchantillonsPage()),
-        onGestionEchantillons: () => _goTo(const GestionEchantillonsPage()),
-        onAnalyseLaboratoire: () => _goTo(const AnalyseLaboratoirePage()),
-        onSessionsDegustationPage: () => _goTo(const SessionsDegustationPage()),
-        onMembredupanel: () => _goTo(const MembresPanelPage()),
-        onProfil: () => _goTo(const ProfilePage()),
-        onDeconnexion: _goToLogin,
+            goToPage(const EvaluationEchantillonsPage()),
+        onGestionEchantillons: () => goToPage(const GestionEchantillonsPage()),
+        onAnalyseLaboratoire: () => goToPage(const AnalyseLaboratoirePage()),
+        onSessionsDegustationPage: () =>
+            goToPage(const SessionsDegustationPage()),
+        onMembredupanel: () => goToPage(const MembresPanelPage()),
+        onProfil: () => goToPage(const ProfilePage()),
+        onDeconnexion: goToLogin,
       ),
 
       // ── APPBAR ────────────────────────────────────────────────────────────────

@@ -14,11 +14,11 @@ import '../evaluation_echantillons/evaluation_echantillons_page.dart';
 import '../profil/profil_page.dart';
 import '../tableau_de_bord/widgets/app_drawer.dart';
 import '../membres_panel/membres_panel_page.dart';
-import '../../../main.dart';
 import '../sessions_degustation/sessions_degustation_page.dart';
 import '../analyse_labo/analyse_laboratoire_page.dart';
 import '../widgets/statut_chip.dart';
 import '../widgets/deg_colors.dart';
+import '../widgets/nav_mixin.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PAGE
@@ -31,7 +31,8 @@ class GestionEchantillonsPage extends StatefulWidget {
       _GestionEchantillonsPageState();
 }
 
-class _GestionEchantillonsPageState extends State<GestionEchantillonsPage> {
+class _GestionEchantillonsPageState extends State<GestionEchantillonsPage>
+    with DegustateurNavMixin {
   final _service = GestionEchantillonsService();
 
   // ───────────────────────────────────────────────────────────────────────────
@@ -55,19 +56,6 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage> {
   // ───────────────────────────────────────────────────────────────────────────
   // 3. NAVIGATION
   // ───────────────────────────────────────────────────────────────────────────
-
-  void _goTo(Widget page) {
-    Navigator.pop(context);
-    Navigator.push(context, MaterialPageRoute(builder: (_) => page));
-  }
-
-  void _goToLogin() {
-    Navigator.pop(context);
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => LoginPage()),
-    );
-  }
 
   // ───────────────────────────────────────────────────────────────────────────
   // 4. DATA
@@ -235,15 +223,16 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage> {
 
       // ── DRAWER ─────────────────────────────────────────────────────────────
       drawer: AppDrawer(
-        onaccueil: () => _goTo(const HomePage()),
+        onaccueil: () => goToPage(const HomePage()),
         onEvaluationEchantillons: () =>
-            _goTo(const EvaluationEchantillonsPage()),
-        onGestionEchantillons: () => _goTo(const GestionEchantillonsPage()),
-        onAnalyseLaboratoire: () => _goTo(const AnalyseLaboratoirePage()),
-        onSessionsDegustationPage: () => _goTo(const SessionsDegustationPage()),
-        onMembredupanel: () => _goTo(const MembresPanelPage()),
-        onProfil: () => _goTo(const ProfilePage()),
-        onDeconnexion: _goToLogin,
+            goToPage(const EvaluationEchantillonsPage()),
+        onGestionEchantillons: () => goToPage(const GestionEchantillonsPage()),
+        onAnalyseLaboratoire: () => goToPage(const AnalyseLaboratoirePage()),
+        onSessionsDegustationPage: () =>
+            goToPage(const SessionsDegustationPage()),
+        onMembredupanel: () => goToPage(const MembresPanelPage()),
+        onProfil: () => goToPage(const ProfilePage()),
+        onDeconnexion: goToLogin,
       ),
 
       // ── APPBAR ─────────────────────────────────────────────────────────────

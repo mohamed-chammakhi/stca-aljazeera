@@ -10,7 +10,6 @@ import '../tableau_de_bord/homepage_page.dart';
 // ── Page imports ──────────────────────────────────────────────────────────────
 import '../tableau_de_bord/widgets/app_drawer.dart';
 import '../membres_panel/membres_panel_page.dart';
-import '../../../main.dart';
 import '../profil/profil_page.dart';
 
 import '../gestion_echantillons/gestion_echantillons_page.dart';
@@ -28,6 +27,7 @@ import '../../../core/widgets/empty_state.dart';
 import '../gestion_echantillons/widgets/search_filter_bar.dart';
 import '../widgets/statut_chip.dart';
 import '../widgets/deg_colors.dart';
+import '../widgets/nav_mixin.dart';
 
 class EvaluationEchantillonsPage extends StatefulWidget {
   const EvaluationEchantillonsPage({super.key});
@@ -37,8 +37,8 @@ class EvaluationEchantillonsPage extends StatefulWidget {
       _EvaluationEchantillonsPageState();
 }
 
-class _EvaluationEchantillonsPageState
-    extends State<EvaluationEchantillonsPage> {
+class _EvaluationEchantillonsPageState extends State<EvaluationEchantillonsPage>
+    with DegustateurNavMixin {
   final _service = EvaluationService();
 
   // ── STATE ────────────────────────────────────────────────────────────────────
@@ -64,20 +64,6 @@ class _EvaluationEchantillonsPageState
   Future<void> _loadData() async {
     final data = await _service.fetchEchantillons();
     setState(() => _echantillons = data);
-  }
-
-  // ── NAVIGATION ───────────────────────────────────────────────────────────────
-  void _goTo(Widget page) {
-    Navigator.pop(context);
-    Navigator.push(context, MaterialPageRoute(builder: (_) => page));
-  }
-
-  void _goToLogin() {
-    Navigator.pop(context);
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => LoginPage()),
-    );
   }
 
   // ── FILTER LOGIC ─────────────────────────────────────────────────────────────
@@ -231,15 +217,16 @@ class _EvaluationEchantillonsPageState
       backgroundColor: degBg,
 
       drawer: AppDrawer(
-        onaccueil: () => _goTo(const HomePage()),
+        onaccueil: () => goToPage(const HomePage()),
         onEvaluationEchantillons: () =>
-            _goTo(const EvaluationEchantillonsPage()),
-        onGestionEchantillons: () => _goTo(const GestionEchantillonsPage()),
-        onAnalyseLaboratoire: () => _goTo(const AnalyseLaboratoirePage()),
-        onSessionsDegustationPage: () => _goTo(const SessionsDegustationPage()),
-        onMembredupanel: () => _goTo(const MembresPanelPage()),
-        onProfil: () => _goTo(const ProfilePage()),
-        onDeconnexion: _goToLogin,
+            goToPage(const EvaluationEchantillonsPage()),
+        onGestionEchantillons: () => goToPage(const GestionEchantillonsPage()),
+        onAnalyseLaboratoire: () => goToPage(const AnalyseLaboratoirePage()),
+        onSessionsDegustationPage: () =>
+            goToPage(const SessionsDegustationPage()),
+        onMembredupanel: () => goToPage(const MembresPanelPage()),
+        onProfil: () => goToPage(const ProfilePage()),
+        onDeconnexion: goToLogin,
       ),
 
       appBar: AppBar(
