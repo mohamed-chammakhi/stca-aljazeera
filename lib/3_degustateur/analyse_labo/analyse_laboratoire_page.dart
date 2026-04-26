@@ -20,6 +20,7 @@ import '../evaluation_echantillons/evaluation_echantillons_page.dart';
 import '../sessions_degustation/sessions_degustation_page.dart';
 import '../widgets/deg_colors.dart';
 import '../widgets/nav_mixin.dart';
+import '../../../core/utils/date_utils.dart';
 
 class AnalyseLaboratoirePage extends StatefulWidget {
   const AnalyseLaboratoirePage({super.key});
@@ -78,16 +79,6 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage>
     }
   }
 
-  DateTime? _parseDate(String s) {
-    try {
-      final p = s.split('/');
-      if (p.length != 3) return null;
-      return DateTime(int.parse(p[2]), int.parse(p[1]), int.parse(p[0]));
-    } catch (_) {
-      return null;
-    }
-  }
-
   String? _dateFieldFor(AnalyseLabo a) {
     switch (_dateType) {
       case 'enregistrement':
@@ -112,7 +103,7 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage>
 
       bool matchDate = true;
       if (_dateDebut != null || _dateFin != null) {
-        final raw = _parseDate(_dateFieldFor(a) ?? '');
+        final raw = DegDateUtils.parseDate(_dateFieldFor(a) ?? '');
         if (raw == null) {
           matchDate = false;
         } else {

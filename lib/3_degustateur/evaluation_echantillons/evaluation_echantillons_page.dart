@@ -20,6 +20,7 @@ import '../analyse_labo/analyse_laboratoire_page.dart';
 // ── Own model ─────────────────────────────────────────────────────────────────
 import 'navigation/models/echantillon.dart';
 import 'services/evaluation_service.dart';
+import '../../../core/utils/date_utils.dart';
 
 // ── Own widgets ───────────────────────────────────────────────────────────────
 import 'navigation/widgets/echantillon_card.dart';
@@ -80,16 +81,6 @@ class _EvaluationEchantillonsPageState extends State<EvaluationEchantillonsPage>
     }
   }
 
-  DateTime? _parseDate(String s) {
-    try {
-      final p = s.split('/');
-      if (p.length != 3) return null;
-      return DateTime(int.parse(p[2]), int.parse(p[1]), int.parse(p[0]));
-    } catch (_) {
-      return null;
-    }
-  }
-
   List<Echantillon> get _echantillonsFiltres {
     return _echantillons.where((e) {
       final q = _recherche.toLowerCase();
@@ -108,7 +99,7 @@ class _EvaluationEchantillonsPageState extends State<EvaluationEchantillonsPage>
 
       bool matchDate = true;
       if (_dateFilterActive) {
-        final raw = _parseDate(e.date);
+        final raw = DegDateUtils.parseDate(e.date);
         if (raw == null) {
           matchDate = false;
         } else {

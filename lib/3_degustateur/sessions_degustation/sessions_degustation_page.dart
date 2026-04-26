@@ -37,6 +37,7 @@ import '../analyse_labo/analyse_laboratoire_page.dart';
 import '../widgets/statut_chip.dart';
 import '../widgets/deg_colors.dart';
 import '../widgets/nav_mixin.dart';
+import '../../../core/utils/date_utils.dart';
 
 class SessionsDegustationPage extends StatefulWidget {
   const SessionsDegustationPage({super.key});
@@ -99,16 +100,6 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage>
     }
   }
 
-  DateTime? _parseDate(String s) {
-    try {
-      final p = s.split('/');
-      if (p.length != 3) return null;
-      return DateTime(int.parse(p[2]), int.parse(p[1]), int.parse(p[0]));
-    } catch (_) {
-      return null;
-    }
-  }
-
   List<SessionDegustation> get _filtres {
     return _sessions.where((s) {
       final matchRecherche =
@@ -122,7 +113,7 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage>
 
       bool matchDate = true;
       if (_dateFilterActive) {
-        final raw = _parseDate(s.date);
+        final raw = DegDateUtils.parseDate(s.date);
         if (raw == null) {
           matchDate = false;
         } else {

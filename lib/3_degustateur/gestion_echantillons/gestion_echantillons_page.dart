@@ -4,6 +4,7 @@ import '../tableau_de_bord/homepage_page.dart';
 
 import '../../../core/models/echantillon.dart';
 import '../../../core/models/enums.dart';
+import '../../../core/utils/date_utils.dart';
 import 'services/gestion_echantillons_service.dart';
 import 'widgets/echantillon_card.dart';
 import '../../../core/widgets/empty_state.dart';
@@ -78,16 +79,6 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage>
   // 5. FILTER LOGIC
   // ───────────────────────────────────────────────────────────────────────────
 
-  DateTime? _parseDate(String s) {
-    try {
-      final p = s.split('/');
-      if (p.length != 3) return null;
-      return DateTime(int.parse(p[2]), int.parse(p[1]), int.parse(p[0]));
-    } catch (_) {
-      return null;
-    }
-  }
-
   List<Echantillon> get _filtres {
     final liste = _echantillons.where((e) {
       final q = _recherche.toLowerCase();
@@ -106,7 +97,7 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage>
 
       bool matchDate = true;
       if (_dateFilterActive) {
-        final raw = _parseDate(e.dateAjout);
+        final raw = DegDateUtils.parseDate(e.dateAjout);
         if (raw == null) {
           matchDate = false;
         } else {
