@@ -392,7 +392,7 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage> {
                       ),
                       const SizedBox(width: 7),
                       StatutChip(
-                        label: '	Non évaluée',
+                        label: 'Non évaluée',
                         activeColor: const Color(0xFF3A6EA5),
                         inactiveColor: const Color(0xFFE8F1FB),
                         inactiveTextColor: const Color(0xFF3A6EA5),
@@ -413,13 +413,13 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage> {
                       ),
                       const SizedBox(width: 7),
                       StatutChip(
-                        label: '	Évaluation soumise',
+                        label: 'Évaluation soumise',
                         activeColor: const Color(0xFF38835A),
                         inactiveColor: const Color(0xFFE6F4ED),
                         inactiveTextColor: const Color(0xFF38835A),
-                        selected: _filtreStatut == '	Évaluation soumise',
+                        selected: _filtreStatut == 'Évaluation soumise',
                         onTap: () => setState(
-                          () => _filtreStatut = '	Évaluation soumise',
+                          () => _filtreStatut = 'Évaluation soumise',
                         ),
                       ),
                     ],
