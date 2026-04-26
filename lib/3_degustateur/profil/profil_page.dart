@@ -1,43 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'tableau_de_bord/homepage_page.dart';
-//import 'degustateur/homepage/homepage_page.dart';
-import 'evaluation_echantillons/evaluation_echantillons_page.dart';
-//import '../../../profil.dart';
-import 'tableau_de_bord/widgets/app_drawer.dart';
-import 'membres_panel/membres_panel_page.dart';
-import '../../../main.dart';
-import 'gestion_echantillons/gestion_echantillons_page.dart';
-import 'sessions_degustation/sessions_degustation_page.dart';
-import 'analyse_labo/analyse_laboratoire_page.dart';
+import '../tableau_de_bord/homepage_page.dart';
+import '../evaluation_echantillons/evaluation_echantillons_page.dart';
+import '../tableau_de_bord/widgets/app_drawer.dart';
+import '../membres_panel/membres_panel_page.dart';
+import '../../../../main.dart';
+import '../gestion_echantillons/gestion_echantillons_page.dart';
+import '../sessions_degustation/sessions_degustation_page.dart';
+import '../analyse_labo/analyse_laboratoire_page.dart';
+import '../tableau_de_bord/homepage_page.dart';
 
-/*/
-void main() {
-  runApp(const MyApp());
-}
-
-class MyApp extends StatefulWidget {
-  const MyApp({super.key});
-
-  @override
-  State<MyApp> createState() => _MyAppState();
-}
-
-class _MyAppState extends State<MyApp> {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Votre Profil',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primaryColor: const Color(0xFF38835A),
-        scaffoldBackgroundColor: const Color(0xFFF9F6EF),
-      ),
-      home: const ProfilePage(),
-    );
-  }
-}
-*/
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
 
@@ -91,9 +63,7 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   void initState() {
     super.initState();
-    // ✅ Empty controllers — no default values
-    // Later: populate from Spring Boot API response
-    // Example: GET /api/user/profile → _nomController.text = response.nom
+    // TODO: populate from Django API: GET /api/utilisateurs/me/
     _nomController = TextEditingController(text: '');
     _prenomController = TextEditingController(text: '');
     _emailController = TextEditingController(text: '');
@@ -243,27 +213,13 @@ class _ProfilePageState extends State<ProfilePage> {
       backgroundColor: Colors.white,
       drawer: AppDrawer(
         onaccueil: () => _goTo(const HomePage()),
-
-        // OLD : EvaluationEchantillonsPage from EvaluationEchantillonsPage.dart
-        // NEW : will be EvaluationEchantillonsPage from
-        //       evaluation_echantillons/evaluation_echantillons_page.dart
-        // TODO : replace with _goTo(const EvaluationEchantillonsPage())
         onEvaluationEchantillons: () =>
             _goTo(const EvaluationEchantillonsPage()),
-
-        // OLD : GestionEchantillonsPage from GestionEchantillon.dart
-        // NEW : GestionEchantillonsPage from
-        //       gestion_echantillons/gestion_echantillons_page.dart ✅ done
         onGestionEchantillons: () => _goTo(const GestionEchantillonsPage()),
-
         onAnalyseLaboratoire: () => _goTo(const AnalyseLaboratoirePage()),
         onSessionsDegustationPage: () => _goTo(const SessionsDegustationPage()),
-
-        // OLD : ProfilePage from profil.dart (same level)
-        // NEW : ProfilePage from ../profil.dart (one level up) ✅ done
         onMembredupanel: () => _goTo(const MembresPanelPage()),
         onProfil: () => _goTo(const ProfilePage()),
-
         onDeconnexion: _goToLogin,
       ),
       appBar: AppBar(
@@ -286,9 +242,6 @@ class _ProfilePageState extends State<ProfilePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // ══════════════════════════════════════════════════════════════
-            // AVATAR + pen icon
-            // ══════════════════════════════════════════════════════════════
             Stack(
               clipBehavior: Clip.none,
               children: [
@@ -338,7 +291,6 @@ class _ProfilePageState extends State<ProfilePage> {
 
             const SizedBox(height: 20),
 
-            // ── Full name — shows after user saves prenom + nom ──
             if (_displayedFullName.isNotEmpty)
               Text(
                 _displayedFullName,
@@ -351,9 +303,6 @@ class _ProfilePageState extends State<ProfilePage> {
 
             const SizedBox(height: 30),
 
-            // ══════════════════════════════════════════════════════════════
-            // INFO CARD
-            // ══════════════════════════════════════════════════════════════
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
@@ -373,7 +322,6 @@ class _ProfilePageState extends State<ProfilePage> {
                   _sectionTitle('Informations Personnelles'),
                   const SizedBox(height: 20),
 
-                  // ── Prénom ──
                   _buildField(
                     label: 'Prénom',
                     controller: _prenomController,
@@ -381,12 +329,11 @@ class _ProfilePageState extends State<ProfilePage> {
                     icon: Icons.person_outline,
                     isEditing: _editingPrenom,
                     fieldKey: 'prenom',
-                    hint: 'Votre prénom', // ✅ hint instead of default value
+                    hint: 'Votre prénom',
                     keyboardType: TextInputType.name,
                   ),
                   const SizedBox(height: 16),
 
-                  // ── Nom ──
                   _buildField(
                     label: 'Nom',
                     controller: _nomController,
@@ -394,12 +341,11 @@ class _ProfilePageState extends State<ProfilePage> {
                     icon: Icons.person_outline,
                     isEditing: _editingNom,
                     fieldKey: 'nom',
-                    hint: 'Votre nom', // ✅ hint instead of default value
+                    hint: 'Votre nom',
                     keyboardType: TextInputType.name,
                   ),
                   const SizedBox(height: 16),
 
-                  // ── Email ──
                   _buildField(
                     label: 'Email',
                     controller: _emailController,
@@ -407,11 +353,11 @@ class _ProfilePageState extends State<ProfilePage> {
                     icon: Icons.email_outlined,
                     isEditing: _editingEmail,
                     fieldKey: 'email',
-                    hint: 'Votre email', // ✅ hint instead of default value
+                    hint: 'Votre email',
                     keyboardType: TextInputType.emailAddress,
                   ),
                   const SizedBox(height: 20),
-                  // ── Email ──
+
                   _buildField(
                     label: 'Numéro de Téléphone',
                     controller: _numeroController,
@@ -419,8 +365,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     icon: Icons.phone_outlined,
                     isEditing: _editingnumero,
                     fieldKey: 'numero',
-                    hint:
-                        'Votre Numéro de Téléphone', // ✅ hint instead of default value
+                    hint: 'Votre Numéro de Téléphone',
                     keyboardType: TextInputType.phone,
                   ),
                 ],
@@ -429,7 +374,6 @@ class _ProfilePageState extends State<ProfilePage> {
 
             const SizedBox(height: 30),
 
-            // ── Change password ──
             SizedBox(
               width: double.infinity,
               child: OutlinedButton.icon(
@@ -453,9 +397,6 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // HELPER — _buildField
-  // ─────────────────────────────────────────────────────────────────────────
   Widget _buildField({
     required String label,
     required TextEditingController controller,
@@ -463,7 +404,7 @@ class _ProfilePageState extends State<ProfilePage> {
     required IconData icon,
     required bool isEditing,
     required String fieldKey,
-    required String hint, // ✅ hint is now required
+    required String hint,
     TextInputType keyboardType = TextInputType.text,
   }) {
     return Column(
@@ -482,7 +423,7 @@ class _ProfilePageState extends State<ProfilePage> {
             fontWeight: isEditing ? FontWeight.w500 : FontWeight.w400,
           ),
           decoration: InputDecoration(
-            hintText: hint, // ✅ shows hint when field is empty
+            hintText: hint,
             hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
             prefixIcon: Icon(icon, color: green, size: 20),
             suffixIcon: IconButton(
@@ -526,57 +467,6 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // HELPER — _buildLockedField
-  // ─────────────────────────────────────────────────────────────────────────
-  Widget _buildLockedField({
-    required String label,
-    required String value,
-    required IconData icon,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _fieldLabel(label),
-        const SizedBox(height: 8),
-        TextField(
-          readOnly: true,
-          controller: TextEditingController(text: value),
-          style: TextStyle(color: Colors.grey.shade500, fontSize: 15),
-          decoration: InputDecoration(
-            prefixIcon: Icon(icon, color: Colors.grey.shade400, size: 20),
-            suffixIcon: Icon(
-              Icons.lock_outline,
-              color: Colors.grey.shade400,
-              size: 18,
-            ),
-            filled: true,
-            fillColor: Colors.grey.shade100,
-            contentPadding: const EdgeInsets.symmetric(
-              vertical: 14,
-              horizontal: 16,
-            ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.grey.shade200),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.grey.shade200),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.grey.shade200),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  // ─────────────────────────────────────────────────────────────────────────
-  // HELPER — _sectionTitle
-  // ─────────────────────────────────────────────────────────────────────────
   Widget _sectionTitle(String title) {
     return Text(
       title,
@@ -588,9 +478,6 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // HELPER — _fieldLabel
-  // ─────────────────────────────────────────────────────────────────────────
   Widget _fieldLabel(String label) {
     return Text(
       label,
@@ -603,9 +490,6 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // HELPER — _bottomSheetItem
-  // ─────────────────────────────────────────────────────────────────────────
   Widget _bottomSheetItem({
     required IconData icon,
     required String label,
@@ -627,9 +511,6 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // HELPER — _showSuccess
-  // ─────────────────────────────────────────────────────────────────────────
   void _showSuccess(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -648,9 +529,6 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // HELPER — _showChangePasswordDialog
-  // ─────────────────────────────────────────────────────────────────────────
   void _showChangePasswordDialog() {
     final currentPwController = TextEditingController();
     final newPwController = TextEditingController();

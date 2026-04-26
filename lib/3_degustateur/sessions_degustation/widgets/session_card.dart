@@ -307,9 +307,8 @@ class _DetailPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final noms = (s.participantNoms != null && s.participantNoms!.isNotEmpty)
-        ? s.participantNoms!.join(', ')
-        : '${s.nbParticipants} participant(s)';
+    final allNoms = s.participantNoms ?? [];
+    final confirmedNoms = s.confirmedParticipantNoms ?? [];
 
     return Column(
       children: [
@@ -337,10 +336,35 @@ class _DetailPanel extends StatelessWidget {
                     'Échantillons',
                     '${s.nbEchantillons} échantillon${s.nbEchantillons > 1 ? "s" : ""}',
                   ),
-                  _DetailItem('Participants', noms),
                   _DetailItem('Organisé par', s.createdBy),
                 ],
               ),
+              // ── Participants with presence status ─────────────────────
+              if (allNoms.isNotEmpty) ...[
+                const SizedBox(height: 10),
+                const Text(
+                  'PARTICIPANTS',
+                  style: TextStyle(
+                    fontSize: 11, fontWeight: FontWeight.w600,
+                    color: Color(0xFFAAAAAA), letterSpacing: 0.3,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: allNoms
+                      .map((nom) => _PresenceChip(
+                            name: nom,
+                            confirmed: confirmedNoms.contains(nom),
+                          ))
+                      .toList(),
+                ),
+              ] else
+                _DetailItem(
+                  'Participants',
+                  '${s.nbParticipants} participant(s)',
+                ),
 
               // ── Notes (optional) ──────────────────────────────────────
               if (s.notes != null && s.notes!.isNotEmpty) ...[
@@ -417,5 +441,47 @@ class _DetailItem extends StatelessWidget {
         ),
       ),
     ],
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PRESENCE CHIP — participant pill showing confirmation status
+// ─────────────────────────────────────────────────────────────────────────────
+class _PresenceChip extends StatelessWidget {
+  final String name;
+  final bool confirmed;
+  const _PresenceChip({required this.name, required this.confirmed});
+
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+    decoration: BoxDecoration(
+      color: confirmed ? const Color(0xFFE6F4ED) : const Color(0xFFF5F5F5),
+      borderRadius: BorderRadius.circular(20),
+      border: Border.all(
+        color: confirmed
+            ? _green.withValues(alpha: 0.3)
+            : Colors.grey.shade200,
+      ),
+    ),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          confirmed ? Icons.check_circle : Icons.radio_button_unchecked,
+          size: 11,
+          color: confirmed ? _green : Colors.grey.shade400,
+        ),
+        const SizedBox(width: 4),
+        Text(
+          name,
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w600,
+            color: confirmed ? const Color(0xFF2E6B47) : Colors.grey.shade500,
+          ),
+        ),
+      ],
+    ),
   );
 }

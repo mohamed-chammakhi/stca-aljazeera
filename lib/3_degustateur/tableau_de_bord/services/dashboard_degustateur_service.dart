@@ -6,10 +6,16 @@ class DashboardDegustateurService {
   // TODO: inject ApiClient here when backend is ready
   // final ApiClient _api;
 
-  // ── Urgent evaluations ──────────────────────────────────────────────────────
+  // ── Urgent evaluations (time-based) ─────────────────────────────────────────
   Future<List<EvaluationUrgente>> fetchUrgentes() async {
     // TODO: replace with: return _api.get('/degustateur/dashboard/urgentes/');
     return _mockUrgentes();
+  }
+
+  // ── Urgent evaluations flagged by CEO ────────────────────────────────────────
+  Future<List<EvaluationUrgenteCeo>> fetchUrgentesCeo() async {
+    // TODO: replace with: return _api.get('/degustateur/dashboard/urgentes-ceo/');
+    return _mockUrgentesCeo();
   }
 
   // ── Pipeline ────────────────────────────────────────────────────────────────
@@ -69,7 +75,7 @@ class DashboardDegustateurService {
       reference: 'CHEMLALI-C1 · 2026/0001',
       collecteurNom: 'Ahmed Dridi',
       fournisseurNom: 'Domaine Bel-Air',
-      joursEnAttente: 2,
+      joursEnAttente: 3,
     ),
     const EvaluationUrgente(
       id: 'urg-2',
@@ -80,7 +86,22 @@ class DashboardDegustateurService {
     ),
   ];
 
-  PipelineData _mockPipeline() => const PipelineData(nonEvaluee: 5, enCours: 3, soumise: 23);
+  // TODO: remove when backend is ready
+  List<EvaluationUrgenteCeo> _mockUrgentesCeo() => const [
+    EvaluationUrgenteCeo(
+      id: 'ceo-1',
+      reference: 'OUESLATI-C2 · 2026/0007',
+      collecteurNom: 'Sami Ben Amor',
+      fournisseurNom: 'Ferme El Baraka',
+    ),
+  ];
+
+  PipelineData _mockPipeline() => const PipelineData(
+    receptionne: 3,
+    nonEvaluee: 5,
+    enCours: 2,
+    soumise: 14,
+  );
 
   List<ClassificationPoint> _mockClassifications() => const [
     ClassificationPoint(label: 'Oct', extraVierge: 1, vierge: 0, lampante: 1),

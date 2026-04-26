@@ -15,6 +15,8 @@ import 'widgets/dialogs/confirmer_achat_dialog.dart'
 import '../../1_ceo/widgets/search_date_filter_bar.dart'
     show DateFilterSheet, DateFilterType;
 import '../widgets/collecteur_drawer.dart';
+import '../notifications/notifications_collecteur_page.dart';
+import '../notifications/services/notification_collecteur_service.dart';
 import '../../../main.dart';
 import '../profilcom.dart';
 import '../carte_geo/carte_geo_page.dart';
@@ -41,9 +43,38 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
   DateTime? _dateFin;
   DateFilterType _dateFilterType = DateFilterType.enregistrement;
 
+  final _notifService = NotificationCollecteurService();
+  int _unreadNotifCount = 0;
+
   bool get _dateFilterActive => _dateDebut != null || _dateFin != null;
   bool get _anyFilter =>
       _dateFilterActive || _recherche.isNotEmpty || _filtreStatut != null;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUnreadCount();
+  }
+
+  Future<void> _loadUnreadCount() async {
+    final count = await _notifService.fetchUnreadCount();
+    if (mounted) setState(() => _unreadNotifCount = count);
+  }
+
+  void _openNotifications() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => NotificationsCollecteurPage(
+          service: _notifService,
+          onNavigate: (notification) {
+            // Deep-link: all collector notifications navigate to MES_ECHANTILLONS (already here)
+          },
+        ),
+      ),
+    );
+    _loadUnreadCount();
+  }
 
   void _goTo(Widget page) {
     Navigator.pop(context);
@@ -695,6 +726,46 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
         ),
         iconTheme: const IconThemeData(color: _dark),
         actions: [
+          // ── Bell icon with unread badge ──────────────────────────────────
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              IconButton(
+                icon: const Icon(
+                  Icons.notifications_outlined,
+                  size: 22,
+                  color: Color(0xFF6B8E7A),
+                ),
+                onPressed: _openNotifications,
+                tooltip: 'Notifications',
+              ),
+              if (_unreadNotifCount > 0)
+                Positioned(
+                  right: 8,
+                  top: 10,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 4, vertical: 1,
+                    ),
+                    decoration: BoxDecoration(
+                      color: _green,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                    child: Text(
+                      _unreadNotifCount > 9 ? '9+' : '$_unreadNotifCount',
+                      style: const TextStyle(
+                        fontSize: 9,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          // ── Date filter ──────────────────────────────────────────────────
           Stack(
             alignment: Alignment.center,
             children: [

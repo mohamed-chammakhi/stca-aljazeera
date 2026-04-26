@@ -30,6 +30,12 @@ class SessionDegustation {
   /// Denormalized display field — participant names (API annotation, not stored).
   final List<String>? participantNoms;
 
+  /// UUIDs of participants who confirmed their presence.
+  List<String> confirmedParticipantIds;
+
+  /// Denormalized display field — confirmed participant names (API annotation, not stored).
+  final List<String>? confirmedParticipantNoms;
+
   SessionDegustation({
     required this.id,
     required this.titre,
@@ -41,9 +47,11 @@ class SessionDegustation {
     this.nombreEchantillonsPrevus,
     required this.createdBy,
     required this.createdAt,
-    this.echantillonIds  = const [],
-    this.participantIds  = const [],
+    this.echantillonIds            = const [],
+    this.participantIds            = const [],
     this.participantNoms,
+    this.confirmedParticipantIds   = const [],
+    this.confirmedParticipantNoms,
   });
 
   int get nbEchantillons => echantillonIds.length;
@@ -67,6 +75,10 @@ class SessionDegustation {
                              ?.map((e) => e as String).toList() ?? [],
         participantNoms: (json['participant_noms'] as List?)
                              ?.map((e) => e as String).toList(),
+        confirmedParticipantIds: (json['confirmed_participant_ids'] as List?)
+                             ?.map((e) => e as String).toList() ?? [],
+        confirmedParticipantNoms: (json['confirmed_participant_noms'] as List?)
+                             ?.map((e) => e as String).toList(),
       );
 
   /// For paginated Django list responses: { "count": N, "results": [...] }
@@ -86,8 +98,9 @@ class SessionDegustation {
     'nombre_echantillons_prevus': nombreEchantillonsPrevus,
     'created_by':       createdBy,
     'created_at':       createdAt,
-    'echantillon_ids':  echantillonIds,
-    'participant_ids':  participantIds,
-    // participant_noms is a read-only API annotation — not sent on POST/PUT.
+    'echantillon_ids':              echantillonIds,
+    'participant_ids':              participantIds,
+    'confirmed_participant_ids':    confirmedParticipantIds,
+    // participant_noms and confirmed_participant_noms are read-only API annotations — not sent on POST/PUT.
   };
 }

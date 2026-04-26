@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Previews — Dégustateur & Chef Dégustateur</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --green: #38835A; --dark: #1A2E1F; --white: #FFFFFF;
+    --amber: #D07B2F; --blue: #3A6EA5; --red: #C0392B;
+    --olive: #6B8143; --purple: #7B3FC4;
+    --header-bg: #DCE9E2; --bg: #F4F7F5;
+  }
+  body { font-family: 'DM Sans', sans-serif; background: #E8EDE9; padding: 24px 16px; color: var(--dark); }
+  h1.page-title { font-family: 'Playfair Display', serif; font-size: 22px; text-align: center; margin-bottom: 6px; }
+  .page-subtitle { text-align: center; font-size: 12px; color: #888; margin-bottom: 28px; font-weight: 500; }
+  .phones-row { display: flex; gap: 32px; justify-content: center; align-items: flex-start; flex-wrap: wrap; }
+  .phone-wrapper { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .phone-label { font-size: 13px; font-weight: 700; color: var(--dark); background: var(--header-bg); padding: 5px 14px; border-radius: 20px; }
+  .phone {
+    width: 375px; background: var(--bg); border-radius: 40px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.18), 0 0 0 6px #C8D8CE, 0 0 0 8px #B0C4B8;
+    max-height: 820px; overflow-y: auto; overflow-x: hidden;
+    scrollbar-width: thin; scrollbar-color: #B0C4B8 transparent;
+  }
+  .phone::-webkit-scrollbar { width: 4px; }
+  .phone::-webkit-scrollbar-thumb { background: #B0C4B8; border-radius: 2px; }
+
+  /* AppBar */
+  .appbar {
+    background: var(--header-bg); padding: 44px 16px 14px;
+    display: flex; align-items: center; gap: 10px;
+    position: sticky; top: 0; z-index: 10;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+  }
+  .appbar-title { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 700; color: var(--dark); flex: 1; }
+  .appbar-bell { width: 34px; height: 34px; border-radius: 10px; background: rgba(56,131,90,0.10); display: flex; align-items: center; justify-content: center; position: relative; }
+  .appbar-bell svg { width: 18px; height: 18px; }
+  .bell-badge { position: absolute; top: 4px; right: 4px; width: 8px; height: 8px; background: var(--red); border-radius: 50%; border: 1.5px solid var(--header-bg); }
+  .menu-icon { width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+
+  /* AppBar date filter button (matches DateFilterButton widget) */
+  .appbar-date-btn {
+    display: flex; align-items: center; gap: 5px;
+    padding: 7px 9px; border-radius: 10px;
+    background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.3);
+    font-size: 10px; font-weight: 700; color: white; cursor: pointer;
+  }
+  .appbar-date-btn.active { background: white; border-color: white; color: var(--green); }
+  .appbar-date-btn svg { width: 15px; height: 15px; flex-shrink: 0; }
+
+  /* Fake green appbar for graphs that need date filter in appbar style */
+  .section-appbar {
+    background: var(--green); padding: 8px 14px;
+    display: flex; align-items: center; gap: 8px; flex-shrink: 0;
+  }
+  .section-appbar-title { font-size: 13px; font-weight: 700; color: white; flex: 1; }
+
+  /* scroll body */
+  .scroll-body { padding: 14px 14px 60px; display: flex; flex-direction: column; gap: 12px; }
+
+  /* Card */
+  .card { background: var(--white); border-radius: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); overflow: hidden; display: flex; flex-direction: column; }
+  .card-header { padding: 14px 14px 10px; flex-shrink: 0; }
+  .card-inner { overflow-y: auto; scrollbar-width: thin; scrollbar-color: #C8D8CE transparent; flex: 1; padding: 0 14px 14px; }
+  .card-inner::-webkit-scrollbar { width: 3px; }
+  .card-inner::-webkit-scrollbar-thumb { background: #C8D8CE; border-radius: 2px; }
+  .card-footer { border-top: 1px solid rgba(0,0,0,0.05); padding: 8px 14px; flex-shrink: 0; font-size: 10px; font-weight: 600; color: #AAAAAA; background: var(--white); }
+
+  .section-label { display: flex; align-items: center; gap: 6px; }
+  .section-bar { width: 3px; height: 16px; background: var(--green); border-radius: 2px; flex-shrink: 0; }
+  .section-bar.purple { background: var(--purple); }
+  .section-title { font-size: 13px; font-weight: 700; color: var(--dark); flex: 1; }
+
+  /* Pipeline grid — bars fixed on same row */
+  .pipeline-grid { display: flex; align-items: stretch; padding: 10px 0 4px; }
+  .pipe-cell { flex: 1; display: grid; grid-template-rows: auto 2px 24px; gap: 4px; text-align: center; }
+  .pipe-top { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; }
+  .pipe-num { font-size: 22px; font-weight: 800; line-height: 1; }
+  .pipe-exact { font-size: 8px; color: #AAAAAA; line-height: 1.4; }
+  .pipe-bar { width: 100%; height: 2px; border-radius: 2px; opacity: 0.3; }
+  .pipe-sub { font-size: 9px; font-weight: 600; color: #AAAAAA; line-height: 1.3; display: flex; align-items: flex-start; justify-content: center; padding-top: 2px; }
+  .pipe-arrow-cell { display: grid; grid-template-rows: auto 2px 24px; gap: 4px; padding: 0 1px; }
+  .pipe-arrow-txt { font-size: 16px; color: #DDD; text-align: center; display: flex; align-items: flex-end; justify-content: center; }
+
+  /* Urgentes card */
+  .urgentes-card { background: var(--white); border-radius: 14px; border: 1px solid rgba(192,57,43,0.15); box-shadow: 0 2px 8px rgba(0,0,0,0.06); overflow: hidden; display: flex; flex-direction: column; }
+  .urgentes-header { background: #FDF4F3; padding: 11px 14px; display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+  .urgentes-dot { width: 8px; height: 8px; background: var(--red); border-radius: 50%; box-shadow: 0 0 8px rgba(192,57,43,0.4); }
+  .urgentes-title { font-size: 12px; font-weight: 700; color: var(--red); flex: 1; }
+  .urgentes-count { background: var(--red); color: white; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 6px; }
+  .urgentes-inner { overflow-y: auto; flex: 1; scrollbar-width: thin; scrollbar-color: #C8D8CE transparent; }
+  .urgentes-inner::-webkit-scrollbar { width: 3px; }
+  .urgentes-inner::-webkit-scrollbar-thumb { background: #C8D8CE; border-radius: 2px; }
+  .urgentes-subsection-header { padding: 8px 14px 6px; display: flex; align-items: center; gap: 7px; }
+  .urgentes-subsection-line { height: 1px; background: #F0F0F0; margin: 0 14px; }
+  .subsec-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .subsec-label { font-size: 10px; font-weight: 700; flex: 1; }
+  .subsec-count { font-size: 10px; font-weight: 700; padding: 1px 7px; border-radius: 5px; }
+  .urgentes-footer { background: #F8F8F8; flex-shrink: 0; padding: 8px 14px; font-size: 11px; color: #AAAAAA; font-style: italic; text-align: center; }
+
+  /* Urgente row with ignore */
+  .urgente-row-wrap { position: relative; }
+  .urgente-row, .ceo-urgente-row {
+    padding: 11px 14px; display: flex; align-items: center; gap: 8px;
+    border-bottom: 1px solid #FAFAFA; cursor: pointer;
+  }
+  .ceo-urgente-row { background: rgba(123,63,196,0.025); }
+  .urgente-ref { font-size: 13px; font-weight: 700; color: var(--dark); line-height: 1.2; }
+  .urgente-meta { font-size: 11px; color: #BBBBBB; margin-top: 2px; }
+  .urgente-badge { font-size: 11px; font-weight: 700; padding: 4px 9px; border-radius: 7px; white-space: nowrap; flex-shrink: 0; }
+  .badge-critique { background: rgba(192,57,43,0.08); color: var(--red); border: 1px solid rgba(192,57,43,0.18); }
+  .badge-attente  { background: rgba(208,123,47,0.08); color: var(--amber); border: 1px solid rgba(208,123,47,0.18); }
+  .badge-ceo      { background: rgba(123,63,196,0.08); color: var(--purple); border: 1px solid rgba(123,63,196,0.18); }
+  .tag-highlight { font-size: 8px; font-weight: 700; background: rgba(123,63,196,0.10); color: var(--purple); padding: 2px 6px; border-radius: 4px; margin-left: 4px; vertical-align: middle; }
+  .chevron { font-size: 14px; color: #DDD; flex-shrink: 0; }
+
+  /* Ignore button */
+  .ignore-btn {
+    width: 28px; height: 28px; border-radius: 8px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: #F5F5F5; border: 1px solid #EEEEEE; cursor: pointer;
+    position: relative;
+  }
+  .ignore-btn svg { width: 14px; height: 14px; color: #AAAAAA; }
+  .ignore-btn:hover { background: #FDF4F3; border-color: rgba(192,57,43,0.2); }
+
+  /* Ignore popup (mini tooltip style) */
+  .ignore-popup {
+    position: absolute;
+    right: 48px; top: 50%; transform: translateY(-50%);
+    background: white; border-radius: 10px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.14);
+    border: 1px solid #EEEEEE;
+    padding: 10px 12px; z-index: 20; width: 200px;
+    display: none;
+  }
+  .ignore-popup.visible { display: block; }
+  .ignore-popup::after {
+    content: ''; position: absolute; right: -6px; top: 50%; transform: translateY(-50%);
+    width: 10px; height: 10px; background: white; border-right: 1px solid #EEE; border-top: 1px solid #EEE;
+    transform: translateY(-50%) rotate(45deg);
+  }
+  .ignore-popup-title { font-size: 11px; font-weight: 700; color: var(--dark); margin-bottom: 4px; }
+  .ignore-popup-sub { font-size: 10px; color: #888; margin-bottom: 10px; line-height: 1.4; }
+  .ignore-popup-actions { display: flex; gap: 6px; }
+  .ignore-cancel { flex: 1; padding: 6px; border: 1px solid #E8E8E8; border-radius: 7px; font-size: 11px; font-weight: 600; color: #888; background: #F8F8F8; text-align: center; cursor: pointer; }
+  .ignore-confirm { flex: 1; padding: 6px; border-radius: 7px; font-size: 11px; font-weight: 600; color: white; background: var(--red); text-align: center; cursor: pointer; }
+
+  /* Presence */
+  .presence-row { display: flex; align-items: center; gap: 16px; }
+  .presence-circle-wrap { position: relative; width: 90px; height: 90px; flex-shrink: 0; }
+  .circle-svg { width: 90px; height: 90px; transform: rotate(-90deg); }
+  .circle-bg { fill: none; stroke: #F1F4F1; stroke-width: 9; }
+  .circle-fg { fill: none; stroke: var(--green); stroke-width: 9; stroke-linecap: round; }
+  .circle-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); text-align: center; }
+  .circle-pct { font-size: 16px; font-weight: 800; color: var(--green); line-height: 1; }
+  .circle-lbl { font-size: 8px; color: #AAAAAA; }
+  .presence-stats { flex: 1; display: flex; flex-direction: column; gap: 7px; }
+  .pstat { display: flex; align-items: center; gap: 8px; }
+  .pstat-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .pstat-label { font-size: 11px; color: #777; flex: 1; }
+  .pstat-value { font-size: 12px; font-weight: 700; }
+  .next-session { margin-top: 12px; padding: 10px 12px; background: #F7FAF8; border-radius: 8px; border: 1px solid rgba(56,131,90,0.12); display: flex; align-items: center; gap: 8px; }
+  .next-session-info { flex: 1; }
+  .next-session-title { font-size: 11px; font-weight: 700; color: var(--dark); }
+  .next-session-sub { font-size: 10px; color: #AAAAAA; }
+  .next-session-tag { font-size: 10px; font-weight: 700; color: var(--green); background: rgba(56,131,90,0.10); padding: 2px 8px; border-radius: 5px; }
+
+  /* Délai */
+  .delai-summary { background: #F7FAF8; border-radius: 10px; display: flex; margin-bottom: 10px; }
+  .delai-item { flex: 1; padding: 10px 8px; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+  .delai-item + .delai-item { border-left: 1px solid rgba(0,0,0,0.07); }
+  .delai-sub-label { font-size: 9px; font-weight: 700; color: #AAAAAA; letter-spacing: 0.4px; text-align: center; }
+  .delai-value { font-size: 18px; font-weight: 800; line-height: 1; }
+  .delai-hint { font-size: 9px; text-align: center; }
+  .line-chart-visual { height: 90px; background: #FAFAFA; border-radius: 8px; overflow: hidden; margin-bottom: 8px; }
+  .line-chart-visual svg { width: 100%; height: 100%; }
+
+  /* Classification chart with Y-axis scale */
+  .chart-with-scale { display: flex; gap: 6px; align-items: stretch; }
+  .y-axis { display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end; padding-bottom: 20px; flex-shrink: 0; width: 20px; }
+  .y-tick { font-size: 8px; color: #CCCCCC; font-weight: 600; line-height: 1; }
+  .bar-area { flex: 1; display: flex; flex-direction: column; }
+  .bar-chart-visual { display: flex; align-items: flex-end; gap: 6px; height: 90px; flex: 1; position: relative; }
+  /* horizontal grid lines */
+  .bar-chart-visual::before { content: ''; position: absolute; left: 0; right: 0; top: 0; bottom: 0; background: repeating-linear-gradient(to bottom, transparent, transparent calc(30px - 1px), rgba(0,0,0,0.04) calc(30px - 1px), rgba(0,0,0,0.04) 30px); pointer-events: none; }
+  .bar-group { display: flex; gap: 2px; align-items: flex-end; flex: 1; position: relative; z-index: 1; }
+  .bar { flex: 1; border-radius: 3px 3px 0 0; min-width: 8px; }
+  .bar-labels-row { display: flex; justify-content: space-around; margin-top: 4px; padding-left: 26px; }
+  .bar-label { font-size: 9px; font-weight: 600; color: #AAAAAA; text-align: center; }
+  .chart-legend { display: flex; justify-content: center; gap: 12px; margin-top: 10px; }
+  .legend-item { display: flex; align-items: center; gap: 4px; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 3px; }
+  .legend-label { font-size: 10px; font-weight: 600; color: var(--dark); }
+
+  /* Timeline */
+  .timeline-item { display: flex; gap: 10px; padding-bottom: 14px; }
+  .timeline-left { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; }
+  .tl-dot { width: 12px; height: 12px; border-radius: 50%; border: 2px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.10); flex-shrink: 0; margin-top: 2px; }
+  .tl-line { width: 1px; flex: 1; background: #E5E7E5; margin-top: 2px; min-height: 20px; }
+  .tl-action { font-size: 12px; font-weight: 600; color: var(--dark); line-height: 1.3; }
+  .tl-time { font-size: 10px; color: #BBBBBB; margin-top: 2px; }
+
+  /* Sessions (chef) */
+  .sessions-card { background: var(--white); border-radius: 14px; padding: 14px; border: 1px solid rgba(123,63,196,0.15); box-shadow: 0 2px 8px rgba(0,0,0,0.06); overflow: hidden; display: flex; flex-direction: column; }
+  .sessions-inner { overflow-y: auto; flex: 1; scrollbar-width: thin; scrollbar-color: #C8D8CE transparent; }
+  .sessions-inner::-webkit-scrollbar { width: 3px; }
+  .session-item { background: white; border-radius: 12px; padding: 12px; border: 1px solid rgba(123,63,196,0.20); margin-bottom: 10px; box-shadow: 0 2px 8px rgba(123,63,196,0.05); }
+  .session-row { display: flex; gap: 10px; align-items: flex-start; }
+  .session-stripe { width: 4px; height: 46px; background: var(--purple); border-radius: 2px; flex-shrink: 0; }
+  .session-info { flex: 1; }
+  .session-title { font-size: 13px; font-weight: 700; color: var(--dark); margin-bottom: 2px; }
+  .session-meta { font-size: 11px; color: #999; }
+  .session-proposer { font-size: 10px; color: rgba(123,63,196,0.7); font-weight: 500; margin-top: 1px; }
+  .session-actions { display: flex; gap: 8px; margin-top: 10px; }
+  .btn-refuse { flex: 1; padding: 8px; border: 1px solid rgba(229,57,53,0.3); border-radius: 8px; font-size: 12px; font-weight: 600; color: #e53935; background: white; text-align: center; }
+  .btn-approve { flex: 1; padding: 8px; background: var(--green); border-radius: 8px; font-size: 12px; font-weight: 600; color: white; text-align: center; }
+
+  /* Member rows */
+  .member-rows { overflow-y: auto; scrollbar-width: thin; scrollbar-color: #C8D8CE transparent; }
+  .member-rows::-webkit-scrollbar { width: 3px; }
+  .member-row { display: flex; align-items: center; gap: 8px; padding: 7px 9px; border-radius: 9px; border: 1px solid #EEE; margin-bottom: 5px; }
+  .member-row.red-row { background: #FFF8F6; border-color: #FFD5CC; }
+  .member-row.orange-row { background: #FFFAF5; border-color: #FFE8CC; }
+  .member-row.green-row { background: white; border-color: #EEE; }
+  .member-name { font-size: 11px; font-weight: 700; width: 72px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .member-bar-wrap { flex: 1; }
+  .member-bar-bg { height: 6px; background: #EEE; border-radius: 3px; overflow: hidden; }
+  .member-bar-fill { height: 100%; border-radius: 3px; }
+  .member-val { font-size: 11px; font-weight: 800; width: 32px; text-align: right; }
+  .chart-hint { font-size: 9px; color: #AAAAAA; text-align: center; margin: 4px 0 8px; }
+  .chart-note { padding: 7px 10px; background: #F7FAF8; border-radius: 8px; border: 1px solid rgba(56,131,90,0.12); font-size: 10px; color: #6B8E7A; }
+
+  /* JS toggle for ignore popup demo */
+  .ignore-btn:focus .ignore-popup, .ignore-popup.show { display: block; }
+</style>
+</head>
+<body>
+
+<h1 class="page-title">Aperçu des Dashboards</h1>
+<p class="page-subtitle">Dégustateur · Chef Dégustateur — validation avant implémentation</p>
+
+<div class="phones-row">
+
+<!-- ══════════════════ NORMAL TASTER ══════════════════ -->
+<div class="phone-wrapper">
+  <div class="phone-label">👤 Dégustateur</div>
+  <div class="phone">
+    <div class="appbar">
+      <div class="menu-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1A2E1F" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></div>
+      <div class="appbar-title">Tableau de bord</div>
+      <div class="appbar-bell"><svg viewBox="0 0 24 24" fill="none" stroke="#1A2E1F" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><div class="bell-badge"></div></div>
+    </div>
+    <div class="scroll-body">
+
+      <!-- 1. PIPELINE — 4 stages, no date filter -->
+      <div class="card" style="height:148px">
+        <div class="card-header"><div class="section-label"><div class="section-bar"></div><span style="font-size:13px">📊</span><span class="section-title">Pipeline de mes évaluations</span></div></div>
+        <div class="card-inner" style="padding-top:0">
+          <div class="pipeline-grid">
+            <div class="pipe-cell"><div class="pipe-top"><div class="pipe-num" style="color:#3A6EA5">3</div><div class="pipe-exact">3</div></div><div class="pipe-bar" style="background:#3A6EA5"></div><div class="pipe-sub">Réceptionné</div></div>
+            <div class="pipe-arrow-cell"><div class="pipe-arrow-txt">›</div><div style="height:2px"></div><div></div></div>
+            <div class="pipe-cell"><div class="pipe-top"><div class="pipe-num" style="color:#D07B2F">5</div><div class="pipe-exact">5</div></div><div class="pipe-bar" style="background:#D07B2F"></div><div class="pipe-sub">Non évaluée</div></div>
+            <div class="pipe-arrow-cell"><div class="pipe-arrow-txt">›</div><div style="height:2px"></div><div></div></div>
+            <div class="pipe-cell"><div class="pipe-top"><div class="pipe-num" style="color:#7B3FC4">2</div><div class="pipe-exact">2</div></div><div class="pipe-bar" style="background:#7B3FC4"></div><div class="pipe-sub">En cours</div></div>
+            <div class="pipe-arrow-cell"><div class="pipe-arrow-txt">›</div><div style="height:2px"></div><div></div></div>
+            <div class="pipe-cell"><div class="pipe-top"><div class="pipe-num" style="color:#38835A">14</div><div class="pipe-exact">14</div></div><div class="pipe-bar" style="background:#38835A"></div><div class="pipe-sub">Soumise</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. URGENTES — CEO first, ignore button, no date filter -->
+      <div class="urgentes-card" style="height:310px">
+        <div class="urgentes-header"><div class="urgentes-dot"></div><div class="urgentes-title">Évaluations urgentes</div><div class="urgentes-count">4</div></div>
+        <div class="urgentes-inner">
+
+          <!-- CEO FIRST -->
+          <div class="urgentes-subsection-header"><div class="subsec-dot" style="background:#7B3FC4"></div><div class="subsec-label" style="color:#7B3FC4">Demandes urgentes — Direction</div><div class="subsec-count" style="background:rgba(123,63,196,0.10);color:#7B3FC4">1</div></div>
+          <div class="urgente-row-wrap">
+            <div class="ceo-urgente-row">
+              <div style="flex:1"><div class="urgente-ref">ECH-2026-029 <span class="tag-highlight">CEO</span></div><div class="urgente-meta">Walid Ben Ali · Fournisseur Tunis</div></div>
+              <div class="urgente-badge badge-ceo">Priorité direction</div>
+              <!-- ignore button with popup OPEN (demo) -->
+              <div class="ignore-btn" onclick="toggleIgnore(this)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                <div class="ignore-popup show">
+                  <div class="ignore-popup-title">Ignorer cet échantillon ?</div>
+                  <div class="ignore-popup-sub">Il ne sera plus affiché dans les urgences. Cliquez ailleurs pour annuler.</div>
+                  <div class="ignore-popup-actions"><div class="ignore-cancel">Annuler</div><div class="ignore-confirm">Ignorer</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="urgentes-subsection-line"></div>
+
+          <!-- 1 jour -->
+          <div class="urgentes-subsection-header"><div class="subsec-dot" style="background:#D07B2F"></div><div class="subsec-label" style="color:#D07B2F">En attente depuis 1 jour</div><div class="subsec-count" style="background:rgba(208,123,47,0.10);color:#D07B2F">1</div></div>
+          <div class="urgente-row-wrap">
+            <div class="urgente-row">
+              <div style="flex:1"><div class="urgente-ref">ECH-2026-031</div><div class="urgente-meta">Karim Mansour · Fournisseur Sfax</div></div>
+              <div class="urgente-badge badge-attente">1j en attente</div>
+              <div class="ignore-btn" onclick="toggleIgnore(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg><div class="ignore-popup"><div class="ignore-popup-title">Ignorer cet échantillon ?</div><div class="ignore-popup-sub">Il ne sera plus affiché dans les urgences. Cliquez ailleurs pour annuler.</div><div class="ignore-popup-actions"><div class="ignore-cancel">Annuler</div><div class="ignore-confirm">Ignorer</div></div></div></div>
+            </div>
+          </div>
+
+          <div class="urgentes-subsection-line"></div>
+
+          <!-- 2+ critique -->
+          <div class="urgentes-subsection-header"><div class="subsec-dot" style="background:#C0392B"></div><div class="subsec-label" style="color:#C0392B">Critique — 2j et plus</div><div class="subsec-count" style="background:rgba(192,57,43,0.10);color:#C0392B">2</div></div>
+          <div class="urgente-row-wrap">
+            <div class="urgente-row">
+              <div style="flex:1"><div class="urgente-ref">ECH-2026-027</div><div class="urgente-meta">Ahmed Slimi · Fournisseur Nabeul</div></div>
+              <div class="urgente-badge badge-critique">3j — critique</div>
+              <div class="ignore-btn" onclick="toggleIgnore(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg><div class="ignore-popup"><div class="ignore-popup-title">Ignorer cet échantillon ?</div><div class="ignore-popup-sub">Il ne sera plus affiché dans les urgences. Cliquez ailleurs pour annuler.</div><div class="ignore-popup-actions"><div class="ignore-cancel">Annuler</div><div class="ignore-confirm">Ignorer</div></div></div></div>
+            </div>
+          </div>
+          <div class="urgente-row-wrap">
+            <div class="urgente-row">
+              <div style="flex:1"><div class="urgente-ref">ECH-2026-025</div><div class="urgente-meta">Sami Ayed · Fournisseur Monastir</div></div>
+              <div class="urgente-badge badge-critique">2j — critique</div>
+              <div class="ignore-btn" onclick="toggleIgnore(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg><div class="ignore-popup"><div class="ignore-popup-title">Ignorer cet échantillon ?</div><div class="ignore-popup-sub">Il ne sera plus affiché dans les urgences. Cliquez ailleurs pour annuler.</div><div class="ignore-popup-actions"><div class="ignore-cancel">Annuler</div><div class="ignore-confirm">Ignorer</div></div></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="urgentes-footer">Appuyez sur la ligne pour ouvrir l'évaluation · Icône œil pour ignorer</div>
+      </div>
+
+      <!-- 3. PRESENCE — date filter in AppBar style -->
+      <div class="card" style="height:240px">
+        <div class="section-appbar">
+          <div class="section-appbar-title">👥  Présence aux séances</div>
+          <div class="appbar-date-btn active">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            01/01 → 25/04
+          </div>
+        </div>
+        <div class="card-inner">
+          <div style="height:8px"></div>
+          <div class="presence-row">
+            <div class="presence-circle-wrap"><svg class="circle-svg" viewBox="0 0 90 90"><circle class="circle-bg" cx="45" cy="45" r="36"/><circle class="circle-fg" cx="45" cy="45" r="36" stroke-dasharray="176 226"/></svg><div class="circle-center"><div class="circle-pct">78%</div><div class="circle-lbl">présence</div></div></div>
+            <div class="presence-stats">
+              <div class="pstat"><div class="pstat-dot" style="background:#38835A"></div><div class="pstat-label">Séances présent</div><div class="pstat-value" style="color:#38835A">14</div></div>
+              <div class="pstat"><div class="pstat-dot" style="background:#C0392B"></div><div class="pstat-label">Séances manquées</div><div class="pstat-value" style="color:#C0392B">4</div></div>
+              <div class="pstat"><div class="pstat-dot" style="background:#E5E7E5"></div><div class="pstat-label">Total</div><div class="pstat-value" style="color:#1A2E1F">18</div></div>
+            </div>
+          </div>
+          <div class="next-session">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#38835A" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <div class="next-session-info"><div class="next-session-title">Prochaine séance : 02/05/2026</div><div class="next-session-sub">Salle de dégustation A</div></div>
+            <div class="next-session-tag">dans 7j</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. DELAI — date filter AppBar style -->
+      <div class="card" style="height:260px">
+        <div class="section-appbar">
+          <div class="section-appbar-title">⏱  Délai de soumission</div>
+          <div class="appbar-date-btn active">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            01/01 → 25/04
+          </div>
+        </div>
+        <div class="card-inner">
+          <div style="height:8px"></div>
+          <div class="delai-summary">
+            <div class="delai-item"><div class="delai-sub-label">MON DÉLAI MOY.</div><div class="delai-value" style="color:#D07B2F">1.8j</div><div class="delai-hint" style="color:#C0392B">↓ +0.4j vs panel</div></div>
+            <div class="delai-item"><div class="delai-sub-label">MOY. PANEL</div><div class="delai-value" style="color:#38835A">1.4j</div><div class="delai-hint" style="color:#AAAAAA">sur la période</div></div>
+            <div class="delai-item"><div class="delai-sub-label">ÉVALS.</div><div class="delai-value" style="color:#1A2E1F">23</div><div class="delai-hint" style="color:#AAAAAA">comptées</div></div>
+          </div>
+          <div class="line-chart-visual"><svg viewBox="0 0 320 80" preserveAspectRatio="none"><defs><linearGradient id="ag1" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#D07B2F" stop-opacity="0.15"/><stop offset="100%" stop-color="#D07B2F" stop-opacity="0"/></linearGradient></defs><path d="M0 55 Q40 40 80 50 Q120 60 160 35 Q200 25 240 45 Q280 55 320 30" fill="url(#ag1)"/><path d="M0 55 Q40 40 80 50 Q120 60 160 35 Q200 25 240 45 Q280 55 320 30" fill="none" stroke="#D07B2F" stroke-width="2" stroke-linecap="round"/><path d="M0 48 Q40 45 80 47 Q120 49 160 46 Q200 43 240 45 Q280 47 320 44" fill="none" stroke="#B8DCC8" stroke-width="1.5" stroke-dasharray="5,4"/></svg></div>
+          <div style="display:flex;justify-content:center;gap:14px">
+            <div style="display:flex;align-items:center;gap:5px"><div style="width:16px;height:2px;background:#D07B2F;border-radius:2px"></div><span style="font-size:10px;font-weight:600">Mon délai</span></div>
+            <div style="display:flex;align-items:center;gap:5px"><div style="width:16px;border-top:2px dashed #B8DCC8"></div><span style="font-size:10px;font-weight:600">Moy. panel</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5. CLASSIFICATIONS — AppBar date filter + Y-axis scale -->
+      <div class="card" style="height:260px">
+        <div class="section-appbar">
+          <div class="section-appbar-title">📊  Mes classifications</div>
+          <div class="appbar-date-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          </div>
+        </div>
+        <div class="card-inner">
+          <div style="height:8px"></div>
+          <!-- Chart with Y-axis scale -->
+          <div class="chart-with-scale">
+            <div class="y-axis">
+              <div class="y-tick">8</div>
+              <div class="y-tick">6</div>
+              <div class="y-tick">4</div>
+              <div class="y-tick">2</div>
+              <div class="y-tick">0</div>
+            </div>
+            <div class="bar-area">
+              <div class="bar-chart-visual">
+                <div class="bar-group"><div class="bar" style="height:60px;background:#38835A"></div><div class="bar" style="height:30px;background:#6B8143"></div><div class="bar" style="height:15px;background:#D07B2F"></div></div>
+                <div class="bar-group"><div class="bar" style="height:80px;background:#38835A"></div><div class="bar" style="height:40px;background:#6B8143"></div><div class="bar" style="height:20px;background:#D07B2F"></div></div>
+                <div class="bar-group"><div class="bar" style="height:50px;background:#38835A"></div><div class="bar" style="height:25px;background:#6B8143"></div><div class="bar" style="height:10px;background:#D07B2F"></div></div>
+                <div class="bar-group"><div class="bar" style="height:70px;background:#38835A"></div><div class="bar" style="height:35px;background:#6B8143"></div><div class="bar" style="height:18px;background:#D07B2F"></div></div>
+              </div>
+            </div>
+          </div>
+          <div class="bar-labels-row"><div class="bar-label">Jan 2025</div><div class="bar-label">Avr 2025</div><div class="bar-label">Jan 2026</div><div class="bar-label">Avr 2026</div></div>
+          <div class="chart-legend"><div class="legend-item"><div class="legend-dot" style="background:#38835A"></div><span class="legend-label">Extra Vierge</span></div><div class="legend-item"><div class="legend-dot" style="background:#6B8143"></div><span class="legend-label">Vierge</span></div><div class="legend-item"><div class="legend-dot" style="background:#D07B2F"></div><span class="legend-label">Lampante</span></div></div>
+        </div>
+      </div>
+
+      <!-- 6. ACTIVITE — AppBar date filter -->
+      <div class="card" style="height:260px">
+        <div class="section-appbar">
+          <div class="section-appbar-title">🕐  Activité récente</div>
+          <div class="appbar-date-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          </div>
+        </div>
+        <div class="card-inner">
+          <div style="height:8px"></div>
+          <div class="timeline-item"><div class="timeline-left"><div class="tl-dot" style="background:#38835A"></div><div class="tl-line"></div></div><div><div class="tl-action">Évaluation soumise pour ECH-2026-031</div><div class="tl-time">Aujourd'hui à 09h14</div></div></div>
+          <div class="timeline-item"><div class="timeline-left"><div class="tl-dot" style="background:#3A6EA5"></div><div class="tl-line"></div></div><div><div class="tl-action">Présent à la séance du 22/04/2026</div><div class="tl-time">Il y a 3 jours</div></div></div>
+          <div class="timeline-item"><div class="timeline-left"><div class="tl-dot" style="background:#38835A"></div><div class="tl-line"></div></div><div><div class="tl-action">Évaluation soumise pour ECH-2026-028</div><div class="tl-time">Il y a 4 jours</div></div></div>
+          <div class="timeline-item"><div class="timeline-left"><div class="tl-dot" style="background:#C0392B"></div></div><div><div class="tl-action">Absent de la séance du 18/04/2026</div><div class="tl-time">Il y a 7 jours</div></div></div>
+        </div>
+        <div class="card-footer">1–4 sur 12</div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ CHEF DÉGUSTATEUR ══════════════════ -->
+<div class="phone-wrapper">
+  <div class="phone-label">⭐ Chef Dégustateur</div>
+  <div class="phone">
+    <div class="appbar">
+      <div class="menu-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1A2E1F" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></div>
+      <div class="appbar-title">Tableau de bord</div>
+      <div class="appbar-bell"><svg viewBox="0 0 24 24" fill="none" stroke="#1A2E1F" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><div class="bell-badge"></div></div>
+    </div>
+    <div class="scroll-body">
+
+      <!-- 1. PIPELINE chef — no date filter -->
+      <div class="card" style="height:148px">
+        <div class="card-header"><div class="section-label"><div class="section-bar"></div><span style="font-size:13px">📊</span><span class="section-title">Pipeline des échantillons</span></div></div>
+        <div class="card-inner" style="padding-top:0">
+          <div class="pipeline-grid">
+            <div class="pipe-cell"><div class="pipe-top"><div class="pipe-num" style="color:#3A6EA5">12</div><div class="pipe-exact">12</div></div><div class="pipe-bar" style="background:#3A6EA5"></div><div class="pipe-sub">Réceptionné</div></div>
+            <div class="pipe-arrow-cell"><div class="pipe-arrow-txt">›</div><div style="height:2px"></div><div></div></div>
+            <div class="pipe-cell"><div class="pipe-top"><div class="pipe-num" style="color:#D07B2F">8</div><div class="pipe-exact">8</div></div><div class="pipe-bar" style="background:#D07B2F"></div><div class="pipe-sub">En attente éval.</div></div>
+            <div class="pipe-arrow-cell"><div class="pipe-arrow-txt">›</div><div style="height:2px"></div><div></div></div>
+            <div class="pipe-cell"><div class="pipe-top"><div class="pipe-num" style="color:#7B3FC4">3</div><div class="pipe-exact">3</div></div><div class="pipe-bar" style="background:#7B3FC4"></div><div class="pipe-sub">En cours</div></div>
+            <div class="pipe-arrow-cell"><div class="pipe-arrow-txt">›</div><div style="height:2px"></div><div></div></div>
+            <div class="pipe-cell"><div class="pipe-top"><div class="pipe-num" style="color:#38835A">21</div><div class="pipe-exact">21</div></div><div class="pipe-bar" style="background:#38835A"></div><div class="pipe-sub">Soumis</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. URGENTES chef — CEO first, ignore btn, no date filter -->
+      <div class="urgentes-card" style="height:320px">
+        <div class="urgentes-header"><div class="urgentes-dot"></div><div class="urgentes-title">Évaluations urgentes</div><div class="urgentes-count">4</div></div>
+        <div class="urgentes-inner">
+          <div class="urgentes-subsection-header"><div class="subsec-dot" style="background:#7B3FC4"></div><div class="subsec-label" style="color:#7B3FC4">Demandes urgentes — Direction</div><div class="subsec-count" style="background:rgba(123,63,196,0.10);color:#7B3FC4">1</div></div>
+          <div class="urgente-row-wrap">
+            <div class="ceo-urgente-row">
+              <div style="flex:1"><div class="urgente-ref">ECH-2026-022 <span class="tag-highlight">CEO</span></div><div class="urgente-meta">Ali Ferchichi · Fournisseur Kairouan</div></div>
+              <div class="urgente-badge badge-ceo">Priorité direction</div>
+              <div class="ignore-btn" onclick="toggleIgnore(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg><div class="ignore-popup"><div class="ignore-popup-title">Ignorer cet échantillon ?</div><div class="ignore-popup-sub">Il ne sera plus affiché dans les urgences. Cliquez ailleurs pour annuler.</div><div class="ignore-popup-actions"><div class="ignore-cancel">Annuler</div><div class="ignore-confirm">Ignorer</div></div></div></div>
+            </div>
+          </div>
+          <div class="urgentes-subsection-line"></div>
+          <div class="urgentes-subsection-header"><div class="subsec-dot" style="background:#D07B2F"></div><div class="subsec-label" style="color:#D07B2F">En attente depuis 1 jour</div><div class="subsec-count" style="background:rgba(208,123,47,0.10);color:#D07B2F">2</div></div>
+          <div class="urgente-row-wrap"><div class="urgente-row"><div style="flex:1"><div class="urgente-ref">ECH-2026-030</div><div class="urgente-meta">Imed Bouaziz · Fournisseur Sousse</div></div><div class="urgente-badge badge-attente">1j en attente</div><div class="ignore-btn" onclick="toggleIgnore(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg><div class="ignore-popup"><div class="ignore-popup-title">Ignorer cet échantillon ?</div><div class="ignore-popup-sub">Il ne sera plus affiché dans les urgences.</div><div class="ignore-popup-actions"><div class="ignore-cancel">Annuler</div><div class="ignore-confirm">Ignorer</div></div></div></div></div></div>
+          <div class="urgente-row-wrap"><div class="urgente-row"><div style="flex:1"><div class="urgente-ref">ECH-2026-032</div><div class="urgente-meta">Nour Khalil · Fournisseur Sfax</div></div><div class="urgente-badge badge-attente">1j en attente</div><div class="ignore-btn" onclick="toggleIgnore(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg><div class="ignore-popup"><div class="ignore-popup-title">Ignorer cet échantillon ?</div><div class="ignore-popup-sub">Il ne sera plus affiché dans les urgences.</div><div class="ignore-popup-actions"><div class="ignore-cancel">Annuler</div><div class="ignore-confirm">Ignorer</div></div></div></div></div></div>
+          <div class="urgentes-subsection-line"></div>
+          <div class="urgentes-subsection-header"><div class="subsec-dot" style="background:#C0392B"></div><div class="subsec-label" style="color:#C0392B">Critique — 2j et plus</div><div class="subsec-count" style="background:rgba(192,57,43,0.10);color:#C0392B">1</div></div>
+          <div class="urgente-row-wrap"><div class="urgente-row"><div style="flex:1"><div class="urgente-ref">ECH-2026-026</div><div class="urgente-meta">Hajer Slim · Fournisseur Bizerte</div></div><div class="urgente-badge badge-critique">2j — critique</div><div class="ignore-btn" onclick="toggleIgnore(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg><div class="ignore-popup"><div class="ignore-popup-title">Ignorer cet échantillon ?</div><div class="ignore-popup-sub">Il ne sera plus affiché dans les urgences.</div><div class="ignore-popup-actions"><div class="ignore-cancel">Annuler</div><div class="ignore-confirm">Ignorer</div></div></div></div></div></div>
+        </div>
+        <div class="urgentes-footer">Appuyez sur la ligne pour évaluer · Icône œil pour ignorer</div>
+      </div>
+
+      <!-- 3. SESSIONS — no date filter -->
+      <div class="sessions-card" style="height:280px">
+        <div class="section-label" style="margin-bottom:12px"><div class="section-bar purple"></div><span style="font-size:13px">⏳</span><span class="section-title">Sessions en attente d'approbation</span><div style="background:rgba(123,63,196,0.10);color:#7B3FC4;font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px;flex-shrink:0">2</div></div>
+        <div class="sessions-inner">
+          <div class="session-item"><div class="session-row"><div class="session-stripe"></div><div class="session-info"><div class="session-title">Séance — Lot Nabeul Avril</div><div class="session-meta">28/04/2026 · 09h00 · Salle A</div><div class="session-proposer">Proposée par Sami Haddad</div></div></div><div class="session-actions"><div class="btn-refuse">✕ Refuser</div><div class="btn-approve">✓ Approuver</div></div></div>
+          <div class="session-item" style="margin-bottom:0"><div class="session-row"><div class="session-stripe"></div><div class="session-info"><div class="session-title">Dégustation Spéciale Bio</div><div class="session-meta">30/04/2026 · 14h00 · Salle B</div><div class="session-proposer">Proposée par Leila Trabelsi</div></div></div><div class="session-actions"><div class="btn-refuse">✕ Refuser</div><div class="btn-approve">✓ Approuver</div></div></div>
+        </div>
+      </div>
+
+      <!-- 4. PRESENCE chef -->
+      <div class="card" style="height:240px">
+        <div class="section-appbar"><div class="section-appbar-title">👥  Présence aux séances</div><div class="appbar-date-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div></div>
+        <div class="card-inner">
+          <div style="height:8px"></div>
+          <div class="presence-row">
+            <div class="presence-circle-wrap"><svg class="circle-svg" viewBox="0 0 90 90"><circle class="circle-bg" cx="45" cy="45" r="36"/><circle class="circle-fg" cx="45" cy="45" r="36" stroke-dasharray="204 226"/></svg><div class="circle-center"><div class="circle-pct">90%</div><div class="circle-lbl">présence</div></div></div>
+            <div class="presence-stats">
+              <div class="pstat"><div class="pstat-dot" style="background:#38835A"></div><div class="pstat-label">Séances présent</div><div class="pstat-value" style="color:#38835A">18</div></div>
+              <div class="pstat"><div class="pstat-dot" style="background:#C0392B"></div><div class="pstat-label">Séances manquées</div><div class="pstat-value" style="color:#C0392B">2</div></div>
+              <div class="pstat"><div class="pstat-dot" style="background:#E5E7E5"></div><div class="pstat-label">Total</div><div class="pstat-value" style="color:#1A2E1F">20</div></div>
+            </div>
+          </div>
+          <div class="next-session"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#38835A" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><div class="next-session-info"><div class="next-session-title">Prochaine séance : 28/04/2026</div><div class="next-session-sub">Salle A</div></div><div class="next-session-tag">dans 3j</div></div>
+        </div>
+      </div>
+
+      <!-- 5. DELAI chef panel -->
+      <div class="card" style="height:220px">
+        <div class="section-appbar"><div class="section-appbar-title">⏱  Délai de soumission</div><div class="appbar-date-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div></div>
+        <div class="card-inner">
+          <div style="height:8px"></div>
+          <div class="member-rows" style="max-height:100px">
+            <div class="member-row green-row"><div class="member-name" style="color:#38835A">Sami H.</div><div class="member-bar-wrap"><div class="member-bar-bg"><div class="member-bar-fill" style="width:23%;background:#38835A"></div></div></div><div class="member-val" style="color:#38835A">0.8j</div></div>
+            <div class="member-row green-row"><div class="member-name" style="color:#38835A">Leila T.</div><div class="member-bar-wrap"><div class="member-bar-bg"><div class="member-bar-fill" style="width:34%;background:#38835A"></div></div></div><div class="member-val" style="color:#38835A">1.2j</div></div>
+            <div class="member-row orange-row"><div class="member-name" style="color:#D07B2F">Ahmed K.</div><div class="member-bar-wrap"><div class="member-bar-bg"><div class="member-bar-fill" style="width:60%;background:#D07B2F"></div></div></div><div class="member-val" style="color:#D07B2F">2.1j</div></div>
+            <div class="member-row red-row"><div class="member-name" style="color:#C0392B">Nora B.</div><div class="member-bar-wrap"><div class="member-bar-bg"><div class="member-bar-fill" style="width:100%;background:#C0392B"></div></div></div><div class="member-val" style="color:#C0392B">3.5j</div></div>
+          </div>
+          <div class="chart-hint">↕ défiler pour voir tous</div>
+          <div class="chart-note">Délai moyen entre la réception d'un échantillon et la soumission de l'évaluation.</div>
+        </div>
+      </div>
+
+      <!-- 6. ALIGNEMENT chef -->
+      <div class="card" style="height:220px">
+        <div class="section-appbar"><div class="section-appbar-title">🎯  Alignement avec le panel</div><div class="appbar-date-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div></div>
+        <div class="card-inner">
+          <div style="height:8px"></div>
+          <div class="member-rows" style="max-height:100px">
+            <div class="member-row green-row"><div class="member-name" style="color:#38835A">Sami H.</div><div class="member-bar-wrap"><div class="member-bar-bg"><div class="member-bar-fill" style="width:15%;background:#38835A"></div></div></div><div class="member-val" style="color:#38835A">15%</div></div>
+            <div class="member-row green-row"><div class="member-name" style="color:#38835A">Leila T.</div><div class="member-bar-wrap"><div class="member-bar-bg"><div class="member-bar-fill" style="width:22%;background:#38835A"></div></div></div><div class="member-val" style="color:#38835A">22%</div></div>
+            <div class="member-row orange-row"><div class="member-name" style="color:#D07B2F">Ahmed K.</div><div class="member-bar-wrap"><div class="member-bar-bg"><div class="member-bar-fill" style="width:38%;background:#D07B2F"></div></div></div><div class="member-val" style="color:#D07B2F">38%</div></div>
+            <div class="member-row red-row"><div class="member-name" style="color:#C0392B">Nora B.</div><div class="member-bar-wrap"><div class="member-bar-bg"><div class="member-bar-fill" style="width:62%;background:#C0392B"></div></div></div><div class="member-val" style="color:#C0392B">62%</div></div>
+          </div>
+          <div class="chart-hint">↕ défiler pour voir tous</div>
+          <div class="chart-note">Plus le % est élevé, plus le dégustateur classe différemment du reste du panel.</div>
+        </div>
+      </div>
+
+      <!-- 7. CLASSIFICATIONS chef — Y-axis + AppBar date filter -->
+      <div class="card" style="height:260px">
+        <div class="section-appbar"><div class="section-appbar-title">📊  Mes classifications</div><div class="appbar-date-btn active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Jan 25 → Avr 26</div></div>
+        <div class="card-inner">
+          <div style="height:8px"></div>
+          <div class="chart-with-scale">
+            <div class="y-axis"><div class="y-tick">8</div><div class="y-tick">6</div><div class="y-tick">4</div><div class="y-tick">2</div><div class="y-tick">0</div></div>
+            <div class="bar-area">
+              <div class="bar-chart-visual">
+                <div class="bar-group"><div class="bar" style="height:70px;background:#38835A"></div><div class="bar" style="height:35px;background:#6B8143"></div><div class="bar" style="height:18px;background:#D07B2F"></div></div>
+                <div class="bar-group"><div class="bar" style="height:55px;background:#38835A"></div><div class="bar" style="height:28px;background:#6B8143"></div><div class="bar" style="height:12px;background:#D07B2F"></div></div>
+                <div class="bar-group"><div class="bar" style="height:80px;background:#38835A"></div><div class="bar" style="height:40px;background:#6B8143"></div><div class="bar" style="height:22px;background:#D07B2F"></div></div>
+                <div class="bar-group"><div class="bar" style="height:65px;background:#38835A"></div><div class="bar" style="height:32px;background:#6B8143"></div><div class="bar" style="height:16px;background:#D07B2F"></div></div>
+              </div>
+            </div>
+          </div>
+          <div class="bar-labels-row"><div class="bar-label">Jan 2025</div><div class="bar-label">Avr 2025</div><div class="bar-label">Jan 2026</div><div class="bar-label">Avr 2026</div></div>
+          <div class="chart-legend"><div class="legend-item"><div class="legend-dot" style="background:#38835A"></div><span class="legend-label">Extra Vierge</span></div><div class="legend-item"><div class="legend-dot" style="background:#6B8143"></div><span class="legend-label">Vierge</span></div><div class="legend-item"><div class="legend-dot" style="background:#D07B2F"></div><span class="legend-label">Lampante</span></div></div>
+        </div>
+      </div>
+
+      <!-- 8. ACTIVITE chef -->
+      <div class="card" style="height:260px">
+        <div class="section-appbar"><div class="section-appbar-title">🕐  Activité récente</div><div class="appbar-date-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div></div>
+        <div class="card-inner">
+          <div style="height:8px"></div>
+          <div class="timeline-item"><div class="timeline-left"><div class="tl-dot" style="background:#7B3FC4"></div><div class="tl-line"></div></div><div><div class="tl-action">Session "Lot Nabeul" approuvée</div><div class="tl-time">Aujourd'hui à 10h02</div></div></div>
+          <div class="timeline-item"><div class="timeline-left"><div class="tl-dot" style="background:#38835A"></div><div class="tl-line"></div></div><div><div class="tl-action">Évaluation soumise pour ECH-2026-030</div><div class="tl-time">Hier à 16h45</div></div></div>
+          <div class="timeline-item"><div class="timeline-left"><div class="tl-dot" style="background:#3A6EA5"></div><div class="tl-line"></div></div><div><div class="tl-action">Présent à la séance du 22/04/2026</div><div class="tl-time">Il y a 3 jours</div></div></div>
+          <div class="timeline-item"><div class="timeline-left"><div class="tl-dot" style="background:#38835A"></div></div><div><div class="tl-action">Évaluation soumise pour ECH-2026-026</div><div class="tl-time">Il y a 4 jours</div></div></div>
+        </div>
+        <div class="card-footer">1–4 sur 18</div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+</div>
+
+<div style="text-align:center;margin-top:28px;font-size:12px;color:#888;font-weight:500">
+  Aperçu interactif — cliquez sur l'icône œil barré pour voir le popup d'ignore · en attente de validation
+</div>
+
+<script>
+  function toggleIgnore(btn) {
+    event.stopPropagation();
+    // close all other popups
+    document.querySelectorAll('.ignore-popup.show').forEach(p => {
+      if (p !== btn.querySelector('.ignore-popup')) p.classList.remove('show');
+    });
+    btn.querySelector('.ignore-popup').classList.toggle('show');
+  }
+  // close popup when clicking outside
+  document.addEventListener('click', () => {
+    document.querySelectorAll('.ignore-popup.show').forEach(p => p.classList.remove('show'));
+  });
+</script>
+</body>
+</html>

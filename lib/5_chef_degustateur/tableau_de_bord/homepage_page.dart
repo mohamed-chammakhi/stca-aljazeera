@@ -1,24 +1,22 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // FILE : homepage/homepage_page.dart
 // PURPOSE : THE BRAIN of the homepage
-// owns : _notificationCount, _notifications, all setState calls
+// owns : _unreadCount, all setState calls
 // owns : all navigation logic
 // ─────────────────────────────────────────────────────────────────────────────
 
 import 'package:flutter/material.dart';
 
-// ── Homepage own widgets ──────────────────────────────────────────────────────
-import 'widgets/notification_bell.dart';
-import 'widgets/notification_panel.dart';
 import 'widgets/app_drawer.dart';
 import 'widgets/home_body.dart';
-import 'models/notification_item.dart';
 
 import '../profil.dart';
+import '../notifications/models/notification_degustateur.dart';
+import '../notifications/services/notification_degustateur_service.dart';
+import '../notifications/notifications_degustateur_page.dart';
 
 import '../../../main.dart';
 import '../sessions_degustation/sessions_degustation_page.dart';
-
 import '../gestion_echantillons/gestion_echantillons_page.dart';
 import '../evaluation_echantillons/evaluation_echantillons_page.dart';
 import '../membres_panel/membres_panel_page.dart';
@@ -32,52 +30,77 @@ class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
   @override
-  _HomePageState createState() => _HomePageState();
+  State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
   static const Color green = Color(0xFF38835A);
 
-  // ── STATE — lives here, cannot be moved ──────────────────────────────────
-  int _notificationCount = 3;
+  // ── Notifications ─────────────────────────────────────────────────────────
+  final _notifService = NotificationDegustateurService();
+  int _unreadCount = 0;
 
-  final List<NotificationItem> _notifications = [
-    NotificationItem(
-      message: 'Nouvelle dégustation programmée pour demain',
-      time: 'Il y a 1h',
-    ),
-    NotificationItem(
-      message: "Résultats d'analyse de laboratoire disponibles",
-      time: 'Il y a 2h',
-    ),
-    NotificationItem(message: 'Réunion planifiée à 14h00', time: 'Il y a 3h'),
-  ];
-
-  // ── ACTIONS — all setState calls live here ───────────────────────────────
-
-  void _addNotification(String message) {
-    setState(() {
-      _notifications.insert(
-        0,
-        NotificationItem(message: message, time: "À l'instant"),
-      );
-      _notificationCount++;
-    });
+  @override
+  void initState() {
+    super.initState();
+    _loadUnreadCount();
   }
 
-  void _markAllAsRead() {
-    setState(() => _notificationCount = 0);
+  Future<void> _loadUnreadCount() async {
+    final count = await _notifService.fetchUnreadCount();
+    if (mounted) setState(() => _unreadCount = count);
+  }
+
+  // ── ACTIONS ───────────────────────────────────────────────────────────────
+
+  void _openNotifications() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => NotificationsDegustateurPage(
+          service: _notifService,
+          onNavigate: _handleNotifNavigation,
+        ),
+      ),
+    ).then((_) => _loadUnreadCount());
+  }
+
+  void _handleNotifNavigation(NotificationDegustateur n) {
+    switch (n.section) {
+      case 'EVALUATIONS':
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const EvaluationEchantillonsPage()),
+        );
+        break;
+      case 'ANALYSES':
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const AnalyseLaboratoirePage()),
+        );
+        break;
+      case 'SESSIONS':
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const SessionsDegustationPage()),
+        );
+        break;
+      default:
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const GestionEchantillonsPage()),
+        );
+        break;
+    }
   }
 
   // ── NAVIGATION ────────────────────────────────────────────────────────────
 
-  // Closes drawer then pushes a new page on top
   void _goTo(Widget page) {
     Navigator.pop(context); // close drawer
     Navigator.push(context, MaterialPageRoute(builder: (_) => page));
   }
 
-  // Closes drawer then replaces the whole stack — no back button to homepage
   void _goToLogin() {
     Navigator.pop(context);
     Navigator.pushReplacement(
@@ -100,24 +123,44 @@ class _HomePageState extends State<HomePage> {
         centerTitle: false,
         iconTheme: const IconThemeData(color: Colors.white, size: 28),
         actions: [
-          // NotificationBell — from widgets/notification_bell.dart
-          // count and onTap passed FROM HERE
-          NotificationBell(
-            count: _notificationCount,
-            onTap: () {
-              _markAllAsRead();
-              showNotificationPanel(context, notifications: _notifications);
-            },
+          Stack(
+            children: [
+              IconButton(
+                icon: const Icon(
+                  Icons.notifications_outlined,
+                  color: Colors.white,
+                ),
+                onPressed: _openNotifications,
+              ),
+              if (_unreadCount > 0)
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: Container(
+                    width: _unreadCount > 9 ? 18 : 14,
+                    height: 14,
+                    decoration: BoxDecoration(
+                      color: Colors.orange,
+                      borderRadius: BorderRadius.circular(7),
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      _unreadCount > 9 ? '9+' : '$_unreadCount',
+                      style: const TextStyle(
+                        fontSize: 8,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
           ),
           const SizedBox(width: 8),
         ],
       ),
 
-      // HomeBody — from widgets/home_body.dart
-      body: HomeBody(
-        onSimulerNotification: () =>
-            _addNotification('Nouveau rapport disponible'),
-      ),
+      body: HomeBody(onSimulerNotification: () {}),
       drawer: AppDrawer(
         onaccueil: () => Navigator.pop(context),
         onEvaluationEchantillons: () =>

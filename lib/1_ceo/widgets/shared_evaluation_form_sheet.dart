@@ -119,7 +119,9 @@ class _EvaluationFormSheet extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        _fmtDate(DateTime.tryParse(ev.soumisLe) ?? DateTime.now()),
+                        _fmtDate(
+                          DateTime.tryParse(ev.soumisLe) ?? DateTime.now(),
+                        ),
                         style: TextStyle(
                           fontSize: 11,
                           color: Colors.grey.shade400,

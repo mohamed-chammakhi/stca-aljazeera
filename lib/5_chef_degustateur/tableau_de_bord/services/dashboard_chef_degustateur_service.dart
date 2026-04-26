@@ -37,6 +37,31 @@ class DashboardChefDegustateurService {
     return _mockClassifications();
   }
 
+  Future<List<EvaluationUrgenteCeoChef>> fetchUrgentesCeo() async {
+    // TODO: replace with: return _api.get('/chef/dashboard/urgentes-ceo/');
+    return _mockUrgentesCeo();
+  }
+
+  Future<PresenceChefData> fetchPresence({
+    DateTime? dateDebut,
+    DateTime? dateFin,
+  }) async {
+    // TODO: replace with API call passing date params
+    return _mockPresence();
+  }
+
+  Future<({List<ActiviteItemChef> items, int total})> fetchActivite({
+    DateTime? dateDebut,
+    DateTime? dateFin,
+    int offset = 0,
+    int pageSize = 5,
+  }) async {
+    // TODO: replace with paginated API call
+    final all = _mockActivite();
+    final slice = all.skip(offset).take(pageSize).toList();
+    return (items: slice, total: all.length);
+  }
+
   // ── Mock data ──────────────────────────────────────────────────────────────
   // TODO: remove when backend is ready
 
@@ -103,6 +128,46 @@ class DashboardChefDegustateurService {
       AlignementMembre(nom: 'Ichrak C.',  divergencePct: 5.0),
     ],
   );
+
+  // TODO: remove when backend is ready
+  List<EvaluationUrgenteCeoChef> _mockUrgentesCeo() => const [
+    EvaluationUrgenteCeoChef(
+      id: 'ceo-chef-1',
+      reference: 'OUESLATI-C2 · 2026/0007',
+      collecteurNom: 'Sami Ben Amor',
+      fournisseurNom: 'Ferme El Baraka',
+    ),
+    EvaluationUrgenteCeoChef(
+      id: 'ceo-chef-2',
+      reference: 'ZALMATI-C1 · 2026/0011',
+      collecteurNom: 'Rim Bouzid',
+      fournisseurNom: 'Ferme El Hamra',
+    ),
+  ];
+
+  // TODO: remove when backend is ready
+  PresenceChefData _mockPresence() => const PresenceChefData(
+    present: 18,
+    manquee: 1,
+    prochaineTitre: 'Prochaine séance : 28 Avr 2026',
+    prochaineDate: '28 Avr 2026',
+    prochaineLieu: 'Salle de dégustation A · 09h00',
+    prochaineCountdown: '4j',
+  );
+
+  // TODO: remove when backend is ready
+  List<ActiviteItemChef> _mockActivite() => const [
+    ActiviteItemChef(id: 'ca1', action: 'Session #15 approuvée', horodatage: '24 Avr · 11h00', type: 'approbation'),
+    ActiviteItemChef(id: 'ca2', action: 'Évaluation soumise — CHEMLALI-C4', horodatage: '24 Avr · 10h32', type: 'evaluation'),
+    ActiviteItemChef(id: 'ca3', action: 'Séance de dégustation rejointe — Séance #14', horodatage: '23 Avr · 09h00', type: 'seance_presente'),
+    ActiviteItemChef(id: 'ca4', action: 'Session #14 approuvée', horodatage: '22 Avr · 15h30', type: 'approbation'),
+    ActiviteItemChef(id: 'ca5', action: 'Évaluation soumise — OUESLATI-C2', horodatage: '21 Avr · 14h15', type: 'evaluation'),
+    ActiviteItemChef(id: 'ca6', action: 'Séance manquée — Séance #13', horodatage: '19 Avr · 09h00', type: 'seance_manquee'),
+    ActiviteItemChef(id: 'ca7', action: 'Évaluation soumise — CHETOUI-C2', horodatage: '19 Avr · 11h47', type: 'evaluation'),
+    ActiviteItemChef(id: 'ca8', action: 'Session refusée — Séance Chemlali', horodatage: '17 Avr · 10h00', type: 'refus'),
+    ActiviteItemChef(id: 'ca9', action: 'Séance rejointe — Séance #12', horodatage: '15 Avr · 09h00', type: 'seance_presente'),
+    ActiviteItemChef(id: 'ca10', action: 'Évaluation soumise — ZALMATI-C1', horodatage: '14 Avr · 16h40', type: 'evaluation'),
+  ];
 
   List<ClassificationPoint> _mockClassifications() => const [
     ClassificationPoint(label: 'Oct', extraVierge: 1, vierge: 0, lampante: 1),

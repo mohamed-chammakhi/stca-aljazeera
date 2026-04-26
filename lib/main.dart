@@ -5,7 +5,6 @@ import '2_collecteur/mes_echantillons/mes_echantillons_page.dart';
 import '1_ceo/tableau_de_bord/tableau_de_bord.dart';
 import '4_laboratoire/echantillons_labo/echantillons_labo_page.dart';
 import '5_chef_degustateur/tableau_de_bord/homepage_page.dart' as chef;
-import '6_responsable_financier/achats_confirmes/achats_confirmes_rf_page.dart';
 import 'core/api_client.dart';
 
 // ENTRY POINT
@@ -396,11 +395,6 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                       _debugBtn('Chef de degus', () => _goTo(const chef.HomePage())),
 
-                      _debugBtn(
-                        'finance',
-                        () => _goTo(const AchatsConfirmesRfPage()),
-                      ),
-                      //    _debugBtn('Test', () => _goTo(const GeoTestPage())),
                     ],
                   ),
 

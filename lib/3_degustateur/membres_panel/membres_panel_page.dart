@@ -6,14 +6,16 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'models/membre_panel.dart';
+import 'services/membres_panel_service.dart';
 import 'widgets/membre_card.dart';
 import '../../../main.dart';
 import '../gestion_echantillons/gestion_echantillons_page.dart';
 import '../evaluation_echantillons/evaluation_echantillons_page.dart';
-import '../profil.dart';
+import '../profil/profil_page.dart';
 import '../tableau_de_bord/widgets/app_drawer.dart';
 import '../sessions_degustation/sessions_degustation_page.dart';
 import '../analyse_labo/analyse_laboratoire_page.dart';
+import '../tableau_de_bord/homepage_page.dart';
 
 const Color gray = Color.fromARGB(255, 81, 82, 81);
 
@@ -29,9 +31,22 @@ class MembresPanelPage extends StatefulWidget {
 }
 
 class _MembresPanelPageState extends State<MembresPanelPage> {
+  final _service = MembresPanelService();
   final TextEditingController _searchCtrl = TextEditingController();
   String _recherche = '';
-  //go to function
+  List<MembrePanel> _membres = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    final data = await _service.fetchMembres();
+    setState(() => _membres = data);
+  }
+
   void _goTo(Widget page) {
     Navigator.pop(context); // close drawer
     Navigator.push(context, MaterialPageRoute(builder: (_) => page));
@@ -45,50 +60,6 @@ class _MembresPanelPageState extends State<MembresPanelPage> {
       MaterialPageRoute(builder: (_) => LoginPage()),
     );
   }
-
-  // ── MOCK DATA — replace with API call when backend is ready ───────────────
-  final List<MembrePanel> _membres = const [
-    MembrePanel(
-      id: '001',
-      nom: 'Chammakhi',
-      prenom: 'Ichrak',
-      role: 'Dégustateur',
-      membreDepuis: 'Jan 2026',
-      estEnLigne: true,
-    ),
-    MembrePanel(
-      id: '002',
-      nom: 'Ennouri',
-      prenom: 'Lobna',
-      role: 'Dégustateur',
-      membreDepuis: 'Jan 2026',
-      estEnLigne: false,
-    ),
-    MembrePanel(
-      id: '003',
-      nom: 'Ouni',
-      prenom: 'Maha',
-      role: 'Dégustateur',
-      membreDepuis: 'Fév 2026',
-      estEnLigne: true,
-    ),
-    MembrePanel(
-      id: '004',
-      nom: 'Fezai',
-      prenom: 'Nayrouz',
-      role: 'Dégustateur',
-      membreDepuis: 'Fév 2026',
-      estEnLigne: false,
-    ),
-    MembrePanel(
-      id: '005',
-      nom: 'Smaali',
-      prenom: 'Yosra',
-      role: 'Dégustateur',
-      membreDepuis: 'Mar 2026',
-      estEnLigne: false,
-    ),
-  ];
 
   // ── FILTERED LIST based on search ─────────────────────────────────────────
   List<MembrePanel> get _membresFiltres {
@@ -217,7 +188,7 @@ class _MembresPanelPageState extends State<MembresPanelPage> {
         ),
       ),
       drawer: AppDrawer(
-        onaccueil: () => Navigator.pop(context),
+        onaccueil: () => _goTo(const HomePage()),
 
         // OLD : EvaluationEchantillonsPage from EvaluationEchantillonsPage.dart
         // NEW : will be EvaluationEchantillonsPage from

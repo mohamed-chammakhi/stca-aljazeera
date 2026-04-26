@@ -1,7 +1,7 @@
 // ═════════════════════════════════════════════════════════════════════════════
-// FILE    : vue_ensemble_evaluations/vue_ensemble_evaluations_page.dart
+// FILE : vue_ensemble_evaluations/vue_ensemble_evaluations_page.dart
 // PURPOSE : Chef de Panel — all tasters' submitted evaluations per sample,
-//           read-only overview styled after CEO's analyse organoleptique page.
+//           read-only overview. "Voir" opens the shared CEO evaluation form sheet.
 // ═════════════════════════════════════════════════════════════════════════════
 
 import 'package:flutter/material.dart';
@@ -12,19 +12,22 @@ import '../tableau_de_bord/widgets/app_drawer.dart';
 import '../tableau_de_bord/homepage_page.dart';
 import '../membres_panel/membres_panel_page.dart';
 import '../gestion_echantillons/gestion_echantillons_page.dart';
-import '../gestion_echantillons/widgets/search_filter_bar.dart' show DateFilterSheet;
+import '../gestion_echantillons/widgets/search_filter_bar.dart'
+    show DateFilterSheet;
 import '../evaluation_echantillons/evaluation_echantillons_page.dart';
 import '../analyse_labo/analyse_laboratoire_page.dart';
 import '../sessions_degustation/sessions_degustation_page.dart';
+import '../../../1_ceo/widgets/shared_evaluation_form_sheet.dart';
+import '../../../1_ceo/utilisateurs/models/echantillon_ceo_view.dart';
 import '../../../main.dart';
 
 const Color _headerBg = Color.fromARGB(255, 220, 233, 226);
-const Color _green    = Color(0xFF38835A);
-const Color _dark     = Color(0xFF1A2E1F);
-const Color _bg       = Color(0xFFFFFFFF);
-const Color _olive    = Color(0xFF6B8143);
+const Color _green = Color(0xFF38835A);
+const Color _dark = Color(0xFF1A2E1F);
+const Color _bg = Color(0xFFFFFFFF);
+const Color _olive = Color(0xFF6B8143);
 
-// ── Mock data ─────────────────────────────────────────────────────────────────
+// ── Models ────────────────────────────────────────────────────────────────────
 
 class _EvalEntry {
   final String attribut;
@@ -38,6 +41,7 @@ class _TasterEval {
   final String? dateEval;
   final String? classification;
   final List<_EvalEntry> scores;
+
   const _TasterEval({
     required this.tasterName,
     required this.statut,
@@ -71,21 +75,11 @@ class _SampleEvalGroup {
   int get submitted => evaluations.where((e) => e.statut == 'Soumis').length;
   int get total => evaluations.length;
   bool get isComplete => submitted == total && total > 0;
-
-  String? get classificationMajoritaire {
-    final sub = evaluations
-        .where((e) => e.statut == 'Soumis' && e.classification != null)
-        .toList();
-    if (sub.isEmpty) return null;
-    final counts = <String, int>{};
-    for (final e in sub) {
-      counts[e.classification!] = (counts[e.classification!] ?? 0) + 1;
-    }
-    return counts.entries.reduce((a, b) => a.value >= b.value ? a : b).key;
-  }
 }
 
 const _attrs = ['Fruité', 'Amer', 'Piquant', 'Doux', 'Floral'];
+
+// ── Mock data ─────────────────────────────────────────────────────────────────
 
 final _mockGroups = [
   _SampleEvalGroup(
@@ -103,8 +97,11 @@ final _mockGroups = [
         dateEval: '20/02/2026',
         classification: 'Extra Vierge',
         scores: [
-          _EvalEntry('Fruité', 4.5), _EvalEntry('Amer', 3.8),
-          _EvalEntry('Piquant', 3.5), _EvalEntry('Doux', 4.2), _EvalEntry('Floral', 4.0),
+          _EvalEntry('Fruité', 4.5),
+          _EvalEntry('Amer', 3.8),
+          _EvalEntry('Piquant', 3.5),
+          _EvalEntry('Doux', 4.2),
+          _EvalEntry('Floral', 4.0),
         ],
       ),
       _TasterEval(
@@ -113,8 +110,11 @@ final _mockGroups = [
         dateEval: '20/02/2026',
         classification: 'Extra Vierge',
         scores: [
-          _EvalEntry('Fruité', 4.2), _EvalEntry('Amer', 4.0),
-          _EvalEntry('Piquant', 3.8), _EvalEntry('Doux', 3.9), _EvalEntry('Floral', 3.7),
+          _EvalEntry('Fruité', 4.2),
+          _EvalEntry('Amer', 4.0),
+          _EvalEntry('Piquant', 3.8),
+          _EvalEntry('Doux', 3.9),
+          _EvalEntry('Floral', 3.7),
         ],
       ),
       _TasterEval(
@@ -123,11 +123,14 @@ final _mockGroups = [
         dateEval: '21/02/2026',
         classification: 'Vierge',
         scores: [
-          _EvalEntry('Fruité', 2.5), _EvalEntry('Amer', 2.0),
-          _EvalEntry('Piquant', 1.8), _EvalEntry('Doux', 2.5), _EvalEntry('Floral', 2.2),
+          _EvalEntry('Fruité', 2.5),
+          _EvalEntry('Amer', 2.0),
+          _EvalEntry('Piquant', 1.8),
+          _EvalEntry('Doux', 2.5),
+          _EvalEntry('Floral', 2.2),
         ],
       ),
-      _TasterEval(tasterName: 'Nayrouz F.', statut: 'En attente', scores: []),
+      _TasterEval(tasterName: 'Nayrouz F.', statut: 'En attente'),
     ],
   ),
   _SampleEvalGroup(
@@ -144,8 +147,11 @@ final _mockGroups = [
         dateEval: '21/02/2026',
         classification: 'Extra Vierge',
         scores: [
-          _EvalEntry('Fruité', 3.9), _EvalEntry('Amer', 4.1),
-          _EvalEntry('Piquant', 3.7), _EvalEntry('Doux', 3.5), _EvalEntry('Floral', 3.8),
+          _EvalEntry('Fruité', 3.9),
+          _EvalEntry('Amer', 4.1),
+          _EvalEntry('Piquant', 3.7),
+          _EvalEntry('Doux', 3.5),
+          _EvalEntry('Floral', 3.8),
         ],
       ),
       _TasterEval(
@@ -154,14 +160,19 @@ final _mockGroups = [
         dateEval: '21/02/2026',
         classification: 'Extra Vierge',
         scores: [
-          _EvalEntry('Fruité', 4.1), _EvalEntry('Amer', 3.9),
-          _EvalEntry('Piquant', 3.6), _EvalEntry('Doux', 3.7), _EvalEntry('Floral', 4.0),
+          _EvalEntry('Fruité', 4.1),
+          _EvalEntry('Amer', 3.9),
+          _EvalEntry('Piquant', 3.6),
+          _EvalEntry('Doux', 3.7),
+          _EvalEntry('Floral', 4.0),
         ],
       ),
     ],
   ),
 ];
 
+// ─────────────────────────────────────────────────────────────────────────────
+// PAGE
 // ─────────────────────────────────────────────────────────────────────────────
 class VueEnsembleEvaluationsPage extends StatefulWidget {
   const VueEnsembleEvaluationsPage({super.key});
@@ -208,7 +219,8 @@ class _VueEnsembleEvaluationsPageState
     var list = _mockGroups;
     if (_dateFilterActive) {
       list = list.where((g) {
-        if (!g.recuPhysiquement || g.dateReceptionPhysique == null) return false;
+        if (!g.recuPhysiquement || g.dateReceptionPhysique == null)
+          return false;
         final d = _parseDate(g.dateReceptionPhysique!);
         if (d == null) return false;
         final day = DateTime(d.year, d.month, d.day);
@@ -218,7 +230,8 @@ class _VueEnsembleEvaluationsPageState
         final fin = _dateFin != null
             ? DateTime(_dateFin!.year, _dateFin!.month, _dateFin!.day)
             : null;
-        if (debut != null && fin != null) return !day.isBefore(debut) && !day.isAfter(fin);
+        if (debut != null && fin != null)
+          return !day.isBefore(debut) && !day.isAfter(fin);
         if (debut != null) return !day.isBefore(debut);
         if (fin != null) return !day.isAfter(fin);
         return true;
@@ -227,11 +240,13 @@ class _VueEnsembleEvaluationsPageState
     if (_searchQuery.isNotEmpty) {
       final q = _searchQuery.toLowerCase();
       list = list
-          .where((g) =>
-              g.sampleId.toLowerCase().contains(q) ||
-              g.referenceBouteille.toLowerCase().contains(q) ||
-              g.gouvernorat.toLowerCase().contains(q) ||
-              g.variete.toLowerCase().contains(q))
+          .where(
+            (g) =>
+                g.sampleId.toLowerCase().contains(q) ||
+                g.referenceBouteille.toLowerCase().contains(q) ||
+                g.gouvernorat.toLowerCase().contains(q) ||
+                g.variete.toLowerCase().contains(q),
+          )
           .toList();
     }
     return list;
@@ -257,6 +272,74 @@ class _VueEnsembleEvaluationsPageState
     );
   }
 
+  // ── "Voir" handler — builds EvaluationOrganoleptique and opens CEO sheet ──
+  void _onViewEval(_TasterEval eval, _SampleEvalGroup group) {
+    if (eval.statut != 'Soumis' || eval.classification == null) return;
+
+    final ev = EvaluationOrganoleptique(
+      id: '${group.sampleId}_${eval.tasterName}',
+      echantillonId: group.sampleId,
+      tasteurId: eval.tasterName,
+      tasteurNom: eval.tasterName,
+      soumisLe: eval.dateEval != null
+          ? _parseDateToIso(eval.dateEval!)
+          : DateTime.now().toIso8601String(),
+      classification: _classificationFromStr(eval.classification!),
+      fruite: _scoreFor(eval.scores, 'Fruité'),
+      fruiteVert: false,
+      amertume: _scoreFor(eval.scores, 'Amer'),
+      piquant: _scoreFor(eval.scores, 'Piquant'),
+      chome: null,
+      moisi: null,
+      vinaigre: null,
+      gele: null,
+      rance: null,
+      autresDefaut: null,
+      autresDefautNom: null,
+      commentaire: null,
+    );
+
+    showEvaluationFormSheet(
+      context,
+      evaluation: ev,
+      sampleRef: group.referenceBouteille,
+    );
+  }
+
+  // ── Helpers ───────────────────────────────────────────────────────────────
+
+  double? _scoreFor(List<_EvalEntry> scores, String attribut) {
+    final match = scores.where((s) => s.attribut == attribut);
+    return match.isEmpty ? null : match.first.score;
+  }
+
+  String _parseDateToIso(String ddMMyyyy) {
+    try {
+      final p = ddMMyyyy.split('/');
+      if (p.length != 3) return DateTime.now().toIso8601String();
+      return DateTime(
+        int.parse(p[2]),
+        int.parse(p[1]),
+        int.parse(p[0]),
+      ).toIso8601String();
+    } catch (_) {
+      return DateTime.now().toIso8601String();
+    }
+  }
+
+  ClassificationHuile _classificationFromStr(String s) {
+    switch (s) {
+      case 'Extra Vierge':
+        return ClassificationHuile.extraVierge;
+      case 'Vierge':
+        return ClassificationHuile.vierge;
+      case 'Vierge Ordinaire':
+        return ClassificationHuile.viergeOrdinaire;
+      default:
+        return ClassificationHuile.lampante;
+    }
+  }
+
   @override
   void dispose() {
     _searchController.dispose();
@@ -271,7 +354,8 @@ class _VueEnsembleEvaluationsPageState
       backgroundColor: _bg,
       drawer: AppDrawer(
         onaccueil: () => _goTo(const HomePage()),
-        onEvaluationEchantillons: () => _goTo(const EvaluationEchantillonsPage()),
+        onEvaluationEchantillons: () =>
+            _goTo(const EvaluationEchantillonsPage()),
         onGestionEchantillons: () => _goTo(const GestionEchantillonsPage()),
         onAnalyseLaboratoire: () => _goTo(const AnalyseLaboratoirePage()),
         onSessionsDegustationPage: () => _goTo(const SessionsDegustationPage()),
@@ -327,7 +411,7 @@ class _VueEnsembleEvaluationsPageState
       ),
       body: Column(
         children: [
-          // ── Header zone ────────────────────────────────────────────────────
+          // ── Search bar ────────────────────────────────────────────────────
           Container(
             color: _headerBg,
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
@@ -337,11 +421,22 @@ class _VueEnsembleEvaluationsPageState
               style: const TextStyle(fontSize: 14, color: _dark),
               decoration: InputDecoration(
                 hintText: 'Rechercher échantillon, variété, gouvernorat…',
-                hintStyle: const TextStyle(color: Color(0xFF6B8E7A), fontSize: 13),
-                prefixIcon: const Icon(Icons.search, color: Color(0xFF6B8E7A), size: 20),
+                hintStyle: const TextStyle(
+                  color: Color(0xFF6B8E7A),
+                  fontSize: 13,
+                ),
+                prefixIcon: const Icon(
+                  Icons.search,
+                  color: Color(0xFF6B8E7A),
+                  size: 20,
+                ),
                 suffixIcon: _searchQuery.isNotEmpty
                     ? IconButton(
-                        icon: const Icon(Icons.close, size: 17, color: Color(0xFF6B8E7A)),
+                        icon: const Icon(
+                          Icons.close,
+                          size: 17,
+                          color: Color(0xFF6B8E7A),
+                        ),
                         onPressed: () => setState(() {
                           _searchQuery = '';
                           _searchController.clear();
@@ -350,7 +445,10 @@ class _VueEnsembleEvaluationsPageState
                     : null,
                 filled: true,
                 fillColor: Colors.white,
-                contentPadding: const EdgeInsets.symmetric(vertical: 11, horizontal: 16),
+                contentPadding: const EdgeInsets.symmetric(
+                  vertical: 11,
+                  horizontal: 16,
+                ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide.none,
@@ -367,13 +465,18 @@ class _VueEnsembleEvaluationsPageState
             ),
           ),
           Container(height: 1, color: Colors.black.withValues(alpha: 0.06)),
+
           // ── Stats strip ───────────────────────────────────────────────────
           Container(
             color: _bg,
             padding: const EdgeInsets.fromLTRB(16, 9, 16, 6),
             child: Row(
               children: [
-                Icon(Icons.assessment_outlined, size: 13, color: Colors.grey.shade400),
+                Icon(
+                  Icons.assessment_outlined,
+                  size: 13,
+                  color: Colors.grey.shade400,
+                ),
                 const SizedBox(width: 6),
                 Text(
                   '${groups.length} échantillon${groups.length > 1 ? "s" : ""}',
@@ -386,6 +489,7 @@ class _VueEnsembleEvaluationsPageState
               ],
             ),
           ),
+
           // ── List ──────────────────────────────────────────────────────────
           Expanded(
             child: groups.isEmpty
@@ -393,11 +497,18 @@ class _VueEnsembleEvaluationsPageState
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.assessment_outlined, size: 52, color: Colors.grey.shade300),
+                        Icon(
+                          Icons.assessment_outlined,
+                          size: 52,
+                          color: Colors.grey.shade300,
+                        ),
                         const SizedBox(height: 12),
                         Text(
                           'Aucun échantillon trouvé',
-                          style: TextStyle(color: Colors.grey.shade400, fontSize: 14),
+                          style: TextStyle(
+                            color: Colors.grey.shade400,
+                            fontSize: 14,
+                          ),
                         ),
                       ],
                     ),
@@ -407,18 +518,15 @@ class _VueEnsembleEvaluationsPageState
                     itemCount: groups.length,
                     itemBuilder: (_, i) {
                       final g = groups[i];
-                      final panelExp = _expandedPanel.contains(g.sampleId);
                       return _EvalSampleCard(
                         group: g,
-                        isPanelExpanded: panelExp,
+                        isPanelExpanded: _expandedPanel.contains(g.sampleId),
                         onPanelToggle: () => setState(() {
-                          if (_expandedPanel.contains(g.sampleId)) {
-                            _expandedPanel.remove(g.sampleId);
-                          } else {
-                            _expandedPanel.add(g.sampleId);
-                          }
+                          _expandedPanel.contains(g.sampleId)
+                              ? _expandedPanel.remove(g.sampleId)
+                              : _expandedPanel.add(g.sampleId);
                         }),
-                        onViewEval: (eval) => _showEvalDetailSheet(context, eval),
+                        onViewEval: (eval) => _onViewEval(eval, g),
                       );
                     },
                   ),
@@ -427,19 +535,10 @@ class _VueEnsembleEvaluationsPageState
       ),
     );
   }
-
-  void _showEvalDetailSheet(BuildContext context, _TasterEval eval) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (_) => _EvalDetailSheet(eval: eval),
-    );
-  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// SAMPLE EVAL CARD — CEO-style: header + expandable details + panel section
+// SAMPLE EVAL CARD
 // ─────────────────────────────────────────────────────────────────────────────
 class _EvalSampleCard extends StatefulWidget {
   final _SampleEvalGroup group;
@@ -483,7 +582,6 @@ class _EvalSampleCardState extends State<_EvalSampleCard> {
   Widget build(BuildContext context) {
     final g = widget.group;
     final accentColor = g.isComplete ? _green : const Color(0xFFD07B2F);
-    final majority = g.classificationMajoritaire;
     final hasOutlier = _detectOutlier();
 
     return Container(
@@ -508,7 +606,7 @@ class _EvalSampleCardState extends State<_EvalSampleCard> {
       clipBehavior: Clip.antiAlias,
       child: Column(
         children: [
-          // ── Header (tap → expand sample details) ─────────────────────────
+          // ── Header ─────────────────────────────────────────────────────
           GestureDetector(
             onTap: () => setState(() => _detailExpanded = !_detailExpanded),
             behavior: HitTestBehavior.opaque,
@@ -549,24 +647,39 @@ class _EvalSampleCardState extends State<_EvalSampleCard> {
                               ],
                             ),
                           ),
+                          // Divergence badge
                           if (hasOutlier)
                             Container(
                               margin: const EdgeInsets.only(right: 8),
-                              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 7,
+                                vertical: 3,
+                              ),
                               decoration: BoxDecoration(
                                 color: Colors.orange.shade100,
                                 borderRadius: BorderRadius.circular(8),
                               ),
-                              child: Row(mainAxisSize: MainAxisSize.min, children: [
-                                Icon(Icons.warning_amber_rounded, size: 10, color: Colors.orange.shade700),
-                                const SizedBox(width: 3),
-                                Text(
-                                  'Divergence',
-                                  style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: Colors.orange.shade700),
-                                ),
-                              ]),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.warning_amber_rounded,
+                                    size: 10,
+                                    color: Colors.orange.shade700,
+                                  ),
+                                  const SizedBox(width: 3),
+                                  Text(
+                                    'Divergence',
+                                    style: TextStyle(
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.w700,
+                                      color: Colors.orange.shade700,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                          // Réception physique indicator
+                          // Réception physique icon
                           Container(
                             margin: const EdgeInsets.only(right: 8),
                             width: 26,
@@ -584,19 +697,26 @@ class _EvalSampleCardState extends State<_EvalSampleCard> {
                             ),
                             child: Icon(
                               g.recuPhysiquement
-                                  ? Icons.check_rounded
-                                  : Icons.hourglass_empty_rounded,
+                                  ? Icons.check_circle
+                                  : Icons.check_circle_outline,
                               size: 14,
-                              color: g.recuPhysiquement ? _green : Colors.grey.shade400,
+                              color: g.recuPhysiquement
+                                  ? _green
+                                  : Colors.grey.shade400,
                             ),
                           ),
                           // Submission count badge
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 9,
+                              vertical: 4,
+                            ),
                             decoration: BoxDecoration(
                               color: accentColor.withValues(alpha: 0.12),
                               borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: accentColor.withValues(alpha: 0.3)),
+                              border: Border.all(
+                                color: accentColor.withValues(alpha: 0.3),
+                              ),
                             ),
                             child: Text(
                               '${g.submitted} / ${g.total}',
@@ -611,7 +731,11 @@ class _EvalSampleCardState extends State<_EvalSampleCard> {
                           AnimatedRotation(
                             turns: _detailExpanded ? 0.5 : 0.0,
                             duration: const Duration(milliseconds: 200),
-                            child: Icon(Icons.keyboard_arrow_down, size: 20, color: Colors.grey.shade400),
+                            child: Icon(
+                              Icons.keyboard_arrow_down,
+                              size: 20,
+                              color: Colors.grey.shade400,
+                            ),
                           ),
                         ],
                       ),
@@ -622,7 +746,7 @@ class _EvalSampleCardState extends State<_EvalSampleCard> {
             ),
           ),
 
-          // ── Expandable sample details ─────────────────────────────────────
+          // ── Expandable sample details ─────────────────────────────────
           AnimatedCrossFade(
             firstChild: const SizedBox.shrink(),
             secondChild: Container(
@@ -641,7 +765,10 @@ class _EvalSampleCardState extends State<_EvalSampleCard> {
                   _DetailCell('Réf. bouteille', g.referenceBouteille),
                   _DetailCell('Gouvernorat', g.gouvernorat),
                   _DetailCell('Variété', g.variete),
-                  _DetailCell('Évaluations', '${g.submitted} / ${g.total} soumises'),
+                  _DetailCell(
+                    'Évaluations',
+                    '${g.submitted} / ${g.total} soumises',
+                  ),
                   _ReceptionDetailCell(
                     recu: g.recuPhysiquement,
                     dateReception: g.dateReceptionPhysique,
@@ -649,15 +776,16 @@ class _EvalSampleCardState extends State<_EvalSampleCard> {
                 ],
               ),
             ),
-            crossFadeState: _detailExpanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+            crossFadeState: _detailExpanded
+                ? CrossFadeState.showSecond
+                : CrossFadeState.showFirst,
             duration: const Duration(milliseconds: 200),
           ),
 
-          // ── Panel section (always visible) ────────────────────────────────
+          // ── Panel section ─────────────────────────────────────────────
           Divider(color: Colors.grey.shade100, height: 1),
           _EvalPanelSection(
             group: g,
-            majority: majority,
             isExpanded: widget.isPanelExpanded,
             onToggle: widget.onPanelToggle,
             onViewEval: widget.onViewEval,
@@ -692,14 +820,18 @@ class _DetailCell extends StatelessWidget {
       const SizedBox(height: 2),
       Text(
         value,
-        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: _dark),
+        style: const TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
+          color: _dark,
+        ),
       ),
     ],
   );
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// RECEPTION DETAIL CELL — shows "Reçu physiquement" with tick or pending icon
+// RECEPTION DETAIL CELL
 // ─────────────────────────────────────────────────────────────────────────────
 class _ReceptionDetailCell extends StatelessWidget {
   final bool recu;
@@ -734,7 +866,7 @@ class _ReceptionDetailCell extends StatelessWidget {
                 border: Border.all(color: color.withValues(alpha: 0.35)),
               ),
               child: Icon(
-                recu ? Icons.check_rounded : Icons.hourglass_empty_rounded,
+                recu ? Icons.check_circle : Icons.check_circle_outline,
                 size: 11,
                 color: color,
               ),
@@ -758,18 +890,16 @@ class _ReceptionDetailCell extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// EVAL PANEL SECTION — classification badge + chevron + expandable taster list
+// EVAL PANEL SECTION — chevron only, no classification badge
 // ─────────────────────────────────────────────────────────────────────────────
 class _EvalPanelSection extends StatelessWidget {
   final _SampleEvalGroup group;
-  final String? majority;
   final bool isExpanded;
   final VoidCallback onToggle;
   final void Function(_TasterEval) onViewEval;
 
   const _EvalPanelSection({
     required this.group,
-    required this.majority,
     required this.isExpanded,
     required this.onToggle,
     required this.onViewEval,
@@ -778,9 +908,7 @@ class _EvalPanelSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // ── Row: classification badge + chevron ──────────────────────────────
         GestureDetector(
           onTap: onToggle,
           behavior: HitTestBehavior.opaque,
@@ -789,31 +917,25 @@ class _EvalPanelSection extends StatelessWidget {
             child: Row(
               children: [
                 const Spacer(),
-                if (majority != null) ...[
-                  _ClassBadge(majority!),
-                  const SizedBox(width: 8),
-                ] else if (group.evaluations.isNotEmpty) ...[
-                  Text(
-                    'En cours',
-                    style: TextStyle(fontSize: 12, color: Colors.grey.shade400),
-                  ),
-                  const SizedBox(width: 8),
-                ],
                 AnimatedRotation(
                   turns: isExpanded ? 0.5 : 0.0,
                   duration: const Duration(milliseconds: 180),
-                  child: const Icon(Icons.keyboard_arrow_down, size: 18, color: _olive),
+                  child: const Icon(
+                    Icons.keyboard_arrow_down,
+                    size: 18,
+                    color: _olive,
+                  ),
                 ),
               ],
             ),
           ),
         ),
-
-        // ── Expandable taster list ────────────────────────────────────────────
         AnimatedCrossFade(
           firstChild: const SizedBox.shrink(),
           secondChild: _EvalTasterList(group: group, onViewEval: onViewEval),
-          crossFadeState: isExpanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+          crossFadeState: isExpanded
+              ? CrossFadeState.showSecond
+              : CrossFadeState.showFirst,
           duration: const Duration(milliseconds: 200),
         ),
       ],
@@ -822,7 +944,7 @@ class _EvalPanelSection extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// EVAL TASTER LIST — one row per taster (avatar + name + badge + voir button)
+// EVAL TASTER LIST
 // ─────────────────────────────────────────────────────────────────────────────
 class _EvalTasterList extends StatelessWidget {
   final _SampleEvalGroup group;
@@ -843,7 +965,11 @@ class _EvalTasterList extends StatelessWidget {
         child: Center(
           child: Text(
             'Aucune évaluation soumise',
-            style: TextStyle(fontSize: 12, color: Colors.grey.shade400, fontStyle: FontStyle.italic),
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.grey.shade400,
+              fontStyle: FontStyle.italic,
+            ),
           ),
         ),
       );
@@ -878,8 +1004,14 @@ class _EvalTasterList extends StatelessWidget {
                   ),
                   child: Center(
                     child: Text(
-                      eval.tasterName.isNotEmpty ? eval.tasterName[0].toUpperCase() : '?',
-                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: classColor),
+                      eval.tasterName.isNotEmpty
+                          ? eval.tasterName[0].toUpperCase()
+                          : '?',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: classColor,
+                      ),
                     ),
                   ),
                 ),
@@ -888,11 +1020,15 @@ class _EvalTasterList extends StatelessWidget {
                 Expanded(
                   child: Text(
                     eval.tasterName,
-                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: _dark),
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: _dark,
+                    ),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                // Classification badge or pending label
+                // Badge or pending
                 if (submitted && eval.classification != null)
                   _ClassBadge(eval.classification!)
                 else
@@ -904,21 +1040,30 @@ class _EvalTasterList extends StatelessWidget {
                       fontStyle: FontStyle.italic,
                     ),
                   ),
-                // Voir button
+                // Voir button — only for submitted evals
                 if (submitted) ...[
                   const SizedBox(width: 6),
                   GestureDetector(
                     onTap: () => onViewEval(eval),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: _green.withValues(alpha: 0.07),
                         borderRadius: BorderRadius.circular(6),
-                        border: Border.all(color: _green.withValues(alpha: 0.2)),
+                        border: Border.all(
+                          color: _green.withValues(alpha: 0.2),
+                        ),
                       ),
                       child: const Text(
-                        'Voir',
-                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: _green),
+                        'Formulaire',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: _green,
+                        ),
                       ),
                     ),
                   ),
@@ -933,7 +1078,7 @@ class _EvalTasterList extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// CLASS BADGE — pill badge for classification label
+// CLASS BADGE
 // ─────────────────────────────────────────────────────────────────────────────
 class _ClassBadge extends StatelessWidget {
   final String classification;
@@ -951,7 +1096,11 @@ class _ClassBadge extends StatelessWidget {
       ),
       child: Text(
         classification,
-        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: color),
+        style: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
+          color: color,
+        ),
       ),
     );
   }
@@ -959,138 +1108,11 @@ class _ClassBadge extends StatelessWidget {
 
 Color _classColorForStr(String c) {
   switch (c) {
-    case 'Extra Vierge': return _green;
-    case 'Vierge':       return const Color(0xFFD07B2F);
-    default:             return const Color(0xFFD32F2F);
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// EVAL DETAIL SHEET — bottom sheet with one taster's full score breakdown
-// ─────────────────────────────────────────────────────────────────────────────
-class _EvalDetailSheet extends StatelessWidget {
-  final _TasterEval eval;
-  const _EvalDetailSheet({required this.eval});
-
-  @override
-  Widget build(BuildContext context) {
-    final classColor = eval.classification != null
-        ? _classColorForStr(eval.classification!)
-        : Colors.grey.shade400;
-
-    return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 36),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Handle
-          Center(
-            child: Container(
-              margin: const EdgeInsets.only(top: 12, bottom: 16),
-              width: 36,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.grey.shade300,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-          ),
-          // Header
-          Row(
-            children: [
-              Container(
-                width: 38,
-                height: 38,
-                decoration: BoxDecoration(
-                  color: classColor.withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: Center(
-                  child: Text(
-                    eval.tasterName.isNotEmpty ? eval.tasterName[0].toUpperCase() : '?',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: classColor),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      eval.tasterName,
-                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: _dark),
-                    ),
-                    if (eval.dateEval != null)
-                      Text(
-                        eval.dateEval!,
-                        style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
-                      ),
-                  ],
-                ),
-              ),
-              if (eval.classification != null) _ClassBadge(eval.classification!),
-            ],
-          ),
-          const SizedBox(height: 20),
-          // Score bars
-          ...eval.scores.map((s) => Padding(
-            padding: const EdgeInsets.only(bottom: 14),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      s.attribut,
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.grey.shade600,
-                      ),
-                    ),
-                    Text(
-                      s.score.toStringAsFixed(1),
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                        color: _dark,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                TweenAnimationBuilder<double>(
-                  tween: Tween(begin: 0, end: s.score / 5),
-                  duration: const Duration(milliseconds: 700),
-                  curve: Curves.easeOutCubic,
-                  builder: (context, v, child) => ClipRRect(
-                    borderRadius: BorderRadius.circular(4),
-                    child: LinearProgressIndicator(
-                      value: v,
-                      backgroundColor: Colors.grey.shade100,
-                      valueColor: AlwaysStoppedAnimation<Color>(_scoreColor(s.score)),
-                      minHeight: 6,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          )),
-        ],
-      ),
-    );
-  }
-
-  Color _scoreColor(double score) {
-    if (score >= 4.0) return _green;
-    if (score >= 3.0) return _olive;
-    return const Color(0xFFD07B2F);
+    case 'Extra Vierge':
+      return _green;
+    case 'Vierge':
+      return const Color(0xFFD07B2F);
+    default:
+      return const Color(0xFFD32F2F);
   }
 }

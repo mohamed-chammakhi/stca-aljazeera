@@ -1,21 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../tableau_de_bord/homepage_page.dart';
 
 import '../../../core/models/echantillon.dart';
 import '../../../core/models/enums.dart';
-import 'models/mock_echantillons.dart';
+import 'services/gestion_echantillons_service.dart';
 import 'widgets/echantillon_card.dart';
-import 'widgets/empty_state.dart';
+import '../../../core/widgets/empty_state.dart';
 import 'widgets/dialogs/formulaire_dialog.dart';
 import 'widgets/dialogs/suppression_dialog.dart';
 import 'widgets/search_filter_bar.dart';
 import '../evaluation_echantillons/evaluation_echantillons_page.dart';
-import '../profil.dart';
+import '../profil/profil_page.dart';
 import '../tableau_de_bord/widgets/app_drawer.dart';
 import '../membres_panel/membres_panel_page.dart';
 import '../../../main.dart';
 import '../sessions_degustation/sessions_degustation_page.dart';
 import '../analyse_labo/analyse_laboratoire_page.dart';
+import '../widgets/statut_chip.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PAGE
@@ -29,6 +31,8 @@ class GestionEchantillonsPage extends StatefulWidget {
 }
 
 class _GestionEchantillonsPageState extends State<GestionEchantillonsPage> {
+  final _service = GestionEchantillonsService();
+
   // ───────────────────────────────────────────────────────────────────────────
   // 1. COLORS
   // ───────────────────────────────────────────────────────────────────────────
@@ -72,9 +76,18 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage> {
   // 4. DATA
   // ───────────────────────────────────────────────────────────────────────────
 
-  late final List<Echantillon> _echantillons = List.from(
-    mockEchantillonsGestion,
-  );
+  List<Echantillon> _echantillons = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    final data = await _service.fetchEchantillons();
+    setState(() => _echantillons = data);
+  }
 
   // ───────────────────────────────────────────────────────────────────────────
   // 5. FILTER LOGIC
@@ -225,7 +238,7 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage> {
 
       // ── DRAWER ─────────────────────────────────────────────────────────────
       drawer: AppDrawer(
-        onaccueil: () => Navigator.pop(context),
+        onaccueil: () => _goTo(const HomePage()),
         onEvaluationEchantillons: () =>
             _goTo(const EvaluationEchantillonsPage()),
         onGestionEchantillons: () => _goTo(const GestionEchantillonsPage()),
@@ -369,7 +382,7 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage> {
                   child: ListView(
                     scrollDirection: Axis.horizontal,
                     children: [
-                      _StatutChip(
+                      StatutChip(
                         label: 'Tous',
                         activeColor: const Color(0xFF616161),
                         inactiveColor: const Color(0xFFF0F0F0),
@@ -378,7 +391,7 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage> {
                         onTap: () => setState(() => _filtreStatut = null),
                       ),
                       const SizedBox(width: 7),
-                      _StatutChip(
+                      StatutChip(
                         label: '	Non évaluée',
                         activeColor: const Color(0xFF3A6EA5),
                         inactiveColor: const Color(0xFFE8F1FB),
@@ -388,7 +401,7 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage> {
                             setState(() => _filtreStatut = 'Non évaluée'),
                       ),
                       const SizedBox(width: 7),
-                      _StatutChip(
+                      StatutChip(
                         label: 'Évaluation en cours',
                         activeColor: const Color(0xFFD07B2F),
                         inactiveColor: const Color(0xFFFEF3E8),
@@ -399,7 +412,7 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage> {
                         ),
                       ),
                       const SizedBox(width: 7),
-                      _StatutChip(
+                      StatutChip(
                         label: '	Évaluation soumise',
                         activeColor: const Color(0xFF38835A),
                         inactiveColor: const Color(0xFFE6F4ED),
@@ -474,92 +487,6 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage> {
                   ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// 8. PRIVATE WIDGETS
-// ─────────────────────────────────────────────────────────────────────────────
-
-// ── STATUT CHIP — soft pastel inactive, solid color active ───────────────────
-class _StatutChip extends StatelessWidget {
-  final String label;
-  final Color activeColor;
-  final Color inactiveColor;
-  final Color inactiveTextColor;
-  final bool selected;
-  final VoidCallback onTap;
-
-  const _StatutChip({
-    required this.label,
-    required this.activeColor,
-    required this.inactiveColor,
-    required this.inactiveTextColor,
-    required this.selected,
-    required this.onTap,
-  });
-
-  static const Color _inactiveBg = Color(0xFFF0F0F0);
-  static const Color _inactiveFg = Color(0xFF9E9E9E);
-  static const Color _inactiveBorder = Color(0xFFE0E0E0);
-
-  @override
-  Widget build(BuildContext context) {
-    // "Tous" se comporte comme _FilterChip dans achats confirmés :
-    //   inactif = gris neutre, actif = gris solide #757575 + texte blanc
-    // Les autres :
-    //   inactif = gris neutre, actif = fond teinté + texte coloré + bordure colorée
-    final bool isTous = label == 'Tous';
-
-    final Color bg;
-    final Color fg;
-    final Color border;
-
-    if (!selected) {
-      bg = _inactiveBg;
-      fg = _inactiveFg;
-      border = _inactiveBorder;
-    } else if (isTous) {
-      bg = const Color(0xFF757575);
-      fg = Colors.white;
-      border = const Color(0xFF757575);
-    } else {
-      bg = inactiveColor; // fond teinté clair
-      fg = inactiveTextColor; // texte coloré
-      border = inactiveTextColor.withValues(alpha: 0.45);
-    }
-
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-        decoration: BoxDecoration(
-          color: bg,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: border, width: 1.2),
-          boxShadow: selected
-              ? [
-                  BoxShadow(
-                    color:
-                        (isTous ? const Color(0xFF757575) : inactiveTextColor)
-                            .withValues(alpha: 0.22),
-                    blurRadius: 6,
-                    offset: const Offset(0, 2),
-                  ),
-                ]
-              : null,
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: fg,
-          ),
-        ),
       ),
     );
   }

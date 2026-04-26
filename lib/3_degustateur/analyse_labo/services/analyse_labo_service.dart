@@ -1,0 +1,92 @@
+import '../models/analyse_labo.dart';
+
+class AnalyseLaboService {
+  // TODO: inject ApiClient here when backend is ready
+
+  Future<List<AnalyseLabo>> fetchAnalyses() async {
+    // TODO: replace with: return _api.get('/analyses/labo/');
+    return _mockAnalyses();
+  }
+
+  // TODO: remove when backend is ready
+  List<AnalyseLabo> _mockAnalyses() => [
+        AnalyseLabo(
+          id: 'ANL-001',
+          echantillonId: '2026/0001',
+          echantillonNom: 'Chemlali - Lot A - Sfax',
+          dateAnalyse: '18/02/2026',
+          technicienNom: 'Karim B.',
+          statut: StatutAnalyse.soumise,
+          notes: 'Analyse conforme aux normes COI',
+          fournisseurNom: 'Domaine Bel-Air',
+          gouvernorat: 'Sfax',
+          delegation: 'Sfax Sud',
+          collecteurNom: 'Ahmed Dridi',
+          variete: 'Chemlali',
+          quantiteEstimee: '25',
+          dateEnregistrement: '01/03/2026',
+          dateReceptionPhysique: '15/03/2026',
+          criteres: [
+            CritereAnalyse(label: 'Acidité libre', valeur: 0.3, unite: '%', seuilMin: 0.0, seuilMax: 0.8),
+            CritereAnalyse(label: 'Indice de peroxyde', valeur: 8.5, unite: 'mEq O₂/kg', seuilMin: 0.0, seuilMax: 20.0),
+            CritereAnalyse(label: 'Absorbance K232', valeur: 1.82, unite: '', seuilMin: 0.0, seuilMax: 2.50),
+            CritereAnalyse(label: 'Absorbance K270', valeur: 0.14, unite: '', seuilMin: 0.0, seuilMax: 0.22),
+            CritereAnalyse(label: 'ΔK (variation UV)', valeur: 0.003, unite: '', seuilMin: -0.01, seuilMax: 0.01),
+            CritereAnalyse(label: 'Polyphénols totaux', valeur: 320.0, unite: 'mg/kg', seuilMin: 0.0, seuilMax: null),
+            CritereAnalyse(label: 'Humidité', valeur: 0.09, unite: '%', seuilMin: 0.0, seuilMax: 0.2),
+            CritereAnalyse(label: 'Impuretés', valeur: 0.04, unite: '%', seuilMin: 0.0, seuilMax: 0.1),
+          ],
+        ),
+        AnalyseLabo(
+          id: 'ANL-002',
+          echantillonId: '2026/0003',
+          echantillonNom: 'Chetoui - Lot B - Béja',
+          dateAnalyse: '19/02/2026',
+          technicienNom: 'Karim B.',
+          statut: StatutAnalyse.soumise,
+          fournisseurNom: 'Ferme Al Jazira',
+          gouvernorat: 'Béja',
+          delegation: 'Béja Nord',
+          collecteurNom: 'Rania Hammami',
+          variete: 'Chetoui',
+          quantiteEstimee: '32',
+          dateEnregistrement: '21/02/2026',
+          dateReceptionPhysique: '28/02/2026',
+          criteres: [
+            CritereAnalyse(label: 'Acidité libre', valeur: 1.2, unite: '%', seuilMin: 0.0, seuilMax: 0.8),
+            CritereAnalyse(label: 'Indice de peroxyde', valeur: 14.0, unite: 'mEq O₂/kg', seuilMin: 0.0, seuilMax: 20.0),
+            CritereAnalyse(label: 'Absorbance K232', valeur: 2.10, unite: '', seuilMin: 0.0, seuilMax: 2.50),
+            CritereAnalyse(label: 'Absorbance K270', valeur: 0.19, unite: '', seuilMin: 0.0, seuilMax: 0.22),
+            CritereAnalyse(label: 'ΔK (variation UV)', valeur: 0.005, unite: '', seuilMin: -0.01, seuilMax: 0.01),
+            CritereAnalyse(label: 'Polyphénols totaux', valeur: 180.0, unite: 'mg/kg', seuilMin: 0.0, seuilMax: null),
+            CritereAnalyse(label: 'Humidité', valeur: 0.15, unite: '%', seuilMin: 0.0, seuilMax: 0.2),
+            CritereAnalyse(label: 'Impuretés', valeur: 0.08, unite: '%', seuilMin: 0.0, seuilMax: 0.1),
+          ],
+        ),
+        AnalyseLabo(
+          id: 'ANL-003',
+          echantillonId: '2026/0004',
+          echantillonNom: 'Zalmati - Gafsa',
+          dateAnalyse: '01/03/2026',
+          technicienNom: 'Sonia M.',
+          statut: StatutAnalyse.enAttente,
+          fournisseurNom: 'Green Valley',
+          gouvernorat: 'Kairouan',
+          delegation: 'Kairouan Nord',
+          variete: 'Oueslati',
+          quantiteEstimee: '18',
+          dateEnregistrement: '23/02/2026',
+          dateReceptionPhysique: '05/03/2026',
+          criteres: [
+            CritereAnalyse(label: 'Acidité libre', valeur: 0.0, unite: '%', seuilMin: 0.0, seuilMax: 0.8),
+            CritereAnalyse(label: 'Indice de peroxyde', valeur: 0.0, unite: 'mEq O₂/kg', seuilMin: 0.0, seuilMax: 20.0),
+            CritereAnalyse(label: 'Absorbance K232', valeur: 0.0, unite: '', seuilMin: 0.0, seuilMax: 2.50),
+            CritereAnalyse(label: 'Absorbance K270', valeur: 0.0, unite: '', seuilMin: 0.0, seuilMax: 0.22),
+            CritereAnalyse(label: 'ΔK (variation UV)', valeur: 0.0, unite: '', seuilMin: -0.01, seuilMax: 0.01),
+            CritereAnalyse(label: 'Polyphénols totaux', valeur: 0.0, unite: 'mg/kg', seuilMin: 0.0, seuilMax: null),
+            CritereAnalyse(label: 'Humidité', valeur: 0.0, unite: '%', seuilMin: 0.0, seuilMax: 0.2),
+            CritereAnalyse(label: 'Impuretés', valeur: 0.0, unite: '%', seuilMin: 0.0, seuilMax: 0.1),
+          ],
+        ),
+      ];
+}

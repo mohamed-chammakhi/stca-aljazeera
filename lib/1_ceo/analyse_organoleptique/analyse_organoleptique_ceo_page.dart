@@ -2,8 +2,10 @@
 // FILE : 1_ceo/analyse_organoleptique/analyse_organoleptique_ceo_page.dart
 // ═════════════════════════════════════════════════════════════════════════════
 
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../3_degustateur/notifications/services/notification_degustateur_service.dart';
 import '../widgets/ceo_drawer.dart';
 import '../utilisateurs/models/echantillon_ceo_view.dart';
 import '../widgets/shared_evaluation_form_sheet.dart';
@@ -71,6 +73,7 @@ class AnalyseOrganoleptiqueCeoPage extends StatefulWidget {
 class _AnalyseOrganoleptiqueCeoPageState
     extends State<AnalyseOrganoleptiqueCeoPage> {
   final Set<String> _expandedPanel = {};
+  final Set<String> _urgentSent = {};
 
   DateTime? _dateDebut;
   DateTime? _dateFin;
@@ -193,6 +196,147 @@ class _AnalyseOrganoleptiqueCeoPageState
   Color _cardAccent(EchantillonCeoView e) {
     if (e.statut == StatutCeo.refuse) return Colors.red.shade400;
     return _statusOf(e).color;
+  }
+
+  // ── Urgent notification ────────────────────────────────────────────────────
+  Future<void> _confirmSendUrgent(EchantillonCeoView e) async {
+    if (_urgentSent.contains(e.id)) return;
+
+    await showDialog<void>(
+      context: context,
+      builder: (_) => Dialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 28, vertical: 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Header
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(20, 18, 16, 16),
+              decoration: const BoxDecoration(
+                color: Color(0xFFFEF3E8),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.notification_important_outlined,
+                    color: Color(0xFFD07B2F),
+                    size: 20,
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Marquer comme urgent',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                            color: _dark,
+                          ),
+                        ),
+                        Text(
+                          e.referenceBouteille,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Color(0xFF9E7A4B),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Body
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 18, 20, 16),
+              child: Text(
+                'Tous les dégustateurs recevront une notification urgente pour soumettre leur évaluation de ${e.referenceBouteille} en priorité.',
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: Color(0xFF4A4A4A),
+                  height: 1.5,
+                ),
+              ),
+            ),
+            // Footer
+            Container(
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF9F6EF),
+                borderRadius: const BorderRadius.vertical(
+                  bottom: Radius.circular(16),
+                ),
+                border: Border(top: BorderSide(color: Colors.grey.shade100)),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.grey.shade600,
+                        side: BorderSide(color: Colors.grey.shade300),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: const Text('Annuler'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFD07B2F),
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      onPressed: () async {
+                        Navigator.pop(context);
+                        await NotificationDegustateurService()
+                            .sendUrgentDegustation(e.id, e.referenceBouteille);
+                        setState(() => _urgentSent.add(e.id));
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: const Text(
+                                'Notification urgente envoyée à tous les dégustateurs',
+                                style: TextStyle(fontWeight: FontWeight.w600),
+                              ),
+                              backgroundColor: const Color(0xFFD07B2F),
+                              behavior: SnackBarBehavior.floating,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              margin: const EdgeInsets.all(20),
+                            ),
+                          );
+                        }
+                      },
+                      child: const Text(
+                        'Notifier',
+                        style: TextStyle(fontWeight: FontWeight.w700),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   // ── Decision dialogs ───────────────────────────────────────────────────────
@@ -768,33 +912,8 @@ class _AnalyseOrganoleptiqueCeoPageState
                                 label: 'Qté : ${e.quantiteEstimee}T',
                                 color: _olive,
                               ),
-                            Tooltip(
-                              message: e.recuPhysiquement
-                                  ? 'Échantillon présent dans la société'
-                                  : 'Échantillon non encore livré à la société',
-                              triggerMode: TooltipTriggerMode.tap,
-                              preferBelow: false,
-                              child: Container(
-                                padding: const EdgeInsets.all(4),
-                                decoration: BoxDecoration(
-                                  color: e.recuPhysiquement
-                                      ? _olive.withValues(alpha: 0.12)
-                                      : const Color(0xFFEEEEEE),
-                                  borderRadius: BorderRadius.circular(6),
-                                  border: Border.all(
-                                    color: e.recuPhysiquement
-                                        ? _olive.withValues(alpha: 0.35)
-                                        : const Color(0xFFDDDDDD),
-                                  ),
-                                ),
-                                child: Icon(
-                                  Icons.check_circle_outline,
-                                  size: 13,
-                                  color: e.recuPhysiquement
-                                      ? _olive
-                                      : const Color(0xFFCCCCCC),
-                                ),
-                              ),
+                            _RecuPhysiqueIndicator(
+                              recuPhysiquement: e.recuPhysiquement,
                             ),
                           ],
                         ),
@@ -834,6 +953,8 @@ class _AnalyseOrganoleptiqueCeoPageState
                           ),
                           onApprouver: () => _showApprouverDialog(e),
                           onRefuser: () => _showRefuserDialog(e),
+                          isUrgent: _urgentSent.contains(e.id),
+                          onUrgent: () => _confirmSendUrgent(e),
                         ),
                       );
                     },
@@ -855,6 +976,8 @@ class _PanelSection extends StatelessWidget {
   final void Function(EvaluationOrganoleptique) onViewForm;
   final VoidCallback onApprouver;
   final VoidCallback onRefuser;
+  final bool isUrgent;
+  final VoidCallback onUrgent;
 
   const _PanelSection({
     required this.echantillon,
@@ -863,6 +986,8 @@ class _PanelSection extends StatelessWidget {
     required this.onViewForm,
     required this.onApprouver,
     required this.onRefuser,
+    required this.isUrgent,
+    required this.onUrgent,
   });
 
   @override
@@ -902,6 +1027,57 @@ class _PanelSection extends StatelessWidget {
                   onTap: onRefuser,
                 ),
                 const Spacer(),
+                // ── Urgent notification button ────────────────────────
+                GestureDetector(
+                  onTap: onUrgent,
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 5,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isUrgent
+                          ? const Color(0xFFD07B2F).withValues(alpha: 0.10)
+                          : Colors.transparent,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: isUrgent
+                            ? const Color(0xFFD07B2F).withValues(alpha: 0.40)
+                            : Colors.grey.shade300,
+                        width: isUrgent ? 1.4 : 1.0,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          isUrgent
+                              ? Icons.notification_important
+                              : Icons.notification_important_outlined,
+                          size: 12,
+                          color: isUrgent
+                              ? const Color(0xFFD07B2F)
+                              : Colors.grey.shade400,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Urgent',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: isUrgent
+                                ? FontWeight.w700
+                                : FontWeight.w500,
+                            color: isUrgent
+                                ? const Color(0xFFD07B2F)
+                                : Colors.grey.shade400,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
                 AnimatedRotation(
                   turns: isExpanded ? 0.5 : 0.0,
                   duration: const Duration(milliseconds: 180),
@@ -1099,6 +1275,112 @@ class _PanelList extends StatelessWidget {
             ),
           );
         }).toList(),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// RECU PHYSIQUE INDICATOR
+// Mimics the look of the tick in echantillon_card: filled/outlined check_circle
+// icon with an animated inline pill that appears on tap and auto-dismisses.
+// ─────────────────────────────────────────────────────────────────────────────
+class _RecuPhysiqueIndicator extends StatefulWidget {
+  final bool recuPhysiquement;
+  const _RecuPhysiqueIndicator({required this.recuPhysiquement});
+
+  @override
+  State<_RecuPhysiqueIndicator> createState() => _RecuPhysiqueIndicatorState();
+}
+
+class _RecuPhysiqueIndicatorState extends State<_RecuPhysiqueIndicator> {
+  bool _showPill = false;
+  Timer? _timer;
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  void _onTap() {
+    _timer?.cancel();
+    setState(() => _showPill = true);
+    _timer = Timer(const Duration(seconds: 3), () {
+      if (mounted) setState(() => _showPill = false);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    const green = Color(0xFF38835A);
+
+    return GestureDetector(
+      onTap: _onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Animated inline pill (same pattern as echantillon_card)
+            AnimatedSize(
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeInOut,
+              child: _showPill
+                  ? Container(
+                      margin: const EdgeInsets.only(right: 6),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 7,
+                        vertical: 3,
+                      ),
+                      decoration: BoxDecoration(
+                        color: widget.recuPhysiquement
+                            ? green
+                            : Colors.grey.shade400,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            widget.recuPhysiquement ? Icons.check : Icons.close,
+                            size: 10,
+                            color: Colors.white,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            widget.recuPhysiquement
+                                ? 'Échantillon présent dans la société'
+                                : 'Échantillon non encore présent dans la société ',
+                            style: const TextStyle(
+                              fontSize: 10,
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  : const SizedBox.shrink(),
+            ),
+            // Animated icon (same as echantillon_card tick)
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 220),
+              switchInCurve: Curves.easeOutBack,
+              transitionBuilder: (child, anim) =>
+                  ScaleTransition(scale: anim, child: child),
+              child: Icon(
+                widget.recuPhysiquement
+                    ? Icons.check_circle
+                    : Icons.check_circle_outline,
+                key: ValueKey(widget.recuPhysiquement),
+                size: 20,
+                color: widget.recuPhysiquement ? green : Colors.grey.shade400,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -8,6 +8,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../models/session_degustation.dart';
+import '../../../membres_panel/models/membre_panel.dart';
+import '../../../membres_panel/services/membres_panel_service.dart';
 
 const Color _green = Color(0xFF38835A);
 const Color _dark = Color(0xFF1A2E1F);
@@ -16,22 +18,6 @@ const Color _fieldFill = Color(0xFFF7FAF8);
 // Section accent colors
 const Color _sectionSession = Color(0xFF38835A); // green
 
-// ─────────────────────────────────────────────────────────────────────────────
-// MOCK PANEL MEMBERS  (TODO: replace with API call / injected list)
-// ─────────────────────────────────────────────────────────────────────────────
-class _MockMembre {
-  final String id;
-  final String nom;
-  const _MockMembre(this.id, this.nom);
-}
-
-const List<_MockMembre> _allMembres = [
-  _MockMembre('mock-ichrak',   'Ichrak C.'),
-  _MockMembre('mock-lobna',    'Lobna E.'),
-  _MockMembre('mock-maha',     'Maha O.'),
-  _MockMembre('mock-nayrouz',  'Nayrouz F.'),
-  _MockMembre('mock-yosra',    'Yosra S.'),
-];
 
 // ─────────────────────────────────────────────────────────────────────────────
 // SCROLL-WHEEL TIME SHEET  (AM/PM)
@@ -312,7 +298,9 @@ Future<void> showFormulaireSessionDialog(
   required SessionDegustation? session,
   required int prochainNumero,
   required ValueChanged<SessionDegustation> onSave,
-}) {
+}) async {
+  final membres = await MembresPanelService().fetchMembres();
+  if (!context.mounted) return;
   final isEdit = session != null;
 
   final titreCtrl = TextEditingController(text: isEdit ? session.titre : '');
@@ -420,7 +408,7 @@ Future<void> showFormulaireSessionDialog(
                       ],
                     ),
                     const SizedBox(height: 4),
-                    ..._allMembres.map((m) {
+                    ...membres.map((m) {
                       final selected = temp.contains(m.id);
                       return InkWell(
                         onTap: () => setInner(() {
@@ -464,7 +452,7 @@ Future<void> showFormulaireSessionDialog(
                               ),
                               const SizedBox(width: 12),
                               Text(
-                                m.nom,
+                                m.nomComplet,
                                 style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: selected
@@ -575,7 +563,7 @@ Future<void> showFormulaireSessionDialog(
               ? null
               : selectedParticipantIds
                   .map((id) =>
-                      _allMembres.firstWhere((m) => m.id == id).nom)
+                      membres.firstWhere((m) => m.id == id).nomComplet)
                   .toList();
 
           if (isEdit) {
@@ -769,9 +757,9 @@ Future<void> showFormulaireSessionDialog(
                       spacing: 6,
                       runSpacing: 6,
                       children: selectedParticipantIds.map((id) {
-                        final nom = _allMembres
+                        final nom = membres
                             .firstWhere((m) => m.id == id)
-                            .nom;
+                            .nomComplet;
                         return Container(
                           padding: const EdgeInsets.fromLTRB(10, 5, 6, 5),
                           decoration: BoxDecoration(

@@ -6,11 +6,13 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'models/analyse_labo.dart';
+import 'services/analyse_labo_service.dart';
 import 'widgets/analyse_card.dart';
 import '../gestion_echantillons/widgets/search_filter_bar.dart';
-
+import '../widgets/statut_chip.dart';
+import '../tableau_de_bord/homepage_page.dart';
 // app-wide imports
-import '../profil.dart';
+import '../profil/profil_page.dart';
 import '../tableau_de_bord/widgets/app_drawer.dart';
 import '../membres_panel/membres_panel_page.dart';
 import '../gestion_echantillons/gestion_echantillons_page.dart';
@@ -26,6 +28,8 @@ class AnalyseLaboratoirePage extends StatefulWidget {
 }
 
 class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage> {
+  final _service = AnalyseLaboService();
+
   // ── COLORS ──────────────────────────────────────────────────────────────────
   static const Color _headerBg = Color.fromARGB(255, 220, 233, 226);
   static const Color _green = Color(0xFF38835A);
@@ -41,15 +45,30 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage> {
   String _dateType = 'enregistrement';
 
   static const _dateTypeOptions = [
-    (key: 'enregistrement',    label: "Date d'enregistrement"),
+    (key: 'enregistrement', label: "Date d'enregistrement"),
     (key: 'receptionPhysique', label: 'Date de réception physique'),
   ];
 
   String get _dateTypeLabel => _dateTypeOptions
-      .firstWhere((t) => t.key == _dateType,
-          orElse: () => _dateTypeOptions.first)
+      .firstWhere(
+        (t) => t.key == _dateType,
+        orElse: () => _dateTypeOptions.first,
+      )
       .label;
 
+  // ── STATE ────────────────────────────────────────────────────────────────────
+  List<AnalyseLabo> _analyses = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    final data = await _service.fetchAnalyses();
+    setState(() => _analyses = data);
+  }
 
   // ── NAVIGATION ───────────────────────────────────────────────────────────────
   void _goTo(Widget page) {
@@ -64,232 +83,6 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage> {
       MaterialPageRoute(builder: (_) => LoginPage()),
     );
   }
-
-  // ── MOCK DATA  ───────────────────────────────────────────────────────────────
-  final List<AnalyseLabo> _analyses = [
-    AnalyseLabo(
-      id: 'ANL-001',
-      echantillonId: '2026/0001',
-      echantillonNom: 'Chemlali - Lot A - Sfax',
-      dateAnalyse: '18/02/2026',
-      technicienNom: 'Karim B.',
-      statut: StatutAnalyse.soumise,
-      notes: 'Analyse conforme aux normes COI',
-      fournisseurNom: 'Domaine Bel-Air',
-      gouvernorat: 'Sfax',
-      delegation: 'Sfax Sud',
-      collecteurNom: 'Ahmed Dridi',
-      variete: 'Chemlali',
-      quantiteEstimee: '25',
-      dateEnregistrement: '01/03/2026',
-      dateReceptionPhysique: '15/03/2026',
-      criteres: [
-        CritereAnalyse(
-          label: 'Acidité libre',
-          valeur: 0.3,
-          unite: '%',
-          seuilMin: 0.0,
-          seuilMax: 0.8,
-        ),
-        CritereAnalyse(
-          label: 'Indice de peroxyde',
-          valeur: 8.5,
-          unite: 'mEq O₂/kg',
-          seuilMin: 0.0,
-          seuilMax: 20.0,
-        ),
-        CritereAnalyse(
-          label: 'Absorbance K232',
-          valeur: 1.82,
-          unite: '',
-          seuilMin: 0.0,
-          seuilMax: 2.50,
-        ),
-        CritereAnalyse(
-          label: 'Absorbance K270',
-          valeur: 0.14,
-          unite: '',
-          seuilMin: 0.0,
-          seuilMax: 0.22,
-        ),
-        CritereAnalyse(
-          label: 'ΔK (variation UV)',
-          valeur: 0.003,
-          unite: '',
-          seuilMin: -0.01,
-          seuilMax: 0.01,
-        ),
-        CritereAnalyse(
-          label: 'Polyphénols totaux',
-          valeur: 320.0,
-          unite: 'mg/kg',
-          seuilMin: 0.0,
-          seuilMax: null,
-        ),
-        CritereAnalyse(
-          label: 'Humidité',
-          valeur: 0.09,
-          unite: '%',
-          seuilMin: 0.0,
-          seuilMax: 0.2,
-        ),
-        CritereAnalyse(
-          label: 'Impuretés',
-          valeur: 0.04,
-          unite: '%',
-          seuilMin: 0.0,
-          seuilMax: 0.1,
-        ),
-      ],
-    ),
-    AnalyseLabo(
-      id: 'ANL-002',
-      echantillonId: '2026/0003',
-      echantillonNom: 'Chetoui - Lot B - Béja',
-      dateAnalyse: '19/02/2026',
-      technicienNom: 'Karim B.',
-      statut: StatutAnalyse.soumise,
-      fournisseurNom: 'Ferme Al Jazira',
-      gouvernorat: 'Béja',
-      delegation: 'Béja Nord',
-      collecteurNom: 'Rania Hammami',
-      variete: 'Chetoui',
-      quantiteEstimee: '32',
-      dateEnregistrement: '21/02/2026',
-      dateReceptionPhysique: '28/02/2026',
-      criteres: [
-        CritereAnalyse(
-          label: 'Acidité libre',
-          valeur: 1.2,
-          unite: '%',
-          seuilMin: 0.0,
-          seuilMax: 0.8,
-        ),
-        CritereAnalyse(
-          label: 'Indice de peroxyde',
-          valeur: 14.0,
-          unite: 'mEq O₂/kg',
-          seuilMin: 0.0,
-          seuilMax: 20.0,
-        ),
-        CritereAnalyse(
-          label: 'Absorbance K232',
-          valeur: 2.10,
-          unite: '',
-          seuilMin: 0.0,
-          seuilMax: 2.50,
-        ),
-        CritereAnalyse(
-          label: 'Absorbance K270',
-          valeur: 0.19,
-          unite: '',
-          seuilMin: 0.0,
-          seuilMax: 0.22,
-        ),
-        CritereAnalyse(
-          label: 'ΔK (variation UV)',
-          valeur: 0.005,
-          unite: '',
-          seuilMin: -0.01,
-          seuilMax: 0.01,
-        ),
-        CritereAnalyse(
-          label: 'Polyphénols totaux',
-          valeur: 180.0,
-          unite: 'mg/kg',
-          seuilMin: 0.0,
-          seuilMax: null,
-        ),
-        CritereAnalyse(
-          label: 'Humidité',
-          valeur: 0.15,
-          unite: '%',
-          seuilMin: 0.0,
-          seuilMax: 0.2,
-        ),
-        CritereAnalyse(
-          label: 'Impuretés',
-          valeur: 0.08,
-          unite: '%',
-          seuilMin: 0.0,
-          seuilMax: 0.1,
-        ),
-      ],
-    ),
-    AnalyseLabo(
-      id: 'ANL-003',
-      echantillonId: '2026/0004',
-      echantillonNom: 'Zalmati - Gafsa',
-      dateAnalyse: '01/03/2026',
-      technicienNom: 'Sonia M.',
-      statut: StatutAnalyse.enAttente,
-      fournisseurNom: 'Green Valley',
-      gouvernorat: 'Kairouan',
-      delegation: 'Kairouan Nord',
-      variete: 'Oueslati',
-      quantiteEstimee: '18',
-      dateEnregistrement: '23/02/2026',
-      dateReceptionPhysique: '05/03/2026',
-      criteres: [
-        CritereAnalyse(
-          label: 'Acidité libre',
-          valeur: 0.0,
-          unite: '%',
-          seuilMin: 0.0,
-          seuilMax: 0.8,
-        ),
-        CritereAnalyse(
-          label: 'Indice de peroxyde',
-          valeur: 0.0,
-          unite: 'mEq O₂/kg',
-          seuilMin: 0.0,
-          seuilMax: 20.0,
-        ),
-        CritereAnalyse(
-          label: 'Absorbance K232',
-          valeur: 0.0,
-          unite: '',
-          seuilMin: 0.0,
-          seuilMax: 2.50,
-        ),
-        CritereAnalyse(
-          label: 'Absorbance K270',
-          valeur: 0.0,
-          unite: '',
-          seuilMin: 0.0,
-          seuilMax: 0.22,
-        ),
-        CritereAnalyse(
-          label: 'ΔK (variation UV)',
-          valeur: 0.0,
-          unite: '',
-          seuilMin: -0.01,
-          seuilMax: 0.01,
-        ),
-        CritereAnalyse(
-          label: 'Polyphénols totaux',
-          valeur: 0.0,
-          unite: 'mg/kg',
-          seuilMin: 0.0,
-          seuilMax: null,
-        ),
-        CritereAnalyse(
-          label: 'Humidité',
-          valeur: 0.0,
-          unite: '%',
-          seuilMin: 0.0,
-          seuilMax: 0.2,
-        ),
-        CritereAnalyse(
-          label: 'Impuretés',
-          valeur: 0.0,
-          unite: '%',
-          seuilMin: 0.0,
-          seuilMax: 0.1,
-        ),
-      ],
-    ),
-  ];
 
   // ── FILTER LOGIC ─────────────────────────────────────────────────────────────
   StatutAnalyse? _labelToStatut(String? label) {
@@ -315,9 +108,12 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage> {
 
   String? _dateFieldFor(AnalyseLabo a) {
     switch (_dateType) {
-      case 'enregistrement':    return a.dateEnregistrement;
-      case 'receptionPhysique': return a.dateReceptionPhysique;
-      default:                  return null;
+      case 'enregistrement':
+        return a.dateEnregistrement;
+      case 'receptionPhysique':
+        return a.dateReceptionPhysique;
+      default:
+        return null;
     }
   }
 
@@ -406,7 +202,7 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage> {
 
       // ── DRAWER ────────────────────────────────────────────────────────────────
       drawer: AppDrawer(
-        onaccueil: () => Navigator.pop(context),
+        onaccueil: () => _goTo(const HomePage()),
         onEvaluationEchantillons: () =>
             _goTo(const EvaluationEchantillonsPage()),
         onGestionEchantillons: () => _goTo(const GestionEchantillonsPage()),
@@ -532,7 +328,7 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage> {
                   child: ListView(
                     scrollDirection: Axis.horizontal,
                     children: [
-                      _StatutChip(
+                      StatutChip(
                         label: 'Tous',
                         activeColor: const Color(0xFF616161),
                         inactiveColor: const Color(0xFFF0F0F0),
@@ -541,7 +337,7 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage> {
                         onTap: () => setState(() => _filtreStatutLabel = null),
                       ),
                       const SizedBox(width: 7),
-                      _StatutChip(
+                      StatutChip(
                         label: 'Analyse en attente',
                         activeColor: const Color(0xFFD07B2F),
                         inactiveColor: const Color(0xFFFEF3E8),
@@ -552,7 +348,7 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage> {
                         ),
                       ),
                       const SizedBox(width: 7),
-                      _StatutChip(
+                      StatutChip(
                         label: 'Analyse soumise',
                         activeColor: const Color(0xFF38835A),
                         inactiveColor: const Color(0xFFE6F4ED),
@@ -632,86 +428,6 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage> {
                   ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// STATUT CHIP  — matches design system (gestion_echantillons pattern)
-// ─────────────────────────────────────────────────────────────────────────────
-class _StatutChip extends StatelessWidget {
-  final String label;
-  final Color activeColor;
-  final Color inactiveColor;
-  final Color inactiveTextColor;
-  final bool selected;
-  final VoidCallback onTap;
-
-  const _StatutChip({
-    required this.label,
-    required this.activeColor,
-    required this.inactiveColor,
-    required this.inactiveTextColor,
-    required this.selected,
-    required this.onTap,
-  });
-
-  static const Color _inactiveBg = Color(0xFFF0F0F0);
-  static const Color _inactiveFg = Color(0xFF9E9E9E);
-  static const Color _inactiveBorder = Color(0xFFE0E0E0);
-
-  @override
-  Widget build(BuildContext context) {
-    final bool isTous = label == 'Tous';
-
-    final Color bg;
-    final Color fg;
-    final Color border;
-
-    if (!selected) {
-      bg = _inactiveBg;
-      fg = _inactiveFg;
-      border = _inactiveBorder;
-    } else if (isTous) {
-      bg = const Color(0xFF757575);
-      fg = Colors.white;
-      border = const Color(0xFF757575);
-    } else {
-      bg = inactiveColor;
-      fg = inactiveTextColor;
-      border = inactiveTextColor.withValues(alpha: 0.45);
-    }
-
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-        decoration: BoxDecoration(
-          color: bg,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: border, width: 1.2),
-          boxShadow: selected
-              ? [
-                  BoxShadow(
-                    color:
-                        (isTous ? const Color(0xFF757575) : inactiveTextColor)
-                            .withValues(alpha: 0.22),
-                    blurRadius: 6,
-                    offset: const Offset(0, 2),
-                  ),
-                ]
-              : null,
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: fg,
-          ),
-        ),
       ),
     );
   }

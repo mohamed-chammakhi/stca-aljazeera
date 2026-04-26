@@ -1169,29 +1169,7 @@ class _UserCardState extends State<_UserCard> {
                           ),
                         ),
 
-                        // ── Role badge (moved here) + chevron ───────────
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 9,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: colors.bg,
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                              color: colors.fg.withValues(alpha: 0.2),
-                            ),
-                          ),
-                          child: Text(
-                            user.role.label,
-                            style: TextStyle(
-                              color: colors.fg,
-                              fontSize: 10,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 6),
+                        // ── Chevron ─────────────────────────────────────
                         GestureDetector(
                           onTap: () => setState(
                             () => _actionsExpanded = !_actionsExpanded,

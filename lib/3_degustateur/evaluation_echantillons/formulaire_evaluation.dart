@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-//import 'EvaluationEchantillonsPage.dart'; // ← pour EchantillonEval (le modèle)
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PAGE — FormulaireEvaluationPage

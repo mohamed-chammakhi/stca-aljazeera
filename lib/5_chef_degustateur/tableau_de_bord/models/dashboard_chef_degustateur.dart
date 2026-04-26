@@ -1,3 +1,98 @@
+class EvaluationUrgenteCeoChef {
+  final String id;
+  final String reference;
+  final String collecteurNom;
+  final String fournisseurNom;
+
+  const EvaluationUrgenteCeoChef({
+    required this.id,
+    required this.reference,
+    required this.collecteurNom,
+    required this.fournisseurNom,
+  });
+
+  factory EvaluationUrgenteCeoChef.fromJson(Map<String, dynamic> json) => EvaluationUrgenteCeoChef(
+    id: json['id'] as String,
+    reference: json['reference'] as String,
+    collecteurNom: json['collecteur_nom'] as String,
+    fournisseurNom: json['fournisseur_nom'] as String,
+  );
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'reference': reference,
+    'collecteur_nom': collecteurNom,
+    'fournisseur_nom': fournisseurNom,
+  };
+}
+
+class PresenceChefData {
+  final int present;
+  final int manquee;
+  final String? prochaineTitre;
+  final String? prochaineDate;
+  final String? prochaineLieu;
+  final String? prochaineCountdown;
+
+  const PresenceChefData({
+    required this.present,
+    required this.manquee,
+    this.prochaineTitre,
+    this.prochaineDate,
+    this.prochaineLieu,
+    this.prochaineCountdown,
+  });
+
+  int get total => present + manquee;
+  double get taux => total == 0 ? 0 : present / total;
+
+  factory PresenceChefData.fromJson(Map<String, dynamic> json) => PresenceChefData(
+    present: json['present'] as int,
+    manquee: json['manquee'] as int,
+    prochaineTitre: json['prochaine_titre'] as String?,
+    prochaineDate: json['prochaine_date'] as String?,
+    prochaineLieu: json['prochaine_lieu'] as String?,
+    prochaineCountdown: json['prochaine_countdown'] as String?,
+  );
+
+  Map<String, dynamic> toJson() => {
+    'present': present,
+    'manquee': manquee,
+    'prochaine_titre': prochaineTitre,
+    'prochaine_date': prochaineDate,
+    'prochaine_lieu': prochaineLieu,
+    'prochaine_countdown': prochaineCountdown,
+  };
+}
+
+class ActiviteItemChef {
+  final String id;
+  final String action;
+  final String horodatage;
+  final String type;
+
+  const ActiviteItemChef({
+    required this.id,
+    required this.action,
+    required this.horodatage,
+    required this.type,
+  });
+
+  factory ActiviteItemChef.fromJson(Map<String, dynamic> json) => ActiviteItemChef(
+    id: json['id'] as String,
+    action: json['action'] as String,
+    horodatage: json['horodatage'] as String,
+    type: json['type'] as String,
+  );
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'action': action,
+    'horodatage': horodatage,
+    'type': type,
+  };
+}
+
 class PipelineChefData {
   final int receptionne;
   final int enAttenteEval;

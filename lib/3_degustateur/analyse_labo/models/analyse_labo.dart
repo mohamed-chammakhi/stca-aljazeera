@@ -22,6 +22,22 @@ class CritereAnalyse {
     this.seuilMax,
   });
 
+  factory CritereAnalyse.fromJson(Map<String, dynamic> json) => CritereAnalyse(
+        label: json['label'] as String,
+        valeur: (json['valeur'] as num).toDouble(),
+        unite: json['unite'] as String,
+        seuilMin: json['seuil_min'] == null ? null : (json['seuil_min'] as num).toDouble(),
+        seuilMax: json['seuil_max'] == null ? null : (json['seuil_max'] as num).toDouble(),
+      );
+
+  Map<String, dynamic> toJson() => {
+        'label': label,
+        'valeur': valeur,
+        'unite': unite,
+        'seuil_min': seuilMin,
+        'seuil_max': seuilMax,
+      };
+
   /// true if value is within allowed range
   bool get conforme {
     if (seuilMin != null && valeur < seuilMin!) return false;
@@ -73,6 +89,49 @@ class AnalyseLabo {
     this.dateEnregistrement,
     this.dateReceptionPhysique,
   });
+
+  factory AnalyseLabo.fromJson(Map<String, dynamic> json) => AnalyseLabo(
+        id: json['id'] as String,
+        echantillonId: json['echantillon_id'] as String,
+        echantillonNom: json['echantillon_nom'] as String,
+        dateAnalyse: json['date_analyse'] as String,
+        technicienNom: json['technicien_nom'] as String,
+        statut: json['statut'] == 'soumise' ? StatutAnalyse.soumise : StatutAnalyse.enAttente,
+        notes: json['notes'] as String?,
+        fournisseurNom: json['fournisseur_nom'] as String?,
+        gouvernorat: json['gouvernorat'] as String?,
+        delegation: json['delegation'] as String?,
+        collecteurNom: json['collecteur_nom'] as String?,
+        variete: json['variete'] as String?,
+        quantiteEstimee: json['quantite_estimee'] as String?,
+        dateEnregistrement: json['date_enregistrement'] as String?,
+        dateReceptionPhysique: json['date_reception_physique'] as String?,
+        criteres: (json['criteres'] as List<dynamic>)
+            .map((c) => CritereAnalyse.fromJson(c as Map<String, dynamic>))
+            .toList(),
+      );
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'echantillon_id': echantillonId,
+        'echantillon_nom': echantillonNom,
+        'date_analyse': dateAnalyse,
+        'technicien_nom': technicienNom,
+        'statut': statut == StatutAnalyse.soumise ? 'soumise' : 'en_attente',
+        'notes': notes,
+        'fournisseur_nom': fournisseurNom,
+        'gouvernorat': gouvernorat,
+        'delegation': delegation,
+        'collecteur_nom': collecteurNom,
+        'variete': variete,
+        'quantite_estimee': quantiteEstimee,
+        'date_enregistrement': dateEnregistrement,
+        'date_reception_physique': dateReceptionPhysique,
+        'criteres': criteres.map((c) => c.toJson()).toList(),
+      };
+
+  static List<AnalyseLabo> fromJsonList(Map<String, dynamic> json) =>
+      (json['results'] as List).map((e) => AnalyseLabo.fromJson(e as Map<String, dynamic>)).toList();
 
   /// true if ALL criteria are within their allowed range
   bool get toutConforme => criteres.every((c) => c.conforme);
