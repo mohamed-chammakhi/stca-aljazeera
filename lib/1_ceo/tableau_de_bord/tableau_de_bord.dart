@@ -12,7 +12,6 @@ import '../utilisateurs/widgets/utilisateurs_ceo_page.dart';
 import '../notifications/models/notification_ceo.dart';
 import '../notifications/services/notification_ceo_service.dart';
 import '../notifications/notifications_ceo_page.dart';
-import '../../3_degustateur/gestion_echantillons/widgets/search_filter_bar.dart';
 
 // ── Design tokens ─────────────────────────────────────────────────────────────
 const Color _headerBg = Color.fromARGB(255, 220, 233, 226);

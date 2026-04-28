@@ -10,7 +10,6 @@ import '../widgets/ceo_drawer.dart';
 import '../utilisateurs/models/echantillon_ceo_view.dart';
 import '../widgets/shared_evaluation_form_sheet.dart';
 import '../echantillons/echantillons_ceo_page.dart';
-import 'analyse_organoleptique_ceo_page.dart';
 import '../analyse_laboratoire/analyse_laboratoire_ceo_page.dart';
 import '../achats_confirmes/achats_confirmes_ceo_page.dart';
 import '../profil_ceo_page.dart';
@@ -149,8 +148,6 @@ class _AnalyseOrganoleptiqueCeoPageState
     }
     return result;
   }
-
-  bool get _anyFilter => _dateDebut != null || _searchQuery.isNotEmpty;
 
   Future<void> _showDateFilter() async {
     await showModalBottomSheet(

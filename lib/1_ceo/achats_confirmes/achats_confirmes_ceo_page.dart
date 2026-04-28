@@ -9,7 +9,6 @@ import '../utilisateurs/models/echantillon_ceo_view.dart';
 import '../echantillons/echantillons_ceo_page.dart';
 import '../analyse_organoleptique/analyse_organoleptique_ceo_page.dart';
 import '../analyse_laboratoire/analyse_laboratoire_ceo_page.dart';
-import 'achats_confirmes_ceo_page.dart';
 import '../profil_ceo_page.dart';
 import '../../main.dart';
 import '../utilisateurs/models/mock_data_patch.dart';
@@ -114,8 +113,6 @@ class _AchatsConfirmesCeoPageState extends State<AchatsConfirmesCeoPage> {
       return null;
     }
   }
-
-  bool get _anyFilter => _dateDebut != null || _searchQuery.isNotEmpty;
 
   Future<void> _showDateFilter() async {
     await showModalBottomSheet(

@@ -29,15 +29,6 @@ class _ProfilceoPageState extends State<ProfilceoPage> {
     Navigator.push(context, MaterialPageRoute(builder: (_) => page));
   }
 
-  // Closes drawer then replaces the whole stack — no back button to homepage
-  void _goToLogin() {
-    Navigator.pop(context);
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => LoginPage()),
-    );
-  }
-
   // ── Brand Colors ──────────────────────────────────────────────────────────
   static const Color green = Color(0xFF38835A);
   static const Color oliveGreen = Color(0xFF6B8143);
