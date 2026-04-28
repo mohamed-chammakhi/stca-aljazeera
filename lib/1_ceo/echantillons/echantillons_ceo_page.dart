@@ -4,6 +4,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:project3/core/theme/app_colors.dart';
+import 'package:project3/core/utils/date_utils.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../widgets/ceo_drawer.dart';
 import '../utilisateurs/models/echantillon_ceo_view.dart';
@@ -94,7 +95,7 @@ class _EchantillonsCeoPageState extends State<EchantillonsCeoPage> {
       result = result.where((e) {
         final raw = _dateFieldFor(e);
         if (raw == null) return false;
-        final d = _parseDate(raw);
+        final d = DegDateUtils.parseDate(raw);
         if (d == null) return false;
         final day = DateTime(d.year, d.month, d.day);
         final debut = DateTime(
@@ -160,7 +161,7 @@ class _EchantillonsCeoPageState extends State<EchantillonsCeoPage> {
     return groups;
   }
 
-  DateTime? _parseDate(String s) {
+  DateTime? DegDateUtils.parseDate(String s) {
     try {
       final p = s.split('/');
       if (p.length != 3) return null;
@@ -661,4 +662,5 @@ class _CarteGeoPlaceholder extends StatelessWidget {
     ),
   );
 }
+
 

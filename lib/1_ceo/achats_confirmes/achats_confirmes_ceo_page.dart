@@ -4,6 +4,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:project3/core/theme/app_colors.dart';
+import 'package:project3/core/utils/date_utils.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../widgets/ceo_drawer.dart';
 import '../utilisateurs/models/echantillon_ceo_view.dart';
@@ -62,7 +63,7 @@ class _AchatsConfirmesCeoPageState extends State<AchatsConfirmesCeoPage> {
       result = result.where((e) {
         final dateStr = _dateFieldFor(e);
         if (dateStr == null) return false;
-        final d = _parseDate(dateStr);
+        final d = DegDateUtils.parseDate(dateStr);
         if (d == null) return false;
         final day = DateTime(d.year, d.month, d.day);
         final debut = DateTime(
@@ -99,16 +100,6 @@ class _AchatsConfirmesCeoPageState extends State<AchatsConfirmesCeoPage> {
     return result;
   }
 
-  DateTime? _parseDate(String s) {
-    try {
-      final datePart = s.split(' ').first;
-      final p = datePart.split('/');
-      if (p.length != 3) return null;
-      return DateTime(int.parse(p[2]), int.parse(p[1]), int.parse(p[0]));
-    } catch (_) {
-      return null;
-    }
-  }
 
   Future<void> _showDateFilter() async {
     await showModalBottomSheet(
@@ -612,4 +603,5 @@ class _FilterChip extends StatelessWidget {
     );
   }
 }
+
 

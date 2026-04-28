@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:project3/core/theme/app_colors.dart';
+import 'package:project3/core/utils/date_utils.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../3_degustateur/notifications/services/notification_degustateur_service.dart';
 import '../widgets/ceo_drawer.dart';
@@ -85,16 +86,6 @@ class _AnalyseOrganoleptiqueCeoPageState
   List<EchantillonCeoView> get _allEchantillons =>
       mockEchantillonsOrganoleptique;
 
-  DateTime? _parseDate(String s) {
-    try {
-      final datePart = s.split(' ').first;
-      final p = datePart.split('/');
-      if (p.length != 3) return null;
-      return DateTime(int.parse(p[2]), int.parse(p[1]), int.parse(p[0]));
-    } catch (_) {
-      return null;
-    }
-  }
 
   String? _dateFieldFor(EchantillonCeoView e) {
     switch (_dateType) {
@@ -113,7 +104,7 @@ class _AnalyseOrganoleptiqueCeoPageState
       result = result.where((e) {
         final dateStr = _dateFieldFor(e);
         if (dateStr == null) return false;
-        final d = _parseDate(dateStr);
+        final d = DegDateUtils.parseDate(dateStr);
         if (d == null) return false;
         final day = DateTime(d.year, d.month, d.day);
         final debut = DateTime(
@@ -1378,4 +1369,5 @@ class _RecuPhysiqueIndicatorState extends State<_RecuPhysiqueIndicator> {
     );
   }
 }
+
 
