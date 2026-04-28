@@ -5,6 +5,7 @@
 import 'package:flutter/material.dart';
 import 'package:project3/core/theme/app_colors.dart';
 import 'package:project3/core/utils/date_utils.dart';
+import 'models/collecteur_group.dart';
 import '../widgets/ceo_nav_mixin.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../widgets/ceo_drawer.dart';
@@ -32,25 +33,6 @@ String _initials(String name) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// COLLECTEUR GROUP MODEL  (local to this page)
-// ─────────────────────────────────────────────────────────────────────────────
-class _CollecteurGroup {
-  final String? collecteurNom;
-  final String? collecteurId;
-  final List<EchantillonCeoView> echantillons;
-
-  _CollecteurGroup({
-    this.collecteurNom,
-    this.collecteurId,
-    required this.echantillons,
-  });
-
-  bool get isInterne => collecteurNom == null;
-  String get displayName => collecteurNom ?? 'Ajoutés en interne';
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// PAGE
 // ─────────────────────────────────────────────────────────────────────────────
 class EchantillonsCeoPage extends StatefulWidget {
   const EchantillonsCeoPage({super.key});
@@ -127,7 +109,7 @@ class _EchantillonsCeoPageState extends State<EchantillonsCeoPage> with CeoNavMi
     return result;
   }
 
-  List<_CollecteurGroup> get _groups {
+  List<CollecteurGroup> get _groups {
     final filtered = _applyFilters(_allEchantillons);
     final Map<String, List<EchantillonCeoView>> byCollecteur = {};
 
@@ -136,13 +118,13 @@ class _EchantillonsCeoPageState extends State<EchantillonsCeoPage> with CeoNavMi
       byCollecteur.putIfAbsent(key, () => []).add(e);
     }
 
-    final List<_CollecteurGroup> groups = [];
+    final List<CollecteurGroup> groups = [];
     final collecteurKeys =
         byCollecteur.keys.where((k) => k != '__interne__').toList()..sort();
 
     for (final key in collecteurKeys) {
       groups.add(
-        _CollecteurGroup(
+        CollecteurGroup(
           collecteurNom: key,
           collecteurId: key.replaceAll(' ', '_').toLowerCase(),
           echantillons: byCollecteur[key]!,
@@ -152,7 +134,7 @@ class _EchantillonsCeoPageState extends State<EchantillonsCeoPage> with CeoNavMi
 
     if (byCollecteur.containsKey('__interne__')) {
       groups.add(
-        _CollecteurGroup(
+        CollecteurGroup(
           collecteurNom: null,
           echantillons: byCollecteur['__interne__']!,
         ),
@@ -421,7 +403,7 @@ class _EchantillonsCeoPageState extends State<EchantillonsCeoPage> with CeoNavMi
 // COLLECTEUR SECTION  (page-specific, not extracted)
 // ─────────────────────────────────────────────────────────────────────────────
 class _CollecteurSection extends StatelessWidget {
-  final _CollecteurGroup group;
+  final CollecteurGroup group;
   final bool isExpanded;
   final Set<String> expandedSamples;
   final VoidCallback onToggleCollecteur;
@@ -659,6 +641,7 @@ class _CarteGeoPlaceholder extends StatelessWidget {
     ),
   );
 }
+
 
 
 

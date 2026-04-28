@@ -6,6 +6,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:project3/core/theme/app_colors.dart';
 import 'package:project3/core/utils/date_utils.dart';
+import 'models/sample_status.dart';
 import '../widgets/ceo_nav_mixin.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../3_degustateur/notifications/services/notification_degustateur_service.dart';
@@ -24,40 +25,6 @@ import '../widgets/sample_card_echantillon.dart';
 import '../widgets/base_sample_card.dart'; // ← shared card
 import '../../2_collecteur/mes_echantillons/widgets/dialogs/formulaire_sections.dart'
     show DateLivraisonSection, ModePlanificationUI;
-
-
-const Color _statusGreen = Color(0xFF38835A);
-const Color _statusBlue = Color(0xFF3A6EA5);
-const Color _statusOrange = Color(0xFFD07B2F);
-const Color _tintGreen = Color.fromARGB(255, 212, 225, 217);
-const Color _tintBlue = Color(0xFFEAF0F8);
-const Color _tintOrange = Color(0xFFFAF0E6);
-
-enum _SampleStatus { complete, partial, none }
-
-extension _StatusStyle on _SampleStatus {
-  Color get color {
-    switch (this) {
-      case _SampleStatus.complete:
-        return _statusGreen;
-      case _SampleStatus.partial:
-        return _statusBlue;
-      case _SampleStatus.none:
-        return _statusOrange;
-    }
-  }
-
-  Color get tint {
-    switch (this) {
-      case _SampleStatus.complete:
-        return _tintGreen;
-      case _SampleStatus.partial:
-        return _tintBlue;
-      case _SampleStatus.none:
-        return _tintOrange;
-    }
-  }
-}
 
 // ─────────────────────────────────────────────────────────────────────────────
 class AnalyseOrganoleptiqueCeoPage extends StatefulWidget {
@@ -168,10 +135,10 @@ class _AnalyseOrganoleptiqueCeoPageState
   }
 
 
-  _SampleStatus _statusOf(EchantillonCeoView e) {
-    if (e.evaluations.isEmpty) return _SampleStatus.none;
-    if (e.tousEvalue) return _SampleStatus.complete;
-    return _SampleStatus.partial;
+  SampleStatus _statusOf(EchantillonCeoView e) {
+    if (e.evaluations.isEmpty) return SampleStatus.none;
+    if (e.tousEvalue) return SampleStatus.complete;
+    return SampleStatus.partial;
   }
 
   Color _cardAccent(EchantillonCeoView e) {
@@ -1366,6 +1333,7 @@ class _RecuPhysiqueIndicatorState extends State<_RecuPhysiqueIndicator> {
     );
   }
 }
+
 
 
 

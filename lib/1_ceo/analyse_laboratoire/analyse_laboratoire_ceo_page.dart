@@ -5,6 +5,7 @@
 import 'package:flutter/material.dart';
 import 'package:project3/core/theme/app_colors.dart';
 import 'package:project3/core/utils/date_utils.dart';
+import 'models/lab_row.dart';
 import '../widgets/ceo_nav_mixin.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../widgets/ceo_drawer.dart';
@@ -533,30 +534,15 @@ class _RapportSection extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// RAPPORT BLOCK  — criteria table matching taster's AnalyseCard style
-// ─────────────────────────────────────────────────────────────────────────────
-class _LabRow {
-  final String label;
-  final String value;
-  final String norm;
-  final bool? conforme;
-  const _LabRow({
-    required this.label,
-    required this.value,
-    required this.norm,
-    this.conforme,
-  });
-}
-
 class _RapportBlock extends StatelessWidget {
   final AnalyseLaboCeoView analyse;
   const _RapportBlock({required this.analyse});
 
-  List<_LabRow> _buildRows(AnalyseLaboCeoView a) {
-    final rows = <_LabRow>[];
+  List<LabRow> _buildRows(AnalyseLaboCeoView a) {
+    final rows = <LabRow>[];
     if (a.aciditeLibre != null) {
       final v = a.aciditeLibre!;
-      rows.add(_LabRow(
+      rows.add(LabRow(
         label: 'Acidité libre',
         value: '${v.toStringAsFixed(2)} %',
         norm: '≤ 0.80 %',
@@ -565,7 +551,7 @@ class _RapportBlock extends StatelessWidget {
     }
     if (a.indicePeroxyde != null) {
       final v = a.indicePeroxyde!;
-      rows.add(_LabRow(
+      rows.add(LabRow(
         label: 'Ind. de peroxyde',
         value: '${v.toStringAsFixed(1)} meqO₂/kg',
         norm: '≤ 20',
@@ -574,7 +560,7 @@ class _RapportBlock extends StatelessWidget {
     }
     if (a.k232 != null) {
       final v = a.k232!;
-      rows.add(_LabRow(
+      rows.add(LabRow(
         label: 'K₂₃₂',
         value: v.toStringAsFixed(2),
         norm: '≤ 2.50',
@@ -583,7 +569,7 @@ class _RapportBlock extends StatelessWidget {
     }
     if (a.k270 != null) {
       final v = a.k270!;
-      rows.add(_LabRow(
+      rows.add(LabRow(
         label: 'K₂₇₀',
         value: v.toStringAsFixed(2),
         norm: '≤ 0.22',
@@ -592,7 +578,7 @@ class _RapportBlock extends StatelessWidget {
     }
     if (a.deltaK != null) {
       final v = a.deltaK!;
-      rows.add(_LabRow(
+      rows.add(LabRow(
         label: 'ΔK',
         value: v.toStringAsFixed(3),
         norm: '≤ 0.01',
@@ -600,7 +586,7 @@ class _RapportBlock extends StatelessWidget {
       ));
     }
     if (a.polyphenolsTotaux != null) {
-      rows.add(_LabRow(
+      rows.add(LabRow(
         label: 'Polyphénols totaux',
         value: '${a.polyphenolsTotaux!.toStringAsFixed(0)} mg/kg',
         norm: '—',
@@ -608,7 +594,7 @@ class _RapportBlock extends StatelessWidget {
     }
     if (a.humidite != null) {
       final v = a.humidite!;
-      rows.add(_LabRow(
+      rows.add(LabRow(
         label: 'Humidité',
         value: '${v.toStringAsFixed(2)} %',
         norm: '≤ 0.20 %',
@@ -617,7 +603,7 @@ class _RapportBlock extends StatelessWidget {
     }
     if (a.impuretes != null) {
       final v = a.impuretes!;
-      rows.add(_LabRow(
+      rows.add(LabRow(
         label: 'Impuretés',
         value: '${v.toStringAsFixed(2)} %',
         norm: '≤ 0.10 %',
@@ -625,28 +611,28 @@ class _RapportBlock extends StatelessWidget {
       ));
     }
     if (a.acideOleique != null) {
-      rows.add(_LabRow(
+      rows.add(LabRow(
         label: 'Acide oléique',
         value: '${a.acideOleique!.toStringAsFixed(1)} %',
         norm: '—',
       ));
     }
     if (a.acideLinoleique != null) {
-      rows.add(_LabRow(
+      rows.add(LabRow(
         label: 'Acide linoléique',
         value: '${a.acideLinoleique!.toStringAsFixed(1)} %',
         norm: '—',
       ));
     }
     if (a.acidePalmitique != null) {
-      rows.add(_LabRow(
+      rows.add(LabRow(
         label: 'Acide palmitique',
         value: '${a.acidePalmitique!.toStringAsFixed(1)} %',
         norm: '—',
       ));
     }
     if (a.tocopherols != null) {
-      rows.add(_LabRow(
+      rows.add(LabRow(
         label: 'Tocophérols',
         value: '${a.tocopherols!.toStringAsFixed(0)} mg/kg',
         norm: '—',
@@ -865,6 +851,7 @@ class _EnAttenteHint extends StatelessWidget {
     ),
   );
 }
+
 
 
 
