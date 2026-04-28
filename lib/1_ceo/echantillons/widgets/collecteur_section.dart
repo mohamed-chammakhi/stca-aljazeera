@@ -1,0 +1,260 @@
+// ═════════════════════════════════════════════════════════════════════════════
+// FILE : 1_ceo/echantillons/widgets/collecteur_section.dart
+// ═════════════════════════════════════════════════════════════════════════════
+
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:project3/core/theme/app_colors.dart';
+import '../utilisateurs/models/echantillon_ceo_view.dart';
+import '../widgets/sample_card_echantillon.dart';
+import '../widgets/base_sample_card.dart';
+import '../models/collecteur_group.dart';
+
+String _initials(String name) {
+  final parts = name.trim().split(' ').where((s) => s.isNotEmpty).toList();
+  if (parts.isEmpty) return '?';
+  if (parts.length == 1) return parts[0][0].toUpperCase();
+  return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// COLLECTEUR SECTION
+// ─────────────────────────────────────────────────────────────────────────────
+class _CollecteurSection extends StatelessWidget {
+  final CollecteurGroup group;
+  final bool isExpanded;
+  final Set<String> expandedSamples;
+  final VoidCallback onToggleCollecteur;
+  final void Function(String id) onToggleSample;
+  final VoidCallback? onViewMap;
+
+  const _CollecteurSection({
+    required this.group,
+    required this.isExpanded,
+    required this.expandedSamples,
+    required this.onToggleCollecteur,
+    required this.onToggleSample,
+    this.onViewMap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [
+          BoxShadow(
+            color: kGreen.withValues(alpha: 0.06),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          // Header row
+          GestureDetector(
+            onTap: onToggleCollecteur,
+            behavior: HitTestBehavior.opaque,
+            child: ClipRRect(
+              borderRadius: BorderRadius.vertical(
+                top: const Radius.circular(14),
+                bottom: isExpanded ? Radius.zero : const Radius.circular(14),
+              ),
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      group.isInterne
+                          ? Colors.purple.shade50.withValues(alpha: 0.5)
+                          : kGreen.withValues(alpha: 0.05),
+                      Colors.white,
+                    ],
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 4,
+                      height: 58,
+                      color: group.isInterne ? Colors.purple.shade300 : kGreen,
+                    ),
+                    const SizedBox(width: 12),
+                    Container(
+                      width: 34,
+                      height: 34,
+                      decoration: BoxDecoration(
+                        color: group.isInterne
+                            ? Colors.purple.shade50
+                            : kGreen.withValues(alpha: 0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Center(
+                        child: group.isInterne
+                            ? Icon(
+                                Icons.business_outlined,
+                                size: 16,
+                                color: Colors.purple.shade400,
+                              )
+                            : Text(
+                                _initials(group.displayName),
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                  color: kGreen,
+                                ),
+                              ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            group.displayName,
+                            style: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                              color: kDark,
+                            ),
+                          ),
+                          Text(
+                            '${group.echantillons.length} échantillon${group.echantillons.length > 1 ? "s" : ""}',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey.shade500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (onViewMap != null) ...[
+                      GestureDetector(
+                        onTap: onViewMap,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 5,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.blue.shade50,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.blue.shade100),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.map_outlined,
+                                size: 12,
+                                color: Colors.blue.shade600,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                'Carte',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.blue.shade600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                    ],
+                    AnimatedRotation(
+                      turns: isExpanded ? 0.5 : 0.0,
+                      duration: const Duration(milliseconds: 200),
+                      child: Icon(
+                        Icons.keyboard_arrow_down,
+                        size: 20,
+                        color: Colors.grey.shade400,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+          // Expandable sample list
+          AnimatedCrossFade(
+            firstChild: const SizedBox.shrink(),
+            secondChild: Column(
+              children: [
+                Divider(color: Colors.grey.shade100, height: 1),
+                ...group.echantillons.asMap().entries.map(
+                  (entry) => SampleRow(
+                    echantillon: entry.value,
+                    isExpanded: expandedSamples.contains(entry.value.id),
+                    isOdd: entry.key.isOdd,
+                    isLast: entry.key == group.echantillons.length - 1,
+                    onToggle: () => onToggleSample(entry.value.id),
+                  ),
+                ),
+              ],
+            ),
+            crossFadeState: isExpanded
+                ? CrossFadeState.showSecond
+                : CrossFadeState.showFirst,
+            duration: const Duration(milliseconds: 220),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CARTE GEO PLACEHOLDER
+// ─────────────────────────────────────────────────────────────────────────────
+class _CarteGeoPlaceholder extends StatelessWidget {
+  final String collecteurNom;
+  const _CarteGeoPlaceholder({required this.collecteurNom});
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    backgroundColor: kBg,
+    appBar: AppBar(
+      backgroundColor: kGreen,
+      elevation: 0,
+      title: Text(
+        collecteurNom,
+        style: GoogleFonts.domine(
+          fontSize: 17,
+          fontWeight: FontWeight.w700,
+          color: Colors.white,
+        ),
+      ),
+    ),
+    body: Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.map_outlined, size: 56, color: Colors.grey.shade300),
+          const SizedBox(height: 14),
+          Text(
+            'Carte géographique',
+            style: GoogleFonts.domine(
+              fontSize: 16,
+              color: Colors.grey.shade500,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'Connecter CarteGeoPage ici',
+            style: TextStyle(fontSize: 12, color: Colors.grey.shade400),
+          ),
+        ],
+      ),
+    ),
+  );
+}
