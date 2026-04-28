@@ -6,6 +6,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:project3/core/theme/app_colors.dart';
 import 'package:project3/core/utils/date_utils.dart';
+import '../widgets/ceo_nav_mixin.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../3_degustateur/notifications/services/notification_degustateur_service.dart';
 import '../widgets/ceo_drawer.dart';
@@ -67,7 +68,7 @@ class AnalyseOrganoleptiqueCeoPage extends StatefulWidget {
 }
 
 class _AnalyseOrganoleptiqueCeoPageState
-    extends State<AnalyseOrganoleptiqueCeoPage> {
+    extends State<AnalyseOrganoleptiqueCeoPage> with CeoNavMixin {
   final Set<String> _expandedPanel = {};
   final Set<String> _urgentSent = {};
 
@@ -166,10 +167,6 @@ class _AnalyseOrganoleptiqueCeoPageState
     );
   }
 
-  void _goTo(Widget page) {
-    Navigator.pop(context);
-    Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => page));
-  }
 
   _SampleStatus _statusOf(EchantillonCeoView e) {
     if (e.evaluations.isEmpty) return _SampleStatus.none;
@@ -716,15 +713,15 @@ class _AnalyseOrganoleptiqueCeoPageState
     return Scaffold(
       backgroundColor: kBg,
       drawer: CeoDrawer(
-        onEchantillons: () => _goTo(const EchantillonsCeoPage()),
+        onEchantillons: () => goToPage(const EchantillonsCeoPage()),
         onAnalyseOrganoleptique: () =>
-            _goTo(const AnalyseOrganoleptiqueCeoPage()),
-        onAnalyseLaboratoire: () => _goTo(const AnalyseLaboratoireCeoPage()),
-        onAchatsConfirmes: () => _goTo(const AchatsConfirmesCeoPage()),
+            goToPage(const AnalyseOrganoleptiqueCeoPage()),
+        onAnalyseLaboratoire: () => goToPage(const AnalyseLaboratoireCeoPage()),
+        onAchatsConfirmes: () => goToPage(const AchatsConfirmesCeoPage()),
         onTableauDeBord: () => Navigator.pop(context),
-        onProfil: () => _goTo(const ProfilceoPage()),
-        onutilisiateurs: () => _goTo(const UtilisateursCeoPage()),
-        onDeconnexion: () => _goTo(LoginPage()),
+        onProfil: () => goToPage(const ProfilceoPage()),
+        onutilisiateurs: () => goToPage(const UtilisateursCeoPage()),
+        onDeconnexion: () => goToPage(LoginPage()),
       ),
       appBar: AppBar(
         backgroundColor: kHeaderBg,
@@ -1369,5 +1366,6 @@ class _RecuPhysiqueIndicatorState extends State<_RecuPhysiqueIndicator> {
     );
   }
 }
+
 
 

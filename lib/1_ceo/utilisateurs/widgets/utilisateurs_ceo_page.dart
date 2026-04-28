@@ -9,6 +9,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:project3/core/theme/app_colors.dart';
+import '../../widgets/ceo_nav_mixin.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../main.dart';
@@ -34,7 +35,7 @@ class UtilisateursCeoPage extends StatefulWidget {
   State<UtilisateursCeoPage> createState() => _UtilisateursCeoPageState();
 }
 
-class _UtilisateursCeoPageState extends State<UtilisateursCeoPage> {
+class _UtilisateursCeoPageState extends State<UtilisateursCeoPage> with CeoNavMixin {
   // ── Brand colors ──────────────────────────────────────────────────────────
 
   // ── Role accent colors ─────────────────────────────────────────────────────
@@ -70,10 +71,6 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage> {
   }
 
   // ── Navigation helpers ────────────────────────────────────────────────────
-  void _goTo(Widget page) {
-    Navigator.pop(context);
-    Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => page));
-  }
 
   @override
   void dispose() {
@@ -89,15 +86,15 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage> {
     return Scaffold(
       backgroundColor: kBg,
       drawer: CeoDrawer(
-        onEchantillons: () => _goTo(const EchantillonsCeoPage()),
+        onEchantillons: () => goToPage(const EchantillonsCeoPage()),
         onAnalyseOrganoleptique: () =>
-            _goTo(const AnalyseOrganoleptiqueCeoPage()),
-        onAnalyseLaboratoire: () => _goTo(const AnalyseLaboratoireCeoPage()),
-        onAchatsConfirmes: () => _goTo(const AchatsConfirmesCeoPage()),
+            goToPage(const AnalyseOrganoleptiqueCeoPage()),
+        onAnalyseLaboratoire: () => goToPage(const AnalyseLaboratoireCeoPage()),
+        onAchatsConfirmes: () => goToPage(const AchatsConfirmesCeoPage()),
         onTableauDeBord: () => Navigator.pop(context),
-        onProfil: () => _goTo(const ProfilceoPage()),
+        onProfil: () => goToPage(const ProfilceoPage()),
         onutilisiateurs: () => Navigator.pop(context),
-        onDeconnexion: () => _goTo(LoginPage()),
+        onDeconnexion: () => goToPage(LoginPage()),
       ),
       appBar: AppBar(
         backgroundColor: kHeaderBg,
@@ -1317,4 +1314,6 @@ class _IconBtn extends StatelessWidget {
     ),
   );
 }
+
+
 

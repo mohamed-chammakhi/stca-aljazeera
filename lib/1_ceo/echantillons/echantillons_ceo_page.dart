@@ -5,6 +5,7 @@
 import 'package:flutter/material.dart';
 import 'package:project3/core/theme/app_colors.dart';
 import 'package:project3/core/utils/date_utils.dart';
+import '../widgets/ceo_nav_mixin.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../widgets/ceo_drawer.dart';
 import '../utilisateurs/models/echantillon_ceo_view.dart';
@@ -58,7 +59,7 @@ class EchantillonsCeoPage extends StatefulWidget {
   State<EchantillonsCeoPage> createState() => _EchantillonsCeoPageState();
 }
 
-class _EchantillonsCeoPageState extends State<EchantillonsCeoPage> {
+class _EchantillonsCeoPageState extends State<EchantillonsCeoPage> with CeoNavMixin {
   DateTime? _dateDebut;
   DateTime? _dateFin;
   DateFilterType _dateType = DateFilterType.enregistrement;
@@ -199,10 +200,6 @@ class _EchantillonsCeoPageState extends State<EchantillonsCeoPage> {
     );
   }
 
-  void _goTo(Widget page) {
-    Navigator.pop(context);
-    Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => page));
-  }
 
   int get _totalFiltered =>
       _groups.fold(0, (sum, g) => sum + g.echantillons.length);
@@ -218,15 +215,15 @@ class _EchantillonsCeoPageState extends State<EchantillonsCeoPage> {
     return Scaffold(
       backgroundColor: kBg,
       drawer: CeoDrawer(
-        onEchantillons: () => _goTo(const EchantillonsCeoPage()),
+        onEchantillons: () => goToPage(const EchantillonsCeoPage()),
         onAnalyseOrganoleptique: () =>
-            _goTo(const AnalyseOrganoleptiqueCeoPage()),
-        onAnalyseLaboratoire: () => _goTo(const AnalyseLaboratoireCeoPage()),
-        onAchatsConfirmes: () => _goTo(const AchatsConfirmesCeoPage()),
-        onTableauDeBord: () => _goTo(const HomePageCeo()),
-        onProfil: () => _goTo(const ProfilceoPage()),
-        onutilisiateurs: () => _goTo(const UtilisateursCeoPage()),
-        onDeconnexion: () => _goTo(LoginPage()),
+            goToPage(const AnalyseOrganoleptiqueCeoPage()),
+        onAnalyseLaboratoire: () => goToPage(const AnalyseLaboratoireCeoPage()),
+        onAchatsConfirmes: () => goToPage(const AchatsConfirmesCeoPage()),
+        onTableauDeBord: () => goToPage(const HomePageCeo()),
+        onProfil: () => goToPage(const ProfilceoPage()),
+        onutilisiateurs: () => goToPage(const UtilisateursCeoPage()),
+        onDeconnexion: () => goToPage(LoginPage()),
       ),
       appBar: AppBar(
         backgroundColor: kHeaderBg,
@@ -662,5 +659,6 @@ class _CarteGeoPlaceholder extends StatelessWidget {
     ),
   );
 }
+
 
 

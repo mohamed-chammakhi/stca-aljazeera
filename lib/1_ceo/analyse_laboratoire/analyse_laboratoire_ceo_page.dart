@@ -5,6 +5,7 @@
 import 'package:flutter/material.dart';
 import 'package:project3/core/theme/app_colors.dart';
 import 'package:project3/core/utils/date_utils.dart';
+import '../widgets/ceo_nav_mixin.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../widgets/ceo_drawer.dart';
 import '../utilisateurs/models/echantillon_ceo_view.dart';
@@ -30,7 +31,7 @@ class AnalyseLaboratoireCeoPage extends StatefulWidget {
       _AnalyseLaboratoireCeoPageState();
 }
 
-class _AnalyseLaboratoireCeoPageState extends State<AnalyseLaboratoireCeoPage> {
+class _AnalyseLaboratoireCeoPageState extends State<AnalyseLaboratoireCeoPage> with CeoNavMixin {
   final Set<String> _expandedRapport = {};
 
   // ── ADDED: active filter state (mirrors achats confirmes pattern) ──────────
@@ -138,10 +139,6 @@ class _AnalyseLaboratoireCeoPageState extends State<AnalyseLaboratoireCeoPage> {
     );
   }
 
-  void _goTo(Widget page) {
-    Navigator.pop(context);
-    Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => page));
-  }
 
   Color _classifColor(String c) {
     if (c == 'Extra Vierge') return kGreen;
@@ -164,15 +161,15 @@ class _AnalyseLaboratoireCeoPageState extends State<AnalyseLaboratoireCeoPage> {
     return Scaffold(
       backgroundColor: kBg,
       drawer: CeoDrawer(
-        onEchantillons: () => _goTo(const EchantillonsCeoPage()),
+        onEchantillons: () => goToPage(const EchantillonsCeoPage()),
         onAnalyseOrganoleptique: () =>
-            _goTo(const AnalyseOrganoleptiqueCeoPage()),
-        onAnalyseLaboratoire: () => _goTo(const AnalyseLaboratoireCeoPage()),
-        onAchatsConfirmes: () => _goTo(const AchatsConfirmesCeoPage()),
+            goToPage(const AnalyseOrganoleptiqueCeoPage()),
+        onAnalyseLaboratoire: () => goToPage(const AnalyseLaboratoireCeoPage()),
+        onAchatsConfirmes: () => goToPage(const AchatsConfirmesCeoPage()),
         onTableauDeBord: () => Navigator.pop(context),
-        onProfil: () => _goTo(const ProfilceoPage()),
-        onutilisiateurs: () => _goTo(const UtilisateursCeoPage()),
-        onDeconnexion: () => _goTo(LoginPage()),
+        onProfil: () => goToPage(const ProfilceoPage()),
+        onutilisiateurs: () => goToPage(const UtilisateursCeoPage()),
+        onDeconnexion: () => goToPage(LoginPage()),
       ),
       appBar: AppBar(
         backgroundColor: kHeaderBg,
@@ -868,5 +865,6 @@ class _EnAttenteHint extends StatelessWidget {
     ),
   );
 }
+
 
 

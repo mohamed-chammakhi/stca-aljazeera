@@ -4,7 +4,7 @@ import '../../main.dart';
 mixin CeoNavMixin<T extends StatefulWidget> on State<T> {
   void goToPage(Widget page) {
     Navigator.pop(context);
-    Navigator.push(context, MaterialPageRoute(builder: (_) => page));
+    Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => page));
   }
 
   void goToLogin() {

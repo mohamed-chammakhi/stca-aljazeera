@@ -6,6 +6,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:project3/core/theme/app_colors.dart';
+import 'widgets/ceo_nav_mixin.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'tableau_de_bord/tableau_de_bord.dart';
 
@@ -24,11 +25,7 @@ class ProfilceoPage extends StatefulWidget {
   _ProfilceoPageState createState() => _ProfilceoPageState();
 }
 
-class _ProfilceoPageState extends State<ProfilceoPage> {
-  void _goTo(Widget page) {
-    Navigator.pop(context); // close drawer
-    Navigator.push(context, MaterialPageRoute(builder: (_) => page));
-  }
+class _ProfilceoPageState extends State<ProfilceoPage> with CeoNavMixin {
 
   // ── Brand Colors ──────────────────────────────────────────────────────────
 
@@ -208,15 +205,15 @@ class _ProfilceoPageState extends State<ProfilceoPage> {
     return Scaffold(
       backgroundColor: Colors.white,
       drawer: CeoDrawer(
-        onEchantillons: () => _goTo(const EchantillonsCeoPage()),
+        onEchantillons: () => goToPage(const EchantillonsCeoPage()),
         onAnalyseOrganoleptique: () =>
-            _goTo(const AnalyseOrganoleptiqueCeoPage()),
-        onAnalyseLaboratoire: () => _goTo(const AnalyseLaboratoireCeoPage()),
-        onAchatsConfirmes: () => _goTo(const AchatsConfirmesCeoPage()),
+            goToPage(const AnalyseOrganoleptiqueCeoPage()),
+        onAnalyseLaboratoire: () => goToPage(const AnalyseLaboratoireCeoPage()),
+        onAchatsConfirmes: () => goToPage(const AchatsConfirmesCeoPage()),
         onTableauDeBord: () => Navigator.pop(context),
-        onProfil: () => _goTo(const ProfilceoPage()),
-        onutilisiateurs: () => _goTo(const UtilisateursCeoPage()),
-        onDeconnexion: () => _goTo(LoginPage()),
+        onProfil: () => goToPage(const ProfilceoPage()),
+        onutilisiateurs: () => goToPage(const UtilisateursCeoPage()),
+        onDeconnexion: () => goToPage(LoginPage()),
       ),
 
       appBar: AppBar(
@@ -750,4 +747,6 @@ class _ProfilceoPageState extends State<ProfilceoPage> {
     );
   }
 }
+
+
 

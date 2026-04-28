@@ -5,6 +5,7 @@
 import 'package:flutter/material.dart';
 import 'package:project3/core/theme/app_colors.dart';
 import 'package:project3/core/utils/date_utils.dart';
+import '../widgets/ceo_nav_mixin.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../widgets/ceo_drawer.dart';
 import '../utilisateurs/models/echantillon_ceo_view.dart';
@@ -27,7 +28,7 @@ class AchatsConfirmesCeoPage extends StatefulWidget {
   State<AchatsConfirmesCeoPage> createState() => _AchatsConfirmesCeoPageState();
 }
 
-class _AchatsConfirmesCeoPageState extends State<AchatsConfirmesCeoPage> {
+class _AchatsConfirmesCeoPageState extends State<AchatsConfirmesCeoPage> with CeoNavMixin {
   final Set<String> _expandedAchat = {};
 
   String _activeFilter = 'tout';
@@ -131,10 +132,6 @@ class _AchatsConfirmesCeoPageState extends State<AchatsConfirmesCeoPage> {
     );
   }
 
-  void _goTo(Widget page) {
-    Navigator.pop(context);
-    Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => page));
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -143,15 +140,15 @@ class _AchatsConfirmesCeoPageState extends State<AchatsConfirmesCeoPage> {
     return Scaffold(
       backgroundColor: kBg,
       drawer: CeoDrawer(
-        onEchantillons: () => _goTo(const EchantillonsCeoPage()),
+        onEchantillons: () => goToPage(const EchantillonsCeoPage()),
         onAnalyseOrganoleptique: () =>
-            _goTo(const AnalyseOrganoleptiqueCeoPage()),
-        onAnalyseLaboratoire: () => _goTo(const AnalyseLaboratoireCeoPage()),
-        onAchatsConfirmes: () => _goTo(const AchatsConfirmesCeoPage()),
+            goToPage(const AnalyseOrganoleptiqueCeoPage()),
+        onAnalyseLaboratoire: () => goToPage(const AnalyseLaboratoireCeoPage()),
+        onAchatsConfirmes: () => goToPage(const AchatsConfirmesCeoPage()),
         onTableauDeBord: () => Navigator.pop(context),
-        onProfil: () => _goTo(const ProfilceoPage()),
-        onutilisiateurs: () => _goTo(const UtilisateursCeoPage()),
-        onDeconnexion: () => _goTo(LoginPage()),
+        onProfil: () => goToPage(const ProfilceoPage()),
+        onutilisiateurs: () => goToPage(const UtilisateursCeoPage()),
+        onDeconnexion: () => goToPage(LoginPage()),
       ),
       appBar: AppBar(
         backgroundColor: kHeaderBg,
@@ -603,5 +600,6 @@ class _FilterChip extends StatelessWidget {
     );
   }
 }
+
 
 
