@@ -1,8 +1,9 @@
-// ═════════════════════════════════════════════════════════════════════════════
+﻿// ═════════════════════════════════════════════════════════════════════════════
 // FILE : 1_ceo/achats_confirmes/achats_confirmes_ceo_page.dart
 // ═════════════════════════════════════════════════════════════════════════════
 
 import 'package:flutter/material.dart';
+import 'package:project3/core/theme/app_colors.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../widgets/ceo_drawer.dart';
 import '../utilisateurs/models/echantillon_ceo_view.dart';
@@ -17,11 +18,6 @@ import '../widgets/search_date_filter_bar.dart';
 import '../widgets/sample_card_echantillon.dart';
 import '../widgets/base_sample_card.dart';
 
-const Color _headerBg = Color.fromARGB(255, 220, 233, 226);
-const Color _green = Color(0xFF38835A);
-const Color _dark = Color(0xFF1A2E1F);
-const Color _bg = Color.fromARGB(255, 255, 255, 255);
-const Color _olive = Color(0xFF6B8143);
 
 // ─────────────────────────────────────────────────────────────────────────────
 class AchatsConfirmesCeoPage extends StatefulWidget {
@@ -154,7 +150,7 @@ class _AchatsConfirmesCeoPageState extends State<AchatsConfirmesCeoPage> {
     final achats = _achats;
 
     return Scaffold(
-      backgroundColor: _bg,
+      backgroundColor: kBg,
       drawer: CeoDrawer(
         onEchantillons: () => _goTo(const EchantillonsCeoPage()),
         onAnalyseOrganoleptique: () =>
@@ -167,7 +163,7 @@ class _AchatsConfirmesCeoPageState extends State<AchatsConfirmesCeoPage> {
         onDeconnexion: () => _goTo(LoginPage()),
       ),
       appBar: AppBar(
-        backgroundColor: _headerBg,
+        backgroundColor: kHeaderBg,
         elevation: 0,
         centerTitle: false,
         toolbarHeight: 65,
@@ -176,10 +172,10 @@ class _AchatsConfirmesCeoPageState extends State<AchatsConfirmesCeoPage> {
           style: GoogleFonts.domine(
             fontSize: 18,
             fontWeight: FontWeight.w700,
-            color: _dark,
+            color: kDark,
           ),
         ),
-        iconTheme: const IconThemeData(color: _dark),
+        iconTheme: const IconThemeData(color: kDark),
         actions: [
           Stack(
             alignment: Alignment.center,
@@ -189,7 +185,7 @@ class _AchatsConfirmesCeoPageState extends State<AchatsConfirmesCeoPage> {
                   Icons.calendar_today_outlined,
                   size: 20,
                   color: (_dateDebut != null || _dateFin != null)
-                      ? _green
+                      ? kGreen
                       : const Color(0xFF6B8E7A),
                 ),
                 onPressed: _showDateFilter,
@@ -205,7 +201,7 @@ class _AchatsConfirmesCeoPageState extends State<AchatsConfirmesCeoPage> {
                     width: 8,
                     height: 8,
                     decoration: const BoxDecoration(
-                      color: _green,
+                      color: kGreen,
                       shape: BoxShape.circle,
                     ),
                   ),
@@ -219,12 +215,12 @@ class _AchatsConfirmesCeoPageState extends State<AchatsConfirmesCeoPage> {
         children: [
           // ── Unified header zone ──────────────────────────────────────
           Container(
-            color: _headerBg,
+            color: kHeaderBg,
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
             child: TextField(
               controller: _searchController,
               onChanged: (v) => setState(() => _searchQuery = v.trim()),
-              style: const TextStyle(fontSize: 14, color: _dark),
+              style: const TextStyle(fontSize: 14, color: kDark),
               decoration: InputDecoration(
                 hintText: 'Réf, fournisseur, gouvernorat, variété, collecteur…',
                 hintStyle: const TextStyle(
@@ -265,14 +261,14 @@ class _AchatsConfirmesCeoPageState extends State<AchatsConfirmesCeoPage> {
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: _green, width: 1.5),
+                  borderSide: const BorderSide(color: kGreen, width: 1.5),
                 ),
               ),
             ),
           ),
           Container(height: 1, color: Colors.black.withValues(alpha: 0.06)),
           Container(
-            color: _bg,
+            color: kBg,
             padding: const EdgeInsets.fromLTRB(16, 9, 16, 6),
             child: Row(
               children: [
@@ -288,8 +284,8 @@ class _AchatsConfirmesCeoPageState extends State<AchatsConfirmesCeoPage> {
                 _FilterChip(
                   label: 'Stock arrivé',
                   isActive: _activeFilter == 'arrive',
-                  activeBg: _green.withValues(alpha: 0.12),
-                  activeFg: _green,
+                  activeBg: kGreen.withValues(alpha: 0.12),
+                  activeFg: kGreen,
                   onTap: () => setState(() => _activeFilter = 'arrive'),
                 ),
                 const SizedBox(width: 8),
@@ -331,7 +327,7 @@ class _AchatsConfirmesCeoPageState extends State<AchatsConfirmesCeoPage> {
                     itemBuilder: (_, i) {
                       final e = achats[i];
                       final accentColor = e.stockArrive
-                          ? _green
+                          ? kGreen
                           : Colors.orange.shade700;
                       final tintColor = e.stockArrive
                           ? const Color(0xFFEAF4EE)
@@ -349,7 +345,7 @@ class _AchatsConfirmesCeoPageState extends State<AchatsConfirmesCeoPage> {
                             if (e.quantiteCibleT != null)
                               CardBadge(
                                 label: 'Qté : ${e.quantiteCibleT}T',
-                                color: _olive,
+                                color: kOlive,
                               ),
                           ],
                         ),
@@ -474,7 +470,7 @@ class _AchatDetails extends StatelessWidget {
       margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: _bg,
+        color: kBg,
         borderRadius: BorderRadius.circular(10),
         border: Border.all(color: Colors.grey.shade100),
       ),
@@ -486,7 +482,7 @@ class _AchatDetails extends StatelessWidget {
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w700,
-              color: _olive,
+              color: kOlive,
               letterSpacing: 0.3,
             ),
           ),
@@ -616,3 +612,4 @@ class _FilterChip extends StatelessWidget {
     );
   }
 }
+

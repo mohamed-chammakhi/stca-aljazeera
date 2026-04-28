@@ -1,5 +1,6 @@
-import 'package:fl_chart/fl_chart.dart';
+﻿import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:project3/core/theme/app_colors.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../widgets/ceo_drawer.dart';
 import '../profil_ceo_page.dart';
@@ -14,9 +15,6 @@ import '../notifications/services/notification_ceo_service.dart';
 import '../notifications/notifications_ceo_page.dart';
 
 // ── Design tokens ─────────────────────────────────────────────────────────────
-const Color _headerBg = Color.fromARGB(255, 220, 233, 226);
-const Color _green = Color(0xFF38835A);
-const Color _dark = Color(0xFF1A2E1F);
 const Color _pageBg = Color(0xFFF2F4F2);
 const Color _white = Color(0xFFFFFFFF);
 const Color _amber = Color(0xFFD07B2F);
@@ -165,7 +163,7 @@ class _HomePageCeoState extends State<HomePageCeo>
 
   static const _classLabels = ['Extra Vierge', 'Vierge', 'Lampante'];
   static const _classValues = [9.0, 4.0, 2.0];
-  static const _classColors = [_green, Color(0xFF6B8143), _amber];
+  static const _classColors = [kGreen, Color(0xFF6B8143), _amber];
 
   // ── Sales evolution mock data (monthly TND totals) ─────────────────────────
   static const _salesMonths = ['Oct', 'Nov', 'Déc', 'Jan', 'Fév', 'Mar', 'Avr'];
@@ -315,21 +313,21 @@ class _HomePageCeoState extends State<HomePageCeo>
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.calendar_today_outlined, size: 11, color: _green),
+            const Icon(Icons.calendar_today_outlined, size: 11, color: kGreen),
             const SizedBox(width: 5),
             Text(
               range.label,
               style: const TextStyle(
                 fontSize: 10,
                 fontWeight: FontWeight.w700,
-                color: _dark,
+                color: kDark,
               ),
             ),
             const SizedBox(width: 4),
             const Icon(
               Icons.keyboard_arrow_down_rounded,
               size: 13,
-              color: _green,
+              color: kGreen,
             ),
           ],
         ),
@@ -354,7 +352,7 @@ class _HomePageCeoState extends State<HomePageCeo>
         onDeconnexion: () => _goTo(const LoginPage()),
       ),
       appBar: AppBar(
-        backgroundColor: _headerBg,
+        backgroundColor: kHeaderBg,
         elevation: 0,
         toolbarHeight: 65,
         title: Text(
@@ -362,15 +360,15 @@ class _HomePageCeoState extends State<HomePageCeo>
           style: GoogleFonts.domine(
             fontSize: 18,
             fontWeight: FontWeight.w700,
-            color: _dark,
+            color: kDark,
           ),
         ),
-        iconTheme: const IconThemeData(color: _dark),
+        iconTheme: const IconThemeData(color: kDark),
         actions: [
           Stack(
             children: [
               IconButton(
-                icon: const Icon(Icons.notifications_outlined, color: _dark),
+                icon: const Icon(Icons.notifications_outlined, color: kDark),
                 onPressed: _openNotifications,
               ),
               if (_unreadCount > 0)
@@ -648,7 +646,7 @@ class _HomePageCeoState extends State<HomePageCeo>
                             style: const TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w700,
-                              color: _dark,
+                              color: kDark,
                             ),
                           ),
                           const SizedBox(height: 3),
@@ -727,7 +725,7 @@ class _HomePageCeoState extends State<HomePageCeo>
   Widget _buildPipeline() {
     const labels = ['Réceptionné', 'Reçu', 'En négoc.', 'Confirmé'];
     const counts = [12, 8, 5, 9];
-    const colors = [_blue, Color(0xFF6B8143), _amber, _green];
+    const colors = [_blue, Color(0xFF6B8143), _amber, kGreen];
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
       decoration: _cardDeco(),
@@ -857,7 +855,7 @@ class _HomePageCeoState extends State<HomePageCeo>
                     decoration: BoxDecoration(
                       border: Border(
                         bottom: sel
-                            ? const BorderSide(color: _dark, width: 2)
+                            ? const BorderSide(color: kDark, width: 2)
                             : BorderSide.none,
                       ),
                     ),
@@ -866,7 +864,7 @@ class _HomePageCeoState extends State<HomePageCeo>
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
-                        color: sel ? _dark : Colors.grey.shade400,
+                        color: sel ? kDark : Colors.grey.shade400,
                       ),
                     ),
                   ),
@@ -942,11 +940,11 @@ class _HomePageCeoState extends State<HomePageCeo>
 
     Color barColor(_Collector c) {
       if (metric == 2) {
-        if (c.approvalRate >= 0.75) return _green;
+        if (c.approvalRate >= 0.75) return kGreen;
         if (c.approvalRate >= 0.50) return _amber;
         return _red;
       }
-      return metric == 0 ? _green : _blue;
+      return metric == 0 ? kGreen : _blue;
     }
 
     String barTopLabel(_Collector c) {
@@ -1124,7 +1122,7 @@ class _HomePageCeoState extends State<HomePageCeo>
                                         style: const TextStyle(
                                           fontSize: 10,
                                           fontWeight: FontWeight.w800,
-                                          color: _dark,
+                                          color: kDark,
                                         ),
                                       ),
                                       Text(
@@ -1288,7 +1286,7 @@ class _HomePageCeoState extends State<HomePageCeo>
                                     _classLabels[i],
                                     style: const TextStyle(
                                       fontSize: 11,
-                                      color: _dark,
+                                      color: kDark,
                                     ),
                                   ),
                                 ],
@@ -1397,7 +1395,7 @@ class _HomePageCeoState extends State<HomePageCeo>
                     vertical: 3,
                   ),
                   decoration: BoxDecoration(
-                    color: _green.withValues(alpha: 0.10),
+                    color: kGreen.withValues(alpha: 0.10),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
@@ -1405,7 +1403,7 @@ class _HomePageCeoState extends State<HomePageCeo>
                     style: const TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.w700,
-                      color: _green,
+                      color: kGreen,
                     ),
                   ),
                 ),
@@ -1444,7 +1442,7 @@ class _HomePageCeoState extends State<HomePageCeo>
                               style: const TextStyle(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w600,
-                                color: _dark,
+                                color: kDark,
                               ),
                               overflow: TextOverflow.ellipsis,
                               maxLines: 1,
@@ -1594,14 +1592,14 @@ class _HomePageCeoState extends State<HomePageCeo>
           // Legend
           Row(
             children: [
-              legendLine(color: _green),
+              legendLine(color: kGreen),
               const SizedBox(width: 6),
               const Text(
                 'Saison 25/26',
                 style: TextStyle(
                   fontSize: 10,
                   fontWeight: FontWeight.w600,
-                  color: _dark,
+                  color: kDark,
                 ),
               ),
               const SizedBox(width: 14),
@@ -1675,13 +1673,13 @@ class _HomePageCeoState extends State<HomePageCeo>
                     ),
                     isCurved: true,
                     curveSmoothness: 0.3,
-                    color: _green,
+                    color: kGreen,
                     barWidth: 2.5,
                     dotData: FlDotData(
                       show: true,
                       getDotPainter: (p, x, bar, i) => FlDotCirclePainter(
                         radius: 3.5,
-                        color: _green,
+                        color: kGreen,
                         strokeColor: Colors.white,
                         strokeWidth: 1.5,
                       ),
@@ -1690,8 +1688,8 @@ class _HomePageCeoState extends State<HomePageCeo>
                       show: true,
                       gradient: LinearGradient(
                         colors: [
-                          _green.withValues(alpha: 0.18),
-                          _green.withValues(alpha: 0),
+                          kGreen.withValues(alpha: 0.18),
+                          kGreen.withValues(alpha: 0),
                         ],
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
@@ -1735,7 +1733,7 @@ class _HomePageCeoState extends State<HomePageCeo>
                         style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w800,
-                          color: _green,
+                          color: kGreen,
                         ),
                       ),
                       const SizedBox(height: 2),
@@ -1783,7 +1781,7 @@ class _HomePageCeoState extends State<HomePageCeo>
                         style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w800,
-                          color: _dark,
+                          color: kDark,
                         ),
                       ),
                       const SizedBox(height: 2),
@@ -1844,7 +1842,7 @@ class _HomePageCeoState extends State<HomePageCeo>
                       ),
                       PieChartSectionData(
                         value: recuL.toDouble(),
-                        color: _green,
+                        color: kGreen,
                         radius: 42,
                         title: '${(recuPct * 100).toStringAsFixed(0)}%',
                         titleStyle: const TextStyle(
@@ -1875,7 +1873,7 @@ class _HomePageCeoState extends State<HomePageCeo>
                     const SizedBox(height: 16),
                     _stockLegendItem(
                       'Stock reçu',
-                      _green,
+                      kGreen,
                       '6 lots',
                       _fmtNum(recuL),
                     ),
@@ -1915,7 +1913,7 @@ class _HomePageCeoState extends State<HomePageCeo>
                 style: const TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color: _dark,
+                  color: kDark,
                 ),
               ),
               const SizedBox(height: 2),
@@ -1938,7 +1936,7 @@ class _HomePageCeoState extends State<HomePageCeo>
           content: const Text(
             'Carte de couverture — en cours de développement',
           ),
-          backgroundColor: _green,
+          backgroundColor: kGreen,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
@@ -1952,7 +1950,7 @@ class _HomePageCeoState extends State<HomePageCeo>
           child: Stack(
             fit: StackFit.expand,
             children: [
-              Container(color: _dark),
+              Container(color: kDark),
               Image.asset(
                 'assets/img/continents.png',
                 fit: BoxFit.cover,
@@ -2009,12 +2007,12 @@ class _HomePageCeoState extends State<HomePageCeo>
         width: 3,
         height: 16,
         decoration: BoxDecoration(
-          color: _green,
+          color: kGreen,
           borderRadius: BorderRadius.circular(2),
         ),
       ),
       const SizedBox(width: 8),
-      Icon(icon, size: 14, color: _green),
+      Icon(icon, size: 14, color: kGreen),
       const SizedBox(width: 6),
       Flexible(
         child: Text(
@@ -2022,7 +2020,7 @@ class _HomePageCeoState extends State<HomePageCeo>
           style: const TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w700,
-            color: _dark,
+            color: kDark,
           ),
         ),
       ),
@@ -2083,3 +2081,4 @@ class _DashLinePainter extends CustomPainter {
   bool shouldRepaint(_DashLinePainter old) =>
       old.color != color || old.dashed != dashed;
 }
+

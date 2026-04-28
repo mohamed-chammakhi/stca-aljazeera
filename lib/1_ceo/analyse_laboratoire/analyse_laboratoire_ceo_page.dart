@@ -1,8 +1,9 @@
-// ═════════════════════════════════════════════════════════════════════════════
+﻿// ═════════════════════════════════════════════════════════════════════════════
 // FILE : 1_ceo/analyse_laboratoire/analyse_laboratoire_ceo_page.dart
 // ═════════════════════════════════════════════════════════════════════════════
 
 import 'package:flutter/material.dart';
+import 'package:project3/core/theme/app_colors.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../widgets/ceo_drawer.dart';
 import '../utilisateurs/models/echantillon_ceo_view.dart';
@@ -18,12 +19,7 @@ import '../widgets/search_date_filter_bar.dart';
 import '../widgets/sample_card_echantillon.dart';
 import '../widgets/base_sample_card.dart';
 
-const Color _headerBg = Color.fromARGB(255, 220, 233, 226);
-const Color _green = Color(0xFF38835A);
-const Color _dark = Color(0xFF1A2E1F);
-const Color _bg = Color.fromARGB(255, 255, 255, 255);
 const Color _teal = Color(0xFF00796B);
-const Color _olive = Color(0xFF6B8143);
 
 // ─────────────────────────────────────────────────────────────────────────────
 class AnalyseLaboratoireCeoPage extends StatefulWidget {
@@ -157,7 +153,7 @@ class _AnalyseLaboratoireCeoPageState extends State<AnalyseLaboratoireCeoPage> {
   }
 
   Color _classifColor(String c) {
-    if (c == 'Extra Vierge') return _green;
+    if (c == 'Extra Vierge') return kGreen;
     if (c == 'Vierge') return Colors.orange.shade700;
     if (c == 'Lampante') return Colors.red.shade600;
     return Colors.grey.shade500;
@@ -175,7 +171,7 @@ class _AnalyseLaboratoireCeoPageState extends State<AnalyseLaboratoireCeoPage> {
   Widget build(BuildContext context) {
     final samples = _samples;
     return Scaffold(
-      backgroundColor: _bg,
+      backgroundColor: kBg,
       drawer: CeoDrawer(
         onEchantillons: () => _goTo(const EchantillonsCeoPage()),
         onAnalyseOrganoleptique: () =>
@@ -188,7 +184,7 @@ class _AnalyseLaboratoireCeoPageState extends State<AnalyseLaboratoireCeoPage> {
         onDeconnexion: () => _goTo(LoginPage()),
       ),
       appBar: AppBar(
-        backgroundColor: _headerBg,
+        backgroundColor: kHeaderBg,
         elevation: 0,
         centerTitle: false,
         toolbarHeight: 65,
@@ -197,10 +193,10 @@ class _AnalyseLaboratoireCeoPageState extends State<AnalyseLaboratoireCeoPage> {
           style: GoogleFonts.domine(
             fontSize: 18,
             fontWeight: FontWeight.w700,
-            color: _dark,
+            color: kDark,
           ),
         ),
-        iconTheme: const IconThemeData(color: _dark),
+        iconTheme: const IconThemeData(color: kDark),
         actions: [
           Stack(
             alignment: Alignment.center,
@@ -210,7 +206,7 @@ class _AnalyseLaboratoireCeoPageState extends State<AnalyseLaboratoireCeoPage> {
                   Icons.calendar_today_outlined,
                   size: 20,
                   color: (_dateDebut != null || _dateFin != null)
-                      ? _green
+                      ? kGreen
                       : const Color(0xFF6B8E7A),
                 ),
                 onPressed: _showDateFilter,
@@ -226,7 +222,7 @@ class _AnalyseLaboratoireCeoPageState extends State<AnalyseLaboratoireCeoPage> {
                     width: 8,
                     height: 8,
                     decoration: const BoxDecoration(
-                      color: _green,
+                      color: kGreen,
                       shape: BoxShape.circle,
                     ),
                   ),
@@ -240,12 +236,12 @@ class _AnalyseLaboratoireCeoPageState extends State<AnalyseLaboratoireCeoPage> {
         children: [
           // ── Unified header zone ──────────────────────────────────────
           Container(
-            color: _headerBg,
+            color: kHeaderBg,
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
             child: TextField(
               controller: _searchController,
               onChanged: (v) => setState(() => _searchQuery = v.trim()),
-              style: const TextStyle(fontSize: 14, color: _dark),
+              style: const TextStyle(fontSize: 14, color: kDark),
               decoration: InputDecoration(
                 hintText: 'Réf, fournisseur, gouvernorat, variété, collecteur…',
                 hintStyle: const TextStyle(
@@ -286,7 +282,7 @@ class _AnalyseLaboratoireCeoPageState extends State<AnalyseLaboratoireCeoPage> {
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: _green, width: 1.5),
+                  borderSide: const BorderSide(color: kGreen, width: 1.5),
                 ),
               ),
             ),
@@ -295,7 +291,7 @@ class _AnalyseLaboratoireCeoPageState extends State<AnalyseLaboratoireCeoPage> {
 
           // ── CHANGED: filter chips strip (replaces old stats strip) ───────────
           Container(
-            color: _bg,
+            color: kBg,
             padding: const EdgeInsets.fromLTRB(16, 9, 16, 6),
             child: Row(
               children: [
@@ -310,8 +306,8 @@ class _AnalyseLaboratoireCeoPageState extends State<AnalyseLaboratoireCeoPage> {
                 _FilterChip(
                   label: 'Analyse soumise',
                   isActive: _activeFilter == 'Analyse soumise',
-                  activeBg: _green.withValues(alpha: 0.12),
-                  activeFg: _green,
+                  activeBg: kGreen.withValues(alpha: 0.12),
+                  activeFg: kGreen,
                   onTap: () =>
                       setState(() => _activeFilter = 'Analyse soumise'),
                 ),
@@ -371,7 +367,7 @@ class _AnalyseLaboratoireCeoPageState extends State<AnalyseLaboratoireCeoPage> {
                             if (e.quantiteEstimee != null)
                               CardBadge(
                                 label: 'Qté : ${e.quantiteEstimee}T',
-                                color: _olive,
+                                color: kOlive,
                               ),
                           ],
                         ),
@@ -807,7 +803,7 @@ class _LabTableRow extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: isHeader ? FontWeight.w700 : FontWeight.w500,
-                    color: isHeader ? _tableOlive : _dark,
+                    color: isHeader ? _tableOlive : kDark,
                   ),
                 ),
               ),
@@ -881,3 +877,4 @@ class _EnAttenteHint extends StatelessWidget {
     ),
   );
 }
+

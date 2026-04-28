@@ -1,8 +1,9 @@
-// ═════════════════════════════════════════════════════════════════════════════
+﻿// ═════════════════════════════════════════════════════════════════════════════
 // FILE : 1_ceo/echantillons/echantillons_ceo_page.dart
 // ═════════════════════════════════════════════════════════════════════════════
 
 import 'package:flutter/material.dart';
+import 'package:project3/core/theme/app_colors.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../widgets/ceo_drawer.dart';
 import '../utilisateurs/models/echantillon_ceo_view.dart';
@@ -20,10 +21,6 @@ import '../tableau_de_bord/tableau_de_bord.dart';
 import '../widgets/search_date_filter_bar.dart';
 import '../widgets/sample_card_echantillon.dart';
 
-const Color _headerBg = Color.fromARGB(255, 220, 233, 226);
-const Color _green = Color(0xFF38835A);
-const Color _dark = Color(0xFF1A2E1F);
-const Color _bg = Color.fromARGB(255, 255, 255, 255);
 
 String _initials(String name) {
   final parts = name.trim().split(' ').where((s) => s.isNotEmpty).toList();
@@ -218,7 +215,7 @@ class _EchantillonsCeoPageState extends State<EchantillonsCeoPage> {
     final groups = _groups;
 
     return Scaffold(
-      backgroundColor: _bg,
+      backgroundColor: kBg,
       drawer: CeoDrawer(
         onEchantillons: () => _goTo(const EchantillonsCeoPage()),
         onAnalyseOrganoleptique: () =>
@@ -231,7 +228,7 @@ class _EchantillonsCeoPageState extends State<EchantillonsCeoPage> {
         onDeconnexion: () => _goTo(LoginPage()),
       ),
       appBar: AppBar(
-        backgroundColor: _headerBg,
+        backgroundColor: kHeaderBg,
         elevation: 0,
         centerTitle: false,
         toolbarHeight: 65,
@@ -240,10 +237,10 @@ class _EchantillonsCeoPageState extends State<EchantillonsCeoPage> {
           style: GoogleFonts.domine(
             fontSize: 18,
             fontWeight: FontWeight.w700,
-            color: _dark,
+            color: kDark,
           ),
         ),
-        iconTheme: const IconThemeData(color: _dark),
+        iconTheme: const IconThemeData(color: kDark),
         actions: [
           Stack(
             alignment: Alignment.center,
@@ -252,7 +249,7 @@ class _EchantillonsCeoPageState extends State<EchantillonsCeoPage> {
                 icon: Icon(
                   Icons.calendar_today_outlined,
                   size: 20,
-                  color: _dateFilterActive ? _green : const Color(0xFF6B8E7A),
+                  color: _dateFilterActive ? kGreen : const Color(0xFF6B8E7A),
                 ),
                 onPressed: _showDateFilter,
                 tooltip: _dateFilterActive
@@ -267,7 +264,7 @@ class _EchantillonsCeoPageState extends State<EchantillonsCeoPage> {
                     width: 8,
                     height: 8,
                     decoration: const BoxDecoration(
-                      color: _green,
+                      color: kGreen,
                       shape: BoxShape.circle,
                     ),
                   ),
@@ -281,12 +278,12 @@ class _EchantillonsCeoPageState extends State<EchantillonsCeoPage> {
         children: [
           // ── Unified header zone ──────────────────────────────────────
           Container(
-            color: _headerBg,
+            color: kHeaderBg,
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
             child: TextField(
               controller: _searchController,
               onChanged: (v) => setState(() => _searchQuery = v.trim()),
-              style: const TextStyle(fontSize: 14, color: _dark),
+              style: const TextStyle(fontSize: 14, color: kDark),
               decoration: InputDecoration(
                 hintText:
                     'Réf, fournisseur, gouvernorat, variété, collecteur…',
@@ -328,7 +325,7 @@ class _EchantillonsCeoPageState extends State<EchantillonsCeoPage> {
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: _green, width: 1.5),
+                  borderSide: const BorderSide(color: kGreen, width: 1.5),
                 ),
               ),
             ),
@@ -337,7 +334,7 @@ class _EchantillonsCeoPageState extends State<EchantillonsCeoPage> {
 
           // ── Stats strip ──────────────────────────────────────────────
           Container(
-            color: _bg,
+            color: kBg,
             padding: const EdgeInsets.fromLTRB(16, 9, 16, 6),
             child: Row(
               children: [
@@ -451,7 +448,7 @@ class _CollecteurSection extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
-            color: _green.withValues(alpha: 0.06),
+            color: kGreen.withValues(alpha: 0.06),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -474,7 +471,7 @@ class _CollecteurSection extends StatelessWidget {
                     colors: [
                       group.isInterne
                           ? Colors.purple.shade50.withValues(alpha: 0.5)
-                          : _green.withValues(alpha: 0.05),
+                          : kGreen.withValues(alpha: 0.05),
                       Colors.white,
                     ],
                     begin: Alignment.centerLeft,
@@ -486,7 +483,7 @@ class _CollecteurSection extends StatelessWidget {
                     Container(
                       width: 4,
                       height: 58,
-                      color: group.isInterne ? Colors.purple.shade300 : _green,
+                      color: group.isInterne ? Colors.purple.shade300 : kGreen,
                     ),
                     const SizedBox(width: 12),
                     Container(
@@ -495,7 +492,7 @@ class _CollecteurSection extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: group.isInterne
                             ? Colors.purple.shade50
-                            : _green.withValues(alpha: 0.1),
+                            : kGreen.withValues(alpha: 0.1),
                         shape: BoxShape.circle,
                       ),
                       child: Center(
@@ -510,7 +507,7 @@ class _CollecteurSection extends StatelessWidget {
                                 style: const TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w700,
-                                  color: _green,
+                                  color: kGreen,
                                 ),
                               ),
                       ),
@@ -525,7 +522,7 @@ class _CollecteurSection extends StatelessWidget {
                             style: const TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.w700,
-                              color: _dark,
+                              color: kDark,
                             ),
                           ),
                           Text(
@@ -628,9 +625,9 @@ class _CarteGeoPlaceholder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    backgroundColor: _bg,
+    backgroundColor: kBg,
     appBar: AppBar(
-      backgroundColor: _green,
+      backgroundColor: kGreen,
       elevation: 0,
       title: Text(
         collecteurNom,
@@ -664,3 +661,4 @@ class _CarteGeoPlaceholder extends StatelessWidget {
     ),
   );
 }
+

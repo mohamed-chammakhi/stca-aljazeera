@@ -1,12 +1,9 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:project3/core/theme/app_colors.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'models/notification_ceo.dart';
 import 'services/notification_ceo_service.dart';
 
-const Color _headerBg = Color.fromARGB(255, 220, 233, 226);
-const Color _green    = Color(0xFF38835A);
-const Color _dark     = Color(0xFF1A2E1F);
-const Color _bg       = Color(0xFFFFFFFF);
 
 class NotificationsCeoPage extends StatefulWidget {
   final NotificationCeoService service;
@@ -66,30 +63,30 @@ class _NotificationsCeoPageState extends State<NotificationsCeoPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _bg,
+      backgroundColor: kBg,
       appBar: AppBar(
-        backgroundColor: _headerBg,
+        backgroundColor: kHeaderBg,
         elevation: 0,
         centerTitle: false,
         toolbarHeight: 65,
         title: Text('Notifications',
-            style: GoogleFonts.domine(fontSize: 18, fontWeight: FontWeight.w700, color: _dark)),
-        iconTheme: const IconThemeData(color: _dark),
+            style: GoogleFonts.domine(fontSize: 18, fontWeight: FontWeight.w700, color: kDark)),
+        iconTheme: const IconThemeData(color: kDark),
         actions: [
           if (_unreadCount > 0)
             TextButton(
               onPressed: _markAllRead,
               child: Text('Tout marquer lu',
-                  style: TextStyle(fontSize: 12, color: _green, fontWeight: FontWeight.w600)),
+                  style: TextStyle(fontSize: 12, color: kGreen, fontWeight: FontWeight.w600)),
             ),
           const SizedBox(width: 4),
         ],
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator(color: _green))
+          ? const Center(child: CircularProgressIndicator(color: kGreen))
           : Column(children: [
               Container(
-                color: _headerBg,
+                color: kHeaderBg,
                 padding: const EdgeInsets.fromLTRB(16, 4, 16, 14),
                 child: Row(children: [
                   _FilterChip(label: 'Tous', active: _filter == 'tous',
@@ -104,7 +101,7 @@ class _NotificationsCeoPageState extends State<NotificationsCeoPage> {
               ),
               Container(height: 1, color: Colors.black.withValues(alpha: 0.06)),
               Container(
-                color: _bg,
+                color: kBg,
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 6),
                 child: Row(children: [
                   Icon(Icons.notifications_outlined, size: 13, color: Colors.grey.shade400),
@@ -197,10 +194,10 @@ class _FilterChip extends StatelessWidget {
         duration: const Duration(milliseconds: 160),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
         decoration: BoxDecoration(
-          color: active ? _green : Colors.white.withValues(alpha: 0.7),
+          color: active ? kGreen : Colors.white.withValues(alpha: 0.7),
           borderRadius: BorderRadius.circular(20),
           boxShadow: active
-              ? [BoxShadow(color: _green.withValues(alpha: 0.25), blurRadius: 6, offset: const Offset(0, 2))]
+              ? [BoxShadow(color: kGreen.withValues(alpha: 0.25), blurRadius: 6, offset: const Offset(0, 2))]
               : [],
         ),
         child: Text(label,
@@ -235,7 +232,7 @@ class _NotificationCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final cfg   = _typeConfig[notification.type];
     final icon  = cfg?.$1 ?? Icons.notifications_outlined;
-    final color = cfg?.$2 ?? _green;
+    final color = cfg?.$2 ?? kGreen;
     final bgCol = cfg?.$3 ?? const Color(0xFFE6F4ED);
 
     return GestureDetector(
@@ -273,7 +270,7 @@ class _NotificationCard extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: notification.isRead ? FontWeight.w500 : FontWeight.w700,
-                          color: _dark,
+                          color: kDark,
                         ))),
                     if (!notification.isRead)
                       Container(
@@ -322,3 +319,4 @@ class _NotificationCard extends StatelessWidget {
     return 'Il y a ${diff.inDays} jours';
   }
 }
+

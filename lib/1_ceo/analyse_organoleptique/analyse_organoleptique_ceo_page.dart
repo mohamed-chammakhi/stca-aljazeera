@@ -1,9 +1,10 @@
-// ═════════════════════════════════════════════════════════════════════════════
+﻿// ═════════════════════════════════════════════════════════════════════════════
 // FILE : 1_ceo/analyse_organoleptique/analyse_organoleptique_ceo_page.dart
 // ═════════════════════════════════════════════════════════════════════════════
 
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:project3/core/theme/app_colors.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../3_degustateur/notifications/services/notification_degustateur_service.dart';
 import '../widgets/ceo_drawer.dart';
@@ -22,11 +23,6 @@ import '../widgets/base_sample_card.dart'; // ← shared card
 import '../../2_collecteur/mes_echantillons/widgets/dialogs/formulaire_sections.dart'
     show DateLivraisonSection, ModePlanificationUI;
 
-const Color _headerBg = Color.fromARGB(255, 220, 233, 226);
-const Color _green = Color(0xFF38835A);
-const Color _dark = Color(0xFF1A2E1F);
-const Color _bg = Color.fromARGB(255, 255, 255, 255);
-const Color _olive = Color(0xFF6B8143);
 
 const Color _statusGreen = Color(0xFF38835A);
 const Color _statusBlue = Color(0xFF3A6EA5);
@@ -233,7 +229,7 @@ class _AnalyseOrganoleptiqueCeoPageState
                           style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w700,
-                            color: _dark,
+                            color: kDark,
                           ),
                         ),
                         Text(
@@ -413,7 +409,7 @@ class _AnalyseOrganoleptiqueCeoPageState
                     children: [
                       const Icon(
                         Icons.handshake_outlined,
-                        color: _dark,
+                        color: kDark,
                         size: 20,
                       ),
                       const SizedBox(width: 10),
@@ -428,7 +424,7 @@ class _AnalyseOrganoleptiqueCeoPageState
                               style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w700,
-                                color: _dark,
+                                color: kDark,
                               ),
                             ),
                             Text(
@@ -536,7 +532,7 @@ class _AnalyseOrganoleptiqueCeoPageState
                       Expanded(
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: _green,
+                            backgroundColor: kGreen,
                             foregroundColor: Colors.white,
                             elevation: 0,
                             padding: const EdgeInsets.symmetric(vertical: 12),
@@ -629,7 +625,7 @@ class _AnalyseOrganoleptiqueCeoPageState
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: _green, width: 1.5),
+          borderSide: const BorderSide(color: kGreen, width: 1.5),
         ),
       );
 
@@ -727,7 +723,7 @@ class _AnalyseOrganoleptiqueCeoPageState
   Widget build(BuildContext context) {
     final echantillons = _filtered;
     return Scaffold(
-      backgroundColor: _bg,
+      backgroundColor: kBg,
       drawer: CeoDrawer(
         onEchantillons: () => _goTo(const EchantillonsCeoPage()),
         onAnalyseOrganoleptique: () =>
@@ -740,7 +736,7 @@ class _AnalyseOrganoleptiqueCeoPageState
         onDeconnexion: () => _goTo(LoginPage()),
       ),
       appBar: AppBar(
-        backgroundColor: _headerBg,
+        backgroundColor: kHeaderBg,
         elevation: 0,
         centerTitle: false,
         toolbarHeight: 65,
@@ -749,10 +745,10 @@ class _AnalyseOrganoleptiqueCeoPageState
           style: GoogleFonts.domine(
             fontSize: 18,
             fontWeight: FontWeight.w700,
-            color: _dark,
+            color: kDark,
           ),
         ),
-        iconTheme: const IconThemeData(color: _dark),
+        iconTheme: const IconThemeData(color: kDark),
         actions: [
           Stack(
             alignment: Alignment.center,
@@ -762,7 +758,7 @@ class _AnalyseOrganoleptiqueCeoPageState
                   Icons.calendar_today_outlined,
                   size: 20,
                   color: (_dateDebut != null || _dateFin != null)
-                      ? _green
+                      ? kGreen
                       : const Color(0xFF6B8E7A),
                 ),
                 onPressed: _showDateFilter,
@@ -778,7 +774,7 @@ class _AnalyseOrganoleptiqueCeoPageState
                     width: 8,
                     height: 8,
                     decoration: const BoxDecoration(
-                      color: _green,
+                      color: kGreen,
                       shape: BoxShape.circle,
                     ),
                   ),
@@ -792,12 +788,12 @@ class _AnalyseOrganoleptiqueCeoPageState
         children: [
           // ── Unified header zone ──────────────────────────────────────
           Container(
-            color: _headerBg,
+            color: kHeaderBg,
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
             child: TextField(
               controller: _searchController,
               onChanged: (v) => setState(() => _searchQuery = v.trim()),
-              style: const TextStyle(fontSize: 14, color: _dark),
+              style: const TextStyle(fontSize: 14, color: kDark),
               decoration: InputDecoration(
                 hintText: 'Réf, fournisseur, gouvernorat, variété, collecteur…',
                 hintStyle: const TextStyle(
@@ -838,7 +834,7 @@ class _AnalyseOrganoleptiqueCeoPageState
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: _green, width: 1.5),
+                  borderSide: const BorderSide(color: kGreen, width: 1.5),
                 ),
               ),
             ),
@@ -846,7 +842,7 @@ class _AnalyseOrganoleptiqueCeoPageState
           Container(height: 1, color: Colors.black.withValues(alpha: 0.06)),
           // Stats strip
           Container(
-            color: _bg,
+            color: kBg,
             padding: const EdgeInsets.fromLTRB(16, 9, 16, 6),
             child: Row(
               children: [
@@ -907,7 +903,7 @@ class _AnalyseOrganoleptiqueCeoPageState
                             if (e.quantiteEstimee != null)
                               CardBadge(
                                 label: 'Qté : ${e.quantiteEstimee}T',
-                                color: _olive,
+                                color: kOlive,
                               ),
                             _RecuPhysiqueIndicator(
                               recuPhysiquement: e.recuPhysiquement,
@@ -1012,7 +1008,7 @@ class _PanelSection extends StatelessWidget {
                   label: 'Approuver',
                   active: approved,
                   dimmed: refused,
-                  activeColor: _green,
+                  activeColor: kGreen,
                   onTap: onApprouver,
                 ),
                 const SizedBox(width: 6),
@@ -1081,7 +1077,7 @@ class _PanelSection extends StatelessWidget {
                   child: const Icon(
                     Icons.keyboard_arrow_down,
                     size: 18,
-                    color: _olive,
+                    color: kOlive,
                   ),
                 ),
               ],
@@ -1239,7 +1235,7 @@ class _PanelList extends StatelessWidget {
                     style: const TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
-                      color: _dark,
+                      color: kDark,
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -1254,16 +1250,16 @@ class _PanelList extends StatelessWidget {
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: _green.withValues(alpha: 0.07),
+                      color: kGreen.withValues(alpha: 0.07),
                       borderRadius: BorderRadius.circular(6),
-                      border: Border.all(color: _green.withValues(alpha: 0.2)),
+                      border: Border.all(color: kGreen.withValues(alpha: 0.2)),
                     ),
                     child: const Text(
                       'Formulaire',
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
-                        color: _green,
+                        color: kGreen,
                       ),
                     ),
                   ),
@@ -1382,3 +1378,4 @@ class _RecuPhysiqueIndicatorState extends State<_RecuPhysiqueIndicator> {
     );
   }
 }
+
