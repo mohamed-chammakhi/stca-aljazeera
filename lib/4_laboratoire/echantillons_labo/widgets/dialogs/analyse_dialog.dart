@@ -17,10 +17,7 @@ import '../../../analyse_labo.dart';
 import '../../models/echantillon_labo.dart';
 import 'scan_rapport_dialog.dart';
 import 'formulaire_analyse_labo_dialog.dart';
-
-const Color _green = Color(0xFF38835A);
-const Color _cream = Color(0xFFF9F6EF);
-const Color _darkText = Color(0xFF1A2E1F);
+import '../../../../../core/theme/app_colors.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ENTRY POINT  — shown when "Ajouter une analyse" is tapped
@@ -78,7 +75,7 @@ class _ChoiceSheet extends StatelessWidget {
             style: TextStyle(
               fontSize: 17,
               fontWeight: FontWeight.w800,
-              color: _darkText,
+              color: kDark,
             ),
           ),
           const SizedBox(height: 6),
@@ -112,7 +109,7 @@ class _ChoiceSheet extends StatelessWidget {
             title: 'Saisir manuellement',
             subtitle:
                 'Remplissez les champs un par un selon les résultats du laboratoire',
-            color: _green,
+            color: kGreen,
             onTap: () {
               Navigator.pop(context);
               showFormulaireAnalyseLaboDialog(
@@ -367,9 +364,9 @@ class _ManuelAnalyseFormState extends State<ManuelAnalyseForm>
   Widget build(BuildContext context) {
     return Dialog.fullscreen(
       child: Scaffold(
-        backgroundColor: _cream,
+        backgroundColor: kCream,
         appBar: AppBar(
-          backgroundColor: _green,
+          backgroundColor: kGreen,
           elevation: 0,
           leading: IconButton(
             icon: const Icon(Icons.close, color: Colors.white),
@@ -598,7 +595,7 @@ class _ClassificationBanner extends StatelessWidget {
     Color color;
     IconData icon;
     if (classification == 'Extra Vierge') {
-      color = _green;
+      color = kGreen;
       icon = Icons.verified_outlined;
     } else if (classification == 'Vierge') {
       color = Colors.orange.shade700;
@@ -670,10 +667,10 @@ class _SectionHeader extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(7),
           decoration: BoxDecoration(
-            color: _green.withOpacity(0.1),
+            color: kGreen.withOpacity(0.1),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Icon(icon, color: _green, size: 16),
+          child: Icon(icon, color: kGreen, size: 16),
         ),
         const SizedBox(width: 10),
         Column(
@@ -684,7 +681,7 @@ class _SectionHeader extends StatelessWidget {
               style: const TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w800,
-                color: _darkText,
+                color: kDark,
               ),
             ),
             Text(
@@ -728,7 +725,7 @@ class _FieldRow extends StatelessWidget {
               style: const TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w700,
-                color: _darkText,
+                color: kDark,
               ),
             ),
             if (required) ...[
@@ -778,7 +775,7 @@ class _FieldRow extends StatelessWidget {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: _green, width: 1.5),
+              borderSide: const BorderSide(color: kGreen, width: 1.5),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
@@ -817,7 +814,7 @@ class _NotesField extends StatelessWidget {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
-        borderSide: const BorderSide(color: _green, width: 1.5),
+        borderSide: const BorderSide(color: kGreen, width: 1.5),
       ),
     ),
   );
@@ -850,7 +847,7 @@ class _SubmitFooter extends StatelessWidget {
           style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14),
         ),
         style: ElevatedButton.styleFrom(
-          backgroundColor: _green,
+          backgroundColor: kGreen,
           foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(vertical: 14),
           shape: RoundedRectangleBorder(

@@ -7,19 +7,16 @@
 import 'package:flutter/material.dart';
 import '../models/echantillon_labo.dart';
 import '../../analyse_labo.dart';
-
-const Color _green = Color(0xFF38835A);
-const Color _dark = Color(0xFF1A2E1F);
-const Color _olive = Color(0xFF6B8143);
+import '../../../core/theme/app_colors.dart';
 
 Color _accentColor(StatutAnalyse s) {
   switch (s) {
     case StatutAnalyse.enAttente:
-      return const Color(0xFF3A6EA5);
+      return kStatusBlue;
     case StatutAnalyse.enCours:
-      return const Color(0xFFD07B2F);
+      return kStatusOrange;
     case StatutAnalyse.soumis:
-      return const Color(0xFF38835A);
+      return kStatusGreen;
   }
 }
 
@@ -99,7 +96,7 @@ class _EchantillonLaboCardState extends State<EchantillonLaboCard> {
                                   style: const TextStyle(
                                     fontSize: 15,
                                     fontWeight: FontWeight.w700,
-                                    color: _dark,
+                                    color: kDark,
                                     letterSpacing: -0.2,
                                   ),
                                   overflow: TextOverflow.ellipsis,
@@ -145,23 +142,23 @@ class _EchantillonLaboCardState extends State<EchantillonLaboCard> {
                                       padding: const EdgeInsets.symmetric(
                                           horizontal: 10, vertical: 5),
                                       decoration: BoxDecoration(
-                                        color: _green.withValues(alpha: 0.08),
+                                        color: kGreen.withValues(alpha: 0.08),
                                         borderRadius: BorderRadius.circular(8),
                                         border: Border.all(
-                                            color: _green.withValues(alpha: 0.25)),
+                                            color: kGreen.withValues(alpha: 0.25)),
                                       ),
                                       child: Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
                                           Icon(Icons.add_circle_outline,
-                                              size: 14, color: _green),
+                                              size: 14, color: kGreen),
                                           const SizedBox(width: 5),
                                           Text(
                                             'Ajouter une analyse',
                                             style: TextStyle(
                                               fontSize:   11,
                                               fontWeight: FontWeight.w700,
-                                              color:      _green,
+                                              color:      kGreen,
                                             ),
                                           ),
                                         ],
@@ -173,7 +170,7 @@ class _EchantillonLaboCardState extends State<EchantillonLaboCard> {
                                     message: 'Voir rapport',
                                     child: _SmallIconBtn(
                                       icon:  Icons.visibility_outlined,
-                                      color: _green,
+                                      color: kGreen,
                                       onTap: widget.onVoirAnalyse ?? () {},
                                     ),
                                   ),
@@ -258,16 +255,16 @@ class _QuantityPill extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
     decoration: BoxDecoration(
-      color: _olive.withValues(alpha: 0.09),
+      color: kOlive.withValues(alpha: 0.09),
       borderRadius: BorderRadius.circular(7),
-      border: Border.all(color: _olive.withValues(alpha: 0.22)),
+      border: Border.all(color: kOlive.withValues(alpha: 0.22)),
     ),
     child: Text(
       'Qté : $quantite T',
       style: const TextStyle(
         fontSize: 11,
         fontWeight: FontWeight.w700,
-        color: _olive,
+        color: kOlive,
       ),
     ),
   );
@@ -355,7 +352,7 @@ class _DetailItem extends StatelessWidget {
         style: const TextStyle(
           fontSize: 13,
           fontWeight: FontWeight.w600,
-          color: _dark,
+          color: kDark,
         ),
       ),
     ],
@@ -373,7 +370,7 @@ class _AnalyseSummaryStrip extends StatelessWidget {
   Widget build(BuildContext context) {
     final classif = analyse.classificationAuto;
     final classifColor = classif == 'Extra Vierge'
-        ? _green
+        ? kGreen
         : classif == 'Vierge'
         ? Colors.orange.shade700
         : Colors.red.shade700;

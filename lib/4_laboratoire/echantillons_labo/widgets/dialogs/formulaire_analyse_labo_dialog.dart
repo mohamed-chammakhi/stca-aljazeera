@@ -8,10 +8,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../analyse_labo.dart';
+import '../../../../../core/theme/app_colors.dart';
 
-const Color _green = Color(0xFF38835A);
-const Color _oliveGreen = Color(0xFF6B8143);
-const Color _darkText = Color(0xFF1A2E1F);
+String _todayLabel() {
+  final now = DateTime.now();
+  return '${now.day.toString().padLeft(2, '0')}/'
+      '${now.month.toString().padLeft(2, '0')}/${now.year}';
+}
 
 Future<void> showFormulaireAnalyseLaboDialog(
   BuildContext context, {
@@ -117,22 +120,17 @@ class _FormulaireSheetState extends State<_FormulaireSheet> {
   void _recompute() {
     final acide = double.tryParse(_aciditeCtrl.text);
     final perox = double.tryParse(_peroxydeCtrl.text);
-    final k270 = double.tryParse(_k270Ctrl.text);
-    final k232 = double.tryParse(_k232Ctrl.text);
-
-    String c = '—';
-    if (acide != null && perox != null) {
-      if (acide <= 0.8 &&
-          perox <= 20 &&
-          (k270 == null || k270 <= 0.22) &&
-          (k232 == null || k232 <= 2.50)) {
-        c = 'Extra Vierge';
-      } else if (acide <= 2.0 && perox <= 20) {
-        c = 'Vierge';
-      } else {
-        c = 'Lampante';
-      }
-    }
+    // Delegate to the model's single source of truth for classification logic.
+    final c = (acide != null && perox != null)
+        ? AnalyseLabo(
+            echantillonId: '',
+            echantillonRef: '',
+            aciditeLibre: acide,
+            indicePeroxyde: perox,
+            k232: double.tryParse(_k232Ctrl.text),
+            k270: double.tryParse(_k270Ctrl.text),
+          ).classificationAuto
+        : '—';
     if (mounted) setState(() => _classif = c);
   }
 
@@ -159,10 +157,6 @@ class _FormulaireSheetState extends State<_FormulaireSheet> {
       return;
     }
 
-    final now = DateTime.now();
-    final today =
-        '${now.day.toString().padLeft(2, '0')}/${now.month.toString().padLeft(2, '0')}/${now.year}';
-
     final saved = AnalyseLabo(
       echantillonId: widget.echantillonId,
       echantillonRef: widget.echantillonRef,
@@ -180,7 +174,7 @@ class _FormulaireSheetState extends State<_FormulaireSheet> {
       acidePalmitique: double.tryParse(_palmiticCtrl.text),
       classification: _classif == '—' ? null : _classif,
       statut: StatutAnalyse.soumis,
-      dateAnalyse: widget.analyse?.dateAnalyse ?? today,
+      dateAnalyse: widget.analyse?.dateAnalyse ?? _todayLabel(),
       notes: _notesCtrl.text.trim().isEmpty ? null : _notesCtrl.text.trim(),
     );
 
@@ -189,10 +183,6 @@ class _FormulaireSheetState extends State<_FormulaireSheet> {
   }
 
   void _handleSaveDraft() {
-    final now = DateTime.now();
-    final today =
-        '${now.day.toString().padLeft(2, '0')}/${now.month.toString().padLeft(2, '0')}/${now.year}';
-
     final draft = AnalyseLabo(
       echantillonId:     widget.echantillonId,
       echantillonRef:    widget.echantillonRef,
@@ -210,7 +200,7 @@ class _FormulaireSheetState extends State<_FormulaireSheet> {
       acidePalmitique:   double.tryParse(_palmiticCtrl.text),
       classification:    _classif == '—' ? null : _classif,
       statut:            StatutAnalyse.enCours,
-      dateAnalyse:       widget.analyse?.dateAnalyse ?? today,
+      dateAnalyse:       widget.analyse?.dateAnalyse ?? _todayLabel(),
       notes:             _notesCtrl.text.trim().isEmpty ? null : _notesCtrl.text.trim(),
     );
 
@@ -290,7 +280,7 @@ class _FormulaireSheetState extends State<_FormulaireSheet> {
                           style: const TextStyle(
                             fontSize: 17,
                             fontWeight: FontWeight.w700,
-                            color: _darkText,
+                            color: kDark,
                           ),
                         ),
                       ),
@@ -320,7 +310,7 @@ class _FormulaireSheetState extends State<_FormulaireSheet> {
                         style: const TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w700,
-                          color: _darkText,
+                          color: kDark,
                         ),
                       ),
                     ],
@@ -481,7 +471,7 @@ class _FormulaireSheetState extends State<_FormulaireSheet> {
                                 _notesCtrl.text,
                                 style: const TextStyle(
                                   fontSize: 13,
-                                  color: _darkText,
+                                  color: kDark,
                                 ),
                               ),
                             )
@@ -489,7 +479,7 @@ class _FormulaireSheetState extends State<_FormulaireSheet> {
                       TextField(
                         controller: _notesCtrl,
                         maxLines: 3,
-                        style: const TextStyle(fontSize: 14, color: _darkText),
+                        style: const TextStyle(fontSize: 14, color: kDark),
                         decoration: InputDecoration(
                           hintText:
                               'Observations, anomalies, conditions d\'analyse...',
@@ -514,7 +504,7 @@ class _FormulaireSheetState extends State<_FormulaireSheet> {
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10),
                             borderSide: const BorderSide(
-                              color: _green,
+                              color: kGreen,
                               width: 1.8,
                             ),
                           ),
@@ -530,8 +520,8 @@ class _FormulaireSheetState extends State<_FormulaireSheet> {
                         child: OutlinedButton(
                           onPressed: () => Navigator.pop(context),
                           style: OutlinedButton.styleFrom(
-                            foregroundColor: _green,
-                            side: const BorderSide(color: _green),
+                            foregroundColor: kGreen,
+                            side: const BorderSide(color: kGreen),
                             padding: const EdgeInsets.symmetric(vertical: 13),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
@@ -578,8 +568,8 @@ class _FormulaireSheetState extends State<_FormulaireSheet> {
                                 child: OutlinedButton(
                                   onPressed: () => Navigator.pop(context),
                                   style: OutlinedButton.styleFrom(
-                                    foregroundColor: _green,
-                                    side: const BorderSide(color: _green),
+                                    foregroundColor: kGreen,
+                                    side: const BorderSide(color: kGreen),
                                     padding: const EdgeInsets.symmetric(
                                         vertical: 13),
                                     shape: RoundedRectangleBorder(
@@ -598,7 +588,7 @@ class _FormulaireSheetState extends State<_FormulaireSheet> {
                                 child: ElevatedButton(
                                   onPressed: _handleSave,
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: _green,
+                                    backgroundColor: kGreen,
                                     foregroundColor: Colors.white,
                                     elevation: 0,
                                     padding: const EdgeInsets.symmetric(
@@ -643,7 +633,7 @@ class _ClassifBanner extends StatelessWidget {
     final Color color;
     final IconData icon;
     if (classif == 'Extra Vierge') {
-      color = _green;
+      color = kGreen;
       icon = Icons.verified_outlined;
     } else if (classif == 'Vierge') {
       color = Colors.orange.shade700;
@@ -700,7 +690,7 @@ class _SectionRow extends StatelessWidget {
       style: const TextStyle(
         fontSize: 11,
         fontWeight: FontWeight.w700,
-        color: _oliveGreen,
+        color: kOlive,
         letterSpacing: 0.4,
       ),
     ),
@@ -723,7 +713,7 @@ class _ColHeader extends StatelessWidget {
       style: const TextStyle(
         fontSize: 11,
         fontWeight: FontWeight.w700,
-        color: _oliveGreen,
+        color: kOlive,
       ),
     ),
   );
@@ -759,7 +749,7 @@ class _FieldRow extends StatelessWidget {
             flex: 5,
             child: Text(
               label,
-              style: const TextStyle(fontSize: 12, color: _darkText),
+              style: const TextStyle(fontSize: 12, color: kDark),
             ),
           ),
 
@@ -776,7 +766,7 @@ class _FieldRow extends StatelessWidget {
                     style: const TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
-                      color: _darkText,
+                      color: kDark,
                     ),
                   )
                 : TextField(
@@ -787,7 +777,7 @@ class _FieldRow extends StatelessWidget {
                     inputFormatters: [
                       FilteringTextInputFormatter.allow(RegExp(r'[\d.]')),
                     ],
-                    style: const TextStyle(fontSize: 13, color: _darkText),
+                    style: const TextStyle(fontSize: 13, color: kDark),
                     decoration: InputDecoration(
                       hintText: '0.00',
                       hintStyle: TextStyle(
@@ -815,7 +805,7 @@ class _FieldRow extends StatelessWidget {
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide: const BorderSide(color: _green, width: 1.5),
+                        borderSide: const BorderSide(color: kGreen, width: 1.5),
                       ),
                     ),
                   ),
@@ -850,7 +840,7 @@ class _Label extends StatelessWidget {
       style: const TextStyle(
         fontSize: 12,
         fontWeight: FontWeight.w600,
-        color: _oliveGreen,
+        color: kOlive,
       ),
     ),
   );

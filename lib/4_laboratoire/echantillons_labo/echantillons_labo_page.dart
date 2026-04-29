@@ -1,23 +1,17 @@
-// ═════════════════════════════════════════════════════════════════════════════
-// FILE : laboratoire/echantillons_labo/echantillons_labo_page.dart
-// ═════════════════════════════════════════════════════════════════════════════
-
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'models/echantillon_labo.dart';
 import 'widgets/echantillon_labo_card.dart';
-import 'widgets/statut_analyse_badge.dart';
 import 'widgets/dialogs/analyse_dialog.dart';
 import 'widgets/dialogs/formulaire_analyse_labo_dialog.dart';
 import '../analyse_labo.dart';
 import '../labo_drawer.dart';
 import '../profil_labo_page.dart';
+import '../widgets/labo_nav_mixin.dart';
 import '../../main.dart';
+import '../../core/theme/app_colors.dart';
 
-const Color _green = Color(0xFF38835A);
-const Color _headerBg = Color.fromARGB(255, 220, 233, 226);
-const Color _dark = Color(0xFF1A2E1F);
-const Color _bg = Color.fromARGB(255, 255, 255, 255);
+// Scrollbar thumb — neutral dark not in the global palette.
 const Color _gray = Color.fromARGB(255, 81, 82, 81);
 
 class EchantillonsLaboPage extends StatefulWidget {
@@ -27,7 +21,8 @@ class EchantillonsLaboPage extends StatefulWidget {
   State<EchantillonsLaboPage> createState() => _EchantillonsLaboPageState();
 }
 
-class _EchantillonsLaboPageState extends State<EchantillonsLaboPage> {
+class _EchantillonsLaboPageState extends State<EchantillonsLaboPage>
+    with LaboNavMixin {
   final TextEditingController _searchCtrl = TextEditingController();
   String _recherche = '';
   StatutAnalyse? _filtreStatut;
@@ -103,12 +98,6 @@ class _EchantillonsLaboPageState extends State<EchantillonsLaboPage> {
     ),
   ];
 
-  // ── Navigation helpers ─────────────────────────────────────────────────────
-  void _goTo(Widget page) {
-    Navigator.pop(context);
-    Navigator.push(context, MaterialPageRoute(builder: (_) => page));
-  }
-
   // ── Filter logic ───────────────────────────────────────────────────────────
   List<EchantillonLabo> get _filtres {
     return _echantillons.where((e) {
@@ -143,7 +132,7 @@ class _EchantillonsLaboPageState extends State<EchantillonsLaboPage> {
     showAnalyseChoiceSheet(
       context,
       echantillon: e,
-      existing:    e.analyse,
+      existing: e.analyse,
       onSave: (analyse) {
         setState(() => e.analyse = analyse);
         _showSnack('Analyse modifiée');
@@ -155,16 +144,21 @@ class _EchantillonsLaboPageState extends State<EchantillonsLaboPage> {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('Supprimer l\'analyse',
-            style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+        title: const Text(
+          'Supprimer l\'analyse',
+          style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
+        ),
         content: Text(
-            'Supprimer l\'analyse de ${e.referenceBouteille} ? '
-            'Vous pourrez en soumettre une nouvelle.'),
+          'Supprimer l\'analyse de ${e.referenceBouteille} ? '
+          'Vous pourrez en soumettre une nouvelle.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Annuler',
-                style: TextStyle(color: Color(0xFF38835A))),
+            child: const Text(
+              'Annuler',
+              style: TextStyle(color: kGreen),
+            ),
           ),
           TextButton(
             onPressed: () {
@@ -172,9 +166,13 @@ class _EchantillonsLaboPageState extends State<EchantillonsLaboPage> {
               setState(() => e.analyse = null);
               _showSnack('Analyse supprimée');
             },
-            child: Text('Supprimer',
-                style: TextStyle(color: Colors.red.shade600,
-                    fontWeight: FontWeight.w700)),
+            child: Text(
+              'Supprimer',
+              style: TextStyle(
+                color: Colors.red.shade600,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
           ),
         ],
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -192,7 +190,7 @@ class _EchantillonsLaboPageState extends State<EchantillonsLaboPage> {
             fontWeight: FontWeight.w600,
           ),
         ),
-        backgroundColor: _green,
+        backgroundColor: kGreen,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         margin: const EdgeInsets.all(20),
@@ -200,7 +198,16 @@ class _EchantillonsLaboPageState extends State<EchantillonsLaboPage> {
     );
   }
 
-  bool get _anyFilter => _recherche.isNotEmpty || _filtreStatut != null;
+  void _showAnalyseReadOnly(EchantillonLabo e) {
+    showFormulaireAnalyseLaboDialog(
+      context,
+      echantillonRef: e.referenceBouteille,
+      echantillonId: e.id,
+      analyse: e.analyse,
+      readOnly: true,
+      onSave: (_) {},
+    );
+  }
 
   @override
   void dispose() {
@@ -213,14 +220,14 @@ class _EchantillonsLaboPageState extends State<EchantillonsLaboPage> {
     final items = _filtres;
 
     return Scaffold(
-      backgroundColor: _bg,
+      backgroundColor: kBg,
       drawer: LaboDrawer(
-        onEchantillons: () => _goTo(const EchantillonsLaboPage()),
-        onProfil: () => _goTo(const ProfilLaboPage()),
-        onDeconnexion: () => _goTo(LoginPage()),
+        onEchantillons: () => goToPage(const EchantillonsLaboPage()),
+        onProfil: () => goToPage(const ProfilLaboPage()),
+        onDeconnexion: () => goToPage(LoginPage()),
       ),
       appBar: AppBar(
-        backgroundColor: _headerBg,
+        backgroundColor: kHeaderBg,
         elevation: 0,
         centerTitle: false,
         toolbarHeight: 65,
@@ -229,16 +236,16 @@ class _EchantillonsLaboPageState extends State<EchantillonsLaboPage> {
           style: GoogleFonts.domine(
             fontSize: 18,
             fontWeight: FontWeight.w700,
-            color: _dark,
+            color: kDark,
           ),
         ),
-        iconTheme: const IconThemeData(color: _dark),
+        iconTheme: const IconThemeData(color: kDark),
       ),
       body: Column(
         children: [
           // ── Header zone ──────────────────────────────────────────────────
           Container(
-            color: _headerBg,
+            color: kHeaderBg,
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
             child: Column(
               children: [
@@ -246,7 +253,7 @@ class _EchantillonsLaboPageState extends State<EchantillonsLaboPage> {
                 TextField(
                   controller: _searchCtrl,
                   onChanged: (v) => setState(() => _recherche = v),
-                  style: const TextStyle(fontSize: 14, color: _dark),
+                  style: const TextStyle(fontSize: 14, color: kDark),
                   decoration: InputDecoration(
                     hintText: 'Rechercher réf, fournisseur, gouvernorat…',
                     hintStyle: const TextStyle(
@@ -287,7 +294,7 @@ class _EchantillonsLaboPageState extends State<EchantillonsLaboPage> {
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: _green, width: 1.5),
+                      borderSide: const BorderSide(color: kGreen, width: 1.5),
                     ),
                   ),
                 ),
@@ -300,8 +307,8 @@ class _EchantillonsLaboPageState extends State<EchantillonsLaboPage> {
                     children: [
                       _StatutChip(
                         label: 'Tous',
-                        activeColor: const Color(0xFF616161),
-                        inactiveColor: const Color(0xFFF0F0F0),
+                        activeColor: kStatusGrey,
+                        inactiveColor: kChipBgGrey,
                         inactiveTextColor: const Color(0xFF757575),
                         selected: _filtreStatut == null,
                         onTap: () => setState(() => _filtreStatut = null),
@@ -309,9 +316,9 @@ class _EchantillonsLaboPageState extends State<EchantillonsLaboPage> {
                       const SizedBox(width: 7),
                       _StatutChip(
                         label: 'Analyse en attente',
-                        activeColor: const Color(0xFF3A6EA5),
-                        inactiveColor: const Color(0xFFE8F1FB),
-                        inactiveTextColor: const Color(0xFF3A6EA5),
+                        activeColor: kStatusBlue,
+                        inactiveColor: kChipBgBlue,
+                        inactiveTextColor: kStatusBlue,
                         selected: _filtreStatut == StatutAnalyse.enAttente,
                         onTap: () => setState(
                           () => _filtreStatut = StatutAnalyse.enAttente,
@@ -320,9 +327,9 @@ class _EchantillonsLaboPageState extends State<EchantillonsLaboPage> {
                       const SizedBox(width: 7),
                       _StatutChip(
                         label: 'Analyse en cours',
-                        activeColor: const Color(0xFFD07B2F),
-                        inactiveColor: const Color(0xFFFEF3E8),
-                        inactiveTextColor: const Color(0xFFD07B2F),
+                        activeColor: kStatusOrange,
+                        inactiveColor: kChipBgOrange,
+                        inactiveTextColor: kStatusOrange,
                         selected: _filtreStatut == StatutAnalyse.enCours,
                         onTap: () => setState(
                           () => _filtreStatut = StatutAnalyse.enCours,
@@ -331,9 +338,9 @@ class _EchantillonsLaboPageState extends State<EchantillonsLaboPage> {
                       const SizedBox(width: 7),
                       _StatutChip(
                         label: 'Analyse soumise',
-                        activeColor: const Color(0xFF38835A),
-                        inactiveColor: const Color(0xFFE6F4ED),
-                        inactiveTextColor: const Color(0xFF38835A),
+                        activeColor: kStatusGreen,
+                        inactiveColor: kChipBgGreen,
+                        inactiveTextColor: kStatusGreen,
                         selected: _filtreStatut == StatutAnalyse.soumis,
                         onTap: () => setState(
                           () => _filtreStatut = StatutAnalyse.soumis,
@@ -349,7 +356,7 @@ class _EchantillonsLaboPageState extends State<EchantillonsLaboPage> {
 
           // ── Stats strip ──────────────────────────────────────────────────
           Container(
-            color: _bg,
+            color: kBg,
             padding: const EdgeInsets.fromLTRB(16, 9, 16, 6),
             child: Row(
               children: [
@@ -431,178 +438,9 @@ class _EchantillonsLaboPageState extends State<EchantillonsLaboPage> {
       ),
     );
   }
-
-  void _showAnalyseReadOnly(EchantillonLabo e) {
-    showFormulaireAnalyseLaboDialog(
-      context,
-      echantillonRef: e.referenceBouteille,
-      echantillonId:  e.id,
-      analyse:        e.analyse,
-      readOnly:       true,
-      onSave:         (_) {},
-    );
-  }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Read-only analysis bottom sheet
-// ─────────────────────────────────────────────────────────────────────────────
-class _AnalyseReadOnlySheet extends StatelessWidget {
-  final EchantillonLabo echantillon;
-  const _AnalyseReadOnlySheet({required this.echantillon});
-
-  @override
-  Widget build(BuildContext context) {
-    final a = echantillon.analyse!;
-    final classif = a.classificationAuto;
-    final classifColor = classif == 'Extra Vierge'
-        ? _green
-        : classif == 'Vierge'
-        ? Colors.orange.shade700
-        : Colors.red.shade700;
-
-    return DraggableScrollableSheet(
-      expand: false,
-      initialChildSize: 0.75,
-      maxChildSize: 0.95,
-      builder: (_, ctrl) => Padding(
-        padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
-        child: ListView(
-          controller: ctrl,
-          children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                margin: const EdgeInsets.only(bottom: 16),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-            Text(
-              'Rapport d\'analyse — ${echantillon.referenceBouteille}',
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w800,
-                color: Color(0xFF1A2E1F),
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Soumis le ${a.dateAnalyse ?? "—"}',
-              style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
-            ),
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: classifColor.withValues(alpha: 0.07),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: classifColor.withValues(alpha: 0.25)),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.verified_outlined, color: classifColor, size: 22),
-                  const SizedBox(width: 10),
-                  Text(
-                    classif,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w900,
-                      color: classifColor,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-            _ReadOnlyRow('Acidité libre', a.aciditeLibre, '% ac. oléique'),
-            _ReadOnlyRow('Indice de peroxyde', a.indicePeroxyde, 'meqO₂/kg'),
-            _ReadOnlyRow('K₂₃₂', a.k232, ''),
-            _ReadOnlyRow('K₂₇₀', a.k270, ''),
-            _ReadOnlyRow('ΔK', a.deltaK, ''),
-            _ReadOnlyRow('Humidité', a.humidite, '%'),
-            _ReadOnlyRow('Impuretés', a.impuretes, '%'),
-            _ReadOnlyRow('Polyphénols totaux', a.polyphenolsTotaux, 'mg/kg'),
-            _ReadOnlyRow('Tocophérols', a.tocopherols, 'mg/kg'),
-            _ReadOnlyRow('Acide oléique', a.acideOleique, '%'),
-            _ReadOnlyRow('Acide linoléique', a.acideLinoleique, '%'),
-            _ReadOnlyRow('Acide palmitique', a.acidePalmitique, '%'),
-            if (a.notes != null && a.notes!.isNotEmpty) ...[
-              const SizedBox(height: 12),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade50,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Icon(
-                      Icons.notes_outlined,
-                      size: 14,
-                      color: Colors.grey.shade400,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        a.notes!,
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Colors.grey.shade600,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-            const SizedBox(height: 24),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _ReadOnlyRow extends StatelessWidget {
-  final String label;
-  final double? value;
-  final String unit;
-  const _ReadOnlyRow(this.label, this.value, this.unit);
-
-  @override
-  Widget build(BuildContext context) {
-    if (value == null) return const SizedBox.shrink();
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 5),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              label,
-              style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
-            ),
-          ),
-          Text(
-            '${value!.toStringAsFixed(value! == value!.roundToDouble() ? 0 : 2)} $unit'
-                .trim(),
-            style: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFF1A2E1F),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ── Statut chip — soft pastel inactive, tinted active (matches taster design) ──
+// ── Statut chip ───────────────────────────────────────────────────────────────
 class _StatutChip extends StatelessWidget {
   final String label;
   final Color activeColor;
@@ -620,7 +458,7 @@ class _StatutChip extends StatelessWidget {
     required this.onTap,
   });
 
-  static const Color _inactiveBg = Color(0xFFF0F0F0);
+  static const Color _inactiveBg = kChipBgGrey;
   static const Color _inactiveFg = Color(0xFF9E9E9E);
   static const Color _inactiveBorder = Color(0xFFE0E0E0);
 
@@ -641,8 +479,8 @@ class _StatutChip extends StatelessWidget {
       fg = Colors.white;
       border = const Color(0xFF757575);
     } else {
-      bg = inactiveColor; // pastel tinted bg
-      fg = inactiveTextColor; // colored text
+      bg = inactiveColor;
+      fg = inactiveTextColor;
       border = inactiveTextColor.withValues(alpha: 0.45);
     }
 
@@ -658,9 +496,10 @@ class _StatutChip extends StatelessWidget {
           boxShadow: selected
               ? [
                   BoxShadow(
-                    color:
-                        (isTous ? const Color(0xFF757575) : inactiveTextColor)
-                            .withValues(alpha: 0.22),
+                    color: (isTous
+                            ? const Color(0xFF757575)
+                            : inactiveTextColor)
+                        .withValues(alpha: 0.22),
                     blurRadius: 6,
                     offset: const Offset(0, 2),
                   ),
