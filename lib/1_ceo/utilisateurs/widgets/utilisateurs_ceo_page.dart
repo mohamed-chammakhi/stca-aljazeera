@@ -191,7 +191,7 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage> with CeoNavMi
                 : ListView.builder(
                     padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
                     itemCount: filtered.length,
-                    itemBuilder: (_, i) => _UserCard(
+                    itemBuilder: (_, i) => UserCard(
                       user: filtered[i],
                       kGreen: kGreen,
                       kDark: kDark,
@@ -887,7 +887,7 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage> with CeoNavMi
     showDialog(
       context: context,
       barrierDismissible: true,
-      builder: (_) => _UserCreatedDialog(
+      builder: (_) => UserCreatedDialog(
         prenom: prenom,
         nom: nom,
         email: email,

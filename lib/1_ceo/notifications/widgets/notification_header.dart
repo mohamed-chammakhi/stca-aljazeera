@@ -8,9 +8,9 @@ import 'package:project3/core/theme/app_colors.dart';
 import '../models/notification_ceo.dart';
 
 // ── Group header ──────────────────────────────────────────────────────────────
-class _GroupHeader extends StatelessWidget {
+class NotifGroupHeader extends StatelessWidget {
   final String label;
-  const _GroupHeader(this.label);
+  const NotifGroupHeader(this.label, {super.key});
 
   @override
   Widget build(BuildContext context) => Padding(
@@ -24,11 +24,11 @@ class _GroupHeader extends StatelessWidget {
 }
 
 // ── Filter chip ───────────────────────────────────────────────────────────────
-class _FilterChip extends StatelessWidget {
+class NotifFilterChip extends StatelessWidget {
   final String label;
   final bool active;
   final VoidCallback onTap;
-  const _FilterChip({required this.label, required this.active, required this.onTap});
+  const NotifFilterChip({super.key, required this.label, required this.active, required this.onTap});
 
   @override
   Widget build(BuildContext context) {

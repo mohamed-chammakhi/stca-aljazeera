@@ -5,7 +5,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:project3/core/theme/app_colors.dart';
-import '../utilisateurs/models/echantillon_ceo_view.dart';
+import '../../utilisateurs/models/echantillon_ceo_view.dart';
 import '../models/lab_row.dart';
 
 const Color _teal = Color(0xFF00796B);
@@ -16,14 +16,14 @@ const Color _teal = Color(0xFF00796B);
 // Active status    → tinted bg + colored text
 // Inactive any     → light gray bg + gray text
 // ─────────────────────────────────────────────────────────────────────────────
-class _FilterChip extends StatelessWidget {
+class LaboFilterChip extends StatelessWidget {
   final String label;
   final bool isActive;
   final Color activeBg;
   final Color activeFg;
   final VoidCallback onTap;
 
-  const _FilterChip({
+  const LaboFilterChip({
     required this.label,
     required this.isActive,
     required this.activeBg,
@@ -68,13 +68,13 @@ class _FilterChip extends StatelessWidget {
 // ─────────────────────────────────────────────────────────────────────────────
 // RAPPORT SECTION  — bottom slot for labo cards
 // ─────────────────────────────────────────────────────────────────────────────
-class _RapportSection extends StatelessWidget {
+class RapportSection extends StatelessWidget {
   final EchantillonCeoView echantillon;
   final bool hasAnalyse;
   final bool isExpanded;
   final VoidCallback onToggle;
 
-  const _RapportSection({
+  const RapportSection({
     required this.echantillon,
     required this.hasAnalyse,
     required this.isExpanded,
@@ -130,8 +130,8 @@ class _RapportSection extends StatelessWidget {
         AnimatedCrossFade(
           firstChild: const SizedBox.shrink(),
           secondChild: hasAnalyse
-              ? _RapportBlock(analyse: e.analyse!)
-              : _EnAttenteHint(),
+              ? RapportBlock(analyse: e.analyse!)
+              : EnAttenteHint(),
           crossFadeState: isExpanded
               ? CrossFadeState.showSecond
               : CrossFadeState.showFirst,
@@ -143,9 +143,9 @@ class _RapportSection extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-class _RapportBlock extends StatelessWidget {
+class RapportBlock extends StatelessWidget {
   final AnalyseLaboCeoView analyse;
-  const _RapportBlock({required this.analyse});
+  const RapportBlock({super.key, required this.analyse});
 
   List<LabRow> _buildRows(AnalyseLaboCeoView a) {
     final rows = <LabRow>[];
@@ -267,7 +267,7 @@ class _RapportBlock extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _LabTableRow(
+          LabTableRow(
             label: 'Critère',
             value: 'Valeur',
             norm: 'Norme',
@@ -278,7 +278,7 @@ class _RapportBlock extends StatelessWidget {
           ...rows.map(
             (r) => Padding(
               padding: const EdgeInsets.only(bottom: 2),
-              child: _LabTableRow(
+              child: LabTableRow(
                 label: r.label,
                 value: r.value,
                 norm: r.norm,
@@ -324,14 +324,14 @@ class _RapportBlock extends StatelessWidget {
   }
 }
 
-class _LabTableRow extends StatelessWidget {
+class LabTableRow extends StatelessWidget {
   final String label;
   final String value;
   final String norm;
   final bool? conforme;
   final bool isHeader;
 
-  const _LabTableRow({
+  const LabTableRow({
     required this.label,
     required this.value,
     required this.norm,
@@ -440,7 +440,7 @@ class _LabTableRow extends StatelessWidget {
   }
 }
 
-class _EnAttenteHint extends StatelessWidget {
+class EnAttenteHint extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
     margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),

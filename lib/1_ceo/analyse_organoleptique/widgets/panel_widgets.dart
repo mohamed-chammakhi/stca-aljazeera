@@ -6,21 +6,22 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:project3/core/theme/app_colors.dart';
-import '../utilisateurs/models/echantillon_ceo_view.dart';
-import '../widgets/shared_evaluation_form_sheet.dart';
+import '../../utilisateurs/models/echantillon_ceo_view.dart';
+import '../../widgets/shared_evaluation_form_sheet.dart';
+import '../../widgets/base_sample_card.dart';
 import '../models/sample_status.dart';
-import '../../2_collecteur/mes_echantillons/widgets/dialogs/formulaire_sections.dart'
+import '../../../../2_collecteur/mes_echantillons/widgets/dialogs/formulaire_sections.dart'
     show DateLivraisonSection, ModePlanificationUI;
 
 // Small pill-shaped decision button
-class _DecisionButton extends StatelessWidget {
+class DecisionButton extends StatelessWidget {
   final String label;
   final bool active;
   final bool dimmed;
   final Color activeColor;
   final VoidCallback onTap;
 
-  const _DecisionButton({
+  const DecisionButton({
     required this.label,
     required this.active,
     required this.dimmed,
@@ -73,10 +74,10 @@ class _DecisionButton extends StatelessWidget {
 // ─────────────────────────────────────────────────────────────────────────────
 // PANEL LIST
 // ─────────────────────────────────────────────────────────────────────────────
-class _PanelList extends StatelessWidget {
+class PanelList extends StatelessWidget {
   final EchantillonCeoView echantillon;
   final void Function(EvaluationOrganoleptique) onViewForm;
-  const _PanelList({required this.echantillon, required this.onViewForm});
+  const PanelList({super.key, required this.echantillon, required this.onViewForm});
 
   @override
   Widget build(BuildContext context) {
@@ -190,15 +191,15 @@ class _PanelList extends StatelessWidget {
 // Mimics the look of the tick in echantillon_card: filled/outlined check_circle
 // icon with an animated inline pill that appears on tap and auto-dismisses.
 // ─────────────────────────────────────────────────────────────────────────────
-class _RecuPhysiqueIndicator extends StatefulWidget {
+class RecuPhysiqueIndicator extends StatefulWidget {
   final bool recuPhysiquement;
-  const _RecuPhysiqueIndicator({required this.recuPhysiquement});
+  const RecuPhysiqueIndicator({super.key, required this.recuPhysiquement});
 
   @override
-  State<_RecuPhysiqueIndicator> createState() => _RecuPhysiqueIndicatorState();
+  State<RecuPhysiqueIndicator> createState() => _RecuPhysiqueIndicatorState();
 }
 
-class _RecuPhysiqueIndicatorState extends State<_RecuPhysiqueIndicator> {
+class _RecuPhysiqueIndicatorState extends State<RecuPhysiqueIndicator> {
   bool _showPill = false;
   Timer? _timer;
 

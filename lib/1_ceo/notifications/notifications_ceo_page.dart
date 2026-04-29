@@ -91,10 +91,10 @@ class _NotificationsCeoPageState extends State<NotificationsCeoPage> {
                 color: kHeaderBg,
                 padding: const EdgeInsets.fromLTRB(16, 4, 16, 14),
                 child: Row(children: [
-                  _FilterChip(label: 'Tous', active: _filter == 'tous',
+                  NotifFilterChip(label: 'Tous', active: _filter == 'tous',
                       onTap: () => setState(() => _filter = 'tous')),
                   const SizedBox(width: 8),
-                  _FilterChip(
+                  NotifFilterChip(
                     label: _unreadCount > 0 ? 'Non lus ($_unreadCount)' : 'Non lus',
                     active: _filter == 'non_lus',
                     onTap: () => setState(() => _filter = 'non_lus'),
@@ -141,11 +141,11 @@ class _NotificationsCeoPageState extends State<NotificationsCeoPage> {
       children: [
         for (final group in order)
           if (grouped.containsKey(group)) ...[
-            _GroupHeader(group),
+            NotifGroupHeader(group),
             const SizedBox(height: 8),
             ...grouped[group]!.map((n) => Padding(
               padding: const EdgeInsets.only(bottom: 10),
-              child: _NotificationCard(notification: n, onTap: () => _onTap(n)),
+              child: CeoNotificationCard(notification: n, onTap: () => _onTap(n)),
             )),
             const SizedBox(height: 4),
           ],

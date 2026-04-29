@@ -285,7 +285,7 @@ class _AnalyseLaboratoireCeoPageState extends State<AnalyseLaboratoireCeoPage> w
             padding: const EdgeInsets.fromLTRB(16, 9, 16, 6),
             child: Row(
               children: [
-                _FilterChip(
+                LaboFilterChip(
                   label: 'Tout',
                   isActive: _activeFilter == 'tout',
                   activeBg: const Color(0xFF757575),
@@ -293,7 +293,7 @@ class _AnalyseLaboratoireCeoPageState extends State<AnalyseLaboratoireCeoPage> w
                   onTap: () => setState(() => _activeFilter = 'tout'),
                 ),
                 const SizedBox(width: 8),
-                _FilterChip(
+                LaboFilterChip(
                   label: 'Analyse soumise',
                   isActive: _activeFilter == 'Analyse soumise',
                   activeBg: kGreen.withValues(alpha: 0.12),
@@ -302,7 +302,7 @@ class _AnalyseLaboratoireCeoPageState extends State<AnalyseLaboratoireCeoPage> w
                       setState(() => _activeFilter = 'Analyse soumise'),
                 ),
                 const SizedBox(width: 8),
-                _FilterChip(
+                LaboFilterChip(
                   label: 'Analyse en attente',
                   isActive: _activeFilter == 'Analyse en attente',
                   activeBg: Colors.orange.shade700.withValues(alpha: 0.12),
@@ -382,7 +382,7 @@ class _AnalyseLaboratoireCeoPageState extends State<AnalyseLaboratoireCeoPage> w
                           ),
                         ],
                         deliveryWidget: SampleDeliveryIndicator(e: e),
-                        bottomSection: _RapportSection(
+                        bottomSection: RapportSection(
                           echantillon: e,
                           hasAnalyse: hasAnalyse,
                           isExpanded: rapportExp,

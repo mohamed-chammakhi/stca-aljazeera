@@ -5,9 +5,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:project3/core/theme/app_colors.dart';
-import '../utilisateurs/models/echantillon_ceo_view.dart';
-import '../widgets/sample_card_echantillon.dart';
-import '../widgets/base_sample_card.dart';
+import '../../utilisateurs/models/echantillon_ceo_view.dart';
+import '../../widgets/sample_card_echantillon.dart';
+import '../../widgets/base_sample_card.dart';
 import '../models/collecteur_group.dart';
 
 String _initials(String name) {
@@ -20,7 +20,7 @@ String _initials(String name) {
 // ─────────────────────────────────────────────────────────────────────────────
 // COLLECTEUR SECTION
 // ─────────────────────────────────────────────────────────────────────────────
-class _CollecteurSection extends StatelessWidget {
+class CollecteurSection extends StatelessWidget {
   final CollecteurGroup group;
   final bool isExpanded;
   final Set<String> expandedSamples;
@@ -28,7 +28,7 @@ class _CollecteurSection extends StatelessWidget {
   final void Function(String id) onToggleSample;
   final VoidCallback? onViewMap;
 
-  const _CollecteurSection({
+  const CollecteurSection({
     required this.group,
     required this.isExpanded,
     required this.expandedSamples,
@@ -216,9 +216,9 @@ class _CollecteurSection extends StatelessWidget {
 // ─────────────────────────────────────────────────────────────────────────────
 // CARTE GEO PLACEHOLDER
 // ─────────────────────────────────────────────────────────────────────────────
-class _CarteGeoPlaceholder extends StatelessWidget {
+class CarteGeoPlaceholder extends StatelessWidget {
   final String collecteurNom;
-  const _CarteGeoPlaceholder({required this.collecteurNom});
+  const CarteGeoPlaceholder({super.key, required this.collecteurNom});
 
   @override
   Widget build(BuildContext context) => Scaffold(

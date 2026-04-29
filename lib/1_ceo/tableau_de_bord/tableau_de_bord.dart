@@ -13,6 +13,7 @@ import '../utilisateurs/widgets/utilisateurs_ceo_page.dart';
 import '../notifications/models/notification_ceo.dart';
 import '../notifications/services/notification_ceo_service.dart';
 import '../notifications/notifications_ceo_page.dart';
+import '../widgets/search_date_filter_bar.dart';
 
 // ── Design tokens ─────────────────────────────────────────────────────────────
 const Color _pageBg = Color(0xFFF2F4F2);
@@ -283,7 +284,6 @@ class _HomePageCeoState extends State<HomePageCeo>
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       builder: (_) => DateFilterSheet(
-        titre: 'Filtrer par période',
         dateDebut: current.from,
         dateFin: current.to,
         onApply: (debut, fin) => setState(

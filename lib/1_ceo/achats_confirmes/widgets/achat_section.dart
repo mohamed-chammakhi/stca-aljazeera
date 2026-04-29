@@ -5,18 +5,19 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:project3/core/theme/app_colors.dart';
-import '../utilisateurs/models/echantillon_ceo_view.dart';
+import '../../utilisateurs/models/echantillon_ceo_view.dart';
+import '../../widgets/sample_card_echantillon.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ACHAT SECTION
 // ─────────────────────────────────────────────────────────────────────────────
-class _AchatSection extends StatelessWidget {
+class AchatSection extends StatelessWidget {
   final EchantillonCeoView echantillon;
   final Color accentColor;
   final bool isExpanded;
   final VoidCallback onToggle;
 
-  const _AchatSection({
+  const AchatSection({
     required this.echantillon,
     required this.accentColor,
     required this.isExpanded,
@@ -67,7 +68,7 @@ class _AchatSection extends StatelessWidget {
         ),
         AnimatedCrossFade(
           firstChild: const SizedBox.shrink(),
-          secondChild: _AchatDetails(echantillon: e, accentColor: accentColor),
+          secondChild: AchatDetails(echantillon: e, accentColor: accentColor),
           crossFadeState: isExpanded
               ? CrossFadeState.showSecond
               : CrossFadeState.showFirst,
@@ -81,10 +82,10 @@ class _AchatSection extends StatelessWidget {
 // ─────────────────────────────────────────────────────────────────────────────
 // ACHAT DETAILS
 // ─────────────────────────────────────────────────────────────────────────────
-class _AchatDetails extends StatelessWidget {
+class AchatDetails extends StatelessWidget {
   final EchantillonCeoView echantillon;
   final Color accentColor;
-  const _AchatDetails({required this.echantillon, required this.accentColor});
+  const AchatDetails({super.key, required this.echantillon, required this.accentColor});
 
   @override
   Widget build(BuildContext context) {
@@ -187,14 +188,14 @@ class _AchatDetails extends StatelessWidget {
 // Active status  → tinted bg + colored text
 // Inactive any   → light gray bg + gray text
 // ─────────────────────────────────────────────────────────────────────────────
-class _FilterChip extends StatelessWidget {
+class AchatFilterChip extends StatelessWidget {
   final String label;
   final bool isActive;
   final Color activeBg;
   final Color activeFg;
   final VoidCallback onTap;
 
-  const _FilterChip({
+  const AchatFilterChip({
     required this.label,
     required this.isActive,
     required this.activeBg,

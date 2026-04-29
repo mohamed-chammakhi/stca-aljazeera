@@ -25,22 +25,22 @@ const _roleColors = {
 // WIDGET — _UserCreatedDialog
 // Auto-dismisses after 4 seconds; user can also close it manually.
 // ═════════════════════════════════════════════════════════════════════════════
-class _UserCreatedDialog extends StatefulWidget {
+class UserCreatedDialog extends StatefulWidget {
   final String prenom;
   final String nom;
   final String email;
 
-  const _UserCreatedDialog({
+  const UserCreatedDialog({super.key,
     required this.prenom,
     required this.nom,
     required this.email,
   });
 
   @override
-  State<_UserCreatedDialog> createState() => _UserCreatedDialogState();
+  State<UserCreatedDialog> createState() => _UserCreatedDialogState();
 }
 
-class _UserCreatedDialogState extends State<_UserCreatedDialog> {
+class _UserCreatedDialogState extends State<UserCreatedDialog> {
   @override
   void initState() {
     super.initState();
@@ -153,7 +153,7 @@ class _UserCreatedDialogState extends State<_UserCreatedDialog> {
 // ═════════════════════════════════════════════════════════════════════════════
 // WIDGET — _UserCard
 // ═════════════════════════════════════════════════════════════════════════════
-class _UserCard extends StatefulWidget {
+class UserCard extends StatefulWidget {
   final AppUser user;
   final Color kGreen;
   final Color kDark;
@@ -162,7 +162,7 @@ class _UserCard extends StatefulWidget {
   final VoidCallback onDelete;
   final VoidCallback onViewProfile;
 
-  const _UserCard({
+  const UserCard({
     required this.user,
     required this.kGreen,
     required this.kDark,
@@ -173,10 +173,10 @@ class _UserCard extends StatefulWidget {
   });
 
   @override
-  State<_UserCard> createState() => _UserCardState();
+  State<UserCard> createState() => _UserCardState();
 }
 
-class _UserCardState extends State<_UserCard> {
+class _UserCardState extends State<UserCard> {
   bool _actionsExpanded = false;
 
   @override

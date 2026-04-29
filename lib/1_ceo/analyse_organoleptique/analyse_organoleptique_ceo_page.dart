@@ -862,7 +862,7 @@ class _AnalyseOrganoleptiqueCeoPageState
                                 label: 'Qté : ${e.quantiteEstimee}T',
                                 color: kOlive,
                               ),
-                            _RecuPhysiqueIndicator(
+                            RecuPhysiqueIndicator(
                               recuPhysiquement: e.recuPhysiquement,
                             ),
                           ],
@@ -888,7 +888,7 @@ class _AnalyseOrganoleptiqueCeoPageState
                           ),
                         ],
                         deliveryWidget: SampleDeliveryIndicator(e: e),
-                        bottomSection: _PanelSection(
+                        bottomSection: PanelSection(
                           echantillon: e,
                           isExpanded: panelExp,
                           onToggle: () => setState(

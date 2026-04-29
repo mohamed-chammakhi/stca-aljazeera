@@ -262,7 +262,7 @@ class _AchatsConfirmesCeoPageState extends State<AchatsConfirmesCeoPage> with Ce
             child: Row(
               children: [
                 // ── CHANGED: use _FilterChip for consistent active/inactive states ──
-                _FilterChip(
+                AchatFilterChip(
                   label: 'Tout',
                   isActive: _activeFilter == 'tout',
                   activeBg: const Color(0xFF757575),
@@ -270,7 +270,7 @@ class _AchatsConfirmesCeoPageState extends State<AchatsConfirmesCeoPage> with Ce
                   onTap: () => setState(() => _activeFilter = 'tout'),
                 ),
                 const SizedBox(width: 8),
-                _FilterChip(
+                AchatFilterChip(
                   label: 'Stock arrivé',
                   isActive: _activeFilter == 'arrive',
                   activeBg: kGreen.withValues(alpha: 0.12),
@@ -278,7 +278,7 @@ class _AchatsConfirmesCeoPageState extends State<AchatsConfirmesCeoPage> with Ce
                   onTap: () => setState(() => _activeFilter = 'arrive'),
                 ),
                 const SizedBox(width: 8),
-                _FilterChip(
+                AchatFilterChip(
                   label: 'En transit',
                   isActive: _activeFilter == 'transit',
                   activeBg: Colors.orange.shade700.withValues(alpha: 0.12),
@@ -353,7 +353,7 @@ class _AchatsConfirmesCeoPageState extends State<AchatsConfirmesCeoPage> with Ce
                           DetailItem('Date enregistrement', e.dateAjout),
                         ],
                         deliveryWidget: SampleDeliveryIndicator(e: e),
-                        bottomSection: _AchatSection(
+                        bottomSection: AchatSection(
                           echantillon: e,
                           accentColor: accentColor,
                           isExpanded: achatExp,

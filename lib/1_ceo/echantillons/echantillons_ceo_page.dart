@@ -10,7 +10,6 @@ import '../widgets/ceo_nav_mixin.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../widgets/ceo_drawer.dart';
 import '../utilisateurs/models/echantillon_ceo_view.dart';
-import 'echantillons_ceo_page.dart';
 import '../analyse_organoleptique/analyse_organoleptique_ceo_page.dart';
 import '../analyse_laboratoire/analyse_laboratoire_ceo_page.dart';
 import '../achats_confirmes/achats_confirmes_ceo_page.dart';
@@ -143,16 +142,6 @@ class _EchantillonsCeoPageState extends State<EchantillonsCeoPage> with CeoNavMi
     }
 
     return groups;
-  }
-
-  DateTime? DegDateUtils.parseDate(String s) {
-    try {
-      final p = s.split('/');
-      if (p.length != 3) return null;
-      return DateTime(int.parse(p[2]), int.parse(p[1]), int.parse(p[0]));
-    } catch (_) {
-      return null;
-    }
   }
 
   // ── Date filter sheet ──────────────────────────────────────────────────────
@@ -364,7 +353,7 @@ class _EchantillonsCeoPageState extends State<EchantillonsCeoPage> with CeoNavMi
                 : ListView.builder(
                     padding: const EdgeInsets.fromLTRB(16, 12, 16, 30),
                     itemCount: groups.length,
-                    itemBuilder: (_, i) => _CollecteurSection(
+                    itemBuilder: (_, i) => CollecteurSection(
                       group: groups[i],
                       isExpanded: _expandedCollecteurs.contains(
                         groups[i].displayName,
@@ -386,7 +375,7 @@ class _EchantillonsCeoPageState extends State<EchantillonsCeoPage> with CeoNavMi
                           : () => Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (_) => _CarteGeoPlaceholder(
+                                builder: (_) => CarteGeoPlaceholder(
                                   collecteurNom: groups[i].displayName,
                                 ),
                               ),

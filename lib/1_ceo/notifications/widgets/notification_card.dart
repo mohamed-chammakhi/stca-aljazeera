@@ -8,10 +8,10 @@ import 'package:project3/core/theme/app_colors.dart';
 import '../models/notification_ceo.dart';
 
 // ── Notification card ─────────────────────────────────────────────────────────
-class _NotificationCard extends StatelessWidget {
+class CeoNotificationCard extends StatelessWidget {
   final NotificationCeo notification;
   final VoidCallback onTap;
-  const _NotificationCard({required this.notification, required this.onTap});
+  const CeoNotificationCard({super.key, required this.notification, required this.onTap});
 
   static const _typeConfig = {
     'NOUVEL_ECHANTILLON':   (Icons.science_outlined,      Color(0xFF3A6EA5), Color(0xFFE8F1FB)),
