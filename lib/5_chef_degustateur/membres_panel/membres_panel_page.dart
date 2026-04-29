@@ -18,11 +18,7 @@ import '../vue_ensemble_evaluations/vue_ensemble_evaluations_page.dart';
 import '../widgets/chef_colors.dart';
 import '../widgets/chef_nav_mixin.dart';
 
-const Color gray = Color.fromARGB(255, 81, 82, 81);
-
-const Color _green = Color(0xFF38835A);
-//const Color _oliveGreen = Color(0xFF6B8143);
-const Color _darkText = Color(0xFF1A2E1F);
+const Color _gray = Color.fromARGB(255, 81, 82, 81);
 
 class MembresPanelPage extends StatefulWidget {
   const MembresPanelPage({super.key});
@@ -109,10 +105,10 @@ class _MembresPanelPageState extends State<MembresPanelPage>
           style: GoogleFonts.domine(
             fontSize: 18,
             fontWeight: FontWeight.w700,
-            color: _darkText,
+            color: chefDark,
           ),
         ),
-        iconTheme: const IconThemeData(color: _darkText),
+        iconTheme: const IconThemeData(color: chefDark),
       ),
 
       body: Padding(
@@ -123,11 +119,11 @@ class _MembresPanelPageState extends State<MembresPanelPage>
             TextField(
               controller: _searchCtrl,
               onChanged: (v) => setState(() => _recherche = v),
-              style: const TextStyle(fontSize: 14, color: _darkText),
+              style: const TextStyle(fontSize: 14, color: chefDark),
               decoration: InputDecoration(
                 hintText: 'Rechercher un membre...',
                 hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 13),
-                prefixIcon: const Icon(Icons.search, color: _green, size: 20),
+                prefixIcon: const Icon(Icons.search, color: chefGreen, size: 20),
                 suffixIcon: _recherche.isNotEmpty
                     ? IconButton(
                         icon: Icon(
@@ -157,7 +153,7 @@ class _MembresPanelPageState extends State<MembresPanelPage>
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: _green, width: 1.8),
+                  borderSide: const BorderSide(color: chefGreen, width: 1.8),
                 ),
               ),
             ),
@@ -190,7 +186,7 @@ class _MembresPanelPageState extends State<MembresPanelPage>
                   : Theme(
                       data: Theme.of(context).copyWith(
                         scrollbarTheme: ScrollbarThemeData(
-                          thumbColor: MaterialStateProperty.all(gray),
+                          thumbColor: MaterialStateProperty.all(_gray),
                         ),
                       ),
                       child: Scrollbar(
