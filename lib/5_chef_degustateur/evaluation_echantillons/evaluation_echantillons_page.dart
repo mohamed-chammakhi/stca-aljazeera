@@ -17,6 +17,9 @@ import '../formulaire_evaluation.dart';
 import '../sessions_degustation/sessions_degustation_page.dart';
 import '../analyse_labo/analyse_laboratoire_page.dart';
 import '../vue_ensemble_evaluations/vue_ensemble_evaluations_page.dart';
+import '../widgets/chef_colors.dart';
+import '../widgets/chef_nav_mixin.dart';
+import '../../../core/utils/date_utils.dart';
 
 // ── Own model ─────────────────────────────────────────────────────────────────
 import 'navigation/models/echantillon.dart';
@@ -36,13 +39,8 @@ class EvaluationEchantillonsPage extends StatefulWidget {
 }
 
 class _EvaluationEchantillonsPageState
-    extends State<EvaluationEchantillonsPage> {
-  // ── COLORS ──────────────────────────────────────────────────────────────────
-  static const Color _headerBg = Color.fromARGB(255, 220, 233, 226);
-  static const Color _green = Color(0xFF38835A);
-  static const Color _dark = Color(0xFF1A2E1F);
-  static const Color _bg = Color.fromARGB(255, 255, 255, 255);
-
+    extends State<EvaluationEchantillonsPage>
+    with ChefNavMixin {
   // ── STATE ────────────────────────────────────────────────────────────────────
   final TextEditingController _searchController = TextEditingController();
   String _recherche = '';
@@ -59,20 +57,6 @@ class _EvaluationEchantillonsPageState
     mockEchantillonsEvaluation,
   );
 
-  // ── NAVIGATION ───────────────────────────────────────────────────────────────
-  void _goTo(Widget page) {
-    Navigator.pop(context);
-    Navigator.push(context, MaterialPageRoute(builder: (_) => page));
-  }
-
-  void _goToLogin() {
-    Navigator.pop(context);
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => LoginPage()),
-    );
-  }
-
   // ── FILTER LOGIC ─────────────────────────────────────────────────────────────
   StatutEchantillon? _labelToStatut(String? label) {
     switch (label) {
@@ -84,16 +68,6 @@ class _EvaluationEchantillonsPageState
         return StatutEchantillon.soumis;
       default:
         return null;
-    }
-  }
-
-  DateTime? _parseDate(String s) {
-    try {
-      final p = s.split('/');
-      if (p.length != 3) return null;
-      return DateTime(int.parse(p[2]), int.parse(p[1]), int.parse(p[0]));
-    } catch (_) {
-      return null;
     }
   }
 
@@ -115,7 +89,7 @@ class _EvaluationEchantillonsPageState
 
       bool matchDate = true;
       if (_dateFilterActive) {
-        final raw = _parseDate(e.date);
+        final raw = DegDateUtils.parseDate(e.date);
         if (raw == null) {
           matchDate = false;
         } else {
@@ -221,24 +195,24 @@ class _EvaluationEchantillonsPageState
     final filtres = _echantillonsFiltres;
 
     return Scaffold(
-      backgroundColor: _bg,
+      backgroundColor: chefBg,
 
       drawer: AppDrawer(
         onaccueil: () => Navigator.pop(context),
         onEvaluationEchantillons: () =>
-            _goTo(const EvaluationEchantillonsPage()),
-        onGestionEchantillons: () => _goTo(const GestionEchantillonsPage()),
-        onAnalyseLaboratoire: () => _goTo(const AnalyseLaboratoirePage()),
-        onSessionsDegustationPage: () => _goTo(const SessionsDegustationPage()),
-        onMembredupanel: () => _goTo(const MembresPanelPage()),
+            goToPage(const EvaluationEchantillonsPage()),
+        onGestionEchantillons: () => goToPage(const GestionEchantillonsPage()),
+        onAnalyseLaboratoire: () => goToPage(const AnalyseLaboratoirePage()),
+        onSessionsDegustationPage: () => goToPage(const SessionsDegustationPage()),
+        onMembredupanel: () => goToPage(const MembresPanelPage()),
         onVueEnsembleEvaluations: () =>
-            _goTo(const VueEnsembleEvaluationsPage()),
-        onProfil: () => _goTo(const ProfilePage()),
-        onDeconnexion: _goToLogin,
+            goToPage(const VueEnsembleEvaluationsPage()),
+        onProfil: () => goToPage(const ProfilePage()),
+        onDeconnexion: goToLogin,
       ),
 
       appBar: AppBar(
-        backgroundColor: _headerBg,
+        backgroundColor: chefHeaderBg,
         elevation: 0,
         centerTitle: false,
         toolbarHeight: 65,
@@ -247,10 +221,10 @@ class _EvaluationEchantillonsPageState
           style: GoogleFonts.domine(
             fontSize: 18,
             fontWeight: FontWeight.w700,
-            color: _dark,
+            color: chefDark,
           ),
         ),
-        iconTheme: const IconThemeData(color: _dark),
+        iconTheme: const IconThemeData(color: chefDark),
         actions: [
           Stack(
             alignment: Alignment.center,
@@ -259,7 +233,7 @@ class _EvaluationEchantillonsPageState
                 icon: Icon(
                   Icons.calendar_today_outlined,
                   size: 20,
-                  color: _dateFilterActive ? _green : const Color(0xFF6B8E7A),
+                  color: _dateFilterActive ? chefGreen : const Color(0xFF6B8E7A),
                 ),
                 onPressed: _showDateFilter,
                 tooltip: 'Filtrer par date',
@@ -272,7 +246,7 @@ class _EvaluationEchantillonsPageState
                     width: 8,
                     height: 8,
                     decoration: const BoxDecoration(
-                      color: _green,
+                      color: chefGreen,
                       shape: BoxShape.circle,
                     ),
                   ),
@@ -287,7 +261,7 @@ class _EvaluationEchantillonsPageState
         children: [
           // ── UNIFIED HEADER ZONE ────────────────────────────────────────────
           Container(
-            color: _headerBg,
+            color: chefHeaderBg,
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
             child: Column(
               children: [
@@ -295,7 +269,7 @@ class _EvaluationEchantillonsPageState
                 TextField(
                   controller: _searchController,
                   onChanged: (v) => setState(() => _recherche = v.trim()),
-                  style: const TextStyle(fontSize: 14, color: _dark),
+                  style: const TextStyle(fontSize: 14, color: chefDark),
                   decoration: InputDecoration(
                     hintText: 'Rechercher réf, fournisseur, gouvernorat…',
                     hintStyle: const TextStyle(
@@ -336,7 +310,7 @@ class _EvaluationEchantillonsPageState
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: _green, width: 1.5),
+                      borderSide: const BorderSide(color: chefGreen, width: 1.5),
                     ),
                   ),
                 ),
@@ -401,7 +375,7 @@ class _EvaluationEchantillonsPageState
 
           // ── STATS STRIP ────────────────────────────────────────────────────
           Container(
-            color: _bg,
+            color: chefBg,
             padding: const EdgeInsets.fromLTRB(16, 9, 16, 6),
             child: Row(
               children: [

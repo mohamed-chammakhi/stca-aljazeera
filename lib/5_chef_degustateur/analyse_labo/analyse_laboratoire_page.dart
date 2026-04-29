@@ -21,6 +21,9 @@ import '../evaluation_echantillons/evaluation_echantillons_page.dart';
 import '../sessions_degustation/sessions_degustation_page.dart';
 import '../vue_ensemble_evaluations/vue_ensemble_evaluations_page.dart';
 import '../../../main.dart';
+import '../widgets/chef_colors.dart';
+import '../widgets/chef_nav_mixin.dart';
+import '../../../core/utils/date_utils.dart';
 
 class AnalyseLaboratoirePage extends StatefulWidget {
   const AnalyseLaboratoirePage({super.key});
@@ -29,13 +32,8 @@ class AnalyseLaboratoirePage extends StatefulWidget {
   _AnalyseLaboratoirePageState createState() => _AnalyseLaboratoirePageState();
 }
 
-class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage> {
-  // ── COLORS ──────────────────────────────────────────────────────────────────
-  static const Color _headerBg = Color.fromARGB(255, 220, 233, 226);
-  static const Color _green = Color(0xFF38835A);
-  static const Color _dark = Color(0xFF1A2E1F);
-  static const Color _bg = Color(0xFFFFFFFF);
-
+class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage>
+    with ChefNavMixin {
   // ── STATE ────────────────────────────────────────────────────────────────────
   final TextEditingController _searchController = TextEditingController();
   String _recherche = '';
@@ -48,20 +46,6 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage> {
       _dateFin != null ||
       _recherche.isNotEmpty ||
       _filtreStatutLabel != null;
-
-  // ── NAVIGATION ───────────────────────────────────────────────────────────────
-  void _goTo(Widget page) {
-    Navigator.pop(context);
-    Navigator.push(context, MaterialPageRoute(builder: (_) => page));
-  }
-
-  void _goToLogin() {
-    Navigator.pop(context);
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => LoginPage()),
-    );
-  }
 
   // ── MOCK DATA  ───────────────────────────────────────────────────────────────
   final List<AnalyseLabo> _analyses = [
@@ -278,16 +262,6 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage> {
     }
   }
 
-  DateTime? _parseDate(String s) {
-    try {
-      final p = s.split('/');
-      if (p.length != 3) return null;
-      return DateTime(int.parse(p[2]), int.parse(p[1]), int.parse(p[0]));
-    } catch (_) {
-      return null;
-    }
-  }
-
   List<AnalyseLabo> get _filtres {
     return _analyses.where((a) {
       final matchRecherche =
@@ -301,7 +275,7 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage> {
 
       bool matchDate = true;
       if (_dateDebut != null || _dateFin != null) {
-        final raw = _parseDate(a.dateAnalyse);
+        final raw = DegDateUtils.parseDate(a.dateAnalyse);
         if (raw == null) {
           matchDate = false;
         } else {
@@ -354,7 +328,7 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage> {
             fontWeight: FontWeight.w600,
           ),
         ),
-        backgroundColor: _green,
+        backgroundColor: chefGreen,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         margin: const EdgeInsets.all(20),
@@ -397,7 +371,7 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage> {
     final filtres = _filtres;
 
     return Scaffold(
-      backgroundColor: _bg,
+      backgroundColor: chefBg,
 
       // ── FAB ───────────────────────────────────────────────────────────────────
       floatingActionButton: FloatingActionButton.extended(
@@ -409,10 +383,10 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage> {
         ),
         backgroundColor: const Color.fromARGB(255, 197, 206, 201),
         elevation: 2,
-        icon: const Icon(Icons.add, color: _dark),
+        icon: const Icon(Icons.add, color: chefDark),
         label: const Text(
           'Nouvelle analyse',
-          style: TextStyle(color: _dark, fontWeight: FontWeight.w700),
+          style: TextStyle(color: chefDark, fontWeight: FontWeight.w700),
         ),
       ),
 
@@ -420,20 +394,20 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage> {
       drawer: AppDrawer(
         onaccueil: () => Navigator.pop(context),
         onEvaluationEchantillons: () =>
-            _goTo(const EvaluationEchantillonsPage()),
-        onGestionEchantillons: () => _goTo(const GestionEchantillonsPage()),
-        onAnalyseLaboratoire: () => _goTo(const AnalyseLaboratoirePage()),
-        onSessionsDegustationPage: () => _goTo(const SessionsDegustationPage()),
-        onMembredupanel: () => _goTo(const MembresPanelPage()),
+            goToPage(const EvaluationEchantillonsPage()),
+        onGestionEchantillons: () => goToPage(const GestionEchantillonsPage()),
+        onAnalyseLaboratoire: () => goToPage(const AnalyseLaboratoirePage()),
+        onSessionsDegustationPage: () => goToPage(const SessionsDegustationPage()),
+        onMembredupanel: () => goToPage(const MembresPanelPage()),
         onVueEnsembleEvaluations: () =>
-            _goTo(const VueEnsembleEvaluationsPage()),
-        onProfil: () => _goTo(const ProfilePage()),
-        onDeconnexion: _goToLogin,
+            goToPage(const VueEnsembleEvaluationsPage()),
+        onProfil: () => goToPage(const ProfilePage()),
+        onDeconnexion: goToLogin,
       ),
 
       // ── APPBAR ────────────────────────────────────────────────────────────────
       appBar: AppBar(
-        backgroundColor: _headerBg,
+        backgroundColor: chefHeaderBg,
         elevation: 0,
         centerTitle: false,
         toolbarHeight: 65,
@@ -442,10 +416,10 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage> {
           style: GoogleFonts.domine(
             fontSize: 18,
             fontWeight: FontWeight.w700,
-            color: _dark,
+            color: chefDark,
           ),
         ),
-        iconTheme: const IconThemeData(color: _dark),
+        iconTheme: const IconThemeData(color: chefDark),
         actions: [
           Stack(
             alignment: Alignment.center,
@@ -454,7 +428,7 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage> {
                 icon: Icon(
                   Icons.calendar_today_outlined,
                   size: 20,
-                  color: _dateFilterActive ? _green : const Color(0xFF6B8E7A),
+                  color: _dateFilterActive ? chefGreen : const Color(0xFF6B8E7A),
                 ),
                 onPressed: _showDateFilter,
                 tooltip: 'Filtrer par date',
@@ -467,7 +441,7 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage> {
                     width: 8,
                     height: 8,
                     decoration: const BoxDecoration(
-                      color: _green,
+                      color: chefGreen,
                       shape: BoxShape.circle,
                     ),
                   ),
@@ -482,7 +456,7 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage> {
         children: [
           // ── UNIFIED HEADER ZONE ───────────────────────────────────────────────
           Container(
-            color: _headerBg,
+            color: chefHeaderBg,
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
             child: Column(
               children: [
@@ -490,7 +464,7 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage> {
                 TextField(
                   controller: _searchController,
                   onChanged: (v) => setState(() => _recherche = v.trim()),
-                  style: const TextStyle(fontSize: 14, color: _dark),
+                  style: const TextStyle(fontSize: 14, color: chefDark),
                   decoration: InputDecoration(
                     hintText: 'Rechercher échantillon, technicien, ID…',
                     hintStyle: const TextStyle(
@@ -531,7 +505,7 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage> {
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: _green, width: 1.5),
+                      borderSide: const BorderSide(color: chefGreen, width: 1.5),
                     ),
                   ),
                 ),
@@ -586,7 +560,7 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage> {
 
           // ── STATS STRIP ───────────────────────────────────────────────────────
           Container(
-            color: _bg,
+            color: chefBg,
             padding: const EdgeInsets.fromLTRB(16, 9, 16, 6),
             child: Row(
               children: [

@@ -21,6 +21,9 @@ import '../evaluation_echantillons/evaluation_echantillons_page.dart';
 import '../../../main.dart';
 import '../analyse_labo/analyse_laboratoire_page.dart';
 import '../vue_ensemble_evaluations/vue_ensemble_evaluations_page.dart';
+import '../widgets/chef_colors.dart';
+import '../widgets/chef_nav_mixin.dart';
+import '../../../core/utils/date_utils.dart';
 
 class SessionsDegustationPage extends StatefulWidget {
   const SessionsDegustationPage({super.key});
@@ -30,12 +33,8 @@ class SessionsDegustationPage extends StatefulWidget {
       _SessionsDegustationPageState();
 }
 
-class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
-  static const Color _headerBg = Color.fromARGB(255, 220, 233, 226);
-  static const Color _green = Color(0xFF38835A);
-  static const Color _dark = Color(0xFF1A2E1F);
-  static const Color _bg = Color(0xFFFFFFFF);
-
+class _SessionsDegustationPageState extends State<SessionsDegustationPage>
+    with ChefNavMixin {
   final TextEditingController _searchController = TextEditingController();
   String _recherche = '';
   String? _filtreStatutLabel;
@@ -45,19 +44,6 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
   bool get _dateFilterActive => _dateDebut != null || _dateFin != null;
   bool get _anyFilter =>
       _dateFilterActive || _recherche.isNotEmpty || _filtreStatutLabel != null;
-
-  void _goTo(Widget page) {
-    Navigator.pop(context);
-    Navigator.push(context, MaterialPageRoute(builder: (_) => page));
-  }
-
-  void _goToLogin() {
-    Navigator.pop(context);
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => LoginPage()),
-    );
-  }
 
   // ── Mock data — chef sees all sessions including pending ones ──────────────
   final List<SessionDegustation> _sessions = [
@@ -150,16 +136,6 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
     }
   }
 
-  DateTime? _parseDate(String s) {
-    try {
-      final p = s.split('/');
-      if (p.length != 3) return null;
-      return DateTime(int.parse(p[2]), int.parse(p[1]), int.parse(p[0]));
-    } catch (_) {
-      return null;
-    }
-  }
-
   List<SessionDegustation> get _filtres {
     return _sessions.where((s) {
       final matchRecherche =
@@ -173,7 +149,7 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
 
       bool matchDate = true;
       if (_dateFilterActive) {
-        final raw = _parseDate(s.date);
+        final raw = DegDateUtils.parseDate(s.date);
         if (raw == null) {
           matchDate = false;
         } else {
@@ -264,7 +240,7 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
             fontWeight: FontWeight.w600,
           ),
         ),
-        backgroundColor: _green,
+        backgroundColor: chefGreen,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         margin: const EdgeInsets.all(20),
@@ -283,22 +259,22 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
     final items = _filtres;
 
     return Scaffold(
-      backgroundColor: _bg,
+      backgroundColor: chefBg,
       drawer: AppDrawer(
         onaccueil: () => Navigator.pop(context),
         onEvaluationEchantillons: () =>
-            _goTo(const EvaluationEchantillonsPage()),
-        onGestionEchantillons: () => _goTo(const GestionEchantillonsPage()),
-        onAnalyseLaboratoire: () => _goTo(const AnalyseLaboratoirePage()),
-        onSessionsDegustationPage: () => _goTo(const SessionsDegustationPage()),
-        onMembredupanel: () => _goTo(const MembresPanelPage()),
+            goToPage(const EvaluationEchantillonsPage()),
+        onGestionEchantillons: () => goToPage(const GestionEchantillonsPage()),
+        onAnalyseLaboratoire: () => goToPage(const AnalyseLaboratoirePage()),
+        onSessionsDegustationPage: () => goToPage(const SessionsDegustationPage()),
+        onMembredupanel: () => goToPage(const MembresPanelPage()),
         onVueEnsembleEvaluations: () =>
-            _goTo(const VueEnsembleEvaluationsPage()),
-        onProfil: () => _goTo(const ProfilePage()),
-        onDeconnexion: _goToLogin,
+            goToPage(const VueEnsembleEvaluationsPage()),
+        onProfil: () => goToPage(const ProfilePage()),
+        onDeconnexion: goToLogin,
       ),
       appBar: AppBar(
-        backgroundColor: _headerBg,
+        backgroundColor: chefHeaderBg,
         elevation: 0,
         centerTitle: false,
         toolbarHeight: 65,
@@ -307,10 +283,10 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
           style: GoogleFonts.domine(
             fontSize: 18,
             fontWeight: FontWeight.w700,
-            color: _dark,
+            color: chefDark,
           ),
         ),
-        iconTheme: const IconThemeData(color: _dark),
+        iconTheme: const IconThemeData(color: chefDark),
         actions: [
           Stack(
             alignment: Alignment.center,
@@ -319,7 +295,7 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
                 icon: Icon(
                   Icons.calendar_today_outlined,
                   size: 20,
-                  color: _dateFilterActive ? _green : const Color(0xFF6B8E7A),
+                  color: _dateFilterActive ? chefGreen : const Color(0xFF6B8E7A),
                 ),
                 onPressed: _showDateFilter,
                 tooltip: 'Filtrer par date de la session',
@@ -332,7 +308,7 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
                     width: 8,
                     height: 8,
                     decoration: const BoxDecoration(
-                      color: _green,
+                      color: chefGreen,
                       shape: BoxShape.circle,
                     ),
                   ),
@@ -351,24 +327,24 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
         ),
         backgroundColor: const Color.fromARGB(255, 197, 206, 201),
         elevation: 2,
-        icon: const Icon(Icons.add, color: _dark),
+        icon: const Icon(Icons.add, color: chefDark),
         label: const Text(
           'Nouvelle session',
-          style: TextStyle(color: _dark, fontWeight: FontWeight.w700),
+          style: TextStyle(color: chefDark, fontWeight: FontWeight.w700),
         ),
       ),
       body: Column(
         children: [
           // ── HEADER ZONE ────────────────────────────────────────────────────
           Container(
-            color: _headerBg,
+            color: chefHeaderBg,
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
             child: Column(
               children: [
                 TextField(
                   controller: _searchController,
                   onChanged: (v) => setState(() => _recherche = v.trim()),
-                  style: const TextStyle(fontSize: 14, color: _dark),
+                  style: const TextStyle(fontSize: 14, color: chefDark),
                   decoration: InputDecoration(
                     hintText: 'Rechercher titre, lieu, réf…',
                     hintStyle: const TextStyle(
@@ -409,7 +385,7 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: _green, width: 1.5),
+                      borderSide: const BorderSide(color: chefGreen, width: 1.5),
                     ),
                   ),
                 ),
@@ -466,7 +442,7 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
           ),
           Container(height: 1, color: Colors.black.withValues(alpha: 0.06)),
           Container(
-            color: _bg,
+            color: chefBg,
             padding: const EdgeInsets.fromLTRB(16, 9, 16, 6),
             child: Row(
               children: [

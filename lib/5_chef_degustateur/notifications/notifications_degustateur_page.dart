@@ -2,11 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'models/notification_degustateur.dart';
 import 'services/notification_degustateur_service.dart';
-
-const Color _headerBg = Color.fromARGB(255, 220, 233, 226);
-const Color _green    = Color(0xFF38835A);
-const Color _dark     = Color(0xFF1A2E1F);
-const Color _bg       = Color(0xFFFFFFFF);
+import '../widgets/chef_colors.dart';
 
 class NotificationsDegustateurPage extends StatefulWidget {
   final NotificationDegustateurService service;
@@ -68,16 +64,16 @@ class _NotificationsDegustateurPageState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _bg,
+      backgroundColor: chefBg,
       appBar: AppBar(
-        backgroundColor: _headerBg,
+        backgroundColor: chefHeaderBg,
         elevation: 0,
         centerTitle: false,
         toolbarHeight: 65,
         title: Text('Notifications',
             style: GoogleFonts.domine(
-                fontSize: 18, fontWeight: FontWeight.w700, color: _dark)),
-        iconTheme: const IconThemeData(color: _dark),
+                fontSize: 18, fontWeight: FontWeight.w700, color: chefDark)),
+        iconTheme: const IconThemeData(color: chefDark),
         actions: [
           if (_unreadCount > 0)
             TextButton(
@@ -85,17 +81,17 @@ class _NotificationsDegustateurPageState
               child: Text('Tout marquer lu',
                   style: TextStyle(
                       fontSize: 12,
-                      color: _green,
+                      color: chefGreen,
                       fontWeight: FontWeight.w600)),
             ),
           const SizedBox(width: 4),
         ],
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator(color: _green))
+          ? const Center(child: CircularProgressIndicator(color: chefGreen))
           : Column(children: [
               Container(
-                color: _headerBg,
+                color: chefHeaderBg,
                 padding: const EdgeInsets.fromLTRB(16, 4, 16, 14),
                 child: Row(children: [
                   _FilterChip(
@@ -114,7 +110,7 @@ class _NotificationsDegustateurPageState
               Container(
                   height: 1, color: Colors.black.withValues(alpha: 0.06)),
               Container(
-                color: _bg,
+                color: chefBg,
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 6),
                 child: Row(children: [
                   Icon(Icons.notifications_outlined,
@@ -223,12 +219,12 @@ class _FilterChip extends StatelessWidget {
         duration: const Duration(milliseconds: 160),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
         decoration: BoxDecoration(
-          color: active ? _green : Colors.white.withValues(alpha: 0.7),
+          color: active ? chefGreen : Colors.white.withValues(alpha: 0.7),
           borderRadius: BorderRadius.circular(20),
           boxShadow: active
               ? [
                   BoxShadow(
-                      color: _green.withValues(alpha: 0.25),
+                      color: chefGreen.withValues(alpha: 0.25),
                       blurRadius: 6,
                       offset: const Offset(0, 2))
                 ]
@@ -277,7 +273,7 @@ class _NotificationCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final cfg   = _typeConfig[notification.type];
     final icon  = cfg?.$1 ?? Icons.notifications_outlined;
-    final color = cfg?.$2 ?? _green;
+    final color = cfg?.$2 ?? chefGreen;
     final bgCol = cfg?.$3 ?? const Color(0xFFE6F4ED);
 
     return GestureDetector(
@@ -330,7 +326,7 @@ class _NotificationCard extends StatelessWidget {
                                         fontWeight: notification.isRead
                                             ? FontWeight.w500
                                             : FontWeight.w700,
-                                        color: _dark,
+                                        color: chefDark,
                                       )),
                                 ),
                                 if (!notification.isRead)

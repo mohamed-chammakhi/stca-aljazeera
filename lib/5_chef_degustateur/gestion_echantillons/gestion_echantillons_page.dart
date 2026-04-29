@@ -17,6 +17,9 @@ import '../../../main.dart';
 import '../sessions_degustation/sessions_degustation_page.dart';
 import '../analyse_labo/analyse_laboratoire_page.dart';
 import '../vue_ensemble_evaluations/vue_ensemble_evaluations_page.dart';
+import '../widgets/chef_colors.dart';
+import '../widgets/chef_nav_mixin.dart';
+import '../../../core/utils/date_utils.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PAGE
@@ -29,15 +32,8 @@ class GestionEchantillonsPage extends StatefulWidget {
       _GestionEchantillonsPageState();
 }
 
-class _GestionEchantillonsPageState extends State<GestionEchantillonsPage> {
-  // ───────────────────────────────────────────────────────────────────────────
-  // 1. COLORS
-  // ───────────────────────────────────────────────────────────────────────────
-
-  static const Color _headerBg = Color.fromARGB(255, 220, 233, 226);
-  static const Color _green = Color(0xFF38835A);
-  static const Color _dark = Color(0xFF1A2E1F);
-  static const Color _bg = Color.fromARGB(255, 255, 255, 255);
+class _GestionEchantillonsPageState extends State<GestionEchantillonsPage>
+    with ChefNavMixin {
   // ───────────────────────────────────────────────────────────────────────────
   // 2. STATE
   // ───────────────────────────────────────────────────────────────────────────
@@ -53,23 +49,6 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage> {
       _dateFilterActive || _recherche.isNotEmpty || _filtreStatut != null;
 
   // ───────────────────────────────────────────────────────────────────────────
-  // 3. NAVIGATION
-  // ───────────────────────────────────────────────────────────────────────────
-
-  void _goTo(Widget page) {
-    Navigator.pop(context);
-    Navigator.push(context, MaterialPageRoute(builder: (_) => page));
-  }
-
-  void _goToLogin() {
-    Navigator.pop(context);
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => LoginPage()),
-    );
-  }
-
-  // ───────────────────────────────────────────────────────────────────────────
   // 4. DATA
   // ───────────────────────────────────────────────────────────────────────────
 
@@ -80,16 +59,6 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage> {
   // ───────────────────────────────────────────────────────────────────────────
   // 5. FILTER LOGIC
   // ───────────────────────────────────────────────────────────────────────────
-
-  DateTime? _parseDate(String s) {
-    try {
-      final p = s.split('/');
-      if (p.length != 3) return null;
-      return DateTime(int.parse(p[2]), int.parse(p[1]), int.parse(p[0]));
-    } catch (_) {
-      return null;
-    }
-  }
 
   List<Echantillon> get _filtres {
     final liste = _echantillons.where((e) {
@@ -109,7 +78,7 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage> {
 
       bool matchDate = true;
       if (_dateFilterActive) {
-        final raw = _parseDate(e.dateAjout);
+        final raw = DegDateUtils.parseDate(e.dateAjout);
         if (raw == null) {
           matchDate = false;
         } else {
@@ -178,7 +147,7 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage> {
             fontWeight: FontWeight.w600,
           ),
         ),
-        backgroundColor: _green,
+        backgroundColor: chefGreen,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         margin: const EdgeInsets.all(20),
@@ -225,26 +194,26 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage> {
     final items = _filtres;
 
     return Scaffold(
-      backgroundColor: _bg,
+      backgroundColor: chefBg,
 
       // ── DRAWER ─────────────────────────────────────────────────────────────
       drawer: AppDrawer(
         onaccueil: () => Navigator.pop(context),
         onEvaluationEchantillons: () =>
-            _goTo(const EvaluationEchantillonsPage()),
-        onGestionEchantillons: () => _goTo(const GestionEchantillonsPage()),
-        onAnalyseLaboratoire: () => _goTo(const AnalyseLaboratoirePage()),
-        onSessionsDegustationPage: () => _goTo(const SessionsDegustationPage()),
-        onMembredupanel: () => _goTo(const MembresPanelPage()),
+            goToPage(const EvaluationEchantillonsPage()),
+        onGestionEchantillons: () => goToPage(const GestionEchantillonsPage()),
+        onAnalyseLaboratoire: () => goToPage(const AnalyseLaboratoirePage()),
+        onSessionsDegustationPage: () => goToPage(const SessionsDegustationPage()),
+        onMembredupanel: () => goToPage(const MembresPanelPage()),
         onVueEnsembleEvaluations: () =>
-            _goTo(const VueEnsembleEvaluationsPage()),
-        onProfil: () => _goTo(const ProfilePage()),
-        onDeconnexion: _goToLogin,
+            goToPage(const VueEnsembleEvaluationsPage()),
+        onProfil: () => goToPage(const ProfilePage()),
+        onDeconnexion: goToLogin,
       ),
 
       // ── APPBAR ─────────────────────────────────────────────────────────────
       appBar: AppBar(
-        backgroundColor: _headerBg,
+        backgroundColor: chefHeaderBg,
         elevation: 0,
         centerTitle: false,
         toolbarHeight: 65,
@@ -254,11 +223,11 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage> {
           style: GoogleFonts.domine(
             fontSize: 18,
             fontWeight: FontWeight.w700,
-            color: _dark,
+            color: chefDark,
           ),
         ),
 
-        iconTheme: const IconThemeData(color: _dark),
+        iconTheme: const IconThemeData(color: chefDark),
 
         actions: [
           Stack(
@@ -268,7 +237,7 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage> {
                 icon: Icon(
                   Icons.calendar_today_outlined,
                   size: 20,
-                  color: _dateFilterActive ? _green : const Color(0xFF6B8E7A),
+                  color: _dateFilterActive ? chefGreen : const Color(0xFF6B8E7A),
                 ),
                 onPressed: _showDateFilter,
                 tooltip: 'Filtrer par date',
@@ -281,7 +250,7 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage> {
                     width: 8,
                     height: 8,
                     decoration: const BoxDecoration(
-                      color: _green,
+                      color: chefGreen,
                       shape: BoxShape.circle,
                     ),
                   ),
@@ -302,10 +271,10 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage> {
         ),
         backgroundColor: const Color.fromARGB(255, 197, 206, 201),
         elevation: 2,
-        icon: const Icon(Icons.add, color: _dark),
+        icon: const Icon(Icons.add, color: chefDark),
         label: const Text(
           'Ajouter',
-          style: TextStyle(color: _dark, fontWeight: FontWeight.w700),
+          style: TextStyle(color: chefDark, fontWeight: FontWeight.w700),
         ),
       ),
 
@@ -313,7 +282,7 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage> {
         children: [
           // ── UNIFIED HEADER ZONE ─────────────────────────────────────────
           Container(
-            color: _headerBg,
+            color: chefHeaderBg,
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
             child: Column(
               children: [
@@ -321,7 +290,7 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage> {
                 TextField(
                   controller: _searchController,
                   onChanged: (v) => setState(() => _recherche = v.trim()),
-                  style: const TextStyle(fontSize: 14, color: _dark),
+                  style: const TextStyle(fontSize: 14, color: chefDark),
                   decoration: InputDecoration(
                     hintText: 'Rechercher réf, fournisseur, gouvernorat…',
                     hintStyle: const TextStyle(
@@ -362,7 +331,7 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage> {
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: _green, width: 1.5),
+                      borderSide: const BorderSide(color: chefGreen, width: 1.5),
                     ),
                   ),
                 ),
@@ -427,7 +396,7 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage> {
 
           // ── STATS STRIP ───────────────────────────────────────────────────
           Container(
-            color: _bg,
+            color: chefBg,
             padding: const EdgeInsets.fromLTRB(16, 9, 16, 6),
             child: Row(
               children: [
