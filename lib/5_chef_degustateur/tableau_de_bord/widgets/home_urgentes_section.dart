@@ -339,7 +339,7 @@ class _IgnoreButtonState extends State<IgnoreButton> {
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
-                        color: Color(0xFF1A2E1F),
+                        color: chefDark,
                       ),
                     ),
                     const SizedBox(height: 4),

@@ -238,7 +238,7 @@ class DonutPainter extends CustomPainter {
         6.2831853 * value,
         false,
         Paint()
-          ..color = const Color(0xFF38835A)
+          ..color = chefGreen
           ..style = PaintingStyle.stroke
           ..strokeWidth = strokeWidth
           ..strokeCap = StrokeCap.round,
