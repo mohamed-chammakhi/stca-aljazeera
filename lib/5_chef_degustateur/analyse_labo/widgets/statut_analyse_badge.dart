@@ -6,6 +6,7 @@
 
 import 'package:flutter/material.dart';
 import '../models/analyse_labo.dart';
+import '../../widgets/chef_colors.dart';
 
 class StatutAnalyseBadge extends StatelessWidget {
   final StatutAnalyse statut;
@@ -61,8 +62,8 @@ _Cfg _cfg(StatutAnalyse s) {
     case StatutAnalyse.soumise:
       return const _Cfg(
         Color(0xFFE6F4ED),
-        Color(0xFF38835A),
-        Color(0xFF38835A),
+        chefGreen,
+        chefGreen,
         'Analyse soumise',
       );
   }

@@ -11,10 +11,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../models/analyse_labo.dart';
+import '../../../widgets/chef_colors.dart';
 
-const Color _green      = Color(0xFF38835A);
 const Color _oliveGreen = Color(0xFF6B8143);
-const Color _darkText   = Color(0xFF1A2E1F);
 const Color _red        = Color(0xFFC62828);
 
 // mock echantillon list for dropdown — replace with real data later
@@ -163,7 +162,7 @@ Future<void> showFormulaireAnalyseDialog(
                     style: const TextStyle(
                         fontSize:   17,
                         fontWeight: FontWeight.w700,
-                        color:      _darkText),
+                        color:      chefDark),
                   ),
                   const SizedBox(height: 20),
 
@@ -195,7 +194,7 @@ Future<void> showFormulaireAnalyseDialog(
                                   child: Text('${e['id']} — ${e['nom']}',
                                       style: const TextStyle(
                                           fontSize: 13,
-                                          color:    _darkText)),
+                                          color:    chefDark)),
                                 ))
                             .toList(),
                         onChanged: (val) =>
@@ -280,7 +279,7 @@ Future<void> showFormulaireAnalyseDialog(
                                 horizontal: 12, vertical: 7),
                             decoration: BoxDecoration(
                               color: sel
-                                  ? _green
+                                  ? chefGreen
                                   : Colors.grey.shade100,
                               borderRadius:
                                   BorderRadius.circular(20),
@@ -357,7 +356,7 @@ Future<void> showFormulaireAnalyseDialog(
                             child: Text(c.label,
                                 style: const TextStyle(
                                     fontSize: 12,
-                                    color:    _darkText)),
+                                    color:    chefDark)),
                           ),
                           // value input
                           Expanded(
@@ -384,7 +383,7 @@ Future<void> showFormulaireAnalyseDialog(
                               },
                               style: const TextStyle(
                                   fontSize: 13,
-                                  color:    _darkText),
+                                  color:    chefDark),
                               decoration: InputDecoration(
                                 hintText:  '0.00',
                                 hintStyle: TextStyle(
@@ -427,7 +426,7 @@ Future<void> showFormulaireAnalyseDialog(
                                       BorderRadius.circular(8),
                                   borderSide:
                                       const BorderSide(
-                                          color: _green,
+                                          color: chefGreen,
                                           width: 1.5),
                                 ),
                               ),
@@ -468,9 +467,9 @@ Future<void> showFormulaireAnalyseDialog(
                       child: OutlinedButton(
                         onPressed: () => Navigator.pop(ctx),
                         style: OutlinedButton.styleFrom(
-                          foregroundColor: _green,
+                          foregroundColor: chefGreen,
                           side:    const BorderSide(
-                              color: _green),
+                              color: chefGreen),
                           padding: const EdgeInsets
                               .symmetric(vertical: 13),
                           shape: RoundedRectangleBorder(
@@ -488,7 +487,7 @@ Future<void> showFormulaireAnalyseDialog(
                       child: ElevatedButton(
                         onPressed: handleSave,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: _green,
+                          backgroundColor: chefGreen,
                           foregroundColor: Colors.white,
                           elevation:       0,
                           padding: const EdgeInsets
@@ -562,7 +561,7 @@ class _Field extends StatelessWidget {
         keyboardType: keyboardType,
         maxLines:     maxLines,
         onChanged:    onChanged,
-        style: const TextStyle(fontSize: 14, color: _darkText),
+        style: const TextStyle(fontSize: 14, color: chefDark),
         decoration: InputDecoration(
           hintText:  hint,
           hintStyle: TextStyle(
@@ -584,7 +583,7 @@ class _Field extends StatelessWidget {
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10),
             borderSide: const BorderSide(
-                color: _green, width: 1.8),
+                color: chefGreen, width: 1.8),
           ),
         ),
       );

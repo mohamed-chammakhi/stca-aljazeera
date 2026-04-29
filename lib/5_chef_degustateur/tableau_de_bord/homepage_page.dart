@@ -8,6 +8,7 @@
 import 'package:flutter/material.dart';
 
 import 'widgets/app_drawer.dart';
+import '../widgets/chef_colors.dart';
 import 'widgets/home_body.dart';
 
 import '../profil.dart';
@@ -34,8 +35,6 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  static const Color green = Color(0xFF38835A);
-
   // ── Notifications ─────────────────────────────────────────────────────────
   final _notifService = NotificationDegustateurService();
   int _unreadCount = 0;
@@ -118,7 +117,7 @@ class _HomePageState extends State<HomePage> {
       backgroundColor: const Color(0xFFF9F6EF),
 
       appBar: AppBar(
-        backgroundColor: green,
+        backgroundColor: chefGreen,
         elevation: 0,
         centerTitle: false,
         iconTheme: const IconThemeData(color: Colors.white, size: 28),

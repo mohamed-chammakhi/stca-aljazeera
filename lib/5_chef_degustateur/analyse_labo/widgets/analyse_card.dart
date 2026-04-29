@@ -6,10 +6,9 @@
 
 import 'package:flutter/material.dart';
 import '../models/analyse_labo.dart';
+import '../../widgets/chef_colors.dart';
 
-const Color _dark = Color(0xFF1A2E1F);
 const Color _olive = Color(0xFF6B8143);
-const Color _green = Color(0xFF38835A);
 const Color _redVal = Color(0xFFC62828);
 const Color _redBg = Color(0xFFFFEBEE);
 
@@ -18,7 +17,7 @@ Color _accentColor(StatutAnalyse s) {
     case StatutAnalyse.enAttente:
       return const Color(0xFFD07B2F);
     case StatutAnalyse.soumise:
-      return const Color(0xFF38835A);
+      return chefGreen;
   }
 }
 
@@ -91,7 +90,7 @@ class _AnalyseCardState extends State<AnalyseCard> {
                                   style: const TextStyle(
                                     fontSize: 15,
                                     fontWeight: FontWeight.w700,
-                                    color: _dark,
+                                    color: chefDark,
                                     letterSpacing: -0.2,
                                   ),
                                   overflow: TextOverflow.ellipsis,
@@ -248,7 +247,7 @@ class _DetailPanel extends StatelessWidget {
                     style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
-                      color: _dark,
+                      color: chefDark,
                     ),
                   ),
                 ],
@@ -370,7 +369,7 @@ class _TableRow extends StatelessWidget {
     final indicatorColor = isHeader || conforme == null
         ? Colors.transparent
         : conforme!
-        ? _green
+        ? chefGreen
         : _redVal;
 
     return Container(
@@ -404,7 +403,7 @@ class _TableRow extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: isHeader ? FontWeight.w700 : FontWeight.w500,
-                    color: isHeader ? _olive : _dark,
+                    color: isHeader ? _olive : chefDark,
                   ),
                 ),
               ),
@@ -424,7 +423,7 @@ class _TableRow extends StatelessWidget {
                         ? _olive
                         : conforme == false
                         ? _redVal
-                        : _green,
+                        : chefGreen,
                   ),
                 ),
               ),
@@ -450,7 +449,7 @@ class _TableRow extends StatelessWidget {
                 padding: const EdgeInsets.only(right: 8),
                 child: Icon(
                   conforme! ? Icons.check_circle : Icons.cancel,
-                  color: conforme! ? _green : _redVal,
+                  color: conforme! ? chefGreen : _redVal,
                   size: 14,
                 ),
               ),

@@ -7,11 +7,9 @@
 import 'package:flutter/material.dart';
 import '../../../../core/models/echantillon.dart';
 import '../../../../core/models/enums.dart';
+import '../../widgets/chef_colors.dart';
 
-const Color _dark = Color(0xFF1A2E1F);
-const Color _white = Color.fromARGB(255, 255, 255, 255);
 const Color _olive = Color(0xFF6B8143);
-const Color _green = Color(0xFF38835A);
 
 // ── Status palette ────────────────────────────────────────────────────────────
 Color _statusColor(StatutDegustateur? s) {
@@ -19,7 +17,7 @@ Color _statusColor(StatutDegustateur? s) {
     case StatutDegustateur.enCours:
       return const Color(0xFFD07B2F);
     case StatutDegustateur.soumis:
-      return const Color(0xFF38835A);
+      return chefGreen;
     default:
       return const Color(0xFF3A6EA5);
   }
@@ -99,7 +97,7 @@ class _EchantillonCardState extends State<EchantillonCard> {
                                   style: const TextStyle(
                                     fontSize: 15,
                                     fontWeight: FontWeight.w700,
-                                    color: _dark,
+                                    color: chefDark,
                                     letterSpacing: -0.2,
                                   ),
                                   overflow: TextOverflow.ellipsis,
@@ -148,7 +146,7 @@ class _EchantillonCardState extends State<EchantillonCard> {
                                         ? Icons.check_circle
                                         : Icons.check_circle_outline,
                                     color: e.recuPhysiquement
-                                        ? _green
+                                        ? chefGreen
                                         : const Color.fromARGB(
                                             255,
                                             137,
@@ -271,7 +269,7 @@ class _DetailPanel extends StatelessWidget {
           margin: const EdgeInsets.all(12),
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           decoration: BoxDecoration(
-            color: _white,
+            color: chefBg,
             borderRadius: BorderRadius.circular(10),
             border: Border.all(color: Colors.grey.shade100),
           ),
@@ -340,7 +338,7 @@ class _DetailItem extends StatelessWidget {
         style: const TextStyle(
           fontSize: 13,
           fontWeight: FontWeight.w600,
-          color: _dark,
+          color: chefDark,
         ),
       ),
     ],

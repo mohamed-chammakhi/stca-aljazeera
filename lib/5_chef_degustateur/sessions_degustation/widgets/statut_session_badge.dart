@@ -6,6 +6,7 @@
 
 import 'package:flutter/material.dart';
 import '../models/session_degustation.dart';
+import '../../widgets/chef_colors.dart';
 
 class StatutSessionBadge extends StatelessWidget {
   final StatutSession statut;
@@ -81,8 +82,8 @@ _BadgeConfig _config(StatutSession s) {
     case StatutSession.terminee:
       return _BadgeConfig(
         const Color(0xFFE8F5E9),
-        const Color(0xFF38835A),
-        const Color(0xFF38835A),
+        chefGreen,
+        chefGreen,
         'Terminée',
       );
   }

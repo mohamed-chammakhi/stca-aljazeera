@@ -8,10 +8,8 @@
 
 import 'package:flutter/material.dart';
 import '../models/echantillon.dart';
+import '../../../widgets/chef_colors.dart';
 
-const Color _green = Color(0xFF38835A);
-const Color _dark = Color(0xFF1A2E1F);
-const Color _white = Color.fromARGB(255, 255, 255, 255);
 const Color _olive = Color(0xFF6B8143);
 
 // ── Status palette (matching CEO) ─────────────────────────────────────────────
@@ -20,14 +18,14 @@ Color _statusColor(StatutEchantillon s) {
     case StatutEchantillon.enCours:
       return const Color(0xFFD07B2F);
     case StatutEchantillon.soumis:
-      return const Color(0xFF38835A);
+      return chefGreen;
     default:
       return const Color(0xFF3A6EA5);
   }
 }
 
 Color _classifColor(String? c) {
-  if (c == 'Extra Vierge') return const Color(0xFF38835A);
+  if (c == 'Extra Vierge') return chefGreen;
   if (c == 'Vierge') return const Color(0xFFD07B2F);
   if (c == 'Vierge Ordinaire') return const Color(0xFFE64A19);
   if (c == 'Lampante') return const Color(0xFFD32F2F);
@@ -105,7 +103,7 @@ class _EchantillonCardState extends State<EchantillonCard> {
                                   style: const TextStyle(
                                     fontSize: 15,
                                     fontWeight: FontWeight.w700,
-                                    color: _dark,
+                                    color: chefDark,
                                     letterSpacing: -0.2,
                                   ),
                                   overflow: TextOverflow.ellipsis,
@@ -269,7 +267,7 @@ class _DetailPanel extends StatelessWidget {
           margin: const EdgeInsets.fromLTRB(12, 10, 12, 0),
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: _white,
+            color: chefBg,
             borderRadius: BorderRadius.circular(10),
             border: Border.all(color: Colors.grey.shade100),
           ),
@@ -332,7 +330,7 @@ class _DetailPanel extends StatelessWidget {
                 _PillButton(
                   label: 'Voir l\'évaluation',
                   icon: Icons.visibility_outlined,
-                  color: _green,
+                  color: chefGreen,
                   filled: false,
                   onTap: onVoir ?? () {},
                 ),
@@ -422,7 +420,7 @@ class _DetailItem extends StatelessWidget {
         style: const TextStyle(
           fontSize: 13,
           fontWeight: FontWeight.w600,
-          color: _dark,
+          color: chefDark,
         ),
       ),
     ],
