@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/dashboard_chef_degustateur.dart';
 import 'home_shared.dart';
+import '../../widgets/chef_colors.dart';
 
 class DelaiSection extends StatelessWidget {
   final DelaiPanelData? delai;
@@ -51,7 +52,7 @@ class DelaiSection extends StatelessWidget {
                 color: const Color(0xFFF7FAF8),
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
-                  color: chefGreenLocal.withValues(alpha: 0.12),
+                  color: chefGreen.withValues(alpha: 0.12),
                 ),
               ),
               child: Row(
@@ -59,14 +60,14 @@ class DelaiSection extends StatelessWidget {
                   _delaiStat(
                     'MOY. PANEL',
                     '${delai!.panelMoyen.toStringAsFixed(1)}j',
-                    chefGreenLocal,
+                    chefGreen,
                   ),
                   Container(
                     width: 1,
                     height: 30,
                     color: Colors.black.withValues(alpha: 0.06),
                   ),
-                  _delaiStat('MEMBRES', '${delai!.membres.length}', chefDarkLocal),
+                  _delaiStat('MEMBRES', '${delai!.membres.length}', chefDark),
                 ],
               ),
             ),
@@ -91,7 +92,7 @@ class DelaiSection extends StatelessWidget {
                       if (m.delaiMoyen > delai!.panelMoyen * 1.1) {
                         return chefAmber;
                       }
-                      return chefGreenLocal;
+                      return chefGreen;
                     },
                     getLabel: (m) => '${m.delaiMoyen.toStringAsFixed(1)}j',
                     getName: (m) => m.nom,

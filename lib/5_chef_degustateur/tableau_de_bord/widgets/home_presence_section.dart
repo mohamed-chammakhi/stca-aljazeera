@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/dashboard_chef_degustateur.dart';
 import 'home_shared.dart';
+import '../../widgets/chef_colors.dart';
 
 class PresenceSection extends StatelessWidget {
   final PresenceChefData? presence;
@@ -66,7 +67,7 @@ class PresenceSection extends StatelessWidget {
                           style: const TextStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.w800,
-                            color: chefGreenLocal,
+                            color: chefGreen,
                           ),
                         ),
                         const Text(
@@ -86,10 +87,10 @@ class PresenceSection extends StatelessWidget {
                 child: Column(
                   children: [
                     _attStat(
-                      chefGreenLocal,
+                      chefGreen,
                       'Séances présent',
                       '${p?.present ?? 0}',
-                      chefGreenLocal,
+                      chefGreen,
                     ),
                     const SizedBox(height: 7),
                     _attStat(
@@ -103,7 +104,7 @@ class PresenceSection extends StatelessWidget {
                       const Color(0xFFE5E7E5),
                       'Total',
                       '${p?.total ?? 0}',
-                      chefDarkLocal,
+                      chefDark,
                     ),
                   ],
                 ),
@@ -118,14 +119,14 @@ class PresenceSection extends StatelessWidget {
                 color: const Color(0xFFF7FAF8),
                 borderRadius: BorderRadius.circular(8),
                 border:
-                    Border.all(color: chefGreenLocal.withValues(alpha: 0.12)),
+                    Border.all(color: chefGreen.withValues(alpha: 0.12)),
               ),
               child: Row(
                 children: [
                   const Icon(
                     Icons.access_time_outlined,
                     size: 14,
-                    color: chefGreenLocal,
+                    color: chefGreen,
                   ),
                   const SizedBox(width: 8),
                   Expanded(
@@ -137,7 +138,7 @@ class PresenceSection extends StatelessWidget {
                           style: const TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w700,
-                            color: chefDarkLocal,
+                            color: chefDark,
                           ),
                         ),
                         if (p.prochaineLieu != null)
@@ -158,7 +159,7 @@ class PresenceSection extends StatelessWidget {
                         vertical: 3,
                       ),
                       decoration: BoxDecoration(
-                        color: chefGreenLocal.withValues(alpha: 0.10),
+                        color: chefGreen.withValues(alpha: 0.10),
                         borderRadius: BorderRadius.circular(5),
                       ),
                       child: Text(
@@ -166,7 +167,7 @@ class PresenceSection extends StatelessWidget {
                         style: const TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.w700,
-                          color: chefGreenLocal,
+                          color: chefGreen,
                         ),
                       ),
                     ),

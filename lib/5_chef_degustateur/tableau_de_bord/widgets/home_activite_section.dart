@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/dashboard_chef_degustateur.dart';
+import '../../widgets/chef_colors.dart';
 import 'home_shared.dart';
 
 class ActiviteSection extends StatelessWidget {
@@ -69,7 +70,7 @@ class ActiviteSection extends StatelessWidget {
           ),
           if (dateDebut != null)
             Container(
-              color: chefHeaderBgLocal,
+              color: chefHeaderBg,
               padding: const EdgeInsets.fromLTRB(14, 0, 14, 8),
               child: Container(
                 padding: const EdgeInsets.symmetric(
@@ -77,15 +78,15 @@ class ActiviteSection extends StatelessWidget {
                   vertical: 5,
                 ),
                 decoration: BoxDecoration(
-                  color: chefGreenLocal.withValues(alpha: 0.06),
+                  color: chefGreen.withValues(alpha: 0.06),
                   border: Border.all(
-                    color: chefGreenLocal.withValues(alpha: 0.15),
+                    color: chefGreen.withValues(alpha: 0.15),
                   ),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.filter_list, size: 11, color: chefGreenLocal),
+                    Icon(Icons.filter_list, size: 11, color: chefGreen),
                     const SizedBox(width: 6),
                     Text(
                       dateFin != null
@@ -94,7 +95,7 @@ class ActiviteSection extends StatelessWidget {
                       style: const TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
-                        color: chefGreenLocal,
+                        color: chefGreen,
                       ),
                     ),
                     const Spacer(),
@@ -169,7 +170,7 @@ class ActiviteSection extends StatelessWidget {
                     height: 14,
                     child: CircularProgressIndicator(
                       strokeWidth: 1.5,
-                      color: chefGreenLocal,
+                      color: chefGreen,
                     ),
                   ),
                 ],
@@ -191,7 +192,7 @@ class ActiviteSection extends StatelessWidget {
         dot = chefRed;
         break;
       case 'approbation':
-        dot = chefGreenLocal;
+        dot = chefGreen;
         break;
       case 'refus':
         dot = chefRed;
@@ -239,7 +240,7 @@ class ActiviteSection extends StatelessWidget {
                     style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
-                      color: chefDarkLocal,
+                      color: chefDark,
                       height: 1.3,
                     ),
                   ),

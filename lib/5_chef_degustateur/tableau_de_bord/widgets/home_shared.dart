@@ -1,14 +1,6 @@
 import 'package:flutter/material.dart';
 
-const Color chefGreenLocal = Color(0xFF38835A);
-const Color chefDarkLocal = Color(0xFF1A2E1F);
-const Color chefWhite = Color(0xFFFFFFFF);
-const Color chefAmber = Color(0xFFD07B2F);
-const Color chefRed = Color(0xFFC0392B);
-const Color chefBlue = Color(0xFF3A6EA5);
-const Color chefPurple = Color(0xFF7B3FC4);
-const Color chefOlive = Color(0xFF6B8143);
-const Color chefHeaderBgLocal = Color(0xFFDCE9E2);
+import '../../widgets/chef_colors.dart';
 
 // ── Section header bar ────────────────────────────────────────────────────────
 Widget sectionBar({
@@ -22,7 +14,7 @@ Widget sectionBar({
 }) {
   final active = dateDebut != null;
   return Container(
-    color: chefHeaderBgLocal,
+    color: chefHeaderBg,
     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
     child: Row(
       children: [
@@ -30,12 +22,12 @@ Widget sectionBar({
           width: 3,
           height: 16,
           decoration: BoxDecoration(
-            color: chefGreenLocal,
+            color: chefGreen,
             borderRadius: BorderRadius.circular(2),
           ),
         ),
         const SizedBox(width: 7),
-        Icon(icon, size: 13, color: chefDarkLocal),
+        Icon(icon, size: 13, color: chefDark),
         const SizedBox(width: 6),
         Expanded(
           child: Text(
@@ -43,7 +35,7 @@ Widget sectionBar({
             style: const TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w700,
-              color: chefDarkLocal,
+              color: chefDark,
             ),
           ),
         ),
@@ -54,13 +46,13 @@ Widget sectionBar({
               padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
               decoration: BoxDecoration(
                 color: active
-                    ? chefGreenLocal
-                    : chefGreenLocal.withValues(alpha: 0.18),
+                    ? chefGreen
+                    : chefGreen.withValues(alpha: 0.18),
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(
                   color: active
-                      ? chefGreenLocal
-                      : chefGreenLocal.withValues(alpha: 0.3),
+                      ? chefGreen
+                      : chefGreen.withValues(alpha: 0.3),
                 ),
               ),
               child: Row(
@@ -69,7 +61,7 @@ Widget sectionBar({
                   Icon(
                     Icons.calendar_today_outlined,
                     size: 14,
-                    color: active ? chefWhite : chefDarkLocal,
+                    color: active ? chefWhite : chefDark,
                   ),
                   if (active) ...[
                     const SizedBox(width: 5),
@@ -274,7 +266,7 @@ Widget legendDot(Color color, String label) => Row(
       style: const TextStyle(
         fontSize: 10,
         fontWeight: FontWeight.w600,
-        color: chefDarkLocal,
+        color: chefDark,
       ),
     ),
   ],

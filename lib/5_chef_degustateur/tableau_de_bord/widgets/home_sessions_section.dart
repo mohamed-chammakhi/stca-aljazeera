@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../models/dashboard_chef_degustateur.dart';
 import 'home_shared.dart';
+import '../../widgets/chef_colors.dart';
 
 class SessionsSection extends StatelessWidget {
   final List<SessionEnAttente> sessions;
@@ -28,7 +29,7 @@ class SessionsSection extends StatelessWidget {
       child: Column(
         children: [
           Container(
-            color: chefHeaderBgLocal,
+            color: chefHeaderBg,
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             child: Row(
               children: [
@@ -53,7 +54,7 @@ class SessionsSection extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
-                      color: chefDarkLocal,
+                      color: chefDark,
                     ),
                   ),
                 ),
@@ -124,7 +125,7 @@ class SessionsSection extends StatelessWidget {
                                       style: GoogleFonts.domine(
                                         fontSize: 13,
                                         fontWeight: FontWeight.w700,
-                                        color: chefDarkLocal,
+                                        color: chefDark,
                                       ),
                                     ),
                                     const SizedBox(height: 2),
@@ -198,7 +199,7 @@ class SessionsSection extends StatelessWidget {
                                     ),
                                   ),
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: chefGreenLocal,
+                                    backgroundColor: chefGreen,
                                     padding: const EdgeInsets.symmetric(
                                       vertical: 8,
                                     ),

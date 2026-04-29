@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../evaluation_echantillons/evaluation_echantillons_page.dart';
 import '../models/dashboard_chef_degustateur.dart';
 import 'home_shared.dart';
+import '../../widgets/chef_colors.dart';
 
 class UrgentesSection extends StatelessWidget {
   final List<EvaluationUrgenteChef> urgentes;
@@ -189,7 +190,7 @@ class UrgentesSection extends StatelessWidget {
                       style: const TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
-                        color: chefDarkLocal,
+                        color: chefDark,
                       ),
                     ),
                     const SizedBox(height: 3),
@@ -233,7 +234,7 @@ class UrgentesSection extends StatelessWidget {
                     style: const TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
-                      color: chefDarkLocal,
+                      color: chefDark,
                     ),
                   ),
                   const SizedBox(height: 3),

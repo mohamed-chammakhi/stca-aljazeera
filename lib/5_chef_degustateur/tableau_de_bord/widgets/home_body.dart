@@ -12,6 +12,7 @@ import 'home_presence_section.dart';
 import 'home_sessions_section.dart';
 import 'home_urgentes_section.dart';
 import 'home_shared.dart';
+import '../../widgets/chef_colors.dart';
 
 class HomeBody extends StatefulWidget {
   final VoidCallback onSimulerNotification;
@@ -361,7 +362,7 @@ class _HomeBodyState extends State<HomeBody> {
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w700,
-                color: chefDarkLocal,
+                color: chefDark,
               ),
             ),
             const SizedBox(height: 8),
@@ -393,7 +394,7 @@ class _HomeBodyState extends State<HomeBody> {
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w700,
-                          color: chefDarkLocal,
+                          color: chefDark,
                         ),
                       ),
                     ),

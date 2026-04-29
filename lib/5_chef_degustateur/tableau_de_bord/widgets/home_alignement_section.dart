@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/dashboard_chef_degustateur.dart';
+import '../../widgets/chef_colors.dart';
 import 'home_shared.dart';
 
 class AlignementSection extends StatelessWidget {
@@ -60,7 +61,7 @@ class AlignementSection extends StatelessWidget {
                     getColor: (m) {
                       if (m.divergencePct >= 40) return chefRed;
                       if (m.divergencePct >= 20) return chefAmber;
-                      return chefGreenLocal;
+                      return chefGreen;
                     },
                     getLabel: (m) =>
                         '${m.divergencePct.toStringAsFixed(0)}%',
@@ -81,7 +82,7 @@ class AlignementSection extends StatelessWidget {
               color: const Color(0xFFF7FAF8),
               borderRadius: BorderRadius.circular(8),
               border: Border.all(
-                color: chefGreenLocal.withValues(alpha: 0.12),
+                color: chefGreen.withValues(alpha: 0.12),
               ),
             ),
             child: const Text(

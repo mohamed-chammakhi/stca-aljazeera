@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../models/dashboard_chef_degustateur.dart';
 import 'home_shared.dart';
+import '../../widgets/chef_colors.dart';
 
 class ClassificationsSection extends StatelessWidget {
   final List<ClassificationPoint> classifications;
@@ -72,7 +73,7 @@ class ClassificationsSection extends StatelessWidget {
                           barRods: [
                             BarChartRodData(
                               toY: p.extraVierge.toDouble(),
-                              color: chefGreenLocal,
+                              color: chefGreen,
                               width: 10,
                               borderRadius: const BorderRadius.vertical(
                                 top: Radius.circular(4),
@@ -159,7 +160,7 @@ class ClassificationsSection extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              legendDot(chefGreenLocal, 'Extra Vierge'),
+              legendDot(chefGreen, 'Extra Vierge'),
               const SizedBox(width: 12),
               legendDot(chefOlive, 'Vierge'),
               const SizedBox(width: 12),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/dashboard_chef_degustateur.dart';
 import 'home_shared.dart';
+import '../../widgets/chef_colors.dart';
 
 class PipelineSection extends StatelessWidget {
   final PipelineChefData? pipeline;
@@ -55,7 +56,7 @@ class PipelineSection extends StatelessWidget {
               _fmtN(p?.soumis ?? 0),
               p?.soumis ?? 0,
               'Soumise',
-              chefGreenLocal,
+              chefGreen,
             ),
           ],
         ),
