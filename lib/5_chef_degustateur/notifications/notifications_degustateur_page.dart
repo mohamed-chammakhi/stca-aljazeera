@@ -262,10 +262,10 @@ class _NotificationCard extends StatelessWidget {
     'ANALYSE_MODIFIEE':       (Icons.biotech_outlined,        Color(0xFFD07B2F), Color(0xFFFEF3E8)),
     // Super-taster only
     'EVALUATION_SOUMISE':     (Icons.star_border_outlined,    Color(0xFF7B1FA2), Color(0xFFF3E5F5)),
-    'TOUTES_EVALUATIONS':     (Icons.group_outlined,          Color(0xFF38835A), Color(0xFFE6F4ED)),
+    'TOUTES_EVALUATIONS':     (Icons.group_outlined,          chefGreen, Color(0xFFE6F4ED)),
     // Session-related
     'SESSION_SUGGEREE':       (Icons.event_outlined,          Color(0xFFD07B2F), Color(0xFFFEF3E8)),
-    'PRESENCE_CONFIRMEE':     (Icons.how_to_reg_outlined,     Color(0xFF38835A), Color(0xFFE6F4ED)),
+    'PRESENCE_CONFIRMEE':     (Icons.how_to_reg_outlined,     chefGreen, Color(0xFFE6F4ED)),
     'PRESENCE_ANNULEE':       (Icons.person_off_outlined,     Color(0xFF78909C), Color(0xFFECEFF1)),
   };
 

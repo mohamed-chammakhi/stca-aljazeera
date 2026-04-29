@@ -540,9 +540,9 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage>
                       const SizedBox(width: 7),
                       _StatutChip(
                         label: 'Analyse soumise',
-                        activeColor: const Color(0xFF38835A),
+                        activeColor: chefGreen,
                         inactiveColor: const Color(0xFFE6F4ED),
-                        inactiveTextColor: const Color(0xFF38835A),
+                        inactiveTextColor: chefGreen,
                         selected: _filtreStatutLabel == 'Analyse soumise',
                         onTap: () => setState(
                           () => _filtreStatutLabel = 'Analyse soumise',

@@ -33,7 +33,7 @@ class _MyAppState extends State<MyApp> {
       title: 'Votre Profil',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        primaryColor: const Color(0xFF38835A),
+        primaryColor: chefGreen,
         scaffoldBackgroundColor: const Color(0xFFF9F6EF),
       ),
       home: const ProfilePage(),

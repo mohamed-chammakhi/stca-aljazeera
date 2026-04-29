@@ -427,9 +427,9 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage>
                       const SizedBox(width: 7),
                       _StatutChip(
                         label: 'Terminée',
-                        activeColor: const Color(0xFF38835A),
+                        activeColor: chefGreen,
                         inactiveColor: const Color(0xFFE6F4ED),
-                        inactiveTextColor: const Color(0xFF38835A),
+                        inactiveTextColor: chefGreen,
                         selected: _filtreStatutLabel == 'Terminée',
                         onTap: () =>
                             setState(() => _filtreStatutLabel = 'Terminée'),
@@ -474,7 +474,7 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage>
                       'Effacer les filtres',
                       style: TextStyle(
                         fontSize: 12,
-                        color: Color(0xFF38835A),
+                        color: chefGreen,
                         fontWeight: FontWeight.w600,
                       ),
                     ),

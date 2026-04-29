@@ -20,11 +20,8 @@ import '../sessions_degustation/sessions_degustation_page.dart';
 import '../../../1_ceo/widgets/shared_evaluation_form_sheet.dart';
 import '../../../1_ceo/utilisateurs/models/echantillon_ceo_view.dart';
 import '../../../main.dart';
+import '../widgets/chef_colors.dart';
 
-const Color _headerBg = Color.fromARGB(255, 220, 233, 226);
-const Color _green = Color(0xFF38835A);
-const Color _dark = Color(0xFF1A2E1F);
-const Color _bg = Color(0xFFFFFFFF);
 const Color _olive = Color(0xFF6B8143);
 
 // ── Models ────────────────────────────────────────────────────────────────────
@@ -351,7 +348,7 @@ class _VueEnsembleEvaluationsPageState
     final groups = _filtered;
 
     return Scaffold(
-      backgroundColor: _bg,
+      backgroundColor: chefBg,
       drawer: AppDrawer(
         onaccueil: () => _goTo(const HomePage()),
         onEvaluationEchantillons: () =>
@@ -365,7 +362,7 @@ class _VueEnsembleEvaluationsPageState
         onDeconnexion: _goToLogin,
       ),
       appBar: AppBar(
-        backgroundColor: _headerBg,
+        backgroundColor: chefHeaderBg,
         elevation: 0,
         centerTitle: false,
         toolbarHeight: 65,
@@ -374,10 +371,10 @@ class _VueEnsembleEvaluationsPageState
           style: GoogleFonts.domine(
             fontSize: 18,
             fontWeight: FontWeight.w700,
-            color: _dark,
+            color: chefDark,
           ),
         ),
-        iconTheme: const IconThemeData(color: _dark),
+        iconTheme: const IconThemeData(color: chefDark),
         actions: [
           Stack(
             alignment: Alignment.center,
@@ -386,7 +383,7 @@ class _VueEnsembleEvaluationsPageState
                 icon: Icon(
                   Icons.calendar_today_outlined,
                   size: 20,
-                  color: _dateFilterActive ? _green : const Color(0xFF6B8E7A),
+                  color: _dateFilterActive ? chefGreen : const Color(0xFF6B8E7A),
                 ),
                 onPressed: _showDateFilter,
                 tooltip: 'Filtrer par date de réception physique',
@@ -399,7 +396,7 @@ class _VueEnsembleEvaluationsPageState
                     width: 8,
                     height: 8,
                     decoration: const BoxDecoration(
-                      color: _green,
+                      color: chefGreen,
                       shape: BoxShape.circle,
                     ),
                   ),
@@ -413,12 +410,12 @@ class _VueEnsembleEvaluationsPageState
         children: [
           // ── Search bar ────────────────────────────────────────────────────
           Container(
-            color: _headerBg,
+            color: chefHeaderBg,
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
             child: TextField(
               controller: _searchController,
               onChanged: (v) => setState(() => _searchQuery = v.trim()),
-              style: const TextStyle(fontSize: 14, color: _dark),
+              style: const TextStyle(fontSize: 14, color: chefDark),
               decoration: InputDecoration(
                 hintText: 'Rechercher échantillon, variété, gouvernorat…',
                 hintStyle: const TextStyle(
@@ -459,7 +456,7 @@ class _VueEnsembleEvaluationsPageState
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: _green, width: 1.5),
+                  borderSide: const BorderSide(color: chefGreen, width: 1.5),
                 ),
               ),
             ),
@@ -468,7 +465,7 @@ class _VueEnsembleEvaluationsPageState
 
           // ── Stats strip ───────────────────────────────────────────────────
           Container(
-            color: _bg,
+            color: chefBg,
             padding: const EdgeInsets.fromLTRB(16, 9, 16, 6),
             child: Row(
               children: [
@@ -581,7 +578,7 @@ class _EvalSampleCardState extends State<_EvalSampleCard> {
   @override
   Widget build(BuildContext context) {
     final g = widget.group;
-    final accentColor = g.isComplete ? _green : const Color(0xFFD07B2F);
+    final accentColor = g.isComplete ? chefGreen : const Color(0xFFD07B2F);
     final hasOutlier = _detectOutlier();
 
     return Container(
@@ -630,7 +627,7 @@ class _EvalSampleCardState extends State<_EvalSampleCard> {
                                   style: const TextStyle(
                                     fontSize: 15,
                                     fontWeight: FontWeight.w700,
-                                    color: _dark,
+                                    color: chefDark,
                                     letterSpacing: -0.2,
                                   ),
                                   overflow: TextOverflow.ellipsis,
@@ -686,12 +683,12 @@ class _EvalSampleCardState extends State<_EvalSampleCard> {
                             height: 26,
                             decoration: BoxDecoration(
                               color: g.recuPhysiquement
-                                  ? _green.withValues(alpha: 0.1)
+                                  ? chefGreen.withValues(alpha: 0.1)
                                   : Colors.grey.shade100,
                               shape: BoxShape.circle,
                               border: Border.all(
                                 color: g.recuPhysiquement
-                                    ? _green.withValues(alpha: 0.4)
+                                    ? chefGreen.withValues(alpha: 0.4)
                                     : Colors.grey.shade300,
                               ),
                             ),
@@ -701,7 +698,7 @@ class _EvalSampleCardState extends State<_EvalSampleCard> {
                                   : Icons.check_circle_outline,
                               size: 14,
                               color: g.recuPhysiquement
-                                  ? _green
+                                  ? chefGreen
                                   : Colors.grey.shade400,
                             ),
                           ),
@@ -823,7 +820,7 @@ class _DetailCell extends StatelessWidget {
         style: const TextStyle(
           fontSize: 13,
           fontWeight: FontWeight.w600,
-          color: _dark,
+          color: chefDark,
         ),
       ),
     ],
@@ -840,7 +837,7 @@ class _ReceptionDetailCell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = recu ? _green : Colors.grey.shade400;
+    final color = recu ? chefGreen : Colors.grey.shade400;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -879,7 +876,7 @@ class _ReceptionDetailCell extends StatelessWidget {
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: recu ? _dark : Colors.grey.shade400,
+                color: recu ? chefDark : Colors.grey.shade400,
               ),
             ),
           ],
@@ -1023,7 +1020,7 @@ class _EvalTasterList extends StatelessWidget {
                     style: const TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
-                      color: _dark,
+                      color: chefDark,
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -1051,10 +1048,10 @@ class _EvalTasterList extends StatelessWidget {
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color: _green.withValues(alpha: 0.07),
+                        color: chefGreen.withValues(alpha: 0.07),
                         borderRadius: BorderRadius.circular(6),
                         border: Border.all(
-                          color: _green.withValues(alpha: 0.2),
+                          color: chefGreen.withValues(alpha: 0.2),
                         ),
                       ),
                       child: const Text(
@@ -1062,7 +1059,7 @@ class _EvalTasterList extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w700,
-                          color: _green,
+                          color: chefGreen,
                         ),
                       ),
                     ),
@@ -1109,7 +1106,7 @@ class _ClassBadge extends StatelessWidget {
 Color _classColorForStr(String c) {
   switch (c) {
     case 'Extra Vierge':
-      return _green;
+      return chefGreen;
     case 'Vierge':
       return const Color(0xFFD07B2F);
     default:

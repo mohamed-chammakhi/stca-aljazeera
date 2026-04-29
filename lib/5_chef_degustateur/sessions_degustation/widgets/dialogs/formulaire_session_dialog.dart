@@ -8,13 +8,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../models/session_degustation.dart';
+import '../../../widgets/chef_colors.dart';
 
-const Color _green = Color(0xFF38835A);
-const Color _dark = Color(0xFF1A2E1F);
 const Color _fieldFill = Color(0xFFF7FAF8);
-
-// Section accent colors
-const Color _sectionSession = Color(0xFF38835A); // green
 
 // ─────────────────────────────────────────────────────────────────────────────
 // MOCK PANEL MEMBERS  (TODO: replace with API call / injected list)
@@ -81,14 +77,14 @@ Future<TimeOfDay?> _showScrollTimeSheet(
             const SizedBox(height: 14),
             Row(
               children: [
-                const Icon(Icons.access_time_outlined, color: _green, size: 18),
+                const Icon(Icons.access_time_outlined, color: chefGreen, size: 18),
                 const SizedBox(width: 8),
                 const Text(
                   "Heure de la session",
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
-                    color: _dark,
+                    color: chefDark,
                   ),
                 ),
               ],
@@ -103,9 +99,9 @@ Future<TimeOfDay?> _showScrollTimeSheet(
                     height: 44,
                     margin: const EdgeInsets.symmetric(horizontal: 6),
                     decoration: BoxDecoration(
-                      color: _green.withValues(alpha: 0.08),
+                      color: chefGreen.withValues(alpha: 0.08),
                       borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: _green.withValues(alpha: 0.18)),
+                      border: Border.all(color: chefGreen.withValues(alpha: 0.18)),
                     ),
                   ),
                   Row(
@@ -133,7 +129,7 @@ Future<TimeOfDay?> _showScrollTimeSheet(
                                       ? FontWeight.w700
                                       : FontWeight.w400,
                                   color: i == selectedPeriod
-                                      ? _dark
+                                      ? chefDark
                                       : Colors.grey.shade400,
                                 ),
                               ),
@@ -167,7 +163,7 @@ Future<TimeOfDay?> _showScrollTimeSheet(
                                         ? FontWeight.w700
                                         : FontWeight.w400,
                                     color: sel
-                                        ? _dark
+                                        ? chefDark
                                         : Colors.grey.shade400,
                                   ),
                                 ),
@@ -181,7 +177,7 @@ Future<TimeOfDay?> _showScrollTimeSheet(
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w700,
-                          color: _dark,
+                          color: chefDark,
                         ),
                       ),
                       // Minutes
@@ -210,7 +206,7 @@ Future<TimeOfDay?> _showScrollTimeSheet(
                                         ? FontWeight.w700
                                         : FontWeight.w400,
                                     color: sel
-                                        ? _dark
+                                        ? chefDark
                                         : Colors.grey.shade400,
                                   ),
                                 ),
@@ -237,7 +233,7 @@ Future<TimeOfDay?> _showScrollTimeSheet(
                   );
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: _green,
+                  backgroundColor: chefGreen,
                   foregroundColor: Colors.white,
                   elevation: 0,
                   padding: const EdgeInsets.symmetric(vertical: 13),
@@ -355,9 +351,9 @@ Future<void> showFormulaireSessionDialog(
             builder: (c, child) => Theme(
               data: Theme.of(c).copyWith(
                 colorScheme: const ColorScheme.light(
-                  primary: _green,
+                  primary: chefGreen,
                   onPrimary: Colors.white,
-                  onSurface: _dark,
+                  onSurface: chefDark,
                 ),
               ),
               child: child!,
@@ -405,7 +401,7 @@ Future<void> showFormulaireSessionDialog(
                       children: [
                         const Icon(
                           Icons.group_outlined,
-                          color: _green,
+                          color: chefGreen,
                           size: 18,
                         ),
                         const SizedBox(width: 8),
@@ -414,7 +410,7 @@ Future<void> showFormulaireSessionDialog(
                           style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w700,
-                            color: _dark,
+                            color: chefDark,
                           ),
                         ),
                       ],
@@ -444,11 +440,11 @@ Future<void> showFormulaireSessionDialog(
                                 height: 22,
                                 decoration: BoxDecoration(
                                   color: selected
-                                      ? _green
+                                      ? chefGreen
                                       : Colors.transparent,
                                   border: Border.all(
                                     color: selected
-                                        ? _green
+                                        ? chefGreen
                                         : Colors.grey.shade400,
                                     width: 1.8,
                                   ),
@@ -470,7 +466,7 @@ Future<void> showFormulaireSessionDialog(
                                   fontWeight: selected
                                       ? FontWeight.w600
                                       : FontWeight.w400,
-                                  color: _dark,
+                                  color: chefDark,
                                 ),
                               ),
                             ],
@@ -489,7 +485,7 @@ Future<void> showFormulaireSessionDialog(
                         color: const Color(0xFFF0F7F3),
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
-                          color: _green.withValues(alpha: 0.18),
+                          color: chefGreen.withValues(alpha: 0.18),
                         ),
                       ),
                       child: Row(
@@ -498,7 +494,7 @@ Future<void> showFormulaireSessionDialog(
                           Icon(
                             Icons.info_outline,
                             size: 14,
-                            color: _green.withValues(alpha: 0.7),
+                            color: chefGreen.withValues(alpha: 0.7),
                           ),
                           const SizedBox(width: 7),
                           const Expanded(
@@ -524,7 +520,7 @@ Future<void> showFormulaireSessionDialog(
                           Navigator.pop(ctx);
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: _green,
+                          backgroundColor: chefGreen,
                           foregroundColor: Colors.white,
                           elevation: 0,
                           padding: const EdgeInsets.symmetric(vertical: 13),
@@ -651,7 +647,7 @@ Future<void> showFormulaireSessionDialog(
                         width: 3,
                         height: 22,
                         decoration: BoxDecoration(
-                          color: _green,
+                          color: chefGreen,
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
@@ -661,7 +657,7 @@ Future<void> showFormulaireSessionDialog(
                         style: GoogleFonts.domine(
                           fontSize: 17,
                           fontWeight: FontWeight.w700,
-                          color: _dark,
+                          color: chefDark,
                         ),
                       ),
                     ],
@@ -670,7 +666,7 @@ Future<void> showFormulaireSessionDialog(
                   const SizedBox(height: 22),
 
                   // ── Titre ─────────────────────────────────────────────
-                  _FieldLabel('Titre de la session *', _sectionSession),
+                  _FieldLabel('Titre de la session *', chefGreen),
                   _Field(
                     controller: titreCtrl,
                     hint: 'Ex : Session Chemlali - Lot A',
@@ -686,7 +682,7 @@ Future<void> showFormulaireSessionDialog(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            _FieldLabel('Date *', _sectionSession),
+                            _FieldLabel('Date *', chefGreen),
                             _PickerButton(
                               icon: Icons.calendar_today_outlined,
                               label: pickedDate != null
@@ -704,7 +700,7 @@ Future<void> showFormulaireSessionDialog(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            _FieldLabel('Heure *', _sectionSession),
+                            _FieldLabel('Heure *', chefGreen),
                             _PickerButton(
                               icon: Icons.access_time_outlined,
                               label: pickedTime != null
@@ -722,7 +718,7 @@ Future<void> showFormulaireSessionDialog(
                   const SizedBox(height: 18),
 
                   // ── Lieu ──────────────────────────────────────────────
-                  _FieldLabel('Salle / Emplacement *', _sectionSession),
+                  _FieldLabel('Salle / Emplacement *', chefGreen),
                   _Field(
                     controller: lieuCtrl,
                     hint: 'Ex : Salle de dégustation A',
@@ -733,7 +729,7 @@ Future<void> showFormulaireSessionDialog(
                   // ── Nombre d'échantillons ─────────────────────────────
                   _FieldLabel(
                     'Nombre d\'échantillons (optionnel)',
-                    _sectionSession,
+                    chefGreen,
                   ),
                   _Field(
                     controller: nbEchantillonsCtrl,
@@ -744,7 +740,7 @@ Future<void> showFormulaireSessionDialog(
                   const SizedBox(height: 18),
 
                   // ── Notes ─────────────────────────────────────────────
-                  _FieldLabel('Notes (optionnel)', _sectionSession),
+                  _FieldLabel('Notes (optionnel)', chefGreen),
                   _Field(
                     controller: notesCtrl,
                     hint: 'Remarques, instructions, matériel…',
@@ -754,7 +750,7 @@ Future<void> showFormulaireSessionDialog(
                   const SizedBox(height: 18),
 
                   // ── Participants ──────────────────────────────────────
-                  _FieldLabel('Participants (optionnel)', _sectionSession),
+                  _FieldLabel('Participants (optionnel)', chefGreen),
                   _PickerButton(
                     icon: Icons.group_outlined,
                     label: selectedParticipantIds.isEmpty
@@ -775,10 +771,10 @@ Future<void> showFormulaireSessionDialog(
                         return Container(
                           padding: const EdgeInsets.fromLTRB(10, 5, 6, 5),
                           decoration: BoxDecoration(
-                            color: _green.withValues(alpha: 0.08),
+                            color: chefGreen.withValues(alpha: 0.08),
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(
-                              color: _green.withValues(alpha: 0.22),
+                              color: chefGreen.withValues(alpha: 0.22),
                             ),
                           ),
                           child: Row(
@@ -789,7 +785,7 @@ Future<void> showFormulaireSessionDialog(
                                 style: const TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w600,
-                                  color: _dark,
+                                  color: chefDark,
                                 ),
                               ),
                               const SizedBox(width: 4),
@@ -819,8 +815,8 @@ Future<void> showFormulaireSessionDialog(
                         child: OutlinedButton(
                           onPressed: () => Navigator.pop(ctx),
                           style: OutlinedButton.styleFrom(
-                            foregroundColor: _green,
-                            side: const BorderSide(color: _green),
+                            foregroundColor: chefGreen,
+                            side: const BorderSide(color: chefGreen),
                             padding: const EdgeInsets.symmetric(vertical: 13),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
@@ -837,7 +833,7 @@ Future<void> showFormulaireSessionDialog(
                         child: ElevatedButton(
                           onPressed: handleSave,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: _green,
+                            backgroundColor: chefGreen,
                             foregroundColor: Colors.white,
                             elevation: 0,
                             padding: const EdgeInsets.symmetric(vertical: 13),
@@ -894,7 +890,7 @@ class _PickerButton extends StatelessWidget {
           Icon(
             icon,
             size: 16,
-            color: isEmpty ? Colors.grey.shade400 : _green,
+            color: isEmpty ? Colors.grey.shade400 : chefGreen,
           ),
           const SizedBox(width: 8),
           Expanded(
@@ -903,7 +899,7 @@ class _PickerButton extends StatelessWidget {
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: isEmpty ? FontWeight.w400 : FontWeight.w600,
-                color: isEmpty ? Colors.grey.shade400 : _dark,
+                color: isEmpty ? Colors.grey.shade400 : chefDark,
               ),
               overflow: TextOverflow.ellipsis,
             ),
@@ -956,7 +952,7 @@ class _Field extends StatelessWidget {
     keyboardType: keyboardType,
     maxLines: maxLines,
     onChanged: onChanged,
-    style: const TextStyle(fontSize: 14, color: _dark),
+    style: const TextStyle(fontSize: 14, color: chefDark),
     decoration: InputDecoration(
       hintText: hint,
       hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 13),
@@ -973,7 +969,7 @@ class _Field extends StatelessWidget {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
-        borderSide: const BorderSide(color: _green, width: 1.8),
+        borderSide: const BorderSide(color: chefGreen, width: 1.8),
       ),
     ),
   );
