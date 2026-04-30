@@ -22,7 +22,7 @@ class EchantillonsLaboPage extends StatefulWidget {
   State<EchantillonsLaboPage> createState() => _EchantillonsLaboPageState();
 }
 
-class _EchantillonsLaboPageState extends State<EchantillonsLaboPage> {
+class _EchantillonsLaboPageState extends State<EchantillonsLaboPage> with LaboNavMixin {
   final _service = LaboService();
   final TextEditingController _searchCtrl = TextEditingController();
   String _recherche = '';

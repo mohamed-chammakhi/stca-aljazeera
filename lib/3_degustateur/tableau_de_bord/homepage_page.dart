@@ -35,7 +35,7 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends State<HomePage> with DegustateurNavMixin {
   // ── Notifications ─────────────────────────────────────────────────────────
   final _notifService = NotificationDegustateurService();
   int _unreadCount = 0;

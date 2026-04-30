@@ -6,6 +6,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'models/analyse_labo.dart';
+import 'services/analyse_labo_chef_service.dart';
 import '../widgets/statut_chip.dart';
 import 'widgets/analyse_card.dart';
 import 'widgets/dialogs/formulaire_analyse_dialog.dart';

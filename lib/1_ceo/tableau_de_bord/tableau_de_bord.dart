@@ -12,7 +12,7 @@ import '../utilisateurs/widgets/utilisateurs_ceo_page.dart';
 import '../notifications/models/notification_ceo.dart';
 import '../notifications/services/notification_ceo_service.dart';
 import '../notifications/notifications_ceo_page.dart';
-import '../../3_degustateur/gestion_echantillons/widgets/search_filter_bar.dart';
+import '../../core/widgets/search_filter_bar.dart';
 import 'models/dashboard_models.dart';
 import 'widgets/kpi_grid_card.dart';
 import 'widgets/pipeline_card.dart';
@@ -27,6 +27,8 @@ import 'widgets/map_cta_card.dart';
 // ── Design tokens ─────────────────────────────────────────────────────────────
 const Color _pageBg = Color(0xFFF2F4F2);
 const Color _white = Color(0xFFFFFFFF);
+const Color _dark = Color(0xFF1A2E1F);
+const Color _green = Color(0xFF38835A);
 
 // ─────────────────────────────────────────────────────────────────────────────
 class HomePageCeo extends StatefulWidget {

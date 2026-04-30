@@ -10,6 +10,8 @@ import '../../../../core/models/enums.dart';
 import '../../widgets/chef_colors.dart';
 
 const Color _olive = Color(0xFF6B8143);
+const Color _green = Color(0xFF38835A);
+const Color _dark = Color(0xFF1A2E1F);
 
 // ── Status palette ────────────────────────────────────────────────────────────
 Color _statusColor(StatutDegustateur? s) {

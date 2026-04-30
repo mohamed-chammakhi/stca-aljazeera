@@ -15,6 +15,7 @@ import 'package:flutter/services.dart';
 import '../../../analyse_labo.dart';
 import '../../models/echantillon_labo.dart';
 import 'formulaire_analyse_labo_dialog.dart';
+import '../../../../../core/theme/app_colors.dart';
 
 // Scan dialog uses a blue accent distinct from the brand green.
 const Color _blue = Color(0xFF1565C0);

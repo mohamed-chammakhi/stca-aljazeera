@@ -21,8 +21,10 @@ import '../widgets/search_date_filter_bar.dart';
 import '../widgets/sample_card_echantillon.dart';
 import '../widgets/base_sample_card.dart';
 import '../widgets/status_filter_chip.dart';
+import 'widgets/rapport_section.dart';
 
 const Color _teal = Color(0xFF00796B);
+const Color _dark = Color(0xFF1A2E1F);
 
 // ─────────────────────────────────────────────────────────────────────────────
 class AnalyseLaboratoireCeoPage extends StatefulWidget {

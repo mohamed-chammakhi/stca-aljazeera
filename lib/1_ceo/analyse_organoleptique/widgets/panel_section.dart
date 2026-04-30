@@ -5,15 +5,15 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:project3/core/theme/app_colors.dart';
-import '../utilisateurs/models/echantillon_ceo_view.dart';
-import '../widgets/shared_evaluation_form_sheet.dart';
+import '../../utilisateurs/models/echantillon_ceo_view.dart';
+import '../../widgets/shared_evaluation_form_sheet.dart';
 import '../models/sample_status.dart';
 import 'panel_widgets.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PANEL SECTION  — bottom slot for organoleptique cards
 // ─────────────────────────────────────────────────────────────────────────────
-class _PanelSection extends StatelessWidget {
+class PanelSection extends StatelessWidget {
   final EchantillonCeoView echantillon;
   final bool isExpanded;
   final VoidCallback onToggle;
@@ -23,7 +23,8 @@ class _PanelSection extends StatelessWidget {
   final bool isUrgent;
   final VoidCallback onUrgent;
 
-  const _PanelSection({
+  const PanelSection({
+    super.key,
     required this.echantillon,
     required this.isExpanded,
     required this.onToggle,
@@ -38,7 +39,6 @@ class _PanelSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final e = echantillon;
 
-    // Active state for each action
     final approved =
         e.statut == StatutCeo.enNegociation ||
         e.statut == StatutCeo.achatConfirme;
@@ -47,7 +47,6 @@ class _PanelSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // ── Row 1: decision buttons + classification badge + chevron ─────
         GestureDetector(
           onTap: onToggle,
           behavior: HitTestBehavior.opaque,
@@ -55,7 +54,7 @@ class _PanelSection extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(14, 11, 14, 10),
             child: Row(
               children: [
-                _DecisionButton(
+                DecisionButton(
                   label: 'Approuver',
                   active: approved,
                   dimmed: refused,
@@ -63,7 +62,7 @@ class _PanelSection extends StatelessWidget {
                   onTap: onApprouver,
                 ),
                 const SizedBox(width: 6),
-                _DecisionButton(
+                DecisionButton(
                   label: 'Refuser',
                   active: refused,
                   dimmed: approved,
@@ -71,7 +70,6 @@ class _PanelSection extends StatelessWidget {
                   onTap: onRefuser,
                 ),
                 const Spacer(),
-                // ── Urgent notification button ────────────────────────
                 GestureDetector(
                   onTap: onUrgent,
                   child: AnimatedContainer(
@@ -135,11 +133,9 @@ class _PanelSection extends StatelessWidget {
             ),
           ),
         ),
-
-        // ── Expandable taster list ────────────────────────────────────────
         AnimatedCrossFade(
           firstChild: const SizedBox.shrink(),
-          secondChild: _PanelList(echantillon: e, onViewForm: onViewForm),
+          secondChild: PanelList(echantillon: e, onViewForm: onViewForm),
           crossFadeState: isExpanded
               ? CrossFadeState.showSecond
               : CrossFadeState.showFirst,

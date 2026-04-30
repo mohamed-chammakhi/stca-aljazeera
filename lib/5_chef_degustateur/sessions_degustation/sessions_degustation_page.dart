@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'models/session_degustation.dart';
+import 'services/sessions_chef_service.dart';
 import '../widgets/statut_chip.dart';
 import 'widgets/session_card.dart';
 import 'widgets/dialogs/formulaire_session_dialog.dart';

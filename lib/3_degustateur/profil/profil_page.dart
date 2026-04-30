@@ -232,8 +232,8 @@ class _ProfilePageState extends State<ProfilePage>
                   height: 120,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: green.withValues(alpha:0.2),
-                    border: Border.all(color: green, width: 3),
+                    color: kGreen.withValues(alpha:0.2),
+                    border: Border.all(color: kGreen, width: 3),
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(60),
@@ -254,7 +254,7 @@ class _ProfilePageState extends State<ProfilePage>
                         border: Border.all(color: Colors.white, width: 2.5),
                         boxShadow: [
                           BoxShadow(
-                            color: green.withValues(alpha:0.4),
+                            color: kGreen.withValues(alpha:0.4),
                             blurRadius: 6,
                             offset: const Offset(0, 2),
                           ),
@@ -292,7 +292,7 @@ class _ProfilePageState extends State<ProfilePage>
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: green.withValues(alpha:0.08),
+                    color: kGreen.withValues(alpha:0.08),
                     blurRadius: 20,
                     offset: const Offset(0, 4),
                   ),
@@ -412,7 +412,7 @@ class _ProfilePageState extends State<ProfilePage>
               icon: Container(
                 padding: const EdgeInsets.all(5),
                 decoration: BoxDecoration(
-                  color: isEditing ? green : green.withValues(alpha:0.12),
+                  color: isEditing ? kGreen : kGreen.withValues(alpha:0.12),
                   borderRadius: BorderRadius.circular(7),
                 ),
                 child: Icon(
@@ -436,7 +436,7 @@ class _ProfilePageState extends State<ProfilePage>
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: isEditing
-                  ? BorderSide(color: green.withValues(alpha:0.5), width: 1.5)
+                  ? BorderSide(color: kGreen.withValues(alpha:0.5), width: 1.5)
                   : BorderSide(color: Colors.grey.shade200),
             ),
             focusedBorder: OutlineInputBorder(

@@ -18,7 +18,6 @@ import '../sessions_degustation/sessions_degustation_page.dart';
 import '../analyse_labo/analyse_laboratoire_page.dart';
 import '../tableau_de_bord/homepage_page.dart';
 import '../widgets/deg_colors.dart';
-import '../widgets/nav_mixin.dart';
 
 const Color _green = Color(0xFF38835A);
 const Color _darkText = Color(0xFF1A2E1F);
@@ -180,12 +179,12 @@ class _MembresPanelPageState extends State<MembresPanelPage>
         onaccueil: () => goToPage(const HomePage()),
 
         onEvaluationEchantillons: () =>
-            _goTo(const EvaluationEchantillonsPage()),
-        onGestionEchantillons: () => _goTo(const GestionEchantillonsPage()),
-        onAnalyseLaboratoire: () => _goTo(const AnalyseLaboratoirePage()),
-        onSessionsDegustationPage: () => _goTo(const SessionsDegustationPage()),
-        onMembredupanel: () => _goTo(const MembresPanelPage()),
-        onProfil: () => _goTo(const ProfilePage()),
+            goToPage(const EvaluationEchantillonsPage()),
+        onGestionEchantillons: () => goToPage(const GestionEchantillonsPage()),
+        onAnalyseLaboratoire: () => goToPage(const AnalyseLaboratoirePage()),
+        onSessionsDegustationPage: () => goToPage(const SessionsDegustationPage()),
+        onMembredupanel: () => goToPage(const MembresPanelPage()),
+        onProfil: () => goToPage(const ProfilePage()),
 
         onDeconnexion: goToLogin,
       ),

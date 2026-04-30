@@ -41,10 +41,10 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage> with CeoNavMi
   // ── Role accent colors ─────────────────────────────────────────────────────
   // CEO → blue, Laboratoire → orange, Dégustateur → kGreen, Collecteur → pink
   static const _roleColors = {
-    UserRole.direction: (kBg: Color(0xFFE6F1FB), fg: Color(0xFF185FA5)),
-    UserRole.laboratoire: (kBg: Color(0xFFFAEEDA), fg: Color(0xFF854F0B)),
-    UserRole.degustateur: (kBg: Color(0xFFE1F5EE), fg: Color(0xFF0F6E56)),
-    UserRole.collecteur: (kBg: Color(0xFFFBEAF0), fg: Color(0xFF993556)),
+    UserRole.direction: (bg: Color(0xFFE6F1FB), fg: Color(0xFF185FA5)),
+    UserRole.laboratoire: (bg: Color(0xFFFAEEDA), fg: Color(0xFF854F0B)),
+    UserRole.degustateur: (bg: Color(0xFFE1F5EE), fg: Color(0xFF0F6E56)),
+    UserRole.collecteur: (bg: Color(0xFFFBEAF0), fg: Color(0xFF993556)),
   };
 
   // ── Data ──────────────────────────────────────────────────────────────────
@@ -194,8 +194,8 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage> with CeoNavMi
                     itemCount: filtered.length,
                     itemBuilder: (_, i) => UserCard(
                       user: filtered[i],
-                      kGreen: kGreen,
-                      kDark: kDark,
+                      green: kGreen,
+                      darkText: kDark,
                       roleColors: _roleColors,
                       onToggleStatus: () => _confirmToggleStatus(filtered[i]),
                       onDelete: () => _confirmDelete(filtered[i]),
@@ -439,7 +439,7 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage> with CeoNavMi
                 children: [
                   CircleAvatar(
                     radius: 30,
-                    backgroundColor: colors.kBg,
+                    backgroundColor: colors.bg,
                     child: Text(
                       user.initiales,
                       style: TextStyle(
@@ -469,7 +469,7 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage> with CeoNavMi
                             vertical: 3,
                           ),
                           decoration: BoxDecoration(
-                            color: colors.kBg,
+                            color: colors.bg,
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
@@ -681,7 +681,7 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage> with CeoNavMi
                                 ),
                                 decoration: BoxDecoration(
                                   color: isSelected
-                                      ? roleC.kBg
+                                      ? roleC.bg
                                       : const Color(0xFFF5F5F5),
                                   borderRadius: BorderRadius.circular(20),
                                   border: Border.all(

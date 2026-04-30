@@ -8,13 +8,12 @@ import 'package:google_fonts/google_fonts.dart';
 import 'models/analyse_labo.dart';
 import 'services/analyse_labo_service.dart';
 import 'widgets/analyse_card.dart';
-import '../gestion_echantillons/widgets/search_filter_bar.dart';
+import '../../../core/widgets/search_filter_bar.dart';
 import '../../../core/widgets/statut_chip.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/date_utils.dart';
 import '../widgets/degustateur_nav_mixin.dart';
 import '../tableau_de_bord/homepage_page.dart';
-// app-wide imports
 import '../profil/profil_page.dart';
 import '../tableau_de_bord/widgets/app_drawer.dart';
 import '../membres_panel/membres_panel_page.dart';
@@ -22,8 +21,6 @@ import '../gestion_echantillons/gestion_echantillons_page.dart';
 import '../evaluation_echantillons/evaluation_echantillons_page.dart';
 import '../sessions_degustation/sessions_degustation_page.dart';
 import '../widgets/deg_colors.dart';
-import '../widgets/nav_mixin.dart';
-import '../../../core/utils/date_utils.dart';
 
 class AnalyseLaboratoirePage extends StatefulWidget {
   const AnalyseLaboratoirePage({super.key});

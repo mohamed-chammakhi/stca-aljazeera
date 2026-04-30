@@ -1,14 +1,34 @@
 import 'package:flutter/material.dart';
+import 'package:fl_chart/fl_chart.dart';
 
 import '../models/dashboard_degustateur.dart';
 import '../services/dashboard_degustateur_service.dart';
 import '../../../../core/widgets/search_filter_bar.dart';
+import '../../evaluation_echantillons/evaluation_echantillons_page.dart';
 import 'home_activite_section.dart';
 import 'home_classifications_section.dart';
 import 'home_delai_section.dart';
 import 'home_presence_section.dart';
 import 'home_pipeline_section.dart';
 import 'home_urgentes_section.dart';
+
+const Color _green = Color(0xFF38835A);
+const Color _dark = Color(0xFF1A2E1F);
+const Color _white = Color(0xFFFFFFFF);
+const Color _headerBg = Color.fromARGB(255, 220, 233, 226);
+const Color _amber = Color(0xFFD07B2F);
+const Color _blue = Color(0xFF3A6EA5);
+const Color _red = Color(0xFFC0392B);
+const Color _purple = Color(0xFF7B3FC4);
+const Color _olive = Color(0xFF6B8143);
+
+const List<String> _moisAbr = [
+  'Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun',
+  'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc',
+];
+
+String _fmtDate(DateTime d) =>
+    '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}';
 
 class HomeBody extends StatefulWidget {
   const HomeBody({super.key});
@@ -221,6 +241,132 @@ class _HomeBodyState extends State<HomeBody> {
     },
   );
 
+  void _openDelaiDateSheet() => _openDateSheet(
+    titre: 'Délai de soumission — période',
+    dateDebut: _delaiDateDebut,
+    dateFin: _delaiDateFin,
+    periodOnly: true,
+    onApply: (debut, fin) {
+      setState(() {
+        _delaiDateDebut = debut;
+        _delaiDateFin = fin ?? debut;
+      });
+      _reloadDelai();
+    },
+    onClear: () {
+      setState(() {
+        _delaiDateDebut = DateTime(DateTime.now().year, 1, 1);
+        _delaiDateFin = DateTime.now();
+      });
+      _reloadDelai();
+    },
+  );
+
+  void _openActDateSheet() => _openDateSheet(
+    titre: "Filtrer l'activité",
+    dateDebut: _actDateDebut,
+    dateFin: _actDateFin,
+    periodOnly: false,
+    onApply: (d, f) {
+      setState(() {
+        _actDateDebut = d;
+        _actDateFin = f;
+      });
+      _reloadActivite();
+    },
+    onClear: () {
+      setState(() {
+        _actDateDebut = null;
+        _actDateFin = null;
+      });
+      _reloadActivite();
+    },
+  );
+
+  Widget _sectionBar({
+    required String title,
+    required IconData icon,
+    DateTime? dateDebut,
+    DateTime? dateFin,
+    VoidCallback? onDateTap,
+  }) {
+    final active = dateDebut != null;
+    return Container(
+      color: _headerBg,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      child: Row(
+        children: [
+          Container(
+            width: 3,
+            height: 16,
+            decoration: BoxDecoration(
+              color: _green,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(width: 7),
+          Icon(icon, size: 13, color: _dark),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Text(
+              title,
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: _dark,
+              ),
+            ),
+          ),
+          if (onDateTap != null)
+            GestureDetector(
+              onTap: onDateTap,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: active
+                      ? _green.withValues(alpha: 0.08)
+                      : const Color(0xFFF0F2F1),
+                  borderRadius: BorderRadius.circular(7),
+                  border: Border.all(
+                    color: active
+                        ? _green.withValues(alpha: 0.25)
+                        : const Color(0xFFE8EAE8),
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.calendar_today_outlined,
+                      size: 10,
+                      color: active ? _green : _dark,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      active
+                          ? _chipLabel(debut: dateDebut, fin: dateFin)
+                          : 'Période',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                        color: active ? _green : _dark,
+                      ),
+                    ),
+                    const SizedBox(width: 2),
+                    Icon(
+                      Icons.keyboard_arrow_down_rounded,
+                      size: 12,
+                      color: active ? _green : _dark,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
   // ── Shared card shell ─────────────────────────────────────────────────────
   Widget _fixedCard({
     required double height,
@@ -250,7 +396,7 @@ class _HomeBodyState extends State<HomeBody> {
             child: body,
           ),
         ),
-        ?footer,
+        if (footer != null) footer,
       ],
     ),
   );
@@ -667,7 +813,13 @@ class _HomeBodyState extends State<HomeBody> {
   }
 
   Widget _ignoreButton({required VoidCallback onConfirm}) =>
-      _IgnoreButton(onConfirm: onConfirm);
+      GestureDetector(
+        onTap: onConfirm,
+        child: Padding(
+          padding: const EdgeInsets.all(6),
+          child: Icon(Icons.visibility_off_outlined, size: 16, color: Colors.grey.shade400),
+        ),
+      );
 
   // ── 3. PRESENCE ───────────────────────────────────────────────────────────
   Widget _buildPresence() {
@@ -1387,24 +1539,7 @@ class _HomeBodyState extends State<HomeBody> {
             icon: Icons.access_time_outlined,
             dateDebut: _actDateDebut,
             dateFin: _actDateFin,
-            onDateTap: () => _openDateSheet(
-              titre: "Filtrer l'activité",
-              dateDebut: _actDateDebut,
-              dateFin: _actDateFin,
-              showClearConfirm: _showClearConfirm,
-              onDateTap: _openActDateSheet,
-              onLoadMore: _loadMoreActivite,
-              onRequestClearConfirm: () =>
-                  setState(() => _showClearConfirm = true),
-              onClearConfirm: () {
-                setState(() {
-                  _actDateDebut = null;
-                  _actDateFin = null;
-                  _showClearConfirm = false;
-                });
-                _reloadActivite();
-              },
-            ),
+            onDateTap: _openActDateSheet,
           ),
           if (_actDateDebut != null)
             Container(
@@ -1610,19 +1745,56 @@ class _HomeBodyState extends State<HomeBody> {
             ),
           ],
         ),
-        if (_showClearConfirm)
-          HomeActiviteClearConfirmDialog(
-            onCancel: () => setState(() => _showClearConfirm = false),
-            onConfirm: () {
-              setState(() {
-                _actDateDebut = null;
-                _actDateFin = null;
-                _showClearConfirm = false;
-              });
-              _reloadActivite();
-            },
-          ),
-      ],
-    );
+        child: HomeActiviteClearConfirmDialog(
+          onCancel: () => setState(() => _showClearConfirm = false),
+          onConfirm: () {
+            setState(() {
+              _actDateDebut = null;
+              _actDateFin = null;
+              _showClearConfirm = false;
+            });
+            _reloadActivite();
+          },
+        ),
+      ),
+    ),
+  );
+}
+
+class _DonutPainter extends CustomPainter {
+  final double value;
+  const _DonutPainter({required this.value});
+  @override
+  void paint(Canvas canvas, Size size) {
+    final bg = Paint()
+      ..color = const Color(0xFFE8EAE8)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 10;
+    final fg = Paint()
+      ..color = _green
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 10
+      ..strokeCap = StrokeCap.round;
+    final rect = Rect.fromCircle(center: size.center(Offset.zero), radius: size.width / 2 - 5);
+    canvas.drawArc(rect, -1.5708, 6.2832, false, bg);
+    canvas.drawArc(rect, -1.5708, 6.2832 * value.clamp(0, 1), false, fg);
   }
+  @override
+  bool shouldRepaint(_DonutPainter old) => old.value != value;
+}
+
+class _DashPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = const Color(0xFFB8DCC8)
+      ..strokeWidth = 1.5;
+    double x = 0;
+    while (x < size.width) {
+      canvas.drawLine(Offset(x, size.height / 2), Offset(x + 4, size.height / 2), paint);
+      x += 9;
+    }
+  }
+  @override
+  bool shouldRepaint(_DashPainter old) => false;
 }

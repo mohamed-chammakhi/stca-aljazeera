@@ -186,9 +186,9 @@ class _ProfilLaboPageState extends State<ProfilLaboPage> with LaboNavMixin {
     return Scaffold(
       backgroundColor: Colors.white,
       drawer: LaboDrawer(
-        onEchantillons: () => _goTo(const EchantillonsLaboPage()),
-        onProfil: () => _goTo(const ProfilLaboPage()),
-        onDeconnexion: _goToLogin,
+        onEchantillons: () => goToPage(const EchantillonsLaboPage()),
+        onProfil: () => goToPage(const ProfilLaboPage()),
+        onDeconnexion: goToLogin,
       ),
       appBar: AppBar(
         backgroundColor: kHeaderBg,
@@ -453,7 +453,7 @@ class _ProfilLaboPageState extends State<ProfilLaboPage> with LaboNavMixin {
       style: GoogleFonts.domine(
         fontSize: 18,
         fontWeight: FontWeight.w700,
-        color: darkText,
+        color: kDark,
       ),
     );
   }

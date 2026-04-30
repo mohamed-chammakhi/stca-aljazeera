@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:fl_chart/fl_chart.dart';
 
 import '../models/dashboard_chef_degustateur.dart';
 import '../services/dashboard_chef_degustateur_service.dart';
 import '../../gestion_echantillons/widgets/search_filter_bar.dart';
+import '../../evaluation_echantillons/evaluation_echantillons_page.dart';
 import 'home_activite_section.dart';
 import 'home_alignement_section.dart';
 import 'home_classifications_section.dart';
@@ -13,6 +16,21 @@ import 'home_sessions_section.dart';
 import 'home_urgentes_section.dart';
 import 'home_shared.dart';
 import '../../widgets/chef_colors.dart';
+
+const Color _green = chefGreen;
+const Color _dark = chefDark;
+const Color _white = chefWhite;
+const Color _headerBg = chefHeaderBg;
+const Color _amber = chefAmber;
+const Color _blue = chefBlue;
+const Color _red = chefRed;
+const Color _purple = chefPurple;
+const Color _olive = chefOlive;
+
+String _fmtDate(DateTime d) =>
+    '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}';
+
+String _fmtN(int n) => n >= 1000 ? '${(n / 1000).toStringAsFixed(1)}k' : '$n';
 
 class HomeBody extends StatefulWidget {
   final VoidCallback onSimulerNotification;
@@ -182,6 +200,178 @@ class _HomeBodyState extends State<HomeBody> {
       ),
     );
   }
+
+  Widget _fixedCard({
+    required double height,
+    required Widget header,
+    required Widget body,
+    Widget? footer,
+  }) => Container(
+    height: height,
+    decoration: BoxDecoration(
+      color: _white,
+      borderRadius: BorderRadius.circular(14),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withValues(alpha: 0.04),
+          blurRadius: 8,
+          offset: const Offset(0, 2),
+        ),
+      ],
+    ),
+    clipBehavior: Clip.hardEdge,
+    child: Column(
+      children: [
+        header,
+        Expanded(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(14, 10, 14, 14),
+            child: body,
+          ),
+        ),
+        if (footer != null) footer,
+      ],
+    ),
+  );
+
+  Widget _sectionBar({
+    required String title,
+    required IconData icon,
+    DateTime? dateDebut,
+    DateTime? dateFin,
+    VoidCallback? onDateTap,
+  }) {
+    final active = dateDebut != null;
+    final chipLabel = active
+        ? '${dateDebut!.day.toString().padLeft(2,'0')}/${dateDebut.month.toString().padLeft(2,'0')}/${dateDebut.year}'
+        : 'Période';
+    return Container(
+      color: _headerBg,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      child: Row(
+        children: [
+          Container(
+            width: 3,
+            height: 16,
+            decoration: BoxDecoration(
+              color: _green,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(width: 7),
+          Icon(icon, size: 13, color: _dark),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Text(
+              title,
+              style: GoogleFonts.domine(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: _dark,
+              ),
+            ),
+          ),
+          if (onDateTap != null)
+            GestureDetector(
+              onTap: onDateTap,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: active
+                      ? _green.withValues(alpha: 0.08)
+                      : const Color(0xFFF0F2F1),
+                  borderRadius: BorderRadius.circular(7),
+                  border: Border.all(
+                    color: active
+                        ? _green.withValues(alpha: 0.25)
+                        : const Color(0xFFE8EAE8),
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.calendar_today_outlined, size: 10, color: active ? _green : _dark),
+                    const SizedBox(width: 4),
+                    Text(
+                      chipLabel,
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                        color: active ? _green : _dark,
+                      ),
+                    ),
+                    const SizedBox(width: 2),
+                    Icon(Icons.keyboard_arrow_down_rounded, size: 12, color: active ? _green : _dark),
+                  ],
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildScrollableRows<T>({
+    required List<T> items,
+    required double Function(T) getValue,
+    required double Function(T) getMax,
+    required Color Function(T) getColor,
+    required String Function(T) getLabel,
+    required String Function(T) getName,
+  }) {
+    return SingleChildScrollView(
+      child: Column(
+        children: items.map((item) {
+          final value = getValue(item);
+          final max = getMax(item);
+          final color = getColor(item);
+          final label = getLabel(item);
+          final name = getName(item);
+          final pct = max > 0 ? (value / max).clamp(0.0, 1.0) : 0.0;
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 90,
+                  child: Text(
+                    name,
+                    style: const TextStyle(fontSize: 11, color: Color(0xFF777777)),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(3),
+                    child: LinearProgressIndicator(
+                      value: pct,
+                      backgroundColor: color.withValues(alpha: 0.12),
+                      valueColor: AlwaysStoppedAnimation(color),
+                      minHeight: 8,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  label,
+                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: color),
+                ),
+              ],
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  Widget _IgnoreButton({required VoidCallback onConfirm}) => GestureDetector(
+    onTap: onConfirm,
+    child: Padding(
+      padding: const EdgeInsets.all(6),
+      child: Icon(Icons.visibility_off_outlined, size: 16, color: Colors.grey.shade400),
+    ),
+  );
 
   // ── Build ─────────────────────────────────────────────────────────────────
   @override
@@ -1820,4 +2010,26 @@ class _HomeBodyState extends State<HomeBody> {
       ),
     ),
   );
+}
+
+class _DonutPainter extends CustomPainter {
+  final double value;
+  const _DonutPainter({required this.value});
+  @override
+  void paint(Canvas canvas, Size size) {
+    final bg = Paint()
+      ..color = const Color(0xFFE8EAE8)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 10;
+    final fg = Paint()
+      ..color = chefGreen
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 10
+      ..strokeCap = StrokeCap.round;
+    final rect = Rect.fromCircle(center: size.center(Offset.zero), radius: size.width / 2 - 5);
+    canvas.drawArc(rect, -1.5708, 6.2832, false, bg);
+    canvas.drawArc(rect, -1.5708, 6.2832 * value.clamp(0, 1), false, fg);
+  }
+  @override
+  bool shouldRepaint(_DonutPainter old) => old.value != value;
 }
