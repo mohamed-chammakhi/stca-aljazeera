@@ -35,26 +35,26 @@ class NotificationDegustateur {
       );
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'type': type,
-        'titre': titre,
-        'message': message,
-        'echantillon': echantillonId,
-        'echantillon_reference': echantillonReference,
-        'section': section,
-        'is_read': isRead,
-        'date_creation': dateCreation.toIso8601String(),
-      };
+    'id': id,
+    'type': type,
+    'titre': titre,
+    'message': message,
+    'echantillon': echantillonId,
+    'echantillon_reference': echantillonReference,
+    'section': section,
+    'is_read': isRead,
+    'date_creation': dateCreation.toIso8601String(),
+  };
 
   NotificationDegustateur copyWith({bool? isRead}) => NotificationDegustateur(
-        id: id,
-        type: type,
-        titre: titre,
-        message: message,
-        echantillonId: echantillonId,
-        echantillonReference: echantillonReference,
-        section: section,
-        isRead: isRead ?? this.isRead,
-        dateCreation: dateCreation,
-      );
+    id: id,
+    type: type,
+    titre: titre,
+    message: message,
+    echantillonId: echantillonId,
+    echantillonReference: echantillonReference,
+    section: section,
+    isRead: isRead ?? this.isRead,
+    dateCreation: dateCreation,
+  );
 }

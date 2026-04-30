@@ -4,17 +4,17 @@ import '../tableau_de_bord/homepage_page.dart';
 
 import '../../../core/models/echantillon.dart';
 import '../../../core/models/enums.dart';
+import '../../../core/utils/date_utils.dart';
 import 'services/gestion_echantillons_service.dart';
 import 'widgets/echantillon_card.dart';
 import '../../../core/widgets/empty_state.dart';
 import 'widgets/dialogs/formulaire_dialog.dart';
 import 'widgets/dialogs/suppression_dialog.dart';
-import 'widgets/search_filter_bar.dart';
+import '../../../core/widgets/search_filter_bar.dart';
 import '../evaluation_echantillons/evaluation_echantillons_page.dart';
 import '../profil/profil_page.dart';
 import '../tableau_de_bord/widgets/app_drawer.dart';
 import '../membres_panel/membres_panel_page.dart';
-import '../../../main.dart';
 import '../sessions_degustation/sessions_degustation_page.dart';
 import '../analyse_labo/analyse_laboratoire_page.dart';
 import '../../../core/widgets/statut_chip.dart';
@@ -359,7 +359,7 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage>
                       ),
                       const SizedBox(width: 7),
                       StatutChip(
-                        label: '	Non évaluée',
+                        label: 'Non évaluée',
                         activeColor: const Color(0xFF3A6EA5),
                         inactiveColor: const Color(0xFFE8F1FB),
                         inactiveTextColor: const Color(0xFF3A6EA5),
@@ -380,13 +380,13 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage>
                       ),
                       const SizedBox(width: 7),
                       StatutChip(
-                        label: '	Évaluation soumise',
+                        label: 'Évaluation soumise',
                         activeColor: const Color(0xFF38835A),
                         inactiveColor: const Color(0xFFE6F4ED),
                         inactiveTextColor: const Color(0xFF38835A),
-                        selected: _filtreStatut == '	Évaluation soumise',
+                        selected: _filtreStatut == 'Évaluation soumise',
                         onTap: () => setState(
-                          () => _filtreStatut = '	Évaluation soumise',
+                          () => _filtreStatut = 'Évaluation soumise',
                         ),
                       ),
                     ],

@@ -1,20 +1,14 @@
-import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
 import '../models/dashboard_degustateur.dart';
 import '../services/dashboard_degustateur_service.dart';
-import '../../gestion_echantillons/widgets/search_filter_bar.dart';
-import '../../evaluation_echantillons/evaluation_echantillons_page.dart';
-
-const Color _green = Color(0xFF38835A);
-const Color _dark = Color(0xFF1A2E1F);
-const Color _white = Color(0xFFFFFFFF);
-const Color _amber = Color(0xFFD07B2F);
-const Color _blue = Color(0xFF3A6EA5);
-const Color _red = Color(0xFFC0392B);
-const Color _olive = Color(0xFF6B8143);
-const Color _purple = Color(0xFF7B3FC4);
-const Color _headerBg = Color(0xFFDCE9E2);
+import '../../../../core/widgets/search_filter_bar.dart';
+import 'home_activite_section.dart';
+import 'home_classifications_section.dart';
+import 'home_delai_section.dart';
+import 'home_presence_section.dart';
+import 'home_pipeline_section.dart';
+import 'home_urgentes_section.dart';
 
 class HomeBody extends StatefulWidget {
   const HomeBody({super.key});
@@ -47,21 +41,6 @@ class _HomeBodyState extends State<HomeBody> {
   DateTime? _actDateDebut;
   DateTime? _actDateFin;
   bool _showClearConfirm = false;
-
-  static const _moisAbr = [
-    'Jan',
-    'Fév',
-    'Mar',
-    'Avr',
-    'Mai',
-    'Jun',
-    'Jul',
-    'Aoû',
-    'Sep',
-    'Oct',
-    'Nov',
-    'Déc',
-  ];
 
   @override
   void initState() {
@@ -189,8 +168,26 @@ class _HomeBodyState extends State<HomeBody> {
     );
   }
 
-  String _fmtDate(DateTime d) =>
-      '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}';
+  void _openPresenceDateSheet() => _openDateSheet(
+    titre: 'Filtrer les séances',
+    dateDebut: _presDateDebut,
+    dateFin: _presDateFin,
+    periodOnly: false,
+    onApply: (d, f) {
+      setState(() {
+        _presDateDebut = d;
+        _presDateFin = f;
+      });
+      _reloadPresence();
+    },
+    onClear: () {
+      setState(() {
+        _presDateDebut = null;
+        _presDateFin = null;
+      });
+      _reloadPresence();
+    },
+  );
 
   String _chipLabel({required DateTime? debut, required DateTime? fin}) {
     if (debut == null) return '';
@@ -203,80 +200,26 @@ class _HomeBodyState extends State<HomeBody> {
     return '${debut.day} ${_moisAbr[debut.month - 1]} → ${fin.day} ${_moisAbr[fin.month - 1]}';
   }
 
-  // ── Section header bar ────────────────────────────────────────────────────
-  Widget _sectionBar({
-    required String title,
-    required IconData icon,
-    DateTime? dateDebut,
-    DateTime? dateFin,
-    VoidCallback? onDateTap,
-  }) {
-    final active = dateDebut != null;
-    return Container(
-      color: _headerBg,
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      child: Row(
-        children: [
-          Container(
-            width: 3,
-            height: 16,
-            decoration: BoxDecoration(
-              color: _green,
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          const SizedBox(width: 7),
-          Icon(icon, size: 13, color: _dark),
-          const SizedBox(width: 6),
-          Expanded(
-            child: Text(
-              title,
-              style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-                color: _dark,
-              ),
-            ),
-          ),
-          if (onDateTap != null)
-            GestureDetector(
-              onTap: onDateTap,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
-                decoration: BoxDecoration(
-                  color: active ? _green : _green.withValues(alpha: 0.18),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(
-                    color: active ? _green : _green.withValues(alpha: 0.3),
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.calendar_today_outlined,
-                      size: 14,
-                      color: active ? _white : _dark,
-                    ),
-                    if (active) ...[
-                      const SizedBox(width: 5),
-                      Text(
-                        _chipLabel(debut: dateDebut, fin: dateFin),
-                        style: const TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w700,
-                          color: _white,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
+  void _openClassDateSheet() => _openDateSheet(
+    titre: 'Filtrer les classifications',
+    dateDebut: _classDateDebut,
+    dateFin: _classDateFin,
+    periodOnly: false,
+    onApply: (d, f) {
+      setState(() {
+        _classDateDebut = d;
+        _classDateFin = f;
+      });
+      _reloadClassifications();
+    },
+    onClear: () {
+      setState(() {
+        _classDateDebut = null;
+        _classDateFin = null;
+      });
+      _reloadClassifications();
+    },
+  );
 
   // ── Shared card shell ─────────────────────────────────────────────────────
   Widget _fixedCard({
@@ -319,15 +262,37 @@ class _HomeBodyState extends State<HomeBody> {
         ListView(
           padding: const EdgeInsets.fromLTRB(14, 14, 14, 52),
           children: [
-            _buildPipeline(),
+            HomePipelineSection(pipeline: _pipeline),
             const SizedBox(height: 12),
-            _buildUrgentes(),
+            HomeUrgentesSection(
+              urgentes: _urgentes,
+              urgentesCeo: _urgentesCeo,
+              ignoredUrgentes: _ignoredUrgentes,
+              ignoredUrgentesCeo: _ignoredUrgentesCeo,
+              onIgnore: (id) => setState(() => _ignoredUrgentes.add(id)),
+              onIgnoreCeo: (id) => setState(() => _ignoredUrgentesCeo.add(id)),
+            ),
             const SizedBox(height: 12),
-            _buildPresence(),
+            HomePresenceSection(
+              presence: _presence,
+              dateDebut: _presDateDebut,
+              dateFin: _presDateFin,
+              onDateTap: _openPresenceDateSheet,
+            ),
             const SizedBox(height: 12),
-            _buildDelai(),
+            HomeDelaiSection(
+              delai: _delai,
+              dateDebut: _delaiDateDebut,
+              dateFin: _delaiDateFin,
+              onDateTap: _openDelaiDateSheet,
+            ),
             const SizedBox(height: 12),
-            _buildClassifications(),
+            HomeClassificationsSection(
+              classifications: _classifications,
+              dateDebut: _classDateDebut,
+              dateFin: _classDateFin,
+              onDateTap: _openClassDateSheet,
+            ),
             const SizedBox(height: 12),
             _buildActivite(),
           ],
@@ -1426,18 +1391,16 @@ class _HomeBodyState extends State<HomeBody> {
               titre: "Filtrer l'activité",
               dateDebut: _actDateDebut,
               dateFin: _actDateFin,
-              periodOnly: false,
-              onApply: (d, f) {
-                setState(() {
-                  _actDateDebut = d;
-                  _actDateFin = f;
-                });
-                _reloadActivite();
-              },
-              onClear: () {
+              showClearConfirm: _showClearConfirm,
+              onDateTap: _openActDateSheet,
+              onLoadMore: _loadMoreActivite,
+              onRequestClearConfirm: () =>
+                  setState(() => _showClearConfirm = true),
+              onClearConfirm: () {
                 setState(() {
                   _actDateDebut = null;
                   _actDateFin = null;
+                  _showClearConfirm = false;
                 });
                 _reloadActivite();
               },
@@ -1647,302 +1610,19 @@ class _HomeBodyState extends State<HomeBody> {
             ),
           ],
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-              'Effacer le filtre ?',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-                color: _dark,
-              ),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              "Le filtre de date sera supprimé et toute l'activité sera visible.",
-              style: TextStyle(
-                fontSize: 12,
-                color: Color(0xFF666666),
-                height: 1.5,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () => setState(() => _showClearConfirm = false),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF0F2F1),
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: const Color(0xFFE8EAE8)),
-                      ),
-                      child: const Text(
-                        'Annuler',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: _dark,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _actDateDebut = null;
-                        _actDateFin = null;
-                        _showClearConfirm = false;
-                      });
-                      _reloadActivite();
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      decoration: BoxDecoration(
-                        color: _red,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: const Text(
-                        'Effacer',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    ),
-  );
-}
-
-// ── Ignore button with self-contained popup ──────────────────────────────────
-class _IgnoreButton extends StatefulWidget {
-  final VoidCallback onConfirm;
-  const _IgnoreButton({required this.onConfirm});
-
-  @override
-  State<_IgnoreButton> createState() => _IgnoreButtonState();
-}
-
-class _IgnoreButtonState extends State<_IgnoreButton> {
-  bool _open = false;
-
-  @override
-  Widget build(BuildContext context) {
-    if (!_open) {
-      return GestureDetector(
-        onTap: () {
-          setState(() => _open = true);
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) {
-              final overlay = Overlay.of(context);
-              late OverlayEntry entry;
-              entry = OverlayEntry(
-                builder: (_) => GestureDetector(
-                  behavior: HitTestBehavior.translucent,
-                  onTap: () {
-                    if (mounted) setState(() => _open = false);
-                    entry.remove();
-                  },
-                  child: const SizedBox.expand(),
-                ),
-              );
-              overlay.insert(entry);
-            }
-          });
-        },
-        child: Container(
-          width: 28,
-          height: 28,
-          decoration: BoxDecoration(
-            color: const Color(0xFFF5F5F5),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: const Color(0xFFEEEEEE)),
+        if (_showClearConfirm)
+          HomeActiviteClearConfirmDialog(
+            onCancel: () => setState(() => _showClearConfirm = false),
+            onConfirm: () {
+              setState(() {
+                _actDateDebut = null;
+                _actDateFin = null;
+                _showClearConfirm = false;
+              });
+              _reloadActivite();
+            },
           ),
-          child: const Icon(
-            Icons.visibility_off_outlined,
-            size: 14,
-            color: Color(0xFFAAAAAA),
-          ),
-        ),
-      );
-    }
-
-    // Popup open
-    return Container(
-      decoration: BoxDecoration(
-        color: _white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.12),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
-          ),
-        ],
-        border: Border.all(color: const Color(0xFFEEEEEE)),
-      ),
-      padding: const EdgeInsets.all(12),
-      width: 200,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Ignorer cet échantillon ?',
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
-              color: _dark,
-            ),
-          ),
-          const SizedBox(height: 4),
-          const Text(
-            "Il ne sera plus affiché dans les urgences.",
-            style: TextStyle(
-              fontSize: 10,
-              color: Color(0xFF888888),
-              height: 1.4,
-            ),
-          ),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              Expanded(
-                child: GestureDetector(
-                  onTap: () => setState(() => _open = false),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 6),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF8F8F8),
-                      borderRadius: BorderRadius.circular(7),
-                      border: Border.all(color: const Color(0xFFE8E8E8)),
-                    ),
-                    child: const Text(
-                      'Annuler',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF888888),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 6),
-              Expanded(
-                child: GestureDetector(
-                  onTap: () {
-                    setState(() => _open = false);
-                    widget.onConfirm();
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 6),
-                    decoration: BoxDecoration(
-                      color: _red,
-                      borderRadius: BorderRadius.circular(7),
-                    ),
-                    child: const Text(
-                      'Ignorer',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
+      ],
     );
   }
-}
-
-// ── Fat donut ring painter ───────────────────────────────────────────────────
-class _DonutPainter extends CustomPainter {
-  final double value;
-  const _DonutPainter({required this.value});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    const strokeWidth = 12.0;
-    final center = Offset(size.width / 2, size.height / 2);
-    final radius = (size.width - strokeWidth) / 2;
-    final rect = Rect.fromCircle(center: center, radius: radius);
-
-    // Background track
-    canvas.drawArc(
-      rect,
-      -1.5707963, // -π/2 (12 o'clock)
-      6.2831853, // full circle
-      false,
-      Paint()
-        ..color = const Color(0xFFF1F4F1)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = strokeWidth
-        ..strokeCap = StrokeCap.round,
-    );
-
-    // Filled arc
-    if (value > 0) {
-      canvas.drawArc(
-        rect,
-        -1.5707963,
-        6.2831853 * value,
-        false,
-        Paint()
-          ..color = const Color(0xFF38835A)
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = strokeWidth
-          ..strokeCap = StrokeCap.round,
-      );
-    }
-  }
-
-  @override
-  bool shouldRepaint(_DonutPainter old) => old.value != value;
-}
-
-// ── Dashed line painter (délai legend) ──────────────────────────────────────
-class _DashPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = const Color(0xFFB8DCC8)
-      ..strokeWidth = 2
-      ..strokeCap = StrokeCap.round;
-    double x = 0;
-    while (x < size.width) {
-      canvas.drawLine(
-        Offset(x, size.height / 2),
-        Offset((x + 4).clamp(0.0, size.width), size.height / 2),
-        paint,
-      );
-      x += 7;
-    }
-  }
-
-  @override
-  bool shouldRepaint(_) => false;
 }

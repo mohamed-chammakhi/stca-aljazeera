@@ -21,7 +21,9 @@ import '../membres_panel/membres_panel_page.dart';
 import '../gestion_echantillons/gestion_echantillons_page.dart';
 import '../evaluation_echantillons/evaluation_echantillons_page.dart';
 import '../sessions_degustation/sessions_degustation_page.dart';
-import '../../../main.dart';
+import '../widgets/deg_colors.dart';
+import '../widgets/nav_mixin.dart';
+import '../../../core/utils/date_utils.dart';
 
 class AnalyseLaboratoirePage extends StatefulWidget {
   const AnalyseLaboratoirePage({super.key});

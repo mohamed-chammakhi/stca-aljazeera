@@ -12,26 +12,25 @@
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'filtre_chip.dart';
+import '../../../3_degustateur/gestion_echantillons/widgets/filtre_chip.dart';
 
-const Color _green      = Color(0xFF38835A);
+const Color _green = Color(0xFF38835A);
 const Color _oliveGreen = Color(0xFF6B8143);
-const Color _darkText   = Color(0xFF1A2E1F);
-const Color _cream      = Color(0xFFF9F6EF);
+const Color _darkText = Color(0xFF1A2E1F);
+const Color _cream = Color(0xFFF9F6EF);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // SEARCH + STATUT FILTER BAR
 // search input + scrollable statut chips — date is handled in AppBar separately
 // ─────────────────────────────────────────────────────────────────────────────
 class SearchFilterBar extends StatelessWidget {
-
-  final String                recherche;
+  final String recherche;
   final TextEditingController controller;
-  final String?               filtreStatut;
-  final List<String>          statutLabels;
+  final String? filtreStatut;
+  final List<String> statutLabels;
 
-  final ValueChanged<String>  onRechercheChanged;
-  final VoidCallback          onRechercheClear;
+  final ValueChanged<String> onRechercheChanged;
+  final VoidCallback onRechercheClear;
   final ValueChanged<String?> onStatutChanged;
 
   const SearchFilterBar({
@@ -48,18 +47,17 @@ class SearchFilterBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color:   _green,
+      color: _green,
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
       child: Column(
         children: [
-
           // ── SEARCH BAR ───────────────────────────────────────────────────
           TextField(
             controller: controller,
-            onChanged:  onRechercheChanged,
+            onChanged: onRechercheChanged,
             style: const TextStyle(color: _darkText, fontSize: 14),
             decoration: InputDecoration(
-              hintText:  'Rechercher...',
+              hintText: 'Rechercher...',
               hintStyle: TextStyle(color: Colors.grey.shade500, fontSize: 13),
               prefixIcon: const Icon(Icons.search, color: _oliveGreen),
               suffixIcon: recherche.isNotEmpty
@@ -68,13 +66,15 @@ class SearchFilterBar extends StatelessWidget {
                       onPressed: onRechercheClear,
                     )
                   : null,
-              filled:    true,
+              filled: true,
               fillColor: Colors.white,
               contentPadding: const EdgeInsets.symmetric(
-                  vertical: 12, horizontal: 16),
+                vertical: 12,
+                horizontal: 16,
+              ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide:   BorderSide.none,
+                borderSide: BorderSide.none,
               ),
             ),
           ),
@@ -87,18 +87,20 @@ class SearchFilterBar extends StatelessWidget {
             child: Row(
               children: [
                 FiltreChip(
-                  label:      'Tous',
+                  label: 'Tous',
                   isSelected: filtreStatut == null,
-                  onTap:      () => onStatutChanged(null),
+                  onTap: () => onStatutChanged(null),
                 ),
-                ...statutLabels.map((label) => Padding(
-                      padding: const EdgeInsets.only(left: 8),
-                      child: FiltreChip(
-                        label:      label,
-                        isSelected: filtreStatut == label,
-                        onTap:      () => onStatutChanged(label),
-                      ),
-                    )),
+                ...statutLabels.map(
+                  (label) => Padding(
+                    padding: const EdgeInsets.only(left: 8),
+                    child: FiltreChip(
+                      label: label,
+                      isSelected: filtreStatut == label,
+                      onTap: () => onStatutChanged(label),
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
@@ -142,9 +144,7 @@ class DateFilterButton extends StatelessWidget {
           color: _active ? Colors.white : Colors.white.withValues(alpha: 0.18),
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
-            color: _active
-                ? Colors.white
-                : Colors.white.withValues(alpha: 0.3),
+            color: _active ? Colors.white : Colors.white.withValues(alpha: 0.3),
           ),
         ),
         child: Row(
@@ -152,7 +152,7 @@ class DateFilterButton extends StatelessWidget {
           children: [
             Icon(
               Icons.calendar_today_outlined,
-              size:  15,
+              size: 15,
               color: _active ? _green : Colors.white,
             ),
             if (_active) ...[
@@ -162,9 +162,9 @@ class DateFilterButton extends StatelessWidget {
                     ? '${_fmt(dateDebut!)} → ${_fmt(dateFin!)}'
                     : _fmt(dateDebut!),
                 style: const TextStyle(
-                  fontSize:   10,
+                  fontSize: 10,
                   fontWeight: FontWeight.w700,
-                  color:      _green,
+                  color: _green,
                 ),
               ),
             ],
@@ -215,9 +215,9 @@ class _DateFilterSheetState extends State<DateFilterSheet> {
   @override
   void initState() {
     super.initState();
-    _debut        = widget.dateDebut;
-    _fin          = widget.dateFin;
-    _isRange      = widget.dateFin != null;
+    _debut = widget.dateDebut;
+    _fin = widget.dateFin;
+    _isRange = widget.dateFin != null;
     _selectedType = widget.initialType ?? widget.typeOptions?.first.key;
   }
 
@@ -230,12 +230,12 @@ class _DateFilterSheetState extends State<DateFilterSheet> {
     final picked = await showDatePicker(
       context: context,
       initialDate: (isDebut ? _debut : _fin) ?? DateTime.now(),
-      firstDate:   DateTime(2020),
-      lastDate:    DateTime(2030),
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2030),
       builder: (ctx, child) => Theme(
         data: Theme.of(ctx).copyWith(
           colorScheme: const ColorScheme.light(
-            primary:   _green,
+            primary: _green,
             onPrimary: Colors.white,
           ),
         ),
@@ -251,23 +251,26 @@ class _DateFilterSheetState extends State<DateFilterSheet> {
   Widget build(BuildContext context) {
     return Container(
       decoration: const BoxDecoration(
-        color:        _cream,
+        color: _cream,
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       padding: EdgeInsets.fromLTRB(
-        20, 16, 20,
+        20,
+        16,
+        20,
         MediaQuery.of(context).viewInsets.bottom + 32,
       ),
       child: Column(
-        mainAxisSize:      MainAxisSize.min,
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // drag handle
           Center(
             child: Container(
-              width: 40, height: 4,
+              width: 40,
+              height: 4,
               decoration: BoxDecoration(
-                color:        Colors.grey.shade300,
+                color: Colors.grey.shade300,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -275,34 +278,44 @@ class _DateFilterSheetState extends State<DateFilterSheet> {
           const SizedBox(height: 16),
 
           // title
-          Row(children: [
-            const Icon(Icons.calendar_today_outlined, size: 16, color: _green),
-            const SizedBox(width: 8),
-            Text(
-              widget.titre,
-              style: GoogleFonts.domine(
-                fontSize:   17,
-                fontWeight: FontWeight.w700,
-                color:      _darkText,
+          Row(
+            children: [
+              const Icon(
+                Icons.calendar_today_outlined,
+                size: 16,
+                color: _green,
               ),
-            ),
-          ]),
+              const SizedBox(width: 8),
+              Text(
+                widget.titre,
+                style: GoogleFonts.domine(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w700,
+                  color: _darkText,
+                ),
+              ),
+            ],
+          ),
 
           // optional date-type selector
           if (widget.typeOptions != null) ...[
             const SizedBox(height: 12),
             Container(
               decoration: BoxDecoration(
-                color:        Colors.grey.shade100,
+                color: Colors.grey.shade100,
                 borderRadius: BorderRadius.circular(10),
               ),
               padding: const EdgeInsets.all(3),
               child: Row(
-                children: widget.typeOptions!.map((t) => _ModeSegment(
-                  label:    t.label,
-                  selected: _selectedType == t.key,
-                  onTap:    () => setState(() => _selectedType = t.key),
-                )).toList(),
+                children: widget.typeOptions!
+                    .map(
+                      (t) => _ModeSegment(
+                        label: t.label,
+                        selected: _selectedType == t.key,
+                        onTap: () => setState(() => _selectedType = t.key),
+                      ),
+                    )
+                    .toList(),
               ),
             ),
           ],
@@ -311,25 +324,27 @@ class _DateFilterSheetState extends State<DateFilterSheet> {
           // mode toggle
           Container(
             decoration: BoxDecoration(
-              color:        Colors.grey.shade100,
+              color: Colors.grey.shade100,
               borderRadius: BorderRadius.circular(10),
             ),
             padding: const EdgeInsets.all(3),
-            child: Row(children: [
-              _ModeSegment(
-                label:    'Jour exact',
-                selected: !_isRange,
-                onTap:    () => setState(() {
-                  _isRange = false;
-                  _fin     = null;
-                }),
-              ),
-              _ModeSegment(
-                label:    'Période',
-                selected: _isRange,
-                onTap:    () => setState(() => _isRange = true),
-              ),
-            ]),
+            child: Row(
+              children: [
+                _ModeSegment(
+                  label: 'Jour exact',
+                  selected: !_isRange,
+                  onTap: () => setState(() {
+                    _isRange = false;
+                    _fin = null;
+                  }),
+                ),
+                _ModeSegment(
+                  label: 'Période',
+                  selected: _isRange,
+                  onTap: () => setState(() => _isRange = true),
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: 14),
 
@@ -354,57 +369,61 @@ class _DateFilterSheetState extends State<DateFilterSheet> {
           const SizedBox(height: 20),
 
           // buttons
-          Row(children: [
-            Expanded(
-              child: OutlinedButton(
-                onPressed: () {
-                  widget.onClear();
-                  Navigator.pop(context);
-                },
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.grey.shade600,
-                  side:    BorderSide(color: Colors.grey.shade300),
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  shape:   RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10)),
-                ),
-                child: const Text('Effacer'),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              flex: 2,
-              child: ElevatedButton(
-                onPressed: _debut == null
-                    ? null
-                    : () {
-                        if (widget.onApplyTyped != null &&
-                            _selectedType != null) {
-                          widget.onApplyTyped!(
-                            _debut!,
-                            _isRange ? _fin : null,
-                            _selectedType!,
-                          );
-                        } else {
-                          widget.onApply(_debut!, _isRange ? _fin : null);
-                        }
-                        Navigator.pop(context);
-                      },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: _green,
-                  foregroundColor: Colors.white,
-                  padding:   const EdgeInsets.symmetric(vertical: 12),
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10)),
-                ),
-                child: const Text(
-                  'Appliquer',
-                  style: TextStyle(fontWeight: FontWeight.w700),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () {
+                    widget.onClear();
+                    Navigator.pop(context);
+                  },
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.grey.shade600,
+                    side: BorderSide(color: Colors.grey.shade300),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: const Text('Effacer'),
                 ),
               ),
-            ),
-          ]),
+              const SizedBox(width: 12),
+              Expanded(
+                flex: 2,
+                child: ElevatedButton(
+                  onPressed: _debut == null
+                      ? null
+                      : () {
+                          if (widget.onApplyTyped != null &&
+                              _selectedType != null) {
+                            widget.onApplyTyped!(
+                              _debut!,
+                              _isRange ? _fin : null,
+                              _selectedType!,
+                            );
+                          } else {
+                            widget.onApply(_debut!, _isRange ? _fin : null);
+                          }
+                          Navigator.pop(context);
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _green,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: const Text(
+                    'Appliquer',
+                    style: TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ],
       ),
     );
@@ -414,8 +433,8 @@ class _DateFilterSheetState extends State<DateFilterSheet> {
 // ── private helpers ───────────────────────────────────────────────────────────
 
 class _ModeSegment extends StatelessWidget {
-  final String       label;
-  final bool         selected;
+  final String label;
+  final bool selected;
   final VoidCallback onTap;
   const _ModeSegment({
     required this.label,
@@ -431,21 +450,23 @@ class _ModeSegment extends StatelessWidget {
         duration: const Duration(milliseconds: 150),
         padding: const EdgeInsets.symmetric(vertical: 9),
         decoration: BoxDecoration(
-          color:        selected ? Colors.white : Colors.transparent,
+          color: selected ? Colors.white : Colors.transparent,
           borderRadius: BorderRadius.circular(8),
-          boxShadow:    selected
-              ? [BoxShadow(
-                  color:      _darkText.withValues(alpha: 0.07),
-                  blurRadius: 4,
-                  offset:     const Offset(0, 1),
-                )]
+          boxShadow: selected
+              ? [
+                  BoxShadow(
+                    color: _darkText.withValues(alpha: 0.07),
+                    blurRadius: 4,
+                    offset: const Offset(0, 1),
+                  ),
+                ]
               : null,
         ),
         child: Center(
           child: Text(
             label,
             style: TextStyle(
-              fontSize:   12,
+              fontSize: 12,
               fontWeight: FontWeight.w600,
               color: selected ? _darkText : Colors.grey.shade500,
             ),
@@ -457,7 +478,7 @@ class _ModeSegment extends StatelessWidget {
 }
 
 class _DatePickerField extends StatelessWidget {
-  final String  label;
+  final String label;
   final String? value;
   const _DatePickerField({required this.label, this.value});
 
@@ -465,32 +486,34 @@ class _DatePickerField extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
     decoration: BoxDecoration(
-      color:        Colors.white,
+      color: Colors.white,
       borderRadius: BorderRadius.circular(10),
       border: Border.all(
         color: value != null ? _green : Colors.grey.shade200,
-        width: value != null ? 1.5   : 1,
+        width: value != null ? 1.5 : 1,
       ),
     ),
-    child: Row(children: [
-      Icon(
-        Icons.calendar_today_outlined,
-        size:  16,
-        color: value != null ? _green : Colors.grey.shade400,
-      ),
-      const SizedBox(width: 10),
-      Text(
-        '$label : ',
-        style: TextStyle(fontSize: 13, color: Colors.grey.shade500),
-      ),
-      Text(
-        value ?? 'Choisir une date',
-        style: TextStyle(
-          fontSize:   13,
-          fontWeight: value != null ? FontWeight.w700 : FontWeight.w400,
-          color:      value != null ? _darkText : Colors.grey.shade400,
+    child: Row(
+      children: [
+        Icon(
+          Icons.calendar_today_outlined,
+          size: 16,
+          color: value != null ? _green : Colors.grey.shade400,
         ),
-      ),
-    ]),
+        const SizedBox(width: 10),
+        Text(
+          '$label : ',
+          style: TextStyle(fontSize: 13, color: Colors.grey.shade500),
+        ),
+        Text(
+          value ?? 'Choisir une date',
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: value != null ? FontWeight.w700 : FontWeight.w400,
+            color: value != null ? _darkText : Colors.grey.shade400,
+          ),
+        ),
+      ],
+    ),
   );
 }

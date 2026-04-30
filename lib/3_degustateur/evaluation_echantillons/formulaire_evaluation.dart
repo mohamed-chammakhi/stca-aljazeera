@@ -13,8 +13,10 @@ class FormulaireEvaluationPage extends StatefulWidget {
   final String origine;
   final String dateArrivee;
   final String? photoUrl;
+
   /// When true, all fields are locked — used to view a submitted evaluation.
   final bool readOnly;
+
   /// Pre-filled classification label when opened in read-only mode.
   final String? classification;
 
@@ -643,11 +645,7 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
                 ),
                 child: Row(
                   children: [
-                    Icon(
-                      Icons.check_circle,
-                      color: green,
-                      size: 24,
-                    ),
+                    Icon(Icons.check_circle, color: green, size: 24),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(

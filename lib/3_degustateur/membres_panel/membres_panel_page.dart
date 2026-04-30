@@ -17,6 +17,8 @@ import '../tableau_de_bord/widgets/app_drawer.dart';
 import '../sessions_degustation/sessions_degustation_page.dart';
 import '../analyse_labo/analyse_laboratoire_page.dart';
 import '../tableau_de_bord/homepage_page.dart';
+import '../widgets/deg_colors.dart';
+import '../widgets/nav_mixin.dart';
 
 const Color _green = Color(0xFF38835A);
 const Color _darkText = Color(0xFF1A2E1F);

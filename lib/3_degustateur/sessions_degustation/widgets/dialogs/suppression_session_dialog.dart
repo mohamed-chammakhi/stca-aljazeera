@@ -7,13 +7,13 @@
 import 'package:flutter/material.dart';
 import '../../models/session_degustation.dart';
 
-const Color _green    = Color(0xFF38835A);
+const Color _green = Color(0xFF38835A);
 const Color _darkText = Color(0xFF1A2E1F);
 
 Future<void> showSuppressionSessionDialog(
   BuildContext context, {
   required SessionDegustation session,
-  required VoidCallback       onConfirmer,
+  required VoidCallback onConfirmer,
 }) {
   return showDialog(
     context: context,
@@ -21,11 +21,16 @@ Future<void> showSuppressionSessionDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       title: Row(
         children: [
-          Icon(Icons.warning_amber_rounded,
-              color: Colors.red.shade400, size: 22),
+          Icon(
+            Icons.warning_amber_rounded,
+            color: Colors.red.shade400,
+            size: 22,
+          ),
           const SizedBox(width: 8),
-          const Text('Supprimer la session',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+          const Text(
+            'Supprimer la session',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+          ),
         ],
       ),
       content: Text(
@@ -37,9 +42,13 @@ Future<void> showSuppressionSessionDialog(
         // Annuler
         TextButton(
           onPressed: () => Navigator.pop(ctx),
-          child: Text('Annuler',
-              style: TextStyle(
-                  color: Colors.grey.shade500, fontWeight: FontWeight.w600)),
+          child: Text(
+            'Annuler',
+            style: TextStyle(
+              color: Colors.grey.shade500,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
         ),
         // Confirmer
         ElevatedButton(
@@ -50,12 +59,15 @@ Future<void> showSuppressionSessionDialog(
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.red.shade400,
             foregroundColor: Colors.white,
-            elevation:       0,
+            elevation: 0,
             shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10)),
+              borderRadius: BorderRadius.circular(10),
+            ),
           ),
-          child: const Text('Supprimer',
-              style: TextStyle(fontWeight: FontWeight.w600)),
+          child: const Text(
+            'Supprimer',
+            style: TextStyle(fontWeight: FontWeight.w600),
+          ),
         ),
       ],
     ),

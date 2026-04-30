@@ -24,7 +24,7 @@ import 'widgets/dialogs/formulaire_session_dialog.dart';
 import 'widgets/dialogs/suppression_session_dialog.dart';
 
 // ── Shared date filter ────────────────────────────────────────────────────────
-import '../gestion_echantillons/widgets/search_filter_bar.dart'
+import '../../../core/widgets/search_filter_bar.dart'
     show DateFilterSheet;
 
 // ── App-wide imports ──────────────────────────────────────────────────────────
@@ -33,7 +33,6 @@ import '../tableau_de_bord/widgets/app_drawer.dart';
 import '../membres_panel/membres_panel_page.dart';
 import '../gestion_echantillons/gestion_echantillons_page.dart';
 import '../evaluation_echantillons/evaluation_echantillons_page.dart';
-import '../../../main.dart';
 import '../analyse_labo/analyse_laboratoire_page.dart';
 import '../../../core/widgets/statut_chip.dart';
 import '../../../core/theme/app_colors.dart';

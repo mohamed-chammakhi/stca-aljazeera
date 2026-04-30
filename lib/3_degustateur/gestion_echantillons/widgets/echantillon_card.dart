@@ -158,7 +158,9 @@ class _EchantillonCardState extends State<EchantillonCard> {
                                         ),
                                         decoration: BoxDecoration(
                                           color: _green,
-                                          borderRadius: BorderRadius.circular(6),
+                                          borderRadius: BorderRadius.circular(
+                                            6,
+                                          ),
                                         ),
                                         child: const Row(
                                           mainAxisSize: MainAxisSize.min,
