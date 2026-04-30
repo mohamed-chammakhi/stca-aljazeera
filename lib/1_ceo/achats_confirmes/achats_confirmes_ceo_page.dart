@@ -1,15 +1,17 @@
-// ═════════════════════════════════════════════════════════════════════════════
+﻿// ═════════════════════════════════════════════════════════════════════════════
 // FILE : 1_ceo/achats_confirmes/achats_confirmes_ceo_page.dart
 // ═════════════════════════════════════════════════════════════════════════════
 
 import 'package:flutter/material.dart';
+import 'package:project3/core/theme/app_colors.dart';
+import 'package:project3/core/utils/date_utils.dart';
+import '../widgets/ceo_nav_mixin.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../widgets/ceo_drawer.dart';
 import '../utilisateurs/models/echantillon_ceo_view.dart';
 import '../echantillons/echantillons_ceo_page.dart';
 import '../analyse_organoleptique/analyse_organoleptique_ceo_page.dart';
 import '../analyse_laboratoire/analyse_laboratoire_ceo_page.dart';
-import 'achats_confirmes_ceo_page.dart';
 import '../profil_ceo_page.dart';
 import '../../main.dart';
 import '../utilisateurs/models/mock_data_patch.dart';
@@ -19,11 +21,6 @@ import '../widgets/sample_card_echantillon.dart';
 import '../widgets/base_sample_card.dart';
 import '../widgets/status_filter_chip.dart';
 
-const Color _headerBg = Color.fromARGB(255, 220, 233, 226);
-const Color _green = Color(0xFF38835A);
-const Color _dark = Color(0xFF1A2E1F);
-const Color _bg = Color.fromARGB(255, 255, 255, 255);
-const Color _olive = Color(0xFF6B8143);
 
 // ─────────────────────────────────────────────────────────────────────────────
 class AchatsConfirmesCeoPage extends StatefulWidget {
@@ -32,7 +29,7 @@ class AchatsConfirmesCeoPage extends StatefulWidget {
   State<AchatsConfirmesCeoPage> createState() => _AchatsConfirmesCeoPageState();
 }
 
-class _AchatsConfirmesCeoPageState extends State<AchatsConfirmesCeoPage> {
+class _AchatsConfirmesCeoPageState extends State<AchatsConfirmesCeoPage> with CeoNavMixin {
   final Set<String> _expandedAchat = {};
 
   String _activeFilter = 'tout';
@@ -68,7 +65,7 @@ class _AchatsConfirmesCeoPageState extends State<AchatsConfirmesCeoPage> {
       result = result.where((e) {
         final dateStr = _dateFieldFor(e);
         if (dateStr == null) return false;
-        final d = _parseDate(dateStr);
+        final d = DegDateUtils.parseDate(dateStr);
         if (d == null) return false;
         final day = DateTime(d.year, d.month, d.day);
         final debut = DateTime(
@@ -105,18 +102,6 @@ class _AchatsConfirmesCeoPageState extends State<AchatsConfirmesCeoPage> {
     return result;
   }
 
-  DateTime? _parseDate(String s) {
-    try {
-      final datePart = s.split(' ').first;
-      final p = datePart.split('/');
-      if (p.length != 3) return null;
-      return DateTime(int.parse(p[2]), int.parse(p[1]), int.parse(p[0]));
-    } catch (_) {
-      return null;
-    }
-  }
-
-  bool get _anyFilter => _dateDebut != null || _searchQuery.isNotEmpty;
 
   Future<void> _showDateFilter() async {
     await showModalBottomSheet(
@@ -148,30 +133,26 @@ class _AchatsConfirmesCeoPageState extends State<AchatsConfirmesCeoPage> {
     );
   }
 
-  void _goTo(Widget page) {
-    Navigator.pop(context);
-    Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => page));
-  }
 
   @override
   Widget build(BuildContext context) {
     final achats = _achats;
 
     return Scaffold(
-      backgroundColor: _bg,
+      backgroundColor: kBg,
       drawer: CeoDrawer(
-        onEchantillons: () => _goTo(const EchantillonsCeoPage()),
+        onEchantillons: () => goToPage(const EchantillonsCeoPage()),
         onAnalyseOrganoleptique: () =>
-            _goTo(const AnalyseOrganoleptiqueCeoPage()),
-        onAnalyseLaboratoire: () => _goTo(const AnalyseLaboratoireCeoPage()),
-        onAchatsConfirmes: () => _goTo(const AchatsConfirmesCeoPage()),
+            goToPage(const AnalyseOrganoleptiqueCeoPage()),
+        onAnalyseLaboratoire: () => goToPage(const AnalyseLaboratoireCeoPage()),
+        onAchatsConfirmes: () => goToPage(const AchatsConfirmesCeoPage()),
         onTableauDeBord: () => Navigator.pop(context),
-        onProfil: () => _goTo(const ProfilceoPage()),
-        onutilisiateurs: () => _goTo(const UtilisateursCeoPage()),
-        onDeconnexion: () => _goTo(LoginPage()),
+        onProfil: () => goToPage(const ProfilceoPage()),
+        onutilisiateurs: () => goToPage(const UtilisateursCeoPage()),
+        onDeconnexion: () => goToPage(LoginPage()),
       ),
       appBar: AppBar(
-        backgroundColor: _headerBg,
+        backgroundColor: kHeaderBg,
         elevation: 0,
         centerTitle: false,
         toolbarHeight: 65,
@@ -180,10 +161,10 @@ class _AchatsConfirmesCeoPageState extends State<AchatsConfirmesCeoPage> {
           style: GoogleFonts.domine(
             fontSize: 18,
             fontWeight: FontWeight.w700,
-            color: _dark,
+            color: kDark,
           ),
         ),
-        iconTheme: const IconThemeData(color: _dark),
+        iconTheme: const IconThemeData(color: kDark),
         actions: [
           Stack(
             alignment: Alignment.center,
@@ -193,7 +174,7 @@ class _AchatsConfirmesCeoPageState extends State<AchatsConfirmesCeoPage> {
                   Icons.calendar_today_outlined,
                   size: 20,
                   color: (_dateDebut != null || _dateFin != null)
-                      ? _green
+                      ? kGreen
                       : const Color(0xFF6B8E7A),
                 ),
                 onPressed: _showDateFilter,
@@ -209,7 +190,7 @@ class _AchatsConfirmesCeoPageState extends State<AchatsConfirmesCeoPage> {
                     width: 8,
                     height: 8,
                     decoration: const BoxDecoration(
-                      color: _green,
+                      color: kGreen,
                       shape: BoxShape.circle,
                     ),
                   ),
@@ -223,12 +204,12 @@ class _AchatsConfirmesCeoPageState extends State<AchatsConfirmesCeoPage> {
         children: [
           // ── Unified header zone ──────────────────────────────────────
           Container(
-            color: _headerBg,
+            color: kHeaderBg,
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
             child: TextField(
               controller: _searchController,
               onChanged: (v) => setState(() => _searchQuery = v.trim()),
-              style: const TextStyle(fontSize: 14, color: _dark),
+              style: const TextStyle(fontSize: 14, color: kDark),
               decoration: InputDecoration(
                 hintText: 'Réf, fournisseur, gouvernorat, variété, collecteur…',
                 hintStyle: const TextStyle(
@@ -269,14 +250,14 @@ class _AchatsConfirmesCeoPageState extends State<AchatsConfirmesCeoPage> {
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: _green, width: 1.5),
+                  borderSide: const BorderSide(color: kGreen, width: 1.5),
                 ),
               ),
             ),
           ),
           Container(height: 1, color: Colors.black.withValues(alpha: 0.06)),
           Container(
-            color: _bg,
+            color: kBg,
             padding: const EdgeInsets.fromLTRB(16, 9, 16, 6),
             child: Row(
               children: [
@@ -292,8 +273,8 @@ class _AchatsConfirmesCeoPageState extends State<AchatsConfirmesCeoPage> {
                 StatusFilterChip(
                   label: 'Stock arrivé',
                   isActive: _activeFilter == 'arrive',
-                  activeBg: _green.withValues(alpha: 0.12),
-                  activeFg: _green,
+                  activeBg: kGreen.withValues(alpha: 0.12),
+                  activeFg: kGreen,
                   onTap: () => setState(() => _activeFilter = 'arrive'),
                 ),
                 const SizedBox(width: 8),
@@ -335,7 +316,7 @@ class _AchatsConfirmesCeoPageState extends State<AchatsConfirmesCeoPage> {
                     itemBuilder: (_, i) {
                       final e = achats[i];
                       final accentColor = e.stockArrive
-                          ? _green
+                          ? kGreen
                           : Colors.orange.shade700;
                       final tintColor = e.stockArrive
                           ? const Color(0xFFEAF4EE)
@@ -353,7 +334,7 @@ class _AchatsConfirmesCeoPageState extends State<AchatsConfirmesCeoPage> {
                             if (e.quantiteCibleT != null)
                               CardBadge(
                                 label: 'Qté : ${e.quantiteCibleT}T',
-                                color: _olive,
+                                color: kOlive,
                               ),
                           ],
                         ),
@@ -372,7 +353,7 @@ class _AchatsConfirmesCeoPageState extends State<AchatsConfirmesCeoPage> {
                           DetailItem('Date enregistrement', e.dateAjout),
                         ],
                         deliveryWidget: SampleDeliveryIndicator(e: e),
-                        bottomSection: _AchatSection(
+                        bottomSection: AchatSection(
                           echantillon: e,
                           accentColor: accentColor,
                           isExpanded: achatExp,
@@ -392,14 +373,6 @@ class _AchatsConfirmesCeoPageState extends State<AchatsConfirmesCeoPage> {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// ACHAT SECTION
-// ─────────────────────────────────────────────────────────────────────────────
-class _AchatSection extends StatelessWidget {
-  final EchantillonCeoView echantillon;
-  final Color accentColor;
-  final bool isExpanded;
-  final VoidCallback onToggle;
 
   const _AchatSection({
     required this.echantillon,

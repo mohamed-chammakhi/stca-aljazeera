@@ -1,15 +1,18 @@
-// ═════════════════════════════════════════════════════════════════════════════
+﻿// ═════════════════════════════════════════════════════════════════════════════
 // FILE : 1_ceo/analyse_organoleptique/analyse_organoleptique_ceo_page.dart
 // ═════════════════════════════════════════════════════════════════════════════
 
 import 'package:flutter/material.dart';
+import 'package:project3/core/theme/app_colors.dart';
+import 'package:project3/core/utils/date_utils.dart';
+import 'models/sample_status.dart';
+import '../widgets/ceo_nav_mixin.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../3_degustateur/notifications/services/notification_degustateur_service.dart';
 import '../widgets/ceo_drawer.dart';
 import '../utilisateurs/models/echantillon_ceo_view.dart';
 import '../widgets/shared_evaluation_form_sheet.dart';
 import '../echantillons/echantillons_ceo_page.dart';
-import 'analyse_organoleptique_ceo_page.dart';
 import '../analyse_laboratoire/analyse_laboratoire_ceo_page.dart';
 import '../achats_confirmes/achats_confirmes_ceo_page.dart';
 import '../profil_ceo_page.dart';
@@ -70,7 +73,7 @@ class AnalyseOrganoleptiqueCeoPage extends StatefulWidget {
 }
 
 class _AnalyseOrganoleptiqueCeoPageState
-    extends State<AnalyseOrganoleptiqueCeoPage> {
+    extends State<AnalyseOrganoleptiqueCeoPage> with CeoNavMixin {
   final Set<String> _expandedPanel = {};
   final Set<String> _urgentSent = {};
 
@@ -89,16 +92,6 @@ class _AnalyseOrganoleptiqueCeoPageState
   List<EchantillonCeoView> get _allEchantillons =>
       mockEchantillonsOrganoleptique;
 
-  DateTime? _parseDate(String s) {
-    try {
-      final datePart = s.split(' ').first;
-      final p = datePart.split('/');
-      if (p.length != 3) return null;
-      return DateTime(int.parse(p[2]), int.parse(p[1]), int.parse(p[0]));
-    } catch (_) {
-      return null;
-    }
-  }
 
   String? _dateFieldFor(EchantillonCeoView e) {
     switch (_dateType) {
@@ -117,7 +110,7 @@ class _AnalyseOrganoleptiqueCeoPageState
       result = result.where((e) {
         final dateStr = _dateFieldFor(e);
         if (dateStr == null) return false;
-        final d = _parseDate(dateStr);
+        final d = DegDateUtils.parseDate(dateStr);
         if (d == null) return false;
         final day = DateTime(d.year, d.month, d.day);
         final debut = DateTime(
@@ -149,8 +142,6 @@ class _AnalyseOrganoleptiqueCeoPageState
     return result;
   }
 
-  bool get _anyFilter => _dateDebut != null || _searchQuery.isNotEmpty;
-
   Future<void> _showDateFilter() async {
     await showModalBottomSheet(
       context: context,
@@ -181,15 +172,11 @@ class _AnalyseOrganoleptiqueCeoPageState
     );
   }
 
-  void _goTo(Widget page) {
-    Navigator.pop(context);
-    Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => page));
-  }
 
-  _SampleStatus _statusOf(EchantillonCeoView e) {
-    if (e.evaluations.isEmpty) return _SampleStatus.none;
-    if (e.tousEvalue) return _SampleStatus.complete;
-    return _SampleStatus.partial;
+  SampleStatus _statusOf(EchantillonCeoView e) {
+    if (e.evaluations.isEmpty) return SampleStatus.none;
+    if (e.tousEvalue) return SampleStatus.complete;
+    return SampleStatus.partial;
   }
 
   Color _cardAccent(EchantillonCeoView e) {
@@ -235,7 +222,7 @@ class _AnalyseOrganoleptiqueCeoPageState
                           style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w700,
-                            color: _dark,
+                            color: kDark,
                           ),
                         ),
                         Text(
@@ -438,20 +425,20 @@ class _AnalyseOrganoleptiqueCeoPageState
   Widget build(BuildContext context) {
     final echantillons = _filtered;
     return Scaffold(
-      backgroundColor: _bg,
+      backgroundColor: kBg,
       drawer: CeoDrawer(
-        onEchantillons: () => _goTo(const EchantillonsCeoPage()),
+        onEchantillons: () => goToPage(const EchantillonsCeoPage()),
         onAnalyseOrganoleptique: () =>
-            _goTo(const AnalyseOrganoleptiqueCeoPage()),
-        onAnalyseLaboratoire: () => _goTo(const AnalyseLaboratoireCeoPage()),
-        onAchatsConfirmes: () => _goTo(const AchatsConfirmesCeoPage()),
+            goToPage(const AnalyseOrganoleptiqueCeoPage()),
+        onAnalyseLaboratoire: () => goToPage(const AnalyseLaboratoireCeoPage()),
+        onAchatsConfirmes: () => goToPage(const AchatsConfirmesCeoPage()),
         onTableauDeBord: () => Navigator.pop(context),
-        onProfil: () => _goTo(const ProfilceoPage()),
-        onutilisiateurs: () => _goTo(const UtilisateursCeoPage()),
-        onDeconnexion: () => _goTo(LoginPage()),
+        onProfil: () => goToPage(const ProfilceoPage()),
+        onutilisiateurs: () => goToPage(const UtilisateursCeoPage()),
+        onDeconnexion: () => goToPage(LoginPage()),
       ),
       appBar: AppBar(
-        backgroundColor: _headerBg,
+        backgroundColor: kHeaderBg,
         elevation: 0,
         centerTitle: false,
         toolbarHeight: 65,
@@ -460,10 +447,10 @@ class _AnalyseOrganoleptiqueCeoPageState
           style: GoogleFonts.domine(
             fontSize: 18,
             fontWeight: FontWeight.w700,
-            color: _dark,
+            color: kDark,
           ),
         ),
-        iconTheme: const IconThemeData(color: _dark),
+        iconTheme: const IconThemeData(color: kDark),
         actions: [
           Stack(
             alignment: Alignment.center,
@@ -473,7 +460,7 @@ class _AnalyseOrganoleptiqueCeoPageState
                   Icons.calendar_today_outlined,
                   size: 20,
                   color: (_dateDebut != null || _dateFin != null)
-                      ? _green
+                      ? kGreen
                       : const Color(0xFF6B8E7A),
                 ),
                 onPressed: _showDateFilter,
@@ -489,7 +476,7 @@ class _AnalyseOrganoleptiqueCeoPageState
                     width: 8,
                     height: 8,
                     decoration: const BoxDecoration(
-                      color: _green,
+                      color: kGreen,
                       shape: BoxShape.circle,
                     ),
                   ),
@@ -503,12 +490,12 @@ class _AnalyseOrganoleptiqueCeoPageState
         children: [
           // ── Unified header zone ──────────────────────────────────────
           Container(
-            color: _headerBg,
+            color: kHeaderBg,
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
             child: TextField(
               controller: _searchController,
               onChanged: (v) => setState(() => _searchQuery = v.trim()),
-              style: const TextStyle(fontSize: 14, color: _dark),
+              style: const TextStyle(fontSize: 14, color: kDark),
               decoration: InputDecoration(
                 hintText: 'Réf, fournisseur, gouvernorat, variété, collecteur…',
                 hintStyle: const TextStyle(
@@ -549,7 +536,7 @@ class _AnalyseOrganoleptiqueCeoPageState
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: _green, width: 1.5),
+                  borderSide: const BorderSide(color: kGreen, width: 1.5),
                 ),
               ),
             ),
@@ -557,7 +544,7 @@ class _AnalyseOrganoleptiqueCeoPageState
           Container(height: 1, color: Colors.black.withValues(alpha: 0.06)),
           // Stats strip
           Container(
-            color: _bg,
+            color: kBg,
             padding: const EdgeInsets.fromLTRB(16, 9, 16, 6),
             child: Row(
               children: [
@@ -618,9 +605,9 @@ class _AnalyseOrganoleptiqueCeoPageState
                             if (e.quantiteEstimee != null)
                               CardBadge(
                                 label: 'Qté : ${e.quantiteEstimee}T',
-                                color: _olive,
+                                color: kOlive,
                               ),
-                            _RecuPhysiqueIndicator(
+                            RecuPhysiqueIndicator(
                               recuPhysiquement: e.recuPhysiquement,
                             ),
                           ],
@@ -646,7 +633,7 @@ class _AnalyseOrganoleptiqueCeoPageState
                           ),
                         ],
                         deliveryWidget: SampleDeliveryIndicator(e: e),
-                        bottomSection: _PanelSection(
+                        bottomSection: PanelSection(
                           echantillon: e,
                           isExpanded: panelExp,
                           onToggle: () => setState(
@@ -674,18 +661,6 @@ class _AnalyseOrganoleptiqueCeoPageState
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// PANEL SECTION  — bottom slot for organoleptique cards
-// ─────────────────────────────────────────────────────────────────────────────
-class _PanelSection extends StatelessWidget {
-  final EchantillonCeoView echantillon;
-  final bool isExpanded;
-  final VoidCallback onToggle;
-  final void Function(EvaluationOrganoleptique) onViewForm;
-  final VoidCallback onApprouver;
-  final VoidCallback onRefuser;
-  final bool isUrgent;
-  final VoidCallback onUrgent;
 
   const _PanelSection({
     required this.echantillon,

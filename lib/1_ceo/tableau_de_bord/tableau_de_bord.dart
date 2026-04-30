@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:project3/core/theme/app_colors.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../widgets/ceo_drawer.dart';
 import '../profil_ceo_page.dart';
@@ -24,9 +25,6 @@ import 'widgets/stock_donut_card.dart';
 import 'widgets/map_cta_card.dart';
 
 // ── Design tokens ─────────────────────────────────────────────────────────────
-const Color _headerBg = Color.fromARGB(255, 220, 233, 226);
-const Color _green = Color(0xFF38835A);
-const Color _dark = Color(0xFF1A2E1F);
 const Color _pageBg = Color(0xFFF2F4F2);
 const Color _white = Color(0xFFFFFFFF);
 
@@ -146,7 +144,6 @@ class _HomePageCeoState extends State<HomePageCeo> with TickerProviderStateMixin
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       builder: (_) => DateFilterSheet(
-        titre: 'Filtrer par période',
         dateDebut: current.from,
         dateFin: current.to,
         onApply: (debut, fin) => setState(() => onApply(CardDateRange(debut, fin ?? debut))),
@@ -169,7 +166,7 @@ class _HomePageCeoState extends State<HomePageCeo> with TickerProviderStateMixin
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.calendar_today_outlined, size: 11, color: _green),
+            const Icon(Icons.calendar_today_outlined, size: 11, color: kGreen),
             const SizedBox(width: 5),
             Text(range.label, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: _dark)),
             const SizedBox(width: 4),
@@ -196,19 +193,19 @@ class _HomePageCeoState extends State<HomePageCeo> with TickerProviderStateMixin
         onDeconnexion:          () => _goTo(const LoginPage()),
       ),
       appBar: AppBar(
-        backgroundColor: _headerBg,
+        backgroundColor: kHeaderBg,
         elevation: 0,
         toolbarHeight: 65,
         title: Text(
           'Tableau de Bord',
           style: GoogleFonts.domine(fontSize: 18, fontWeight: FontWeight.w700, color: _dark),
         ),
-        iconTheme: const IconThemeData(color: _dark),
+        iconTheme: const IconThemeData(color: kDark),
         actions: [
           Stack(
             children: [
               IconButton(
-                icon: const Icon(Icons.notifications_outlined, color: _dark),
+                icon: const Icon(Icons.notifications_outlined, color: kDark),
                 onPressed: _openNotifications,
               ),
               if (_unreadCount > 0)
@@ -302,3 +299,4 @@ class _HomePageCeoState extends State<HomePageCeo> with TickerProviderStateMixin
     );
   }
 }
+

@@ -1,14 +1,17 @@
-// ═════════════════════════════════════════════════════════════════════════════
+﻿// ═════════════════════════════════════════════════════════════════════════════
 // FILE : 1_ceo/analyse_laboratoire/analyse_laboratoire_ceo_page.dart
 // ═════════════════════════════════════════════════════════════════════════════
 
 import 'package:flutter/material.dart';
+import 'package:project3/core/theme/app_colors.dart';
+import 'package:project3/core/utils/date_utils.dart';
+import 'models/lab_row.dart';
+import '../widgets/ceo_nav_mixin.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../widgets/ceo_drawer.dart';
 import '../utilisateurs/models/echantillon_ceo_view.dart';
 import '../echantillons/echantillons_ceo_page.dart';
 import '../analyse_organoleptique/analyse_organoleptique_ceo_page.dart';
-import 'analyse_laboratoire_ceo_page.dart';
 import '../achats_confirmes/achats_confirmes_ceo_page.dart';
 import '../profil_ceo_page.dart';
 import '../../main.dart';
@@ -19,12 +22,7 @@ import '../widgets/sample_card_echantillon.dart';
 import '../widgets/base_sample_card.dart';
 import '../widgets/status_filter_chip.dart';
 
-const Color _headerBg = Color.fromARGB(255, 220, 233, 226);
-const Color _green = Color(0xFF38835A);
-const Color _dark = Color(0xFF1A2E1F);
-const Color _bg = Color.fromARGB(255, 255, 255, 255);
 const Color _teal = Color(0xFF00796B);
-const Color _olive = Color(0xFF6B8143);
 
 // ─────────────────────────────────────────────────────────────────────────────
 class AnalyseLaboratoireCeoPage extends StatefulWidget {
@@ -34,7 +32,7 @@ class AnalyseLaboratoireCeoPage extends StatefulWidget {
       _AnalyseLaboratoireCeoPageState();
 }
 
-class _AnalyseLaboratoireCeoPageState extends State<AnalyseLaboratoireCeoPage> {
+class _AnalyseLaboratoireCeoPageState extends State<AnalyseLaboratoireCeoPage> with CeoNavMixin {
   final Set<String> _expandedRapport = {};
 
   // ── ADDED: active filter state (mirrors achats confirmes pattern) ──────────
@@ -71,7 +69,7 @@ class _AnalyseLaboratoireCeoPageState extends State<AnalyseLaboratoireCeoPage> {
       result = result.where((e) {
         final dateStr = _dateFieldFor(e);
         if (dateStr == null) return false;
-        final d = _parseDate(dateStr);
+        final d = DegDateUtils.parseDate(dateStr);
         if (d == null) return false;
         final day = DateTime(d.year, d.month, d.day);
         final debut = DateTime(
@@ -111,18 +109,6 @@ class _AnalyseLaboratoireCeoPageState extends State<AnalyseLaboratoireCeoPage> {
     return result;
   }
 
-  DateTime? _parseDate(String s) {
-    try {
-      final datePart = s.split(' ').first;
-      final p = datePart.split('/');
-      if (p.length != 3) return null;
-      return DateTime(int.parse(p[2]), int.parse(p[1]), int.parse(p[0]));
-    } catch (_) {
-      return null;
-    }
-  }
-
-  bool get _anyFilter => _dateDebut != null || _searchQuery.isNotEmpty;
 
   Future<void> _showDateFilter() async {
     await showModalBottomSheet(
@@ -154,13 +140,9 @@ class _AnalyseLaboratoireCeoPageState extends State<AnalyseLaboratoireCeoPage> {
     );
   }
 
-  void _goTo(Widget page) {
-    Navigator.pop(context);
-    Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => page));
-  }
 
   Color _classifColor(String c) {
-    if (c == 'Extra Vierge') return _green;
+    if (c == 'Extra Vierge') return kGreen;
     if (c == 'Vierge') return Colors.orange.shade700;
     if (c == 'Lampante') return Colors.red.shade600;
     return Colors.grey.shade500;
@@ -178,20 +160,20 @@ class _AnalyseLaboratoireCeoPageState extends State<AnalyseLaboratoireCeoPage> {
   Widget build(BuildContext context) {
     final samples = _samples;
     return Scaffold(
-      backgroundColor: _bg,
+      backgroundColor: kBg,
       drawer: CeoDrawer(
-        onEchantillons: () => _goTo(const EchantillonsCeoPage()),
+        onEchantillons: () => goToPage(const EchantillonsCeoPage()),
         onAnalyseOrganoleptique: () =>
-            _goTo(const AnalyseOrganoleptiqueCeoPage()),
-        onAnalyseLaboratoire: () => _goTo(const AnalyseLaboratoireCeoPage()),
-        onAchatsConfirmes: () => _goTo(const AchatsConfirmesCeoPage()),
+            goToPage(const AnalyseOrganoleptiqueCeoPage()),
+        onAnalyseLaboratoire: () => goToPage(const AnalyseLaboratoireCeoPage()),
+        onAchatsConfirmes: () => goToPage(const AchatsConfirmesCeoPage()),
         onTableauDeBord: () => Navigator.pop(context),
-        onProfil: () => _goTo(const ProfilceoPage()),
-        onutilisiateurs: () => _goTo(const UtilisateursCeoPage()),
-        onDeconnexion: () => _goTo(LoginPage()),
+        onProfil: () => goToPage(const ProfilceoPage()),
+        onutilisiateurs: () => goToPage(const UtilisateursCeoPage()),
+        onDeconnexion: () => goToPage(LoginPage()),
       ),
       appBar: AppBar(
-        backgroundColor: _headerBg,
+        backgroundColor: kHeaderBg,
         elevation: 0,
         centerTitle: false,
         toolbarHeight: 65,
@@ -200,10 +182,10 @@ class _AnalyseLaboratoireCeoPageState extends State<AnalyseLaboratoireCeoPage> {
           style: GoogleFonts.domine(
             fontSize: 18,
             fontWeight: FontWeight.w700,
-            color: _dark,
+            color: kDark,
           ),
         ),
-        iconTheme: const IconThemeData(color: _dark),
+        iconTheme: const IconThemeData(color: kDark),
         actions: [
           Stack(
             alignment: Alignment.center,
@@ -213,7 +195,7 @@ class _AnalyseLaboratoireCeoPageState extends State<AnalyseLaboratoireCeoPage> {
                   Icons.calendar_today_outlined,
                   size: 20,
                   color: (_dateDebut != null || _dateFin != null)
-                      ? _green
+                      ? kGreen
                       : const Color(0xFF6B8E7A),
                 ),
                 onPressed: _showDateFilter,
@@ -229,7 +211,7 @@ class _AnalyseLaboratoireCeoPageState extends State<AnalyseLaboratoireCeoPage> {
                     width: 8,
                     height: 8,
                     decoration: const BoxDecoration(
-                      color: _green,
+                      color: kGreen,
                       shape: BoxShape.circle,
                     ),
                   ),
@@ -243,12 +225,12 @@ class _AnalyseLaboratoireCeoPageState extends State<AnalyseLaboratoireCeoPage> {
         children: [
           // ── Unified header zone ──────────────────────────────────────
           Container(
-            color: _headerBg,
+            color: kHeaderBg,
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
             child: TextField(
               controller: _searchController,
               onChanged: (v) => setState(() => _searchQuery = v.trim()),
-              style: const TextStyle(fontSize: 14, color: _dark),
+              style: const TextStyle(fontSize: 14, color: kDark),
               decoration: InputDecoration(
                 hintText: 'Réf, fournisseur, gouvernorat, variété, collecteur…',
                 hintStyle: const TextStyle(
@@ -289,7 +271,7 @@ class _AnalyseLaboratoireCeoPageState extends State<AnalyseLaboratoireCeoPage> {
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: _green, width: 1.5),
+                  borderSide: const BorderSide(color: kGreen, width: 1.5),
                 ),
               ),
             ),
@@ -298,7 +280,7 @@ class _AnalyseLaboratoireCeoPageState extends State<AnalyseLaboratoireCeoPage> {
 
           // ── CHANGED: filter chips strip (replaces old stats strip) ───────────
           Container(
-            color: _bg,
+            color: kBg,
             padding: const EdgeInsets.fromLTRB(16, 9, 16, 6),
             child: Row(
               children: [
@@ -313,8 +295,8 @@ class _AnalyseLaboratoireCeoPageState extends State<AnalyseLaboratoireCeoPage> {
                 StatusFilterChip(
                   label: 'Analyse soumise',
                   isActive: _activeFilter == 'Analyse soumise',
-                  activeBg: _green.withValues(alpha: 0.12),
-                  activeFg: _green,
+                  activeBg: kGreen.withValues(alpha: 0.12),
+                  activeFg: kGreen,
                   onTap: () =>
                       setState(() => _activeFilter = 'Analyse soumise'),
                 ),
@@ -374,7 +356,7 @@ class _AnalyseLaboratoireCeoPageState extends State<AnalyseLaboratoireCeoPage> {
                             if (e.quantiteEstimee != null)
                               CardBadge(
                                 label: 'Qté : ${e.quantiteEstimee}T',
-                                color: _olive,
+                                color: kOlive,
                               ),
                           ],
                         ),
@@ -399,7 +381,7 @@ class _AnalyseLaboratoireCeoPageState extends State<AnalyseLaboratoireCeoPage> {
                           ),
                         ],
                         deliveryWidget: SampleDeliveryIndicator(e: e),
-                        bottomSection: _RapportSection(
+                        bottomSection: RapportSection(
                           echantillon: e,
                           hasAnalyse: hasAnalyse,
                           isExpanded: rapportExp,

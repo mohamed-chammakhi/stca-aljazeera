@@ -1,12 +1,11 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:project3/core/theme/app_colors.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'models/notification_ceo.dart';
 import 'services/notification_ceo_service.dart';
+import 'widgets/notification_header.dart';
+import 'widgets/notification_card.dart';
 
-const Color _headerBg = Color.fromARGB(255, 220, 233, 226);
-const Color _green    = Color(0xFF38835A);
-const Color _dark     = Color(0xFF1A2E1F);
-const Color _bg       = Color(0xFFFFFFFF);
 
 class NotificationsCeoPage extends StatefulWidget {
   final NotificationCeoService service;
@@ -66,36 +65,36 @@ class _NotificationsCeoPageState extends State<NotificationsCeoPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _bg,
+      backgroundColor: kBg,
       appBar: AppBar(
-        backgroundColor: _headerBg,
+        backgroundColor: kHeaderBg,
         elevation: 0,
         centerTitle: false,
         toolbarHeight: 65,
         title: Text('Notifications',
-            style: GoogleFonts.domine(fontSize: 18, fontWeight: FontWeight.w700, color: _dark)),
-        iconTheme: const IconThemeData(color: _dark),
+            style: GoogleFonts.domine(fontSize: 18, fontWeight: FontWeight.w700, color: kDark)),
+        iconTheme: const IconThemeData(color: kDark),
         actions: [
           if (_unreadCount > 0)
             TextButton(
               onPressed: _markAllRead,
               child: Text('Tout marquer lu',
-                  style: TextStyle(fontSize: 12, color: _green, fontWeight: FontWeight.w600)),
+                  style: TextStyle(fontSize: 12, color: kGreen, fontWeight: FontWeight.w600)),
             ),
           const SizedBox(width: 4),
         ],
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator(color: _green))
+          ? const Center(child: CircularProgressIndicator(color: kGreen))
           : Column(children: [
               Container(
-                color: _headerBg,
+                color: kHeaderBg,
                 padding: const EdgeInsets.fromLTRB(16, 4, 16, 14),
                 child: Row(children: [
-                  _FilterChip(label: 'Tous', active: _filter == 'tous',
+                  NotifFilterChip(label: 'Tous', active: _filter == 'tous',
                       onTap: () => setState(() => _filter = 'tous')),
                   const SizedBox(width: 8),
-                  _FilterChip(
+                  NotifFilterChip(
                     label: _unreadCount > 0 ? 'Non lus ($_unreadCount)' : 'Non lus',
                     active: _filter == 'non_lus',
                     onTap: () => setState(() => _filter = 'non_lus'),
@@ -104,7 +103,7 @@ class _NotificationsCeoPageState extends State<NotificationsCeoPage> {
               ),
               Container(height: 1, color: Colors.black.withValues(alpha: 0.06)),
               Container(
-                color: _bg,
+                color: kBg,
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 6),
                 child: Row(children: [
                   Icon(Icons.notifications_outlined, size: 13, color: Colors.grey.shade400),
@@ -142,11 +141,11 @@ class _NotificationsCeoPageState extends State<NotificationsCeoPage> {
       children: [
         for (final group in order)
           if (grouped.containsKey(group)) ...[
-            _GroupHeader(group),
+            NotifGroupHeader(group),
             const SizedBox(height: 8),
             ...grouped[group]!.map((n) => Padding(
               padding: const EdgeInsets.only(bottom: 10),
-              child: _NotificationCard(notification: n, onTap: () => _onTap(n)),
+              child: CeoNotificationCard(notification: n, onTap: () => _onTap(n)),
             )),
             const SizedBox(height: 4),
           ],
@@ -166,159 +165,4 @@ class _NotificationsCeoPageState extends State<NotificationsCeoPage> {
   );
 }
 
-// ── Group header ──────────────────────────────────────────────────────────────
-class _GroupHeader extends StatelessWidget {
-  final String label;
-  const _GroupHeader(this.label);
 
-  @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.only(bottom: 6, top: 2),
-    child: Text(label,
-        style: TextStyle(
-          fontSize: 11, fontWeight: FontWeight.w700,
-          color: Colors.grey.shade500, letterSpacing: 0.5,
-        )),
-  );
-}
-
-// ── Filter chip ───────────────────────────────────────────────────────────────
-class _FilterChip extends StatelessWidget {
-  final String label;
-  final bool active;
-  final VoidCallback onTap;
-  const _FilterChip({required this.label, required this.active, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 160),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-        decoration: BoxDecoration(
-          color: active ? _green : Colors.white.withValues(alpha: 0.7),
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: active
-              ? [BoxShadow(color: _green.withValues(alpha: 0.25), blurRadius: 6, offset: const Offset(0, 2))]
-              : [],
-        ),
-        child: Text(label,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: active ? Colors.white : Colors.grey.shade600,
-            )),
-      ),
-    );
-  }
-}
-
-// ── Notification card ─────────────────────────────────────────────────────────
-class _NotificationCard extends StatelessWidget {
-  final NotificationCeo notification;
-  final VoidCallback onTap;
-  const _NotificationCard({required this.notification, required this.onTap});
-
-  static const _typeConfig = {
-    'NOUVEL_ECHANTILLON':   (Icons.science_outlined,      Color(0xFF3A6EA5), Color(0xFFE8F1FB)),
-    'ECHANTILLON_MODIFIE':  (Icons.edit_outlined,         Color(0xFFD07B2F), Color(0xFFFEF3E8)),
-    'ECHANTILLON_SUPPRIME': (Icons.delete_outline,        Color(0xFFB71C1C), Color(0xFFFFEBEE)),
-    'ECHANTILLON_RECU':     (Icons.check_circle_outline,  Color(0xFF38835A), Color(0xFFE6F4ED)),
-    'PREMIERE_EVALUATION':  (Icons.star_border_outlined,  Color(0xFF7B1FA2), Color(0xFFF3E5F5)),
-    'TOUTES_EVALUATIONS':   (Icons.group_outlined,        Color(0xFF38835A), Color(0xFFE6F4ED)),
-    'ANALYSE_SOUMISE':      (Icons.biotech_outlined,      Color(0xFF0277BD), Color(0xFFE1F5FE)),
-    'ACHAT_CONFIRME':       (Icons.handshake_outlined,    Color(0xFF38835A), Color(0xFFE6F4ED)),
-  };
-
-  @override
-  Widget build(BuildContext context) {
-    final cfg   = _typeConfig[notification.type];
-    final icon  = cfg?.$1 ?? Icons.notifications_outlined;
-    final color = cfg?.$2 ?? _green;
-    final bgCol = cfg?.$3 ?? const Color(0xFFE6F4ED);
-
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: notification.isRead ? Colors.grey.shade100 : color.withValues(alpha: 0.35),
-          ),
-          boxShadow: [
-            BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 6, offset: const Offset(0, 2)),
-          ],
-        ),
-        clipBehavior: Clip.hardEdge,
-        child: IntrinsicHeight(
-          child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            // Left accent bar — visible only for unread, no height: infinity needed
-            if (!notification.isRead)
-              Container(width: 4, color: color),
-            // Card content
-            Expanded(child: Padding(
-              padding: EdgeInsets.fromLTRB(notification.isRead ? 14 : 10, 14, 14, 14),
-              child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Container(
-                  width: 40, height: 40,
-                  decoration: BoxDecoration(color: bgCol, borderRadius: BorderRadius.circular(12)),
-                  child: Icon(icon, color: color, size: 20),
-                ),
-                const SizedBox(width: 12),
-                Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Row(children: [
-                    Expanded(child: Text(notification.titre,
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: notification.isRead ? FontWeight.w500 : FontWeight.w700,
-                          color: _dark,
-                        ))),
-                    if (!notification.isRead)
-                      Container(
-                        width: 8, height: 8,
-                        decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-                      ),
-                  ]),
-                  const SizedBox(height: 4),
-                  Text(notification.message,
-                      maxLines: 2, overflow: TextOverflow.ellipsis,
-                      style: TextStyle(fontSize: 12, color: Colors.grey.shade600, height: 1.4)),
-                  const SizedBox(height: 6),
-                  Row(children: [
-                    if (notification.echantillonReference != null) ...[
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: color.withValues(alpha: 0.08),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Text(notification.echantillonReference!,
-                            style: TextStyle(fontSize: 10, color: color, fontWeight: FontWeight.w700)),
-                      ),
-                      const SizedBox(width: 6),
-                    ],
-                    Text(_relativeTime(notification.dateCreation),
-                        style: TextStyle(fontSize: 11, color: Colors.grey.shade400)),
-                    const Spacer(),
-                    Icon(Icons.arrow_forward_ios_rounded, size: 10, color: Colors.grey.shade300),
-                  ]),
-                ])),
-              ]),
-            )),
-          ]),
-        ),
-      ),
-    );
-  }
-
-  String _relativeTime(DateTime dt) {
-    final diff = DateTime.now().difference(dt);
-    if (diff.inMinutes < 1) return "À l'instant";
-    if (diff.inMinutes < 60) return 'Il y a ${diff.inMinutes} min';
-    if (diff.inHours < 24) return 'Il y a ${diff.inHours} h';
-    if (diff.inDays == 1) return 'Hier';
-    return 'Il y a ${diff.inDays} jours';
-  }
-}

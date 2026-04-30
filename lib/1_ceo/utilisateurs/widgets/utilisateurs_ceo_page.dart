@@ -1,4 +1,4 @@
-// ═════════════════════════════════════════════════════════════════════════════
+﻿// ═════════════════════════════════════════════════════════════════════════════
 // FILE : ceo/utilisateurs/utilisateurs_ceo_page.dart
 // PURPOSE : CEO user management page — view all users, their roles,
 //           contact info, status, and perform admin actions.
@@ -8,6 +8,8 @@
 // ═════════════════════════════════════════════════════════════════════════════
 
 import 'package:flutter/material.dart';
+import 'package:project3/core/theme/app_colors.dart';
+import '../../widgets/ceo_nav_mixin.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../main.dart';
@@ -35,21 +37,14 @@ class UtilisateursCeoPage extends StatefulWidget {
   State<UtilisateursCeoPage> createState() => _UtilisateursCeoPageState();
 }
 
-class _UtilisateursCeoPageState extends State<UtilisateursCeoPage> {
-  // ── Brand colors ──────────────────────────────────────────────────────────
-  static const Color headerBg = Color.fromARGB(255, 220, 233, 226);
-  static const Color green = Color(0xFF38835A);
-  static const Color oliveGreen = Color(0xFF6B8143);
-  static const Color bg = Color.fromARGB(255, 255, 255, 255);
-  static const Color darkText = Color(0xFF1A2E1F);
-
+class _UtilisateursCeoPageState extends State<UtilisateursCeoPage> with CeoNavMixin {
   // ── Role accent colors ─────────────────────────────────────────────────────
-  // CEO → blue, Laboratoire → orange, Dégustateur → green, Collecteur → pink
+  // CEO → blue, Laboratoire → orange, Dégustateur → kGreen, Collecteur → pink
   static const _roleColors = {
-    UserRole.direction: (bg: Color(0xFFE6F1FB), fg: Color(0xFF185FA5)),
-    UserRole.laboratoire: (bg: Color(0xFFFAEEDA), fg: Color(0xFF854F0B)),
-    UserRole.degustateur: (bg: Color(0xFFE1F5EE), fg: Color(0xFF0F6E56)),
-    UserRole.collecteur: (bg: Color(0xFFFBEAF0), fg: Color(0xFF993556)),
+    UserRole.direction: (kBg: Color(0xFFE6F1FB), fg: Color(0xFF185FA5)),
+    UserRole.laboratoire: (kBg: Color(0xFFFAEEDA), fg: Color(0xFF854F0B)),
+    UserRole.degustateur: (kBg: Color(0xFFE1F5EE), fg: Color(0xFF0F6E56)),
+    UserRole.collecteur: (kBg: Color(0xFFFBEAF0), fg: Color(0xFF993556)),
   };
 
   // ── Data ──────────────────────────────────────────────────────────────────
@@ -76,10 +71,6 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage> {
   }
 
   // ── Navigation helpers ────────────────────────────────────────────────────
-  void _goTo(Widget page) {
-    Navigator.pop(context);
-    Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => page));
-  }
 
   @override
   void dispose() {
@@ -93,20 +84,20 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage> {
     final filtered = _filtered;
 
     return Scaffold(
-      backgroundColor: bg,
+      backgroundColor: kBg,
       drawer: CeoDrawer(
-        onEchantillons: () => _goTo(const EchantillonsCeoPage()),
+        onEchantillons: () => goToPage(const EchantillonsCeoPage()),
         onAnalyseOrganoleptique: () =>
-            _goTo(const AnalyseOrganoleptiqueCeoPage()),
-        onAnalyseLaboratoire: () => _goTo(const AnalyseLaboratoireCeoPage()),
-        onAchatsConfirmes: () => _goTo(const AchatsConfirmesCeoPage()),
+            goToPage(const AnalyseOrganoleptiqueCeoPage()),
+        onAnalyseLaboratoire: () => goToPage(const AnalyseLaboratoireCeoPage()),
+        onAchatsConfirmes: () => goToPage(const AchatsConfirmesCeoPage()),
         onTableauDeBord: () => Navigator.pop(context),
-        onProfil: () => _goTo(const ProfilceoPage()),
+        onProfil: () => goToPage(const ProfilceoPage()),
         onutilisiateurs: () => Navigator.pop(context),
-        onDeconnexion: () => _goTo(LoginPage()),
+        onDeconnexion: () => goToPage(LoginPage()),
       ),
       appBar: AppBar(
-        backgroundColor: headerBg,
+        backgroundColor: kHeaderBg,
         elevation: 0,
         centerTitle: false,
         toolbarHeight: 52,
@@ -115,20 +106,20 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage> {
           style: GoogleFonts.domine(
             fontSize: 18,
             fontWeight: FontWeight.w700,
-            color: darkText,
+            color: kDark,
           ),
         ),
-        iconTheme: const IconThemeData(color: darkText),
+        iconTheme: const IconThemeData(color: kDark),
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _showAddUserSheet,
         backgroundColor: const Color.fromARGB(255, 197, 206, 201),
         elevation: 2,
-        icon: const Icon(Icons.person_add_outlined, color: darkText),
+        icon: const Icon(Icons.person_add_outlined, color: kDark),
         label: Text(
           'Ajouter',
           style: GoogleFonts.domine(
-            color: darkText,
+            color: kDark,
             fontWeight: FontWeight.w700,
           ),
         ),
@@ -137,14 +128,14 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage> {
         children: [
           // ── Unified header zone ──────────────────────────────────────
           Container(
-            color: headerBg,
+            color: kHeaderBg,
             padding: const EdgeInsets.fromLTRB(16, 10, 16, 14),
             child: Column(
               children: [
                 TextField(
                   controller: _searchController,
                   onChanged: (v) => setState(() => _searchQuery = v.trim()),
-                  style: const TextStyle(fontSize: 14, color: darkText),
+                  style: const TextStyle(fontSize: 14, color: kDark),
                   decoration: InputDecoration(
                     hintText: 'Rechercher par nom, email, rôle…',
                     hintStyle: const TextStyle(
@@ -185,7 +176,7 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage> {
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: green, width: 1.5),
+                      borderSide: const BorderSide(color: kGreen, width: 1.5),
                     ),
                   ),
                 ),
@@ -203,8 +194,8 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage> {
                     itemCount: filtered.length,
                     itemBuilder: (_, i) => UserCard(
                       user: filtered[i],
-                      green: green,
-                      darkText: darkText,
+                      kGreen: kGreen,
+                      kDark: kDark,
                       roleColors: _roleColors,
                       onToggleStatus: () => _confirmToggleStatus(filtered[i]),
                       onDelete: () => _confirmDelete(filtered[i]),
@@ -219,7 +210,7 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage> {
 
   // ── Filter chips ──────────────────────────────────────────────────────────
   // Inactive = gray (like current "Tous" inactive).
-  // Active   = role-colored bg + colored text (like current inactive role chips).
+  // Active   = role-colored kBg + colored text (like current inactive role chips).
   Widget _buildFilterChips() {
     // (label, role, activeBg, activeFg)
     const chips = [
@@ -265,7 +256,7 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage> {
       itemBuilder: (_, i) {
         final chip = chips[i];
         final isActive = _activeFilter == chip.role;
-        final bg = isActive ? chip.activeBg : inactiveBg;
+        final kBg = isActive ? chip.activeBg : inactiveBg;
         final fg = isActive ? chip.activeFg : inactiveFg;
 
         return GestureDetector(
@@ -274,7 +265,7 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage> {
             duration: const Duration(milliseconds: 150),
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
             decoration: BoxDecoration(
-              color: bg,
+              color: kBg,
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
                 color: isActive
@@ -329,7 +320,7 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage> {
           style: GoogleFonts.domine(
             fontSize: 16,
             fontWeight: FontWeight.w700,
-            color: darkText,
+            color: kDark,
           ),
         ),
         content: Text(
@@ -359,7 +350,7 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage> {
                     : '${user.nomComplet} désactivé',
               );
             },
-            style: ElevatedButton.styleFrom(backgroundColor: green),
+            style: ElevatedButton.styleFrom(backgroundColor: kGreen),
             child: Text(
               user.isActive ? 'Désactiver' : 'Réactiver',
               style: const TextStyle(color: Colors.white),
@@ -448,7 +439,7 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage> {
                 children: [
                   CircleAvatar(
                     radius: 30,
-                    backgroundColor: colors.bg,
+                    backgroundColor: colors.kBg,
                     child: Text(
                       user.initiales,
                       style: TextStyle(
@@ -468,7 +459,7 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage> {
                           style: GoogleFonts.domine(
                             fontSize: 20,
                             fontWeight: FontWeight.w700,
-                            color: darkText,
+                            color: kDark,
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -478,7 +469,7 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage> {
                             vertical: 3,
                           ),
                           decoration: BoxDecoration(
-                            color: colors.bg,
+                            color: colors.kBg,
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
@@ -503,7 +494,7 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage> {
                 style: GoogleFonts.domine(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
-                  color: darkText,
+                  color: kDark,
                 ),
               ),
               const SizedBox(height: 12),
@@ -527,7 +518,7 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage> {
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
         children: [
-          Icon(icon, size: 18, color: green),
+          Icon(icon, size: 18, color: kGreen),
           const SizedBox(width: 12),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -536,11 +527,11 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage> {
                 label,
                 style: const TextStyle(
                   fontSize: 11,
-                  color: oliveGreen,
+                  color: kOlive,
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              Text(value, style: TextStyle(fontSize: 14, color: darkText)),
+              Text(value, style: TextStyle(fontSize: 14, color: kDark)),
             ],
           ),
         ],
@@ -637,7 +628,7 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage> {
                           ),
                           child: const Icon(
                             Icons.person_add_outlined,
-                            color: darkText,
+                            color: kDark,
                             size: 17,
                           ),
                         ),
@@ -647,7 +638,7 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage> {
                           style: GoogleFonts.domine(
                             fontSize: 16,
                             fontWeight: FontWeight.w700,
-                            color: darkText,
+                            color: kDark,
                           ),
                         ),
                       ],
@@ -662,7 +653,7 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage> {
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
-                        color: oliveGreen,
+                        color: kOlive,
                         letterSpacing: 0.4,
                       ),
                     ),
@@ -690,7 +681,7 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage> {
                                 ),
                                 decoration: BoxDecoration(
                                   color: isSelected
-                                      ? roleC.bg
+                                      ? roleC.kBg
                                       : const Color(0xFFF5F5F5),
                                   borderRadius: BorderRadius.circular(20),
                                   border: Border.all(
@@ -822,7 +813,7 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage> {
                       child: Text(
                         'Enregistrer',
                         style: GoogleFonts.domine(
-                          color: darkText,
+                          color: kDark,
                           fontWeight: FontWeight.w700,
                           fontSize: 14,
                         ),
@@ -852,16 +843,16 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage> {
           style: const TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w600,
-            color: oliveGreen,
+            color: kOlive,
           ),
         ),
         const SizedBox(height: 6),
         TextField(
           controller: ctrl,
           keyboardType: type,
-          style: TextStyle(color: darkText, fontSize: 14),
+          style: TextStyle(color: kDark, fontSize: 14),
           decoration: InputDecoration(
-            prefixIcon: Icon(icon, color: green, size: 18),
+            prefixIcon: Icon(icon, color: kGreen, size: 18),
             hintText: label,
             hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 13),
             filled: true,
@@ -880,7 +871,7 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage> {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: green, width: 2),
+              borderSide: const BorderSide(color: kGreen, width: 2),
             ),
           ),
         ),
@@ -923,7 +914,7 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage> {
             fontWeight: FontWeight.w600,
           ),
         ),
-        backgroundColor: green,
+        backgroundColor: kGreen,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         margin: const EdgeInsets.all(20),

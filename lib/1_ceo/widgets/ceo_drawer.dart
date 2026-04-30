@@ -1,10 +1,7 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:project3/core/theme/app_colors.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-const Color _headerBg = Color.fromARGB(255, 220, 233, 226);
-const Color _green = Color(0xFF38835A);
-const Color _dark = Color(0xFF1A2E1F);
-const Color _olive = Color(0xFF6B8143);
 const Color _iconBg = Color(0x1A38835A);
 
 class CeoDrawer extends StatelessWidget {
@@ -77,13 +74,13 @@ class CeoDrawer extends StatelessWidget {
                         style: GoogleFonts.domine(
                           fontSize: 18,
                           fontWeight: FontWeight.w700,
-                          color: _dark,
+                          color: kDark,
                         ),
                       ),
                       const SizedBox(height: 2),
                       Text(
                         'STCA Aljazira',
-                        style: const TextStyle(fontSize: 12, color: _dark),
+                        style: const TextStyle(fontSize: 12, color: kDark),
                       ),
                     ],
                   ),
@@ -110,7 +107,7 @@ class CeoDrawer extends StatelessWidget {
                     onTap: onTableauDeBord,
                   ),
                   const SizedBox(height: 4),
-                  Divider(color: _olive.withValues(alpha: 0.15), height: 1),
+                  Divider(color: kOlive.withValues(alpha: 0.15), height: 1),
                   const SizedBox(height: 4),
                   _SectionLabel('Échantillons'),
                   _DrawerItem(
@@ -139,7 +136,7 @@ class CeoDrawer extends StatelessWidget {
                   ),
 
                   const SizedBox(height: 4),
-                  Divider(color: _olive.withValues(alpha: 0.15), height: 1),
+                  Divider(color: kOlive.withValues(alpha: 0.15), height: 1),
                   const SizedBox(height: 4),
                   _SectionLabel('Compte'),
                   _DrawerItem(
@@ -198,7 +195,7 @@ class _SectionLabel extends StatelessWidget {
         style: const TextStyle(
           fontSize: 10,
           fontWeight: FontWeight.w700,
-          color: _olive,
+          color: kOlive,
           letterSpacing: 1.1,
         ),
       ),
@@ -239,7 +236,7 @@ class _DrawerItem extends StatelessWidget {
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Center(
-                  child: customIcon ?? Icon(icon, color: _green, size: 20),
+                  child: customIcon ?? Icon(icon, color: kGreen, size: 20),
                 ),
               ),
               const SizedBox(width: 14),
@@ -248,7 +245,7 @@ class _DrawerItem extends StatelessWidget {
                 style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
-                  color: _dark,
+                  color: kDark,
                 ),
               ),
             ],
@@ -258,3 +255,4 @@ class _DrawerItem extends StatelessWidget {
     );
   }
 }
+

@@ -1,12 +1,15 @@
-// ═════════════════════════════════════════════════════════════════════════════
+﻿// ═════════════════════════════════════════════════════════════════════════════
 // FILE : 1_ceo/echantillons/echantillons_ceo_page.dart
 // ═════════════════════════════════════════════════════════════════════════════
 
 import 'package:flutter/material.dart';
+import 'package:project3/core/theme/app_colors.dart';
+import 'package:project3/core/utils/date_utils.dart';
+import 'models/collecteur_group.dart';
+import '../widgets/ceo_nav_mixin.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../widgets/ceo_drawer.dart';
 import '../utilisateurs/models/echantillon_ceo_view.dart';
-import 'echantillons_ceo_page.dart';
 import '../analyse_organoleptique/analyse_organoleptique_ceo_page.dart';
 import '../analyse_laboratoire/analyse_laboratoire_ceo_page.dart';
 import '../achats_confirmes/achats_confirmes_ceo_page.dart';
@@ -19,11 +22,8 @@ import '../tableau_de_bord/tableau_de_bord.dart';
 // ── Reusable widget imports ──────────────────────────────────────────────────
 import '../widgets/search_date_filter_bar.dart';
 import '../widgets/sample_card_echantillon.dart';
+import 'widgets/collecteur_section.dart';
 
-const Color _headerBg = Color.fromARGB(255, 220, 233, 226);
-const Color _green = Color(0xFF38835A);
-const Color _dark = Color(0xFF1A2E1F);
-const Color _bg = Color.fromARGB(255, 255, 255, 255);
 
 String _initials(String name) {
   final parts = name.trim().split(' ').where((s) => s.isNotEmpty).toList();
@@ -33,25 +33,6 @@ String _initials(String name) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// COLLECTEUR GROUP MODEL  (local to this page)
-// ─────────────────────────────────────────────────────────────────────────────
-class _CollecteurGroup {
-  final String? collecteurNom;
-  final String? collecteurId;
-  final List<EchantillonCeoView> echantillons;
-
-  _CollecteurGroup({
-    this.collecteurNom,
-    this.collecteurId,
-    required this.echantillons,
-  });
-
-  bool get isInterne => collecteurNom == null;
-  String get displayName => collecteurNom ?? 'Ajoutés en interne';
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// PAGE
 // ─────────────────────────────────────────────────────────────────────────────
 class EchantillonsCeoPage extends StatefulWidget {
   const EchantillonsCeoPage({super.key});
@@ -60,7 +41,7 @@ class EchantillonsCeoPage extends StatefulWidget {
   State<EchantillonsCeoPage> createState() => _EchantillonsCeoPageState();
 }
 
-class _EchantillonsCeoPageState extends State<EchantillonsCeoPage> {
+class _EchantillonsCeoPageState extends State<EchantillonsCeoPage> with CeoNavMixin {
   DateTime? _dateDebut;
   DateTime? _dateFin;
   DateFilterType _dateType = DateFilterType.enregistrement;
@@ -97,7 +78,7 @@ class _EchantillonsCeoPageState extends State<EchantillonsCeoPage> {
       result = result.where((e) {
         final raw = _dateFieldFor(e);
         if (raw == null) return false;
-        final d = _parseDate(raw);
+        final d = DegDateUtils.parseDate(raw);
         if (d == null) return false;
         final day = DateTime(d.year, d.month, d.day);
         final debut = DateTime(
@@ -128,7 +109,7 @@ class _EchantillonsCeoPageState extends State<EchantillonsCeoPage> {
     return result;
   }
 
-  List<_CollecteurGroup> get _groups {
+  List<CollecteurGroup> get _groups {
     final filtered = _applyFilters(_allEchantillons);
     final Map<String, List<EchantillonCeoView>> byCollecteur = {};
 
@@ -137,13 +118,13 @@ class _EchantillonsCeoPageState extends State<EchantillonsCeoPage> {
       byCollecteur.putIfAbsent(key, () => []).add(e);
     }
 
-    final List<_CollecteurGroup> groups = [];
+    final List<CollecteurGroup> groups = [];
     final collecteurKeys =
         byCollecteur.keys.where((k) => k != '__interne__').toList()..sort();
 
     for (final key in collecteurKeys) {
       groups.add(
-        _CollecteurGroup(
+        CollecteurGroup(
           collecteurNom: key,
           collecteurId: key.replaceAll(' ', '_').toLowerCase(),
           echantillons: byCollecteur[key]!,
@@ -153,7 +134,7 @@ class _EchantillonsCeoPageState extends State<EchantillonsCeoPage> {
 
     if (byCollecteur.containsKey('__interne__')) {
       groups.add(
-        _CollecteurGroup(
+        CollecteurGroup(
           collecteurNom: null,
           echantillons: byCollecteur['__interne__']!,
         ),
@@ -161,16 +142,6 @@ class _EchantillonsCeoPageState extends State<EchantillonsCeoPage> {
     }
 
     return groups;
-  }
-
-  DateTime? _parseDate(String s) {
-    try {
-      final p = s.split('/');
-      if (p.length != 3) return null;
-      return DateTime(int.parse(p[2]), int.parse(p[1]), int.parse(p[0]));
-    } catch (_) {
-      return null;
-    }
   }
 
   // ── Date filter sheet ──────────────────────────────────────────────────────
@@ -201,10 +172,6 @@ class _EchantillonsCeoPageState extends State<EchantillonsCeoPage> {
     );
   }
 
-  void _goTo(Widget page) {
-    Navigator.pop(context);
-    Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => page));
-  }
 
   int get _totalFiltered =>
       _groups.fold(0, (sum, g) => sum + g.echantillons.length);
@@ -218,20 +185,20 @@ class _EchantillonsCeoPageState extends State<EchantillonsCeoPage> {
     final groups = _groups;
 
     return Scaffold(
-      backgroundColor: _bg,
+      backgroundColor: kBg,
       drawer: CeoDrawer(
-        onEchantillons: () => _goTo(const EchantillonsCeoPage()),
+        onEchantillons: () => goToPage(const EchantillonsCeoPage()),
         onAnalyseOrganoleptique: () =>
-            _goTo(const AnalyseOrganoleptiqueCeoPage()),
-        onAnalyseLaboratoire: () => _goTo(const AnalyseLaboratoireCeoPage()),
-        onAchatsConfirmes: () => _goTo(const AchatsConfirmesCeoPage()),
-        onTableauDeBord: () => _goTo(const HomePageCeo()),
-        onProfil: () => _goTo(const ProfilceoPage()),
-        onutilisiateurs: () => _goTo(const UtilisateursCeoPage()),
-        onDeconnexion: () => _goTo(LoginPage()),
+            goToPage(const AnalyseOrganoleptiqueCeoPage()),
+        onAnalyseLaboratoire: () => goToPage(const AnalyseLaboratoireCeoPage()),
+        onAchatsConfirmes: () => goToPage(const AchatsConfirmesCeoPage()),
+        onTableauDeBord: () => goToPage(const HomePageCeo()),
+        onProfil: () => goToPage(const ProfilceoPage()),
+        onutilisiateurs: () => goToPage(const UtilisateursCeoPage()),
+        onDeconnexion: () => goToPage(LoginPage()),
       ),
       appBar: AppBar(
-        backgroundColor: _headerBg,
+        backgroundColor: kHeaderBg,
         elevation: 0,
         centerTitle: false,
         toolbarHeight: 65,
@@ -240,10 +207,10 @@ class _EchantillonsCeoPageState extends State<EchantillonsCeoPage> {
           style: GoogleFonts.domine(
             fontSize: 18,
             fontWeight: FontWeight.w700,
-            color: _dark,
+            color: kDark,
           ),
         ),
-        iconTheme: const IconThemeData(color: _dark),
+        iconTheme: const IconThemeData(color: kDark),
         actions: [
           Stack(
             alignment: Alignment.center,
@@ -252,7 +219,7 @@ class _EchantillonsCeoPageState extends State<EchantillonsCeoPage> {
                 icon: Icon(
                   Icons.calendar_today_outlined,
                   size: 20,
-                  color: _dateFilterActive ? _green : const Color(0xFF6B8E7A),
+                  color: _dateFilterActive ? kGreen : const Color(0xFF6B8E7A),
                 ),
                 onPressed: _showDateFilter,
                 tooltip: _dateFilterActive
@@ -267,7 +234,7 @@ class _EchantillonsCeoPageState extends State<EchantillonsCeoPage> {
                     width: 8,
                     height: 8,
                     decoration: const BoxDecoration(
-                      color: _green,
+                      color: kGreen,
                       shape: BoxShape.circle,
                     ),
                   ),
@@ -281,12 +248,12 @@ class _EchantillonsCeoPageState extends State<EchantillonsCeoPage> {
         children: [
           // ── Unified header zone ──────────────────────────────────────
           Container(
-            color: _headerBg,
+            color: kHeaderBg,
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
             child: TextField(
               controller: _searchController,
               onChanged: (v) => setState(() => _searchQuery = v.trim()),
-              style: const TextStyle(fontSize: 14, color: _dark),
+              style: const TextStyle(fontSize: 14, color: kDark),
               decoration: InputDecoration(
                 hintText:
                     'Réf, fournisseur, gouvernorat, variété, collecteur…',
@@ -328,7 +295,7 @@ class _EchantillonsCeoPageState extends State<EchantillonsCeoPage> {
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: _green, width: 1.5),
+                  borderSide: const BorderSide(color: kGreen, width: 1.5),
                 ),
               ),
             ),
@@ -337,7 +304,7 @@ class _EchantillonsCeoPageState extends State<EchantillonsCeoPage> {
 
           // ── Stats strip ──────────────────────────────────────────────
           Container(
-            color: _bg,
+            color: kBg,
             padding: const EdgeInsets.fromLTRB(16, 9, 16, 6),
             child: Row(
               children: [
@@ -386,7 +353,7 @@ class _EchantillonsCeoPageState extends State<EchantillonsCeoPage> {
                 : ListView.builder(
                     padding: const EdgeInsets.fromLTRB(16, 12, 16, 30),
                     itemCount: groups.length,
-                    itemBuilder: (_, i) => _CollecteurSection(
+                    itemBuilder: (_, i) => CollecteurSection(
                       group: groups[i],
                       isExpanded: _expandedCollecteurs.contains(
                         groups[i].displayName,
@@ -408,7 +375,7 @@ class _EchantillonsCeoPageState extends State<EchantillonsCeoPage> {
                           : () => Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (_) => _CarteGeoPlaceholder(
+                                builder: (_) => CarteGeoPlaceholder(
                                   collecteurNom: groups[i].displayName,
                                 ),
                               ),
@@ -422,245 +389,4 @@ class _EchantillonsCeoPageState extends State<EchantillonsCeoPage> {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// COLLECTEUR SECTION  (page-specific, not extracted)
-// ─────────────────────────────────────────────────────────────────────────────
-class _CollecteurSection extends StatelessWidget {
-  final _CollecteurGroup group;
-  final bool isExpanded;
-  final Set<String> expandedSamples;
-  final VoidCallback onToggleCollecteur;
-  final void Function(String id) onToggleSample;
-  final VoidCallback? onViewMap;
 
-  const _CollecteurSection({
-    required this.group,
-    required this.isExpanded,
-    required this.expandedSamples,
-    required this.onToggleCollecteur,
-    required this.onToggleSample,
-    this.onViewMap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: _green.withValues(alpha: 0.06),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          // Header row
-          GestureDetector(
-            onTap: onToggleCollecteur,
-            behavior: HitTestBehavior.opaque,
-            child: ClipRRect(
-              borderRadius: BorderRadius.vertical(
-                top: const Radius.circular(14),
-                bottom: isExpanded ? Radius.zero : const Radius.circular(14),
-              ),
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      group.isInterne
-                          ? Colors.purple.shade50.withValues(alpha: 0.5)
-                          : _green.withValues(alpha: 0.05),
-                      Colors.white,
-                    ],
-                    begin: Alignment.centerLeft,
-                    end: Alignment.centerRight,
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 4,
-                      height: 58,
-                      color: group.isInterne ? Colors.purple.shade300 : _green,
-                    ),
-                    const SizedBox(width: 12),
-                    Container(
-                      width: 34,
-                      height: 34,
-                      decoration: BoxDecoration(
-                        color: group.isInterne
-                            ? Colors.purple.shade50
-                            : _green.withValues(alpha: 0.1),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Center(
-                        child: group.isInterne
-                            ? Icon(
-                                Icons.business_outlined,
-                                size: 16,
-                                color: Colors.purple.shade400,
-                              )
-                            : Text(
-                                _initials(group.displayName),
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w700,
-                                  color: _green,
-                                ),
-                              ),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            group.displayName,
-                            style: const TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w700,
-                              color: _dark,
-                            ),
-                          ),
-                          Text(
-                            '${group.echantillons.length} échantillon${group.echantillons.length > 1 ? "s" : ""}',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey.shade500,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    if (onViewMap != null) ...[
-                      GestureDetector(
-                        onTap: onViewMap,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 5,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.blue.shade50,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: Colors.blue.shade100),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                Icons.map_outlined,
-                                size: 12,
-                                color: Colors.blue.shade600,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                'Carte',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.blue.shade600,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                    ],
-                    AnimatedRotation(
-                      turns: isExpanded ? 0.5 : 0.0,
-                      duration: const Duration(milliseconds: 200),
-                      child: Icon(
-                        Icons.keyboard_arrow_down,
-                        size: 20,
-                        color: Colors.grey.shade400,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                  ],
-                ),
-              ),
-            ),
-          ),
-
-          // Expandable sample list
-          AnimatedCrossFade(
-            firstChild: const SizedBox.shrink(),
-            secondChild: Column(
-              children: [
-                Divider(color: Colors.grey.shade100, height: 1),
-                ...group.echantillons.asMap().entries.map(
-                  (entry) => SampleRow(
-                    // ← from sample_card_widgets.dart
-                    echantillon: entry.value,
-                    isExpanded: expandedSamples.contains(entry.value.id),
-                    isOdd: entry.key.isOdd,
-                    isLast: entry.key == group.echantillons.length - 1,
-                    onToggle: () => onToggleSample(entry.value.id),
-                  ),
-                ),
-              ],
-            ),
-            crossFadeState: isExpanded
-                ? CrossFadeState.showSecond
-                : CrossFadeState.showFirst,
-            duration: const Duration(milliseconds: 220),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// CARTE GEO PLACEHOLDER
-// ─────────────────────────────────────────────────────────────────────────────
-class _CarteGeoPlaceholder extends StatelessWidget {
-  final String collecteurNom;
-  const _CarteGeoPlaceholder({required this.collecteurNom});
-
-  @override
-  Widget build(BuildContext context) => Scaffold(
-    backgroundColor: _bg,
-    appBar: AppBar(
-      backgroundColor: _green,
-      elevation: 0,
-      title: Text(
-        collecteurNom,
-        style: GoogleFonts.domine(
-          fontSize: 17,
-          fontWeight: FontWeight.w700,
-          color: Colors.white,
-        ),
-      ),
-    ),
-    body: Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.map_outlined, size: 56, color: Colors.grey.shade300),
-          const SizedBox(height: 14),
-          Text(
-            'Carte géographique',
-            style: GoogleFonts.domine(
-              fontSize: 16,
-              color: Colors.grey.shade500,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            'Connecter CarteGeoPage ici',
-            style: TextStyle(fontSize: 12, color: Colors.grey.shade400),
-          ),
-        ],
-      ),
-    ),
-  );
-}
