@@ -6,6 +6,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'models/membre_panel.dart';
+import 'services/membres_panel_chef_service.dart';
 import 'widgets/membre_card.dart';
 import '../../../main.dart';
 import '../gestion_echantillons/gestion_echantillons_page.dart';
@@ -15,7 +16,7 @@ import '../tableau_de_bord/widgets/app_drawer.dart';
 import '../sessions_degustation/sessions_degustation_page.dart';
 import '../analyse_labo/analyse_laboratoire_page.dart';
 import '../vue_ensemble_evaluations/vue_ensemble_evaluations_page.dart';
-import '../widgets/chef_colors.dart';
+import '../../../core/theme/app_colors.dart';
 import '../widgets/chef_nav_mixin.dart';
 
 const Color _gray = Color.fromARGB(255, 81, 82, 81);
@@ -32,49 +33,16 @@ class _MembresPanelPageState extends State<MembresPanelPage>
   final TextEditingController _searchCtrl = TextEditingController();
   String _recherche = '';
 
-  // ── MOCK DATA — replace with API call when backend is ready ───────────────
-  final List<MembrePanel> _membres = const [
-    MembrePanel(
-      id: '001',
-      nom: 'Chammakhi',
-      prenom: 'Ichrak',
-      role: 'Dégustateur',
-      membreDepuis: 'Jan 2026',
-      estEnLigne: true,
-    ),
-    MembrePanel(
-      id: '002',
-      nom: 'Ennouri',
-      prenom: 'Lobna',
-      role: 'Dégustateur',
-      membreDepuis: 'Jan 2026',
-      estEnLigne: false,
-    ),
-    MembrePanel(
-      id: '003',
-      nom: 'Ouni',
-      prenom: 'Maha',
-      role: 'Dégustateur',
-      membreDepuis: 'Fév 2026',
-      estEnLigne: true,
-    ),
-    MembrePanel(
-      id: '004',
-      nom: 'Fezai',
-      prenom: 'Nayrouz',
-      role: 'Dégustateur',
-      membreDepuis: 'Fév 2026',
-      estEnLigne: false,
-    ),
-    MembrePanel(
-      id: '005',
-      nom: 'Smaali',
-      prenom: 'Yosra',
-      role: 'Dégustateur',
-      membreDepuis: 'Mar 2026',
-      estEnLigne: false,
-    ),
-  ];
+  final _service = MembresPanelChefService();
+  List<MembrePanel> _membres = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _service.fetchMembres().then((data) {
+      if (mounted) setState(() => _membres = data);
+    });
+  }
 
   // ── FILTERED LIST based on search ─────────────────────────────────────────
   List<MembrePanel> get _membresFiltres {
@@ -105,10 +73,10 @@ class _MembresPanelPageState extends State<MembresPanelPage>
           style: GoogleFonts.domine(
             fontSize: 18,
             fontWeight: FontWeight.w700,
-            color: chefDark,
+            color: kDark,
           ),
         ),
-        iconTheme: const IconThemeData(color: chefDark),
+        iconTheme: const IconThemeData(color: kDark),
       ),
 
       body: Padding(
@@ -119,11 +87,11 @@ class _MembresPanelPageState extends State<MembresPanelPage>
             TextField(
               controller: _searchCtrl,
               onChanged: (v) => setState(() => _recherche = v),
-              style: const TextStyle(fontSize: 14, color: chefDark),
+              style: const TextStyle(fontSize: 14, color: kDark),
               decoration: InputDecoration(
                 hintText: 'Rechercher un membre...',
                 hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 13),
-                prefixIcon: const Icon(Icons.search, color: chefGreen, size: 20),
+                prefixIcon: const Icon(Icons.search, color: kGreen, size: 20),
                 suffixIcon: _recherche.isNotEmpty
                     ? IconButton(
                         icon: Icon(
@@ -153,7 +121,7 @@ class _MembresPanelPageState extends State<MembresPanelPage>
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: chefGreen, width: 1.8),
+                  borderSide: const BorderSide(color: kGreen, width: 1.8),
                 ),
               ),
             ),

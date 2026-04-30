@@ -2,12 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'models/notification_degustateur.dart';
 import 'services/notification_degustateur_service.dart';
-import '../tableau_de_bord/homepage_page.dart';
-
-const Color _headerBg = Color.fromARGB(255, 220, 233, 226);
-const Color _green = Color(0xFF38835A);
-const Color _dark = Color(0xFF1A2E1F);
-const Color _bg = Color(0xFFFFFFFF);
+import '../../../core/theme/app_colors.dart';
 
 class NotificationsDegustateurPage extends StatefulWidget {
   final NotificationDegustateurService service;
@@ -74,9 +69,9 @@ class _NotificationsDegustateurPageState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _bg,
+      backgroundColor: kBg,
       appBar: AppBar(
-        backgroundColor: _headerBg,
+        backgroundColor: kHeaderBg,
         elevation: 0,
         centerTitle: false,
         toolbarHeight: 65,
@@ -85,10 +80,10 @@ class _NotificationsDegustateurPageState
           style: GoogleFonts.domine(
             fontSize: 18,
             fontWeight: FontWeight.w700,
-            color: _dark,
+            color: kDark,
           ),
         ),
-        iconTheme: const IconThemeData(color: _dark),
+        iconTheme: const IconThemeData(color: kDark),
         actions: [
           if (_unreadCount > 0)
             TextButton(
@@ -97,7 +92,7 @@ class _NotificationsDegustateurPageState
                 'Tout marquer lu',
                 style: TextStyle(
                   fontSize: 12,
-                  color: _green,
+                  color: kGreen,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -106,11 +101,11 @@ class _NotificationsDegustateurPageState
         ],
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator(color: _green))
+          ? const Center(child: CircularProgressIndicator(color: kGreen))
           : Column(
               children: [
                 Container(
-                  color: _headerBg,
+                  color: kHeaderBg,
                   padding: const EdgeInsets.fromLTRB(16, 4, 16, 14),
                   child: Row(
                     children: [
@@ -135,7 +130,7 @@ class _NotificationsDegustateurPageState
                   color: Colors.black.withValues(alpha: 0.06),
                 ),
                 Container(
-                  color: _bg,
+                  color: kBg,
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 6),
                   child: Row(
                     children: [
@@ -272,12 +267,12 @@ class _FilterChip extends StatelessWidget {
         duration: const Duration(milliseconds: 160),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
         decoration: BoxDecoration(
-          color: active ? _green : Colors.white.withValues(alpha: 0.7),
+          color: active ? kGreen : Colors.white.withValues(alpha: 0.7),
           borderRadius: BorderRadius.circular(20),
           boxShadow: active
               ? [
                   BoxShadow(
-                    color: _green.withValues(alpha: 0.25),
+                    color: kGreen.withValues(alpha: 0.25),
                     blurRadius: 6,
                     offset: const Offset(0, 2),
                   ),
@@ -369,7 +364,7 @@ class _NotificationCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final cfg = _typeConfig[notification.type];
     final icon = cfg?.$1 ?? Icons.notifications_outlined;
-    final color = cfg?.$2 ?? _green;
+    final color = cfg?.$2 ?? kGreen;
     final bgCol = cfg?.$3 ?? const Color(0xFFE6F4ED);
 
     return GestureDetector(
@@ -432,7 +427,7 @@ class _NotificationCard extends StatelessWidget {
                                       fontWeight: notification.isRead
                                           ? FontWeight.w500
                                           : FontWeight.w700,
-                                      color: _dark,
+                                      color: kDark,
                                     ),
                                   ),
                                 ),

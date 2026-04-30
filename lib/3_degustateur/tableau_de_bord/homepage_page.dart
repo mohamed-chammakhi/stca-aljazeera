@@ -6,11 +6,14 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 // ── Homepage own widgets ──────────────────────────────────────────────────────
 import 'widgets/app_drawer.dart';
 import 'widgets/home_body.dart';
 
+import '../../../core/theme/app_colors.dart';
+import '../widgets/degustateur_nav_mixin.dart';
 import '../profil/profil_page.dart';
 import '../notifications/models/notification_degustateur.dart';
 import '../notifications/services/notification_degustateur_service.dart';
@@ -22,7 +25,6 @@ import '../gestion_echantillons/gestion_echantillons_page.dart';
 import '../evaluation_echantillons/evaluation_echantillons_page.dart';
 import '../membres_panel/membres_panel_page.dart';
 import '../analyse_labo/analyse_laboratoire_page.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // MyApp
@@ -35,10 +37,6 @@ class MyApp extends StatefulWidget {
   @override
   State<MyApp> createState() => _MyAppState();
 }
-
-const Color _headerBg = Color.fromARGB(255, 220, 233, 226);
-
-const Color _dark = Color(0xFF1A2E1F);
 
 class _MyAppState extends State<MyApp> {
   @override
@@ -65,8 +63,8 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
-  static const Color green = Color(0xFF38835A);
+class _HomePageState extends State<HomePage>
+    with DegustateurNavMixin {
 
   // ── Notifications ─────────────────────────────────────────────────────────
   final _notifService = NotificationDegustateurService();
@@ -126,21 +124,6 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  // ── NAVIGATION ────────────────────────────────────────────────────────────
-
-  void _goTo(Widget page) {
-    Navigator.pop(context); // close drawer
-    Navigator.push(context, MaterialPageRoute(builder: (_) => page));
-  }
-
-  void _goToLogin() {
-    Navigator.pop(context);
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => LoginPage()),
-    );
-  }
-
   // ─────────────────────────────────────────────────────────────────────────
   // BUILD
   // ─────────────────────────────────────────────────────────────────────────
@@ -150,7 +133,7 @@ class _HomePageState extends State<HomePage> {
       backgroundColor: const Color(0xFFF9F6EF),
 
       appBar: AppBar(
-        backgroundColor: _headerBg,
+        backgroundColor: kHeaderBg,
         elevation: 0,
         toolbarHeight: 65,
         title: Text(
@@ -158,15 +141,15 @@ class _HomePageState extends State<HomePage> {
           style: GoogleFonts.domine(
             fontSize: 18,
             fontWeight: FontWeight.w700,
-            color: _dark,
+            color: kDark,
           ),
         ),
-        iconTheme: const IconThemeData(color: _dark, size: 28),
+        iconTheme: const IconThemeData(color: kDark, size: 28),
         actions: [
           Stack(
             children: [
               IconButton(
-                icon: const Icon(Icons.notifications_outlined, color: _dark),
+                icon: const Icon(Icons.notifications_outlined, color: kDark),
                 onPressed: _openNotifications,
               ),
               if (_unreadCount > 0)
@@ -201,13 +184,13 @@ class _HomePageState extends State<HomePage> {
       drawer: AppDrawer(
         onaccueil: () => Navigator.pop(context),
         onEvaluationEchantillons: () =>
-            _goTo(const EvaluationEchantillonsPage()),
-        onGestionEchantillons: () => _goTo(const GestionEchantillonsPage()),
-        onAnalyseLaboratoire: () => _goTo(const AnalyseLaboratoirePage()),
-        onSessionsDegustationPage: () => _goTo(const SessionsDegustationPage()),
-        onMembredupanel: () => _goTo(const MembresPanelPage()),
-        onProfil: () => _goTo(const ProfilePage()),
-        onDeconnexion: _goToLogin,
+            goToPage(const EvaluationEchantillonsPage()),
+        onGestionEchantillons: () => goToPage(const GestionEchantillonsPage()),
+        onAnalyseLaboratoire: () => goToPage(const AnalyseLaboratoirePage()),
+        onSessionsDegustationPage: () => goToPage(const SessionsDegustationPage()),
+        onMembredupanel: () => goToPage(const MembresPanelPage()),
+        onProfil: () => goToPage(const ProfilePage()),
+        onDeconnexion: goToLogin,
       ),
     );
   }

@@ -5,7 +5,7 @@
 // SECTIONS :
 //   1. COLORS
 //   2. STATE         — search, statut filter, date range
-//   3. NAVIGATION    — _goTo, _goToLogin
+//   3. NAVIGATION    — _goTo, goToLogin
 //   4. MOCK DATA     — replace with API call later
 //   5. FILTER LOGIC  — _filtres getter, _parseDate
 //   6. ACTIONS       — add, edit, delete, snackbar
@@ -35,7 +35,10 @@ import '../gestion_echantillons/gestion_echantillons_page.dart';
 import '../evaluation_echantillons/evaluation_echantillons_page.dart';
 import '../../../main.dart';
 import '../analyse_labo/analyse_laboratoire_page.dart';
-import '../widgets/statut_chip.dart';
+import '../../../core/widgets/statut_chip.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../core/utils/date_utils.dart';
+import '../widgets/degustateur_nav_mixin.dart';
 
 class SessionsDegustationPage extends StatefulWidget {
   const SessionsDegustationPage({super.key});
@@ -45,20 +48,12 @@ class SessionsDegustationPage extends StatefulWidget {
       _SessionsDegustationPageState();
 }
 
-class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
+class _SessionsDegustationPageState extends State<SessionsDegustationPage>
+    with DegustateurNavMixin {
   final _service = SessionsService();
 
   // ───────────────────────────────────────────────────────────────────────────
-  // 1. COLORS
-  // ───────────────────────────────────────────────────────────────────────────
-
-  static const Color _headerBg = Color.fromARGB(255, 220, 233, 226);
-  static const Color _green = Color(0xFF38835A);
-  static const Color _dark = Color(0xFF1A2E1F);
-  static const Color _bg = Color(0xFFFFFFFF);
-
-  // ───────────────────────────────────────────────────────────────────────────
-  // 2. STATE
+  // 1. STATE
   // ───────────────────────────────────────────────────────────────────────────
 
   List<SessionDegustation> _sessions = [];
@@ -84,24 +79,7 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
   }
 
   // ───────────────────────────────────────────────────────────────────────────
-  // 3. NAVIGATION
-  // ───────────────────────────────────────────────────────────────────────────
-
-  void _goTo(Widget page) {
-    Navigator.pop(context);
-    Navigator.push(context, MaterialPageRoute(builder: (_) => page));
-  }
-
-  void _goToLogin() {
-    Navigator.pop(context);
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => LoginPage()),
-    );
-  }
-
-  // ───────────────────────────────────────────────────────────────────────────
-  // 5. FILTER LOGIC
+  // 3. FILTER LOGIC
   // ───────────────────────────────────────────────────────────────────────────
 
   StatutSession? _labelToStatut(String? label) {
@@ -112,16 +90,6 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
         return StatutSession.terminee;
       default:
         return null;
-    }
-  }
-
-  DateTime? _parseDate(String s) {
-    try {
-      final p = s.split('/');
-      if (p.length != 3) return null;
-      return DateTime(int.parse(p[2]), int.parse(p[1]), int.parse(p[0]));
-    } catch (_) {
-      return null;
     }
   }
 
@@ -138,7 +106,7 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
 
       bool matchDate = true;
       if (_dateFilterActive) {
-        final raw = _parseDate(s.date);
+        final raw = DegDateUtils.parseDate(s.date);
         if (raw == null) {
           matchDate = false;
         } else {
@@ -216,7 +184,7 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
             fontWeight: FontWeight.w600,
           ),
         ),
-        backgroundColor: _green,
+        backgroundColor: kGreen,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         margin: const EdgeInsets.all(20),
@@ -239,24 +207,24 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
     final items = _filtres;
 
     return Scaffold(
-      backgroundColor: _bg,
+      backgroundColor: kBg,
 
       // ── DRAWER ─────────────────────────────────────────────────────────────
       drawer: AppDrawer(
-        onaccueil: () => _goTo(const HomePage()),
+        onaccueil: () => goToPage(const HomePage()),
         onEvaluationEchantillons: () =>
-            _goTo(const EvaluationEchantillonsPage()),
-        onGestionEchantillons: () => _goTo(const GestionEchantillonsPage()),
-        onAnalyseLaboratoire: () => _goTo(const AnalyseLaboratoirePage()),
-        onSessionsDegustationPage: () => _goTo(const SessionsDegustationPage()),
-        onMembredupanel: () => _goTo(const MembresPanelPage()),
-        onProfil: () => _goTo(const ProfilePage()),
-        onDeconnexion: _goToLogin,
+            goToPage(const EvaluationEchantillonsPage()),
+        onGestionEchantillons: () => goToPage(const GestionEchantillonsPage()),
+        onAnalyseLaboratoire: () => goToPage(const AnalyseLaboratoirePage()),
+        onSessionsDegustationPage: () => goToPage(const SessionsDegustationPage()),
+        onMembredupanel: () => goToPage(const MembresPanelPage()),
+        onProfil: () => goToPage(const ProfilePage()),
+        onDeconnexion: goToLogin,
       ),
 
       // ── APPBAR ─────────────────────────────────────────────────────────────
       appBar: AppBar(
-        backgroundColor: _headerBg,
+        backgroundColor: kHeaderBg,
         elevation: 0,
         centerTitle: false,
         toolbarHeight: 65,
@@ -265,10 +233,10 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
           style: GoogleFonts.domine(
             fontSize: 18,
             fontWeight: FontWeight.w700,
-            color: _dark,
+            color: kDark,
           ),
         ),
-        iconTheme: const IconThemeData(color: _dark),
+        iconTheme: const IconThemeData(color: kDark),
         actions: [
           Stack(
             alignment: Alignment.center,
@@ -277,7 +245,7 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
                 icon: Icon(
                   Icons.calendar_today_outlined,
                   size: 20,
-                  color: _dateFilterActive ? _green : const Color(0xFF6B8E7A),
+                  color: _dateFilterActive ? kGreen : const Color(0xFF6B8E7A),
                 ),
                 onPressed: _showDateFilter,
                 tooltip: 'Filtrer par date de séance',
@@ -290,7 +258,7 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
                     width: 8,
                     height: 8,
                     decoration: const BoxDecoration(
-                      color: _green,
+                      color: kGreen,
                       shape: BoxShape.circle,
                     ),
                   ),
@@ -311,10 +279,10 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
         ),
         backgroundColor: const Color.fromARGB(255, 197, 206, 201),
         elevation: 2,
-        icon: const Icon(Icons.add, color: _dark),
+        icon: const Icon(Icons.add, color: kDark),
         label: const Text(
           'Nouvelle session',
-          style: TextStyle(color: _dark, fontWeight: FontWeight.w700),
+          style: TextStyle(color: kDark, fontWeight: FontWeight.w700),
         ),
       ),
 
@@ -322,7 +290,7 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
         children: [
           // ── UNIFIED HEADER ZONE ─────────────────────────────────────────
           Container(
-            color: _headerBg,
+            color: kHeaderBg,
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
             child: Column(
               children: [
@@ -330,7 +298,7 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
                 TextField(
                   controller: _searchController,
                   onChanged: (v) => setState(() => _recherche = v.trim()),
-                  style: const TextStyle(fontSize: 14, color: _dark),
+                  style: const TextStyle(fontSize: 14, color: kDark),
                   decoration: InputDecoration(
                     hintText: 'Titre · lieu · réf · organisateur…',
                     hintStyle: const TextStyle(
@@ -371,7 +339,7 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: _green, width: 1.5),
+                      borderSide: const BorderSide(color: kGreen, width: 1.5),
                     ),
                   ),
                 ),
@@ -424,7 +392,7 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
 
           // ── STATS STRIP ───────────────────────────────────────────────────
           Container(
-            color: _bg,
+            color: kBg,
             padding: const EdgeInsets.fromLTRB(16, 9, 16, 6),
             child: Row(
               children: [

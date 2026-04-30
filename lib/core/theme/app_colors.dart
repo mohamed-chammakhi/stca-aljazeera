@@ -51,3 +51,7 @@ const Color kChipBgGreen  = Color(0xFFE6F4ED);
 const Color kCardBgBlue   = Color(0xFFE8F1FB);
 const Color kCardBgOrange = Color(0xFFFEF3E8);
 const Color kCardBgGreen  = Color(0xFFE6F4ED);
+
+// ── Additional accent colors ──────────────────────────────────────────────────
+const Color kRed    = Color(0xFFC0392B);
+const Color kPurple = Color(0xFF7B3FC4);

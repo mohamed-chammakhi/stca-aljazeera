@@ -8,7 +8,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'models/membre_panel.dart';
 import 'services/membres_panel_service.dart';
 import 'widgets/membre_card.dart';
-import '../../../main.dart';
+import '../../../core/theme/app_colors.dart';
+import '../widgets/degustateur_nav_mixin.dart';
 import '../gestion_echantillons/gestion_echantillons_page.dart';
 import '../evaluation_echantillons/evaluation_echantillons_page.dart';
 import '../profil/profil_page.dart';
@@ -19,10 +20,6 @@ import '../tableau_de_bord/homepage_page.dart';
 
 const Color gray = Color.fromARGB(255, 81, 82, 81);
 
-const Color _green = Color(0xFF38835A);
-//const Color _oliveGreen = Color(0xFF6B8143);
-const Color _darkText = Color(0xFF1A2E1F);
-
 class MembresPanelPage extends StatefulWidget {
   const MembresPanelPage({super.key});
 
@@ -30,7 +27,8 @@ class MembresPanelPage extends StatefulWidget {
   State<MembresPanelPage> createState() => _MembresPanelPageState();
 }
 
-class _MembresPanelPageState extends State<MembresPanelPage> {
+class _MembresPanelPageState extends State<MembresPanelPage>
+    with DegustateurNavMixin {
   final _service = MembresPanelService();
   final TextEditingController _searchCtrl = TextEditingController();
   String _recherche = '';
@@ -45,20 +43,6 @@ class _MembresPanelPageState extends State<MembresPanelPage> {
   Future<void> _loadData() async {
     final data = await _service.fetchMembres();
     setState(() => _membres = data);
-  }
-
-  void _goTo(Widget page) {
-    Navigator.pop(context); // close drawer
-    Navigator.push(context, MaterialPageRoute(builder: (_) => page));
-  }
-
-  // Closes drawer then replaces the whole stack — no back button to homepage
-  void _goToLogin() {
-    Navigator.pop(context);
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => LoginPage()),
-    );
   }
 
   // ── FILTERED LIST based on search ─────────────────────────────────────────
@@ -90,10 +74,10 @@ class _MembresPanelPageState extends State<MembresPanelPage> {
           style: GoogleFonts.domine(
             fontSize: 18,
             fontWeight: FontWeight.w700,
-            color: _darkText,
+            color: kDark,
           ),
         ),
-        iconTheme: const IconThemeData(color: _darkText),
+        iconTheme: const IconThemeData(color: kDark),
       ),
 
       body: Padding(
@@ -104,11 +88,11 @@ class _MembresPanelPageState extends State<MembresPanelPage> {
             TextField(
               controller: _searchCtrl,
               onChanged: (v) => setState(() => _recherche = v),
-              style: const TextStyle(fontSize: 14, color: _darkText),
+              style: const TextStyle(fontSize: 14, color: kDark),
               decoration: InputDecoration(
                 hintText: 'Rechercher un membre...',
                 hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 13),
-                prefixIcon: const Icon(Icons.search, color: _green, size: 20),
+                prefixIcon: const Icon(Icons.search, color: kGreen, size: 20),
                 suffixIcon: _recherche.isNotEmpty
                     ? IconButton(
                         icon: Icon(
@@ -138,7 +122,7 @@ class _MembresPanelPageState extends State<MembresPanelPage> {
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: _green, width: 1.8),
+                  borderSide: const BorderSide(color: kGreen, width: 1.8),
                 ),
               ),
             ),
@@ -188,29 +172,29 @@ class _MembresPanelPageState extends State<MembresPanelPage> {
         ),
       ),
       drawer: AppDrawer(
-        onaccueil: () => _goTo(const HomePage()),
+        onaccueil: () => goToPage(const HomePage()),
 
         // OLD : EvaluationEchantillonsPage from EvaluationEchantillonsPage.dart
         // NEW : will be EvaluationEchantillonsPage from
         //       evaluation_echantillons/evaluation_echantillons_page.dart
-        // TODO : replace with _goTo(const EvaluationEchantillonsPage())
+        // TODO : replace with goToPage(const EvaluationEchantillonsPage())
         onEvaluationEchantillons: () =>
-            _goTo(const EvaluationEchantillonsPage()),
+            goToPage(const EvaluationEchantillonsPage()),
 
         // OLD : GestionEchantillonsPage from GestionEchantillon.dart
         // NEW : GestionEchantillonsPage from
         //       gestion_echantillons/gestion_echantillons_page.dart ✅ done
-        onGestionEchantillons: () => _goTo(const GestionEchantillonsPage()),
+        onGestionEchantillons: () => goToPage(const GestionEchantillonsPage()),
 
-        onAnalyseLaboratoire: () => _goTo(const AnalyseLaboratoirePage()),
-        onSessionsDegustationPage: () => _goTo(const SessionsDegustationPage()),
+        onAnalyseLaboratoire: () => goToPage(const AnalyseLaboratoirePage()),
+        onSessionsDegustationPage: () => goToPage(const SessionsDegustationPage()),
 
         // OLD : ProfilePage from profil.dart (same level)
         // NEW : ProfilePage from ../profil.dart (one level up) ✅ done
-        onMembredupanel: () => _goTo(const MembresPanelPage()),
-        onProfil: () => _goTo(const ProfilePage()),
+        onMembredupanel: () => goToPage(const MembresPanelPage()),
+        onProfil: () => goToPage(const ProfilePage()),
 
-        onDeconnexion: _goToLogin,
+        onDeconnexion: goToLogin,
       ),
     );
   }

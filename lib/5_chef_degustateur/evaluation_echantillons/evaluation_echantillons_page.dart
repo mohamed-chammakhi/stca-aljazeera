@@ -17,13 +17,13 @@ import '../formulaire_evaluation.dart';
 import '../sessions_degustation/sessions_degustation_page.dart';
 import '../analyse_labo/analyse_laboratoire_page.dart';
 import '../vue_ensemble_evaluations/vue_ensemble_evaluations_page.dart';
-import '../widgets/chef_colors.dart';
+import '../../../core/theme/app_colors.dart';
 import '../widgets/chef_nav_mixin.dart';
 import '../../../core/utils/date_utils.dart';
 
 // ── Own model ─────────────────────────────────────────────────────────────────
 import 'navigation/models/echantillon.dart';
-import 'navigation/models/mock_echantillons.dart';
+import 'services/evaluation_echantillons_chef_service.dart';
 
 // ── Own widgets ───────────────────────────────────────────────────────────────
 import 'navigation/widgets/echantillon_card.dart';
@@ -53,9 +53,16 @@ class _EvaluationEchantillonsPageState
       _dateFilterActive || _recherche.isNotEmpty || _filtreStatutLabel != null;
 
   // ── DATA ──────────────────────────────────────────────────────────────────────
-  late final List<Echantillon> _echantillons = List.from(
-    mockEchantillonsEvaluation,
-  );
+  final _service = EvaluationEchantillonsChefService();
+  List<Echantillon> _echantillons = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _service.fetchEchantillons().then((data) {
+      if (mounted) setState(() => _echantillons = data);
+    });
+  }
 
   // ── FILTER LOGIC ─────────────────────────────────────────────────────────────
   StatutEchantillon? _labelToStatut(String? label) {
@@ -195,7 +202,7 @@ class _EvaluationEchantillonsPageState
     final filtres = _echantillonsFiltres;
 
     return Scaffold(
-      backgroundColor: chefBg,
+      backgroundColor: kBg,
 
       drawer: AppDrawer(
         onaccueil: () => Navigator.pop(context),
@@ -212,7 +219,7 @@ class _EvaluationEchantillonsPageState
       ),
 
       appBar: AppBar(
-        backgroundColor: chefHeaderBg,
+        backgroundColor: kHeaderBg,
         elevation: 0,
         centerTitle: false,
         toolbarHeight: 65,
@@ -221,10 +228,10 @@ class _EvaluationEchantillonsPageState
           style: GoogleFonts.domine(
             fontSize: 18,
             fontWeight: FontWeight.w700,
-            color: chefDark,
+            color: kDark,
           ),
         ),
-        iconTheme: const IconThemeData(color: chefDark),
+        iconTheme: const IconThemeData(color: kDark),
         actions: [
           Stack(
             alignment: Alignment.center,
@@ -233,7 +240,7 @@ class _EvaluationEchantillonsPageState
                 icon: Icon(
                   Icons.calendar_today_outlined,
                   size: 20,
-                  color: _dateFilterActive ? chefGreen : const Color(0xFF6B8E7A),
+                  color: _dateFilterActive ? kGreen : const Color(0xFF6B8E7A),
                 ),
                 onPressed: _showDateFilter,
                 tooltip: 'Filtrer par date',
@@ -246,7 +253,7 @@ class _EvaluationEchantillonsPageState
                     width: 8,
                     height: 8,
                     decoration: const BoxDecoration(
-                      color: chefGreen,
+                      color: kGreen,
                       shape: BoxShape.circle,
                     ),
                   ),
@@ -261,7 +268,7 @@ class _EvaluationEchantillonsPageState
         children: [
           // ── UNIFIED HEADER ZONE ────────────────────────────────────────────
           Container(
-            color: chefHeaderBg,
+            color: kHeaderBg,
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
             child: Column(
               children: [
@@ -269,7 +276,7 @@ class _EvaluationEchantillonsPageState
                 TextField(
                   controller: _searchController,
                   onChanged: (v) => setState(() => _recherche = v.trim()),
-                  style: const TextStyle(fontSize: 14, color: chefDark),
+                  style: const TextStyle(fontSize: 14, color: kDark),
                   decoration: InputDecoration(
                     hintText: 'Rechercher réf, fournisseur, gouvernorat…',
                     hintStyle: const TextStyle(
@@ -310,7 +317,7 @@ class _EvaluationEchantillonsPageState
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: chefGreen, width: 1.5),
+                      borderSide: const BorderSide(color: kGreen, width: 1.5),
                     ),
                   ),
                 ),
@@ -355,9 +362,9 @@ class _EvaluationEchantillonsPageState
                       const SizedBox(width: 7),
                       _StatutChip(
                         label: 'Évaluation soumise',
-                        activeColor: chefGreen,
+                        activeColor: kGreen,
                         inactiveColor: const Color(0xFFE6F4ED),
-                        inactiveTextColor: chefGreen,
+                        inactiveTextColor: kGreen,
                         selected: _filtreStatutLabel == 'Évaluation soumise',
                         onTap: () => setState(
                           () => _filtreStatutLabel = 'Évaluation soumise',
@@ -375,7 +382,7 @@ class _EvaluationEchantillonsPageState
 
           // ── STATS STRIP ────────────────────────────────────────────────────
           Container(
-            color: chefBg,
+            color: kBg,
             padding: const EdgeInsets.fromLTRB(16, 9, 16, 6),
             child: Row(
               children: [

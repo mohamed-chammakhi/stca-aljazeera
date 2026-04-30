@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../core/theme/app_colors.dart';
+import '../widgets/degustateur_nav_mixin.dart';
 import '../tableau_de_bord/homepage_page.dart';
 import '../evaluation_echantillons/evaluation_echantillons_page.dart';
 import '../tableau_de_bord/widgets/app_drawer.dart';
 import '../membres_panel/membres_panel_page.dart';
-import '../../../../main.dart';
 import '../gestion_echantillons/gestion_echantillons_page.dart';
 import '../sessions_degustation/sessions_degustation_page.dart';
 import '../analyse_labo/analyse_laboratoire_page.dart';
-import '../tableau_de_bord/homepage_page.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -17,26 +17,8 @@ class ProfilePage extends StatefulWidget {
   _ProfilePageState createState() => _ProfilePageState();
 }
 
-class _ProfilePageState extends State<ProfilePage> {
-  void _goTo(Widget page) {
-    Navigator.pop(context); // close drawer
-    Navigator.push(context, MaterialPageRoute(builder: (_) => page));
-  }
-
-  // Closes drawer then replaces the whole stack — no back button to homepage
-  void _goToLogin() {
-    Navigator.pop(context);
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => LoginPage()),
-    );
-  }
-
-  // ── Brand Colors ──────────────────────────────────────────────────────────
-  static const Color green = Color(0xFF38835A);
-  static const Color oliveGreen = Color(0xFF6B8143);
-  static const Color headerBg = Color.fromARGB(255, 220, 233, 226);
-  static const Color darkText = Color(0xFF1A2E1F);
+class _ProfilePageState extends State<ProfilePage>
+    with DegustateurNavMixin {
 
   // ── Controllers — empty by default, filled by backend later ──────────────
   late TextEditingController _nomController;
@@ -168,7 +150,7 @@ class _ProfilePageState extends State<ProfilePage> {
               style: GoogleFonts.domine(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
-                color: darkText,
+                color: kDark,
               ),
             ),
             const SizedBox(height: 20),
@@ -212,18 +194,18 @@ class _ProfilePageState extends State<ProfilePage> {
     return Scaffold(
       backgroundColor: Colors.white,
       drawer: AppDrawer(
-        onaccueil: () => _goTo(const HomePage()),
+        onaccueil: () => goToPage(const HomePage()),
         onEvaluationEchantillons: () =>
-            _goTo(const EvaluationEchantillonsPage()),
-        onGestionEchantillons: () => _goTo(const GestionEchantillonsPage()),
-        onAnalyseLaboratoire: () => _goTo(const AnalyseLaboratoirePage()),
-        onSessionsDegustationPage: () => _goTo(const SessionsDegustationPage()),
-        onMembredupanel: () => _goTo(const MembresPanelPage()),
-        onProfil: () => _goTo(const ProfilePage()),
-        onDeconnexion: _goToLogin,
+            goToPage(const EvaluationEchantillonsPage()),
+        onGestionEchantillons: () => goToPage(const GestionEchantillonsPage()),
+        onAnalyseLaboratoire: () => goToPage(const AnalyseLaboratoirePage()),
+        onSessionsDegustationPage: () => goToPage(const SessionsDegustationPage()),
+        onMembredupanel: () => goToPage(const MembresPanelPage()),
+        onProfil: () => goToPage(const ProfilePage()),
+        onDeconnexion: goToLogin,
       ),
       appBar: AppBar(
-        backgroundColor: headerBg,
+        backgroundColor: kHeaderBg,
         elevation: 0,
         centerTitle: false,
         toolbarHeight: 65,
@@ -232,10 +214,10 @@ class _ProfilePageState extends State<ProfilePage> {
           style: GoogleFonts.domine(
             fontSize: 18,
             fontWeight: FontWeight.w700,
-            color: darkText,
+            color: kDark,
           ),
         ),
-        iconTheme: const IconThemeData(color: darkText),
+        iconTheme: const IconThemeData(color: kDark),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
@@ -250,12 +232,12 @@ class _ProfilePageState extends State<ProfilePage> {
                   height: 120,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: green.withOpacity(0.2),
-                    border: Border.all(color: green, width: 3),
+                    color: kGreen.withOpacity(0.2),
+                    border: Border.all(color: kGreen, width: 3),
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(60),
-                    child: const Icon(Icons.person, size: 60, color: green),
+                    child: const Icon(Icons.person, size: 60, color: kGreen),
                   ),
                 ),
                 Positioned(
@@ -267,12 +249,12 @@ class _ProfilePageState extends State<ProfilePage> {
                       width: 34,
                       height: 34,
                       decoration: BoxDecoration(
-                        color: green,
+                        color: kGreen,
                         shape: BoxShape.circle,
                         border: Border.all(color: Colors.white, width: 2.5),
                         boxShadow: [
                           BoxShadow(
-                            color: green.withOpacity(0.4),
+                            color: kGreen.withOpacity(0.4),
                             blurRadius: 6,
                             offset: const Offset(0, 2),
                           ),
@@ -297,7 +279,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 style: GoogleFonts.domine(
                   fontSize: 24,
                   fontWeight: FontWeight.w700,
-                  color: darkText,
+                  color: kDark,
                 ),
               ),
 
@@ -310,7 +292,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: green.withOpacity(0.08),
+                    color: kGreen.withOpacity(0.08),
                     blurRadius: 20,
                     offset: const Offset(0, 4),
                   ),
@@ -381,8 +363,8 @@ class _ProfilePageState extends State<ProfilePage> {
                 icon: const Icon(Icons.lock_outline, size: 18),
                 label: const Text('Changer le mot de passe'),
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: green,
-                  side: const BorderSide(color: green, width: 1.5),
+                  foregroundColor: kGreen,
+                  side: const BorderSide(color: kGreen, width: 1.5),
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -418,24 +400,24 @@ class _ProfilePageState extends State<ProfilePage> {
           keyboardType: keyboardType,
           readOnly: !isEditing,
           style: TextStyle(
-            color: darkText,
+            color: kDark,
             fontSize: 15,
             fontWeight: isEditing ? FontWeight.w500 : FontWeight.w400,
           ),
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
-            prefixIcon: Icon(icon, color: green, size: 20),
+            prefixIcon: Icon(icon, color: kGreen, size: 20),
             suffixIcon: IconButton(
               icon: Container(
                 padding: const EdgeInsets.all(5),
                 decoration: BoxDecoration(
-                  color: isEditing ? green : green.withOpacity(0.12),
+                  color: isEditing ? kGreen : kGreen.withOpacity(0.12),
                   borderRadius: BorderRadius.circular(7),
                 ),
                 child: Icon(
                   isEditing ? Icons.check : Icons.edit,
-                  color: isEditing ? Colors.white : green,
+                  color: isEditing ? Colors.white : kGreen,
                   size: 15,
                 ),
               ),
@@ -454,12 +436,12 @@ class _ProfilePageState extends State<ProfilePage> {
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: isEditing
-                  ? BorderSide(color: green.withOpacity(0.5), width: 1.5)
+                  ? BorderSide(color: kGreen.withOpacity(0.5), width: 1.5)
                   : BorderSide(color: Colors.grey.shade200),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: green, width: 2),
+              borderSide: const BorderSide(color: kGreen, width: 2),
             ),
           ),
         ),
@@ -473,7 +455,7 @@ class _ProfilePageState extends State<ProfilePage> {
       style: GoogleFonts.domine(
         fontSize: 18,
         fontWeight: FontWeight.w700,
-        color: darkText,
+        color: kDark,
       ),
     );
   }
@@ -484,7 +466,7 @@ class _ProfilePageState extends State<ProfilePage> {
       style: const TextStyle(
         fontSize: 13,
         fontWeight: FontWeight.w600,
-        color: oliveGreen,
+        color: kOlive,
         letterSpacing: 0.5,
       ),
     );
@@ -496,7 +478,7 @@ class _ProfilePageState extends State<ProfilePage> {
     required VoidCallback onTap,
     Color? color,
   }) {
-    final itemColor = color ?? green;
+    final itemColor = color ?? kGreen;
     return ListTile(
       leading: Container(
         padding: const EdgeInsets.all(8),
@@ -521,7 +503,7 @@ class _ProfilePageState extends State<ProfilePage> {
             fontWeight: FontWeight.w600,
           ),
         ),
-        backgroundColor: green,
+        backgroundColor: kGreen,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         margin: const EdgeInsets.all(20),
@@ -546,7 +528,7 @@ class _ProfilePageState extends State<ProfilePage> {
             style: GoogleFonts.domine(
               fontSize: 18,
               fontWeight: FontWeight.w700,
-              color: darkText,
+              color: kDark,
             ),
           ),
           content: Column(
@@ -557,13 +539,13 @@ class _ProfilePageState extends State<ProfilePage> {
                 obscureText: obscureCurrent,
                 decoration: InputDecoration(
                   labelText: 'Mot de passe actuel',
-                  labelStyle: const TextStyle(color: oliveGreen),
+                  labelStyle: const TextStyle(color: kOlive),
                   suffixIcon: IconButton(
                     icon: Icon(
                       obscureCurrent
                           ? Icons.visibility_off_outlined
                           : Icons.visibility_outlined,
-                      color: oliveGreen,
+                      color: kOlive,
                       size: 20,
                     ),
                     onPressed: () =>
@@ -574,7 +556,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(color: green, width: 2),
+                    borderSide: const BorderSide(color: kGreen, width: 2),
                   ),
                 ),
               ),
@@ -584,13 +566,13 @@ class _ProfilePageState extends State<ProfilePage> {
                 obscureText: obscureNew,
                 decoration: InputDecoration(
                   labelText: 'Nouveau mot de passe',
-                  labelStyle: const TextStyle(color: oliveGreen),
+                  labelStyle: const TextStyle(color: kOlive),
                   suffixIcon: IconButton(
                     icon: Icon(
                       obscureNew
                           ? Icons.visibility_off_outlined
                           : Icons.visibility_outlined,
-                      color: oliveGreen,
+                      color: kOlive,
                       size: 20,
                     ),
                     onPressed: () =>
@@ -601,7 +583,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(color: green, width: 2),
+                    borderSide: const BorderSide(color: kGreen, width: 2),
                   ),
                 ),
               ),
@@ -611,13 +593,13 @@ class _ProfilePageState extends State<ProfilePage> {
                 obscureText: obscureConfirm,
                 decoration: InputDecoration(
                   labelText: 'Confirmer le mot de passe',
-                  labelStyle: const TextStyle(color: oliveGreen),
+                  labelStyle: const TextStyle(color: kOlive),
                   suffixIcon: IconButton(
                     icon: Icon(
                       obscureConfirm
                           ? Icons.visibility_off_outlined
                           : Icons.visibility_outlined,
-                      color: oliveGreen,
+                      color: kOlive,
                       size: 20,
                     ),
                     onPressed: () =>
@@ -628,7 +610,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(color: green, width: 2),
+                    borderSide: const BorderSide(color: kGreen, width: 2),
                   ),
                 ),
               ),
@@ -663,7 +645,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   );
                 }
               },
-              style: ElevatedButton.styleFrom(backgroundColor: green),
+              style: ElevatedButton.styleFrom(backgroundColor: kGreen),
               child: const Text(
                 'Enregistrer',
                 style: TextStyle(color: Colors.white),
