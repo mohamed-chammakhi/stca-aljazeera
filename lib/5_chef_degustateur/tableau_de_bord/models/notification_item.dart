@@ -12,11 +12,13 @@ class NotificationItem {
     required this.time,
   });
 
-  // Used later when Spring Boot sends notifications via API
-  factory NotificationItem.fromJson(Map<String, dynamic> json) {
-    return NotificationItem(
-      message: json['message'],
-      time:    json['time'],
-    );
-  }
+  factory NotificationItem.fromJson(Map<String, dynamic> json) => NotificationItem(
+    message: json['message'] as String,
+    time: json['time'] as String,
+  );
+
+  Map<String, dynamic> toJson() => {
+    'message': message,
+    'time': time,
+  };
 }

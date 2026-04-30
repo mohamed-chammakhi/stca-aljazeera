@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'models/session_degustation.dart';
+import '../widgets/statut_chip.dart';
 import 'widgets/session_card.dart';
 import 'widgets/dialogs/formulaire_session_dialog.dart';
 import 'widgets/dialogs/suppression_session_dialog.dart';
@@ -419,7 +420,7 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
                   child: ListView(
                     scrollDirection: Axis.horizontal,
                     children: [
-                      _StatutChip(
+                      StatutChip(
                         label: 'Tous',
                         activeColor: const Color(0xFF616161),
                         inactiveColor: const Color(0xFFF0F0F0),
@@ -428,7 +429,7 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
                         onTap: () => setState(() => _filtreStatutLabel = null),
                       ),
                       const SizedBox(width: 7),
-                      _StatutChip(
+                      StatutChip(
                         label: 'En attente',
                         activeColor: const Color(0xFF7B3FC4),
                         inactiveColor: const Color(0xFFF3E8FF),
@@ -439,7 +440,7 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
                             setState(() => _filtreStatutLabel = 'En attente'),
                       ),
                       const SizedBox(width: 7),
-                      _StatutChip(
+                      StatutChip(
                         label: 'Planifiée',
                         activeColor: const Color(0xFFD07B2F),
                         inactiveColor: const Color(0xFFFEF3E8),
@@ -449,7 +450,7 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
                             setState(() => _filtreStatutLabel = 'Planifiée'),
                       ),
                       const SizedBox(width: 7),
-                      _StatutChip(
+                      StatutChip(
                         label: 'Terminée',
                         activeColor: const Color(0xFF38835A),
                         inactiveColor: const Color(0xFFE6F4ED),
@@ -569,87 +570,3 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage> {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-class _StatutChip extends StatelessWidget {
-  final String label;
-  final Color activeColor;
-  final Color inactiveColor;
-  final Color inactiveTextColor;
-  final bool selected;
-  final bool hasActivity;
-  final VoidCallback onTap;
-
-  const _StatutChip({
-    required this.label,
-    required this.activeColor,
-    required this.inactiveColor,
-    required this.inactiveTextColor,
-    required this.selected,
-    required this.onTap,
-    this.hasActivity = false,
-  });
-
-  static const Color _inactiveBg = Color(0xFFF0F0F0);
-  static const Color _inactiveFg = Color(0xFF9E9E9E);
-  static const Color _inactiveBorder = Color(0xFFE0E0E0);
-
-  @override
-  Widget build(BuildContext context) {
-    final bool isTous = label == 'Tous';
-    final Color bg;
-    final Color fg;
-    final Color border;
-
-    if (!selected) {
-      if (hasActivity) {
-        bg = inactiveColor;
-        fg = inactiveTextColor;
-        border = inactiveTextColor.withValues(alpha: 0.35);
-      } else {
-        bg = _inactiveBg;
-        fg = _inactiveFg;
-        border = _inactiveBorder;
-      }
-    } else if (isTous) {
-      bg = const Color(0xFF757575);
-      fg = Colors.white;
-      border = const Color(0xFF757575);
-    } else {
-      bg = inactiveColor;
-      fg = inactiveTextColor;
-      border = inactiveTextColor.withValues(alpha: 0.45);
-    }
-
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-        decoration: BoxDecoration(
-          color: bg,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: border, width: 1.2),
-          boxShadow: selected
-              ? [
-                  BoxShadow(
-                    color:
-                        (isTous ? const Color(0xFF757575) : inactiveTextColor)
-                            .withValues(alpha: 0.22),
-                    blurRadius: 6,
-                    offset: const Offset(0, 2),
-                  ),
-                ]
-              : null,
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: fg,
-          ),
-        ),
-      ),
-    );
-  }
-}

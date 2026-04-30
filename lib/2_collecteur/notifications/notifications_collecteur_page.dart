@@ -2,11 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'models/notification_collecteur.dart';
 import 'services/notification_collecteur_service.dart';
-
-const Color _headerBg = Color.fromARGB(255, 220, 233, 226);
-const Color _green    = Color(0xFF38835A);
-const Color _dark     = Color(0xFF1A2E1F);
-const Color _bg       = Color(0xFFFFFFFF);
+import '../widgets/col_colors.dart';
 
 class NotificationsCollecteurPage extends StatefulWidget {
   final NotificationCollecteurService service;
@@ -68,19 +64,19 @@ class _NotificationsCollecteurPageState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _bg,
+      backgroundColor: colBg,
       appBar: AppBar(
-        backgroundColor: _headerBg,
+        backgroundColor: colHeaderBg,
         elevation: 0,
         centerTitle: false,
         toolbarHeight: 65,
         title: Text(
           'Notifications',
           style: GoogleFonts.domine(
-            fontSize: 18, fontWeight: FontWeight.w700, color: _dark,
+            fontSize: 18, fontWeight: FontWeight.w700, color: colDark,
           ),
         ),
-        iconTheme: const IconThemeData(color: _dark),
+        iconTheme: const IconThemeData(color: colDark),
         actions: [
           if (_unreadCount > 0)
             TextButton(
@@ -88,7 +84,7 @@ class _NotificationsCollecteurPageState
               child: Text(
                 'Tout marquer lu',
                 style: TextStyle(
-                  fontSize: 12, color: _green, fontWeight: FontWeight.w600,
+                  fontSize: 12, color: colGreen, fontWeight: FontWeight.w600,
                 ),
               ),
             ),
@@ -96,11 +92,11 @@ class _NotificationsCollecteurPageState
         ],
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator(color: _green))
+          ? const Center(child: CircularProgressIndicator(color: colGreen))
           : Column(children: [
               // ── Filter chips ────────────────────────────────────────────────
               Container(
-                color: _headerBg,
+                color: colHeaderBg,
                 padding: const EdgeInsets.fromLTRB(16, 4, 16, 14),
                 child: Row(children: [
                   _FilterChip(
@@ -121,7 +117,7 @@ class _NotificationsCollecteurPageState
               Container(height: 1, color: Colors.black.withValues(alpha: 0.06)),
               // ── Count strip ─────────────────────────────────────────────────
               Container(
-                color: _bg,
+                color: colBg,
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 6),
                 child: Row(children: [
                   Icon(Icons.notifications_outlined,
@@ -241,11 +237,11 @@ class _FilterChip extends StatelessWidget {
         duration: const Duration(milliseconds: 160),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
         decoration: BoxDecoration(
-          color: active ? _green : Colors.white.withValues(alpha: 0.7),
+          color: active ? colGreen : Colors.white.withValues(alpha: 0.7),
           borderRadius: BorderRadius.circular(20),
           boxShadow: active
               ? [BoxShadow(
-                  color: _green.withValues(alpha: 0.25),
+                  color: colGreen.withValues(alpha: 0.25),
                   blurRadius: 6,
                   offset: const Offset(0, 2),
                 )]
@@ -292,7 +288,7 @@ class _NotificationCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final cfg   = _typeConfig[notification.type];
     final icon  = cfg?.$1 ?? Icons.notifications_outlined;
-    final color = cfg?.$2 ?? _green;
+    final color = cfg?.$2 ?? colGreen;
     final bgCol = cfg?.$3 ?? const Color(0xFFE6F4ED);
 
     return GestureDetector(
@@ -352,7 +348,7 @@ class _NotificationCard extends StatelessWidget {
                                       fontWeight: notification.isRead
                                           ? FontWeight.w500
                                           : FontWeight.w700,
-                                      color: _dark,
+                                      color: colDark,
                                     ),
                                   ),
                                 ),

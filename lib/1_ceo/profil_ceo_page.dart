@@ -1,12 +1,10 @@
 // ═════════════════════════════════════════════════════════════════════════════
-// FILE : laboratoire/profil_labo/profil_labo_page.dart
-// PURPOSE : Profile page for the lab technician —
-//           personal info, stats summary, and settings
+// FILE : 1_ceo/profil_ceo_page.dart
+// PURPOSE : CEO profile page — personal info and account settings
 // ═════════════════════════════════════════════════════════════════════════════
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'tableau_de_bord/tableau_de_bord.dart';
 
 import 'echantillons/echantillons_ceo_page.dart';
 import '../../../main.dart';

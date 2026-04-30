@@ -48,7 +48,7 @@ class _ProfilLaboPageState extends State<ProfilLaboPage> {
   bool _editingNom = false;
   bool _editingPrenom = false;
   bool _editingEmail = false;
-  bool _editingnumero = false;
+  bool _editingNumero = false;
 
   // ── Displayed header values ───────────────────────────────────────────────
   String _displayedFullName = '';
@@ -130,8 +130,8 @@ class _ProfilLaboPageState extends State<ProfilLaboPage> {
           }
           break;
         case 'numero':
-          _editingnumero = !_editingnumero;
-          if (_editingnumero) {
+          _editingNumero = !_editingNumero;
+          if (_editingNumero) {
             Future.delayed(
               const Duration(milliseconds: 50),
               () => _numeroFocus.requestFocus(),
@@ -217,7 +217,7 @@ class _ProfilLaboPageState extends State<ProfilLaboPage> {
       drawer: LaboDrawer(
         onEchantillons: () => _goTo(const EchantillonsLaboPage()),
         onProfil: () => _goTo(const ProfilLaboPage()),
-        onDeconnexion: () => _goTo(LoginPage()),
+        onDeconnexion: _goToLogin,
       ),
       appBar: AppBar(
         backgroundColor: headerBg,
@@ -370,7 +370,7 @@ class _ProfilLaboPageState extends State<ProfilLaboPage> {
                     controller: _numeroController,
                     focusNode: _numeroFocus,
                     icon: Icons.phone_outlined,
-                    isEditing: _editingnumero,
+                    isEditing: _editingNumero,
                     fieldKey: 'numero',
                     hint:
                         'Votre Numéro de Téléphone', // ✅ hint instead of default value
@@ -472,54 +472,6 @@ class _ProfilLaboPageState extends State<ProfilLaboPage> {
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: const BorderSide(color: green, width: 2),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  // ─────────────────────────────────────────────────────────────────────────
-  // HELPER — _buildLockedField
-  // ─────────────────────────────────────────────────────────────────────────
-  Widget _buildLockedField({
-    required String label,
-    required String value,
-    required IconData icon,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _fieldLabel(label),
-        const SizedBox(height: 8),
-        TextField(
-          readOnly: true,
-          controller: TextEditingController(text: value),
-          style: TextStyle(color: Colors.grey.shade500, fontSize: 15),
-          decoration: InputDecoration(
-            prefixIcon: Icon(icon, color: Colors.grey.shade400, size: 20),
-            suffixIcon: Icon(
-              Icons.lock_outline,
-              color: Colors.grey.shade400,
-              size: 18,
-            ),
-            filled: true,
-            fillColor: Colors.grey.shade100,
-            contentPadding: const EdgeInsets.symmetric(
-              vertical: 14,
-              horizontal: 16,
-            ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.grey.shade200),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.grey.shade200),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.grey.shade200),
             ),
           ),
         ),

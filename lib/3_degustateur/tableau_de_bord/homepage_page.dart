@@ -24,40 +24,8 @@ import '../membres_panel/membres_panel_page.dart';
 import '../analyse_labo/analyse_laboratoire_page.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-// ─────────────────────────────────────────────────────────────────────────────
-// MyApp
-// ─────────────────────────────────────────────────────────────────────────────
-void main() => runApp(const MyApp());
-
-class MyApp extends StatefulWidget {
-  const MyApp({super.key});
-
-  @override
-  State<MyApp> createState() => _MyAppState();
-}
-
 const Color _headerBg = Color.fromARGB(255, 220, 233, 226);
-
 const Color _dark = Color(0xFF1A2E1F);
-
-class _MyAppState extends State<MyApp> {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Tasting Panel',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primaryColor: const Color(0xFF38835A),
-        scaffoldBackgroundColor: const Color(0xFFF9F6EF),
-      ),
-      home: const HomePage(),
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// HomePage
-// ─────────────────────────────────────────────────────────────────────────────
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -66,8 +34,6 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  static const Color green = Color(0xFF38835A);
-
   // ── Notifications ─────────────────────────────────────────────────────────
   final _notifService = NotificationDegustateurService();
   int _unreadCount = 0;

@@ -1,4 +1,6 @@
 {
     "java.configuration.updateBuildConfiguration": "automatic",
-    "cmake.sourceDirectory": "C:/flutterpfe/project3/linux"
+    "cmake.sourceDirectory": "C:/flutterpfe/project3/linux",
+    "cmake.configureOnOpen": false,
+    "cmake.automaticReconfigure": false
 }

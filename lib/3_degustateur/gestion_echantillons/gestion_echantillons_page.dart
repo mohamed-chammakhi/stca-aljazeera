@@ -52,8 +52,6 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage> {
   DateTime? _dateFin;
 
   bool get _dateFilterActive => _dateDebut != null || _dateFin != null;
-  bool get _anyFilter =>
-      _dateFilterActive || _recherche.isNotEmpty || _filtreStatut != null;
 
   // ───────────────────────────────────────────────────────────────────────────
   // 3. NAVIGATION

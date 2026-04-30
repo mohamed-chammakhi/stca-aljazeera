@@ -12,7 +12,7 @@
 
 import 'package:flutter/material.dart';
 import '../../models/echantillon_collecteur.dart';
-import 'card_theme.dart';
+import '../../../widgets/col_colors.dart';
 import 'card_buttons.dart';
 
 class CardActionButtons extends StatelessWidget {
@@ -43,7 +43,7 @@ class CardActionButtons extends StatelessWidget {
             child: CardOutlineBtn(
               label: 'Modifier',
               icon: Icons.edit_outlined,
-              color: kOliveGreen,
+              color: colOlive,
               onTap: onModifier ?? () {},
             ),
           ),

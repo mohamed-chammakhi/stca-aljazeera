@@ -12,7 +12,7 @@
 
 import 'package:flutter/material.dart';
 import '../../models/echantillon_collecteur.dart';
-import 'card_theme.dart';
+import '../../../widgets/col_colors.dart';
 
 // ── Info item ─────────────────────────────────────────────────────────────────
 class CardInfoItem extends StatelessWidget {
@@ -34,7 +34,7 @@ class CardInfoItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final labelCol = grey ? Colors.grey.shade400 : Colors.grey.shade500;
-    final valueCol = grey ? Colors.grey.shade400 : (valueColor ?? kDarkText);
+    final valueCol = grey ? Colors.grey.shade400 : (valueColor ?? colDark);
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -74,17 +74,17 @@ class CardRefChip extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
     decoration: BoxDecoration(
-      color: grey ? Colors.grey.shade100 : kGreen.withValues(alpha: 0.08),
+      color: grey ? Colors.grey.shade100 : colGreen.withValues(alpha: 0.08),
       borderRadius: BorderRadius.circular(6),
       border: Border.all(
-        color: grey ? Colors.grey.shade300 : kGreen.withValues(alpha: 0.2),
+        color: grey ? Colors.grey.shade300 : colGreen.withValues(alpha: 0.2),
       ),
     ),
     child: Text(
       '# ${label.isNotEmpty ? label : "—"}',
       style: TextStyle(
         fontSize: 12,
-        color: grey ? Colors.grey.shade400 : kGreen,
+        color: grey ? Colors.grey.shade400 : colGreen,
         fontWeight: FontWeight.w600,
         letterSpacing: 0.5,
       ),
@@ -105,7 +105,7 @@ class CardLivraisonBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = grey ? Colors.grey.shade400 : kGreen;
+    final color = grey ? Colors.grey.shade400 : colGreen;
     final bg = grey ? Colors.grey.shade100 : const Color(0xFFE8F5E9);
 
     return Container(
@@ -149,14 +149,14 @@ class CardLivraisonManquante extends StatelessWidget {
     ),
     child: const Row(
       children: [
-        Icon(Icons.warning_amber_outlined, size: 14, color: kOrange),
+        Icon(Icons.warning_amber_outlined, size: 14, color: colOrange),
         SizedBox(width: 7),
         Text(
           'Livraison non planifiée',
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w600,
-            color: kOrange,
+            color: colOrange,
           ),
         ),
       ],
@@ -176,7 +176,7 @@ class CardRemarquesBox extends StatelessWidget {
     width: double.infinity,
     padding: const EdgeInsets.all(10),
     decoration: BoxDecoration(
-      color: grey ? Colors.grey.shade100 : kGreen.withValues(alpha: 0.05),
+      color: grey ? Colors.grey.shade100 : colGreen.withValues(alpha: 0.05),
       borderRadius: BorderRadius.circular(8),
     ),
     child: Row(

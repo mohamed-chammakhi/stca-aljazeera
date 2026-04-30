@@ -8,7 +8,6 @@ import '../../../../main.dart';
 import '../gestion_echantillons/gestion_echantillons_page.dart';
 import '../sessions_degustation/sessions_degustation_page.dart';
 import '../analyse_labo/analyse_laboratoire_page.dart';
-import '../tableau_de_bord/homepage_page.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -250,7 +249,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   height: 120,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: green.withOpacity(0.2),
+                    color: green.withValues(alpha:0.2),
                     border: Border.all(color: green, width: 3),
                   ),
                   child: ClipRRect(
@@ -272,7 +271,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         border: Border.all(color: Colors.white, width: 2.5),
                         boxShadow: [
                           BoxShadow(
-                            color: green.withOpacity(0.4),
+                            color: green.withValues(alpha:0.4),
                             blurRadius: 6,
                             offset: const Offset(0, 2),
                           ),
@@ -310,7 +309,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: green.withOpacity(0.08),
+                    color: green.withValues(alpha:0.08),
                     blurRadius: 20,
                     offset: const Offset(0, 4),
                   ),
@@ -430,7 +429,7 @@ class _ProfilePageState extends State<ProfilePage> {
               icon: Container(
                 padding: const EdgeInsets.all(5),
                 decoration: BoxDecoration(
-                  color: isEditing ? green : green.withOpacity(0.12),
+                  color: isEditing ? green : green.withValues(alpha:0.12),
                   borderRadius: BorderRadius.circular(7),
                 ),
                 child: Icon(
@@ -454,7 +453,7 @@ class _ProfilePageState extends State<ProfilePage> {
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: isEditing
-                  ? BorderSide(color: green.withOpacity(0.5), width: 1.5)
+                  ? BorderSide(color: green.withValues(alpha:0.5), width: 1.5)
                   : BorderSide(color: Colors.grey.shade200),
             ),
             focusedBorder: OutlineInputBorder(
@@ -501,7 +500,7 @@ class _ProfilePageState extends State<ProfilePage> {
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: itemColor.withOpacity(0.1),
+          color: itemColor.withValues(alpha:0.1),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Icon(icon, color: itemColor),

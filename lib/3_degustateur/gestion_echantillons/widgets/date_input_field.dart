@@ -173,9 +173,9 @@ class _DateInputFieldState extends State<DateInputField> {
               child: Container(
                 padding: const EdgeInsets.all(11),
                 decoration: BoxDecoration(
-                  color: _green.withOpacity(0.1),
+                  color: _green.withValues(alpha:0.1),
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: _green.withOpacity(0.3)),
+                  border: Border.all(color: _green.withValues(alpha:0.3)),
                 ),
                 child: const Icon(
                   Icons.edit_calendar_outlined,

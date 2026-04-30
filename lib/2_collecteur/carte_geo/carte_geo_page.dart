@@ -9,11 +9,7 @@ import 'services/geo_service.dart';
 import '../mes_echantillons/models/echantillon_collecteur.dart';
 import '../../../../config.dart'; // adjust path as needed
 
-const Color _pinky = Color.fromARGB(255, 181, 88, 173);
-const Color _pinkyDark = Color.fromARGB(255, 132, 58, 125);
-const Color _green = Color(0xFF38835A);
-const Color _cream = Color(0xFFF9F6EF);
-const Color _darkText = Color(0xFF1A2E1F);
+import '../widgets/col_colors.dart';
 
 class CarteGeoPage extends StatefulWidget {
   final List<EchantillonCollecteur> echantillons;
@@ -51,14 +47,14 @@ class _CarteGeoPageState extends State<CarteGeoPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _cream,
+      backgroundColor: colCream,
       appBar: _buildAppBar(),
       body: _loading ? _buildLoader() : _buildMap(),
     );
   }
 
   AppBar _buildAppBar() => AppBar(
-    backgroundColor: _green,
+    backgroundColor: colGreen,
     elevation: 0,
     title: const Text(
       'Carte des visites',
@@ -101,9 +97,9 @@ class _CarteGeoPageState extends State<CarteGeoPage> {
     child: Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        CircularProgressIndicator(color: _green),
+        CircularProgressIndicator(color: colGreen),
         SizedBox(height: 16),
-        Text('Chargement de la carte...', style: TextStyle(color: _green)),
+        Text('Chargement de la carte...', style: TextStyle(color: colGreen)),
       ],
     ),
   );
@@ -143,14 +139,14 @@ class _CarteGeoPageState extends State<CarteGeoPage> {
                 return Polygon(
                   points: zone.polygon,
                   color: selected
-                      ? _pinky.withValues(alpha: 0.55)
+                      ? colPinky.withValues(alpha: 0.55)
                       : visited
-                      ? _pinky.withValues(alpha: 0.30)
+                      ? colPinky.withValues(alpha: 0.30)
                       : Colors.transparent,
                   borderColor: selected
-                      ? _pinkyDark
+                      ? colPinkyDark
                       : visited
-                      ? _pinky.withValues(alpha: 0.70)
+                      ? colPinky.withValues(alpha: 0.70)
                       : Colors.transparent,
                   borderStrokeWidth: selected
                       ? 2.5
@@ -285,7 +281,7 @@ class _ZoneInfoSheet extends StatelessWidget {
               width: 10,
               height: 10,
               decoration: BoxDecoration(
-                color: visited ? _pinky : Colors.grey.shade300,
+                color: visited ? colPinky : Colors.grey.shade300,
                 shape: BoxShape.circle,
               ),
             ),
@@ -296,7 +292,7 @@ class _ZoneInfoSheet extends StatelessWidget {
                 style: const TextStyle(
                   fontSize: 17,
                   fontWeight: FontWeight.w700,
-                  color: _darkText,
+                  color: colDark,
                 ),
               ),
             ),
@@ -328,7 +324,7 @@ class _ZoneInfoSheet extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
             color: visited
-                ? _pinky.withValues(alpha: 0.08)
+                ? colPinky.withValues(alpha: 0.08)
                 : Colors.grey.shade100,
             borderRadius: BorderRadius.circular(8),
           ),
@@ -339,7 +335,7 @@ class _ZoneInfoSheet extends StatelessWidget {
                     ? Icons.check_circle_outline
                     : Icons.radio_button_unchecked,
                 size: 16,
-                color: visited ? _pinky : Colors.grey.shade400,
+                color: visited ? colPinky : Colors.grey.shade400,
               ),
               const SizedBox(width: 8),
               Expanded(
@@ -350,7 +346,7 @@ class _ZoneInfoSheet extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: visited ? _pinkyDark : Colors.grey.shade500,
+                    color: visited ? colPinkyDark : Colors.grey.shade500,
                   ),
                 ),
               ),
@@ -397,9 +393,9 @@ class _Legend extends StatelessWidget {
           width: 16,
           height: 16,
           decoration: BoxDecoration(
-            color: _pinky.withValues(alpha: 0.40),
+            color: colPinky.withValues(alpha: 0.40),
             borderRadius: BorderRadius.circular(3),
-            border: Border.all(color: _pinky.withValues(alpha: 0.80), width: 1),
+            border: Border.all(color: colPinky.withValues(alpha: 0.80), width: 1),
           ),
         ),
         const SizedBox(width: 8),
@@ -407,7 +403,7 @@ class _Legend extends StatelessWidget {
           'Délégation visitée',
           style: TextStyle(
             fontSize: 12,
-            color: _darkText,
+            color: colDark,
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -440,7 +436,7 @@ class _MapButton extends StatelessWidget {
           ),
         ],
       ),
-      child: Icon(icon, color: _green, size: 22),
+      child: Icon(icon, color: colGreen, size: 22),
     ),
   );
 }

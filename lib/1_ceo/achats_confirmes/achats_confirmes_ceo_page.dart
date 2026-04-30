@@ -17,6 +17,7 @@ import '../utilisateurs/widgets/utilisateurs_ceo_page.dart';
 import '../widgets/search_date_filter_bar.dart';
 import '../widgets/sample_card_echantillon.dart';
 import '../widgets/base_sample_card.dart';
+import '../widgets/status_filter_chip.dart';
 
 const Color _headerBg = Color.fromARGB(255, 220, 233, 226);
 const Color _green = Color(0xFF38835A);
@@ -280,7 +281,7 @@ class _AchatsConfirmesCeoPageState extends State<AchatsConfirmesCeoPage> {
             child: Row(
               children: [
                 // ── CHANGED: use _FilterChip for consistent active/inactive states ──
-                _FilterChip(
+                StatusFilterChip(
                   label: 'Tout',
                   isActive: _activeFilter == 'tout',
                   activeBg: const Color(0xFF757575),
@@ -288,7 +289,7 @@ class _AchatsConfirmesCeoPageState extends State<AchatsConfirmesCeoPage> {
                   onTap: () => setState(() => _activeFilter = 'tout'),
                 ),
                 const SizedBox(width: 8),
-                _FilterChip(
+                StatusFilterChip(
                   label: 'Stock arrivé',
                   isActive: _activeFilter == 'arrive',
                   activeBg: _green.withValues(alpha: 0.12),
@@ -296,7 +297,7 @@ class _AchatsConfirmesCeoPageState extends State<AchatsConfirmesCeoPage> {
                   onTap: () => setState(() => _activeFilter = 'arrive'),
                 ),
                 const SizedBox(width: 8),
-                _FilterChip(
+                StatusFilterChip(
                   label: 'En transit',
                   isActive: _activeFilter == 'transit',
                   activeBg: Colors.orange.shade700.withValues(alpha: 0.12),
@@ -560,61 +561,6 @@ class _AchatDetails extends StatelessWidget {
             ),
           ],
         ],
-      ),
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// FILTER CHIP  — replaces old _FilterBtn
-// Active "Tout"  → solid gray (#757575) bg + white text  (mirrors utilisateurs)
-// Active status  → tinted bg + colored text
-// Inactive any   → light gray bg + gray text
-// ─────────────────────────────────────────────────────────────────────────────
-class _FilterChip extends StatelessWidget {
-  final String label;
-  final bool isActive;
-  final Color activeBg;
-  final Color activeFg;
-  final VoidCallback onTap;
-
-  const _FilterChip({
-    required this.label,
-    required this.isActive,
-    required this.activeBg,
-    required this.activeFg,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    const Color inactiveBg = Color(0xFFF0F0F0);
-    const Color inactiveFg = Color(0xFF9E9E9E);
-
-    final bg = isActive ? activeBg : inactiveBg;
-    final fg = isActive ? activeFg : inactiveFg;
-    final borderColor = isActive
-        ? activeFg.withValues(alpha: activeFg == Colors.white ? 0.0 : 0.3)
-        : const Color(0xFFE0E0E0);
-
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: BoxDecoration(
-          color: bg,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: borderColor, width: 1.2),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: fg,
-          ),
-        ),
       ),
     );
   }

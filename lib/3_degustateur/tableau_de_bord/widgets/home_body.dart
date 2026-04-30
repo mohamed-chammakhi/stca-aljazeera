@@ -70,34 +70,43 @@ class _HomeBodyState extends State<HomeBody> {
   }
 
   Future<void> _loadAll() async {
-    final urgentes = await _service.fetchUrgentes();
-    final urgentesCeo = await _service.fetchUrgentesCeo();
-    final pipeline = await _service.fetchPipeline();
-    final cls = await _service.fetchClassifications(
+    final fUrgentes = _service.fetchUrgentes();
+    final fUrgentesCeo = _service.fetchUrgentesCeo();
+    final fPipeline = _service.fetchPipeline();
+    final fCls = _service.fetchClassifications(
       dateDebut: _classDateDebut,
       dateFin: _classDateFin,
     );
-    final presence = await _service.fetchPresence(
+    final fPresence = _service.fetchPresence(
       dateDebut: _presDateDebut,
       dateFin: _presDateFin,
     );
-    final delai = await _service.fetchDelai(
+    final fDelai = _service.fetchDelai(
       dateDebut: _delaiDateDebut,
       dateFin: _delaiDateFin,
     );
-    final act = await _service.fetchActivite(
+    final fAct = _service.fetchActivite(
       dateDebut: _actDateDebut,
       dateFin: _actDateFin,
       offset: 0,
     );
+    final results = await Future.wait([
+      fUrgentes,
+      fUrgentesCeo,
+      fPipeline,
+      fCls,
+      fPresence,
+      fDelai,
+    ]);
+    final act = await fAct;
     if (!mounted) return;
     setState(() {
-      _urgentes = urgentes;
-      _urgentesCeo = urgentesCeo;
-      _pipeline = pipeline;
-      _classifications = cls;
-      _presence = presence;
-      _delai = delai;
+      _urgentes = results[0] as List<EvaluationUrgente>;
+      _urgentesCeo = results[1] as List<EvaluationUrgenteCeo>;
+      _pipeline = results[2] as PipelineData;
+      _classifications = results[3] as List<ClassificationPoint>;
+      _presence = results[4] as PresenceData;
+      _delai = results[5] as DelaiSummary;
       _activite = act.items;
       _activiteTotal = act.total;
     });
@@ -133,11 +142,12 @@ class _HomeBodyState extends State<HomeBody> {
       dateFin: _actDateFin,
       offset: 0,
     );
-    if (mounted)
+    if (mounted) {
       setState(() {
         _activite = data.items;
         _activiteTotal = data.total;
       });
+    }
   }
 
   Future<void> _loadMoreActivite() async {
@@ -148,12 +158,13 @@ class _HomeBodyState extends State<HomeBody> {
       dateFin: _actDateFin,
       offset: _activite.length,
     );
-    if (mounted)
+    if (mounted) {
       setState(() {
         _activite.addAll(data.items);
         _activiteTotal = data.total;
         _activiteLoading = false;
       });
+    }
   }
 
   Future<void> _openDateSheet({
@@ -186,8 +197,9 @@ class _HomeBodyState extends State<HomeBody> {
     if (fin == null ||
         (debut.year == fin.year &&
             debut.month == fin.month &&
-            debut.day == fin.day))
+            debut.day == fin.day)) {
       return _fmtDate(debut);
+    }
     return '${debut.day} ${_moisAbr[debut.month - 1]} → ${fin.day} ${_moisAbr[fin.month - 1]}';
   }
 
@@ -295,7 +307,7 @@ class _HomeBodyState extends State<HomeBody> {
             child: body,
           ),
         ),
-        if (footer != null) footer,
+        ?footer,
       ],
     ),
   );
@@ -379,7 +391,7 @@ class _HomeBodyState extends State<HomeBody> {
           label,
           textAlign: TextAlign.center,
           style: const TextStyle(
-            fontSize: 9,
+            fontSize: 11,
             fontWeight: FontWeight.w600,
             color: Color(0xFFAAAAAA),
           ),
@@ -409,7 +421,7 @@ class _HomeBodyState extends State<HomeBody> {
     if (total == 0) return const SizedBox.shrink();
 
     return Container(
-      height: 350,
+      height: 390,
       decoration: BoxDecoration(
         color: _white,
         borderRadius: BorderRadius.circular(14),
@@ -529,7 +541,7 @@ class _HomeBodyState extends State<HomeBody> {
                 textAlign: TextAlign.center,
                 softWrap: true,
                 style: TextStyle(
-                  fontSize: 11,
+                  fontSize: 13,
                   color: Color(0xFFAAAAAA),
                   fontStyle: FontStyle.italic,
                 ),
@@ -555,7 +567,7 @@ class _HomeBodyState extends State<HomeBody> {
           child: Text(
             label,
             style: TextStyle(
-              fontSize: 10,
+              fontSize: 12,
               fontWeight: FontWeight.w700,
               color: color,
             ),
@@ -570,7 +582,7 @@ class _HomeBodyState extends State<HomeBody> {
           child: Text(
             '$count',
             style: TextStyle(
-              fontSize: 10,
+              fontSize: 12,
               fontWeight: FontWeight.w700,
               color: color,
             ),
@@ -612,7 +624,7 @@ class _HomeBodyState extends State<HomeBody> {
                 const SizedBox(height: 3),
                 Text(
                   '${u.collecteurNom}  ·  ${u.fournisseurNom}',
-                  style: TextStyle(fontSize: 11, color: Colors.grey.shade400),
+                  style: TextStyle(fontSize: 13, color: Colors.grey.shade400),
                 ),
               ],
             ),
@@ -656,7 +668,7 @@ class _HomeBodyState extends State<HomeBody> {
                   const SizedBox(height: 3),
                   Text(
                     '${u.collecteurNom}  ·  ${u.fournisseurNom}',
-                    style: TextStyle(fontSize: 11, color: Colors.grey.shade400),
+                    style: TextStyle(fontSize: 13, color: Colors.grey.shade400),
                   ),
                 ],
               ),
@@ -697,7 +709,7 @@ class _HomeBodyState extends State<HomeBody> {
     final p = _presence;
     // Height bumped to 290 to accommodate the larger 130×130 donut
     return _fixedCard(
-      height: 260,
+      height: 285,
       header: _sectionBar(
         title: 'Présence aux séances',
         icon: Icons.people_outline_rounded,
@@ -754,7 +766,7 @@ class _HomeBodyState extends State<HomeBody> {
                         const Text(
                           'présence',
                           style: TextStyle(
-                            fontSize: 9,
+                            fontSize: 11,
                             color: Color(0xFFAAAAAA),
                           ),
                         ),
@@ -825,7 +837,7 @@ class _HomeBodyState extends State<HomeBody> {
                           Text(
                             p.prochaineLieu!,
                             style: const TextStyle(
-                              fontSize: 10,
+                              fontSize: 12,
                               color: Color(0xFFAAAAAA),
                             ),
                           ),
@@ -892,7 +904,7 @@ class _HomeBodyState extends State<HomeBody> {
     final diff = d != null ? d.monDelaiMoyen - d.panelMoyen : 0.0;
     final isBetter = diff <= 0;
     return _fixedCard(
-      height: 290,
+      height: 320,
       header: _sectionBar(
         title: 'Délai de soumission',
         icon: Icons.timer_outlined,
@@ -1005,7 +1017,7 @@ class _HomeBodyState extends State<HomeBody> {
                                 ? Text(
                                     '${v.toInt()}j',
                                     style: const TextStyle(
-                                      fontSize: 8,
+                                      fontSize: 10,
                                       color: Color(0xFFCCCCCC),
                                     ),
                                   )
@@ -1020,15 +1032,16 @@ class _HomeBodyState extends State<HomeBody> {
                               final i = v.toInt();
                               if (i < 0 ||
                                   i >= d.points.length ||
-                                  i % (d.points.length > 6 ? 2 : 1) != 0)
+                                  i % (d.points.length > 6 ? 2 : 1) != 0) {
                                 return const SizedBox();
+                              }
                               final dt = d.points[i].date;
                               return Padding(
                                 padding: const EdgeInsets.only(top: 4),
                                 child: Text(
                                   '${dt.day} ${_moisAbr[dt.month - 1]}',
                                   style: const TextStyle(
-                                    fontSize: 8,
+                                    fontSize: 10,
                                     fontWeight: FontWeight.w600,
                                     color: Color(0xFFAAAAAA),
                                   ),
@@ -1112,7 +1125,7 @@ class _HomeBodyState extends State<HomeBody> {
               const Text(
                 'Mon délai',
                 style: TextStyle(
-                  fontSize: 10,
+                  fontSize: 12,
                   fontWeight: FontWeight.w600,
                   color: _dark,
                 ),
@@ -1127,7 +1140,7 @@ class _HomeBodyState extends State<HomeBody> {
               const Text(
                 'Moy. panel',
                 style: TextStyle(
-                  fontSize: 10,
+                  fontSize: 12,
                   fontWeight: FontWeight.w600,
                   color: _dark,
                 ),
@@ -1153,7 +1166,7 @@ class _HomeBodyState extends State<HomeBody> {
           Text(
             label,
             style: const TextStyle(
-              fontSize: 9,
+              fontSize: 11,
               fontWeight: FontWeight.w700,
               color: Color(0xFFAAAAAA),
               letterSpacing: 0.4,
@@ -1175,7 +1188,7 @@ class _HomeBodyState extends State<HomeBody> {
             Text(
               sub,
               style: TextStyle(
-                fontSize: 9,
+                fontSize: 11,
                 color: subColor ?? const Color(0xFFAAAAAA),
               ),
               textAlign: TextAlign.center,
@@ -1189,7 +1202,7 @@ class _HomeBodyState extends State<HomeBody> {
   // ── 5. CLASSIFICATIONS ───────────────────────────────────────────────────
   Widget _buildClassifications() {
     return _fixedCard(
-      height: 260,
+      height: 285,
       header: _sectionBar(
         title: 'Mes classifications',
         icon: Icons.bar_chart_outlined,
@@ -1298,14 +1311,15 @@ class _HomeBodyState extends State<HomeBody> {
                                     reservedSize: 22,
                                     getTitlesWidget: (v, _) {
                                       final i = v.toInt();
-                                      if (i < 0 || i >= _classifications.length)
+                                      if (i < 0 || i >= _classifications.length) {
                                         return const SizedBox();
+                                      }
                                       return Padding(
                                         padding: const EdgeInsets.only(top: 6),
                                         child: Text(
                                           _classifications[i].label,
                                           style: const TextStyle(
-                                            fontSize: 9,
+                                            fontSize: 11,
                                             fontWeight: FontWeight.w600,
                                             color: Color(0xFFAAAAAA),
                                           ),
@@ -1322,7 +1336,7 @@ class _HomeBodyState extends State<HomeBody> {
                                         ? Text(
                                             v.toInt().toString(),
                                             style: const TextStyle(
-                                              fontSize: 9,
+                                              fontSize: 11,
                                               color: Color(0xFFCCCCCC),
                                             ),
                                           )
@@ -1377,7 +1391,7 @@ class _HomeBodyState extends State<HomeBody> {
       Text(
         label,
         style: const TextStyle(
-          fontSize: 10,
+          fontSize: 12,
           fontWeight: FontWeight.w600,
           color: _dark,
         ),
@@ -1388,7 +1402,7 @@ class _HomeBodyState extends State<HomeBody> {
   // ── 6. ACTIVITE ──────────────────────────────────────────────────────────
   Widget _buildActivite() {
     return Container(
-      height: 310,
+      height: 345,
       decoration: BoxDecoration(
         color: _white,
         borderRadius: BorderRadius.circular(14),
@@ -1487,8 +1501,9 @@ class _HomeBodyState extends State<HomeBody> {
             child: NotificationListener<ScrollNotification>(
               onNotification: (n) {
                 if (n is ScrollEndNotification &&
-                    n.metrics.pixels >= n.metrics.maxScrollExtent - 40)
+                    n.metrics.pixels >= n.metrics.maxScrollExtent - 40) {
                   _loadMoreActivite();
+                }
                 return false;
               },
               child: ListView.builder(
@@ -1516,7 +1531,7 @@ class _HomeBodyState extends State<HomeBody> {
                       ? '$_activiteTotal sur $_activiteTotal — tout chargé'
                       : '1–${_activite.length} sur $_activiteTotal',
                   style: const TextStyle(
-                    fontSize: 10,
+                    fontSize: 12,
                     fontWeight: FontWeight.w600,
                     color: Color(0xFFAAAAAA),
                   ),
@@ -1603,7 +1618,7 @@ class _HomeBodyState extends State<HomeBody> {
                   Text(
                     item.horodatage,
                     style: const TextStyle(
-                      fontSize: 10,
+                      fontSize: 12,
                       color: Color(0xFFBBBBBB),
                     ),
                   ),

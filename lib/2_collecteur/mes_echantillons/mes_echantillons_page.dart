@@ -5,16 +5,19 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'models/echantillon_collecteur.dart';
+import 'services/echantillon_collecteur_service.dart';
 import 'widgets/card/echantillon_collecteur_card.dart' show EchantillonComCard;
 
 import 'widgets/dialogs/formulaire_dialog.dart';
-import 'widgets/dialogs/formulaire_sections.dart'
+import 'widgets/dialogs/date_livraison_section.dart'
     show DateLivraisonSection, ModePlanificationUI;
 import 'widgets/dialogs/confirmer_achat_dialog.dart'
     show showConfirmerAchatDialog;
 import '../../1_ceo/widgets/search_date_filter_bar.dart'
     show DateFilterSheet, DateFilterType;
 import '../widgets/collecteur_drawer.dart';
+import '../widgets/col_colors.dart';
+import '../widgets/nav_mixin.dart';
 import '../notifications/notifications_collecteur_page.dart';
 import '../notifications/services/notification_collecteur_service.dart';
 import '../../../main.dart';
@@ -22,38 +25,49 @@ import '../profilcom.dart';
 import '../carte_geo/carte_geo_page.dart';
 import '../carte_geo/services/geo_service.dart';
 
-const Color _green = Color(0xFF38835A);
-const Color _headerBg = Color.fromARGB(255, 220, 233, 226);
-const Color _dark = Color(0xFF1A2E1F);
-const Color _bg = Color.fromARGB(255, 255, 255, 255);
-const Color _gray = Color.fromARGB(255, 81, 82, 81);
-
 class MesEchantillonsPage extends StatefulWidget {
   const MesEchantillonsPage({super.key});
   @override
   State<MesEchantillonsPage> createState() => _MesEchantillonsPageState();
 }
 
-class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
+class _MesEchantillonsPageState extends State<MesEchantillonsPage>
+    with CollecteurNavMixin {
+  final _service = EchantillonCollecteurService();
+  final _notifService = NotificationCollecteurService();
   final TextEditingController _searchCtrl = TextEditingController();
+
+  List<EchantillonCollecteur> _echantillons = [];
+  bool _loading = true;
   String _recherche = '';
   StatutCollecteur? _filtreStatut;
-  int _compteur = 5;
   DateTime? _dateDebut;
   DateTime? _dateFin;
   DateFilterType _dateFilterType = DateFilterType.enregistrement;
-
-  final _notifService = NotificationCollecteurService();
   int _unreadNotifCount = 0;
 
   bool get _dateFilterActive => _dateDebut != null || _dateFin != null;
   bool get _anyFilter =>
       _dateFilterActive || _recherche.isNotEmpty || _filtreStatut != null;
 
+  // Next reference number derived from loaded data — no magic constant needed
+  int get _prochainNumero => _echantillons.length + 1;
+
   @override
   void initState() {
     super.initState();
+    _loadEchantillons();
     _loadUnreadCount();
+  }
+
+  Future<void> _loadEchantillons() async {
+    final data = await _service.fetchEchantillons();
+    if (!mounted) return;
+    setState(() {
+      _echantillons = data;
+      _loading = false;
+    });
+    _rebuildMap();
   }
 
   Future<void> _loadUnreadCount() async {
@@ -68,7 +82,7 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
         builder: (_) => NotificationsCollecteurPage(
           service: _notifService,
           onNavigate: (notification) {
-            // Deep-link: all collector notifications navigate to MES_ECHANTILLONS (already here)
+            // Deep-link: all collector notifications navigate to MES_ECHANTILLONS
           },
         ),
       ),
@@ -76,189 +90,12 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
     _loadUnreadCount();
   }
 
-  void _goTo(Widget page) {
-    Navigator.pop(context);
-    Navigator.push(context, MaterialPageRoute(builder: (_) => page));
-  }
-
-  void _goToLogin() {
-    Navigator.pop(context);
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => LoginPage()),
-    );
-  }
-
-  final List<EchantillonCollecteur> _echantillons = [
-    // ── Scenario 1 : Réceptionné — pas encore reçu, pas d'arrivée planifiée ──
-    EchantillonCollecteur(
-      id: 'ECH-001',
-      ref: '2026/0001',
-      gouvernorat: 'Sfax',
-      delegation: 'Sfax Sud',
-      codeFournisseur: 'SF-42',
-      referenceBouteille: 'CHEMLALI-C1',
-      scellage: 'Z1',
-      achatConfirme: false,
-      remarques: null,
-      dateAjout: '01/03/2026',
-      quantiteEstimee: '10T',
-      variete: 'Chemlali',
-      statut: StatutCollecteur.receptionne,
-      collecteurId: 'COL-001',
-      collecteurNom: 'Ahmed D.',
-      recuPhysiquement: false,
-    ),
-    // ── Scenario 2 : Réceptionné — arrivée planifiée, pas encore reçu physiquement ──
-    EchantillonCollecteur(
-      id: 'ECH-002',
-      ref: '2026/0002',
-      gouvernorat: 'Nabeul',
-      delegation: 'Nabeul',
-      codeFournisseur: 'NB-07',
-      referenceBouteille: 'SAYALI-C2',
-      scellage: 'Z3',
-      achatConfirme: false,
-      remarques: 'Récolte tardive',
-      dateAjout: '05/03/2026',
-      quantiteEstimee: '15T',
-      variete: 'Sayali',
-      statut: StatutCollecteur.receptionne,
-      collecteurId: 'COL-001',
-      collecteurNom: 'Ahmed D.',
-      recuPhysiquement: false,
-      dateArriveeEchantillon: '12/03/2026',
-    ),
-    // ── Scenario 3 : Réceptionné + reçu physiquement — modifiable, non supprimable ──
-    EchantillonCollecteur(
-      id: 'ECH-003',
-      ref: '2026/0003',
-      gouvernorat: 'Béja',
-      delegation: 'Béja Nord',
-      codeFournisseur: 'BJ-15',
-      referenceBouteille: 'CHETOUI-C3',
-      scellage: 'Z2',
-      achatConfirme: false,
-      remarques: null,
-      dateAjout: '08/03/2026',
-      quantiteEstimee: '20T',
-      variete: 'Chetoui',
-      statut: StatutCollecteur.receptionne,
-      collecteurId: 'COL-001',
-      collecteurNom: 'Ahmed D.',
-      recuPhysiquement: true,
-      dateReceptionEchantillon: '10/03/2026',
-    ),
-    // ── Scenario 4 : En négociation — budget + date souhaitée définis par la direction ──
-    EchantillonCollecteur(
-      id: 'ECH-004',
-      ref: '2026/0004',
-      gouvernorat: 'Béja',
-      delegation: 'Amdoun',
-      codeFournisseur: 'BJ-22',
-      referenceBouteille: 'CHETOUI-C4',
-      scellage: 'Z2',
-      achatConfirme: false,
-      remarques: 'Récolte précoce',
-      dateAjout: '28/02/2026',
-      quantiteEstimee: '25T',
-      variete: 'Chetoui',
-      statut: StatutCollecteur.enNegociation,
-      collecteurId: 'COL-001',
-      collecteurNom: 'Ahmed D.',
-      recuPhysiquement: true,
-      dateReceptionEchantillon: '05/03/2026',
-      budgetNegociation: '9.50 TND/L',
-      dateStockSouhaitee: '01/04/2026 - 15/04/2026',
-    ),
-    // ── Scenario 5 : En négociation — pas encore de budget défini ──
-    EchantillonCollecteur(
-      id: 'ECH-005',
-      ref: '2026/0005',
-      gouvernorat: 'Jendouba',
-      delegation: 'Tabarka',
-      codeFournisseur: 'JN-09',
-      referenceBouteille: 'CHETOUI-C5',
-      scellage: 'Z4',
-      achatConfirme: false,
-      remarques: null,
-      dateAjout: '02/03/2026',
-      quantiteEstimee: '18T',
-      variete: 'Chetoui',
-      statut: StatutCollecteur.enNegociation,
-      collecteurId: 'COL-001',
-      collecteurNom: 'Ahmed D.',
-      recuPhysiquement: true,
-      dateReceptionEchantillon: '07/03/2026',
-    ),
-    // ── Scenario 6 : Achat confirmé — aucune livraison planifiée ──
-    EchantillonCollecteur(
-      id: 'ECH-006',
-      ref: '2026/0006',
-      gouvernorat: 'Gabès',
-      delegation: 'Gabès Sud',
-      codeFournisseur: 'GB-11',
-      referenceBouteille: 'CHÉTOUI-C6',
-      scellage: 'Z1',
-      achatConfirme: true,
-      remarques: null,
-      dateAjout: '18/02/2026',
-      quantiteEstimee: '12T',
-      variete: 'Chetoui',
-      statut: StatutCollecteur.achatConfirme,
-      collecteurId: 'COL-001',
-      collecteurNom: 'Ahmed D.',
-      recuPhysiquement: true,
-      dateReceptionEchantillon: '22/02/2026',
-      prixFinal: '8.80 TND/L',
-      camionLivraison: 'CAM-05',
-    ),
-    // ── Scenario 7 : Achat confirmé — livraison planifiée ──
-    EchantillonCollecteur(
-      id: 'ECH-007',
-      ref: '2026/0007',
-      gouvernorat: 'Gafsa',
-      delegation: 'Gafsa Sud',
-      codeFournisseur: 'GF-08',
-      referenceBouteille: 'ZALMATI-C7',
-      scellage: 'Z1',
-      achatConfirme: true,
-      remarques: null,
-      dateAjout: '20/02/2026',
-      quantiteEstimee: '30T',
-      variete: 'Zalmati',
-      statut: StatutCollecteur.achatConfirme,
-      collecteurId: 'COL-001',
-      collecteurNom: 'Ahmed D.',
-      recuPhysiquement: true,
-      dateReceptionEchantillon: '25/02/2026',
-      prixFinal: '9.20 TND/L',
-      camionLivraison: 'CAM-03',
-      livraison: PlanificationLivraison.exact(
-        date: DateTime(2026, 3, 15),
-        heure: '9:00 AM',
-        lieu: 'Entrepôt principal Sfax',
-        camion: 'CAM-03',
-      ),
-    ),
-  ];
-
   void _rebuildMap() {
     GeoService.instance.rebuildFromEchantillons(
       _echantillons
           .map((e) => (gouvernorat: e.gouvernorat, delegation: e.delegation))
           .toList(),
     );
-  }
-
-  DateTime? _parseDate(String s) {
-    try {
-      final p = s.split('/');
-      if (p.length != 3) return null;
-      return DateTime(int.parse(p[2]), int.parse(p[1]), int.parse(p[0]));
-    } catch (_) {
-      return null;
-    }
   }
 
   List<EchantillonCollecteur> get _filtres {
@@ -276,18 +113,11 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
         DateTime? raw;
         switch (_dateFilterType) {
           case DateFilterType.enregistrement:
-            raw = _parseDate(e.dateAjout);
-            break;
+            raw = e.dateAjout;
           case DateFilterType.livraisonEchantillon:
-            if (e.dateArriveeEchantillon != null) {
-              raw =
-                  _parseDate(e.dateArriveeEchantillon!) ??
-                  DateTime.tryParse(e.dateArriveeEchantillon!);
-            }
-            break;
+            raw = e.dateArriveeEchantillon;
           case DateFilterType.arriveeStock:
             raw = e.livraison?.dateExacte;
-            break;
         }
         if (raw == null) {
           matchDate = false;
@@ -312,16 +142,11 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
     }).toList();
   }
 
-  String _fmt(DateTime d) =>
-      '${d.day.toString().padLeft(2, '0')}/'
-      '${d.month.toString().padLeft(2, '0')}/'
-      '${d.year}';
-
   void _onModifier(EchantillonCollecteur e) {
     showFormulaireDialog(
       context,
       echantillon: e,
-      prochainNumero: _compteur,
+      prochainNumero: _prochainNumero,
       onSaveMultiple: (_) {
         setState(() {});
         _rebuildMap();
@@ -341,15 +166,13 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(
-              'Annuler',
-              style: TextStyle(color: Colors.grey.shade600),
-            ),
+            child: Text('Annuler', style: TextStyle(color: Colors.grey.shade600)),
           ),
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
               setState(() => _echantillons.remove(e));
+              _service.deleteEchantillon(e.id);
               _rebuildMap();
               _showSuccess('"${e.referenceBouteille}" supprimé');
             },
@@ -378,6 +201,7 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
           if (livraison != null) e.livraison = livraison;
           if (scellage != null) e.scellage = scellage;
         });
+        _service.updateEchantillon(e);
         _showPropositionEnvoyeeDialog(e.referenceBouteille);
       },
     );
@@ -395,11 +219,11 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
           children: [
             Container(
               padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: const Color(0xFFE9F4EE),
+              decoration: const BoxDecoration(
+                color: Color(0xFFE9F4EE),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.send_outlined, color: _green, size: 28),
+              child: const Icon(Icons.send_outlined, color: colGreen, size: 28),
             ),
             const SizedBox(height: 16),
             const Text(
@@ -407,7 +231,7 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
-                color: _dark,
+                color: colDark,
               ),
               textAlign: TextAlign.center,
             ),
@@ -427,7 +251,7 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            style: TextButton.styleFrom(foregroundColor: _green),
+            style: TextButton.styleFrom(foregroundColor: colGreen),
             child: const Text(
               'Compris',
               style: TextStyle(fontWeight: FontWeight.w700),
@@ -474,21 +298,17 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
                       top: Radius.circular(16),
                     ),
                   ),
-                  child: Row(
+                  child: const Row(
                     children: [
-                      const Icon(
-                        Icons.schedule_outlined,
-                        color: _dark,
-                        size: 20,
-                      ),
-                      const SizedBox(width: 10),
+                      Icon(Icons.schedule_outlined, color: colDark, size: 20),
+                      SizedBox(width: 10),
                       Expanded(
                         child: Text(
                           'Planifier l\'arrivée de l\'échantillon',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w700,
-                            color: _dark,
+                            color: colDark,
                           ),
                         ),
                       ),
@@ -510,14 +330,14 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
                               style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w600,
-                                color: _dark,
+                                color: colDark,
                               ),
                             ),
                             Switch(
                               value: active,
                               onChanged: (_) =>
                                   setDialogState(() => active = !active),
-                              activeThumbColor: _green,
+                              activeThumbColor: colGreen,
                             ),
                           ],
                         ),
@@ -577,18 +397,15 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
                             Navigator.pop(ctx);
                             if (!active) {
                               setState(() => e.dateArriveeEchantillon = null);
+                              _service.updateEchantillon(e);
                               return;
                             }
                             final dt = mode == ModePlanificationUI.dateExacte
                                 ? dateExacte
                                 : periodeDebut;
                             if (dt == null) return;
-                            final formatted =
-                                '${dt.day.toString().padLeft(2, '0')}/'
-                                '${dt.month.toString().padLeft(2, '0')}/${dt.year}';
-                            setState(
-                              () => e.dateArriveeEchantillon = formatted,
-                            );
+                            setState(() => e.dateArriveeEchantillon = dt);
+                            _service.updateEchantillon(e);
                             _showSuccess(
                               'Arrivée planifiée pour "${e.referenceBouteille}"',
                             );
@@ -600,7 +417,7 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
                               206,
                               201,
                             ),
-                            foregroundColor: _dark,
+                            foregroundColor: colDark,
                             elevation: 0,
                             padding: const EdgeInsets.symmetric(vertical: 12),
                             shape: RoundedRectangleBorder(
@@ -635,6 +452,7 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
           if (livraison != null) e.livraison = livraison;
           if (scellage != null) e.scellage = scellage;
         });
+        _service.updateEchantillon(e);
         _showSuccess('Livraison mise à jour pour "${e.referenceBouteille}"');
       },
     );
@@ -649,7 +467,7 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
           fontWeight: FontWeight.w600,
         ),
       ),
-      backgroundColor: _green,
+      backgroundColor: colGreen,
       behavior: SnackBarBehavior.floating,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       margin: const EdgeInsets.all(20),
@@ -689,9 +507,6 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
 
   int get _totalFiltered => _filtres.length;
 
-  int _countStatut(StatutCollecteur s) =>
-      _filtres.where((e) => e.statut == s).length;
-
   @override
   void dispose() {
     _searchCtrl.dispose();
@@ -703,16 +518,16 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
     final items = _filtres;
 
     return Scaffold(
-      backgroundColor: _bg,
+      backgroundColor: colBg,
       drawer: CollecteurDrawer(
         onMesEchantillons: () => Navigator.pop(context),
-        onCarte: () => _goTo(CarteGeoPage(echantillons: _echantillons)),
-        onMessagerie: () => _goTo(const Placeholder()),
-        onProfil: () => _goTo(const ProfileCollecteurPage()),
-        onDeconnexion: _goToLogin,
+        onCarte: () => goToPage(CarteGeoPage(echantillons: _echantillons)),
+        onMessagerie: () => goToPage(const Placeholder()),
+        onProfil: () => goToPage(const ProfileCollecteurPage()),
+        onDeconnexion: goToLogin,
       ),
       appBar: AppBar(
-        backgroundColor: _headerBg,
+        backgroundColor: colHeaderBg,
         elevation: 0,
         centerTitle: false,
         toolbarHeight: 65,
@@ -721,10 +536,10 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
           style: GoogleFonts.domine(
             fontSize: 18,
             fontWeight: FontWeight.w700,
-            color: _dark,
+            color: colDark,
           ),
         ),
-        iconTheme: const IconThemeData(color: _dark),
+        iconTheme: const IconThemeData(color: colDark),
         actions: [
           // ── Bell icon with unread badge ──────────────────────────────────
           Stack(
@@ -745,13 +560,17 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
                   top: 10,
                   child: Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 4, vertical: 1,
+                      horizontal: 4,
+                      vertical: 1,
                     ),
                     decoration: BoxDecoration(
-                      color: _green,
+                      color: colGreen,
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                    constraints: const BoxConstraints(
+                      minWidth: 16,
+                      minHeight: 16,
+                    ),
                     child: Text(
                       _unreadNotifCount > 9 ? '9+' : '$_unreadNotifCount',
                       style: const TextStyle(
@@ -773,7 +592,7 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
                 icon: Icon(
                   Icons.calendar_today_outlined,
                   size: 20,
-                  color: _dateFilterActive ? _green : const Color(0xFF6B8E7A),
+                  color: _dateFilterActive ? colGreen : const Color(0xFF6B8E7A),
                 ),
                 onPressed: _showDateFilter,
                 tooltip: 'Filtrer par date',
@@ -786,7 +605,7 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
                     width: 8,
                     height: 8,
                     decoration: const BoxDecoration(
-                      color: _green,
+                      color: colGreen,
                       shape: BoxShape.circle,
                     ),
                   ),
@@ -800,35 +619,39 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
         onPressed: () {
           showFormulaireDialog(
             context,
-            prochainNumero: _compteur + 1,
-            onSaveMultiple: (nouveaux) {
+            prochainNumero: _prochainNumero,
+            onSaveMultiple: (nouveaux) async {
+              final created = <EchantillonCollecteur>[];
+              for (final s in nouveaux) {
+                created.add(await _service.createEchantillon(s));
+              }
+              if (!mounted) return;
               setState(() {
-                for (final s in nouveaux) {
+                for (final s in created) {
                   _echantillons.insert(0, s);
                 }
-                _compteur += nouveaux.length;
               });
               _rebuildMap();
-              final label = nouveaux.length == 1
-                  ? '"${nouveaux.first.referenceBouteille}" ajouté'
-                  : '${nouveaux.length} échantillons ajoutés';
+              final label = created.length == 1
+                  ? '"${created.first.referenceBouteille}" ajouté'
+                  : '${created.length} échantillons ajoutés';
               _showSuccess(label);
             },
           );
         },
         backgroundColor: const Color.fromARGB(255, 197, 206, 201),
         elevation: 2,
-        icon: const Icon(Icons.add_a_photo_outlined, color: _dark),
+        icon: const Icon(Icons.add_a_photo_outlined, color: colDark),
         label: const Text(
           'Ajouter',
-          style: TextStyle(color: _dark, fontWeight: FontWeight.w700),
+          style: TextStyle(color: colDark, fontWeight: FontWeight.w700),
         ),
       ),
       body: Column(
         children: [
           // ── Header zone ──────────────────────────────────────────────────
           Container(
-            color: _headerBg,
+            color: colHeaderBg,
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
             child: Column(
               children: [
@@ -836,7 +659,7 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
                 TextField(
                   controller: _searchCtrl,
                   onChanged: (v) => setState(() => _recherche = v.trim()),
-                  style: const TextStyle(fontSize: 14, color: _dark),
+                  style: const TextStyle(fontSize: 14, color: colDark),
                   decoration: InputDecoration(
                     hintText: 'Rechercher réf, fournisseur, gouvernorat…',
                     hintStyle: const TextStyle(
@@ -877,7 +700,7 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: _green, width: 1.5),
+                      borderSide: const BorderSide(color: colGreen, width: 1.5),
                     ),
                   ),
                 ),
@@ -900,13 +723,12 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
                       const SizedBox(width: 7),
                       _StatutChip(
                         label: 'Enregistré',
-                        activeBg: const Color(
-                          0xFF3A6EA5,
-                        ).withValues(alpha: 0.12),
+                        activeBg: const Color(0xFF3A6EA5).withValues(alpha: 0.12),
                         activeFg: const Color(0xFF3A6EA5),
                         inactiveBg: const Color(0xFFF0F0F0),
                         inactiveFg: const Color(0xFF9E9E9E),
-                        selected: _filtreStatut == StatutCollecteur.receptionne,
+                        selected:
+                            _filtreStatut == StatutCollecteur.receptionne,
                         onTap: () => setState(
                           () => _filtreStatut = StatutCollecteur.receptionne,
                         ),
@@ -914,31 +736,29 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
                       const SizedBox(width: 7),
                       _StatutChip(
                         label: 'Négociation',
-                        activeBg: const Color(
-                          0xFFD07B2F,
-                        ).withValues(alpha: 0.12),
+                        activeBg: const Color(0xFFD07B2F).withValues(alpha: 0.12),
                         activeFg: const Color(0xFFD07B2F),
                         inactiveBg: const Color(0xFFF0F0F0),
                         inactiveFg: const Color(0xFF9E9E9E),
                         selected:
                             _filtreStatut == StatutCollecteur.enNegociation,
                         onTap: () => setState(
-                          () => _filtreStatut = StatutCollecteur.enNegociation,
+                          () =>
+                              _filtreStatut = StatutCollecteur.enNegociation,
                         ),
                       ),
                       const SizedBox(width: 7),
                       _StatutChip(
                         label: 'Achat conclu',
-                        activeBg: const Color(
-                          0xFF38835A,
-                        ).withValues(alpha: 0.12),
+                        activeBg: const Color(0xFF38835A).withValues(alpha: 0.12),
                         activeFg: const Color(0xFF38835A),
                         inactiveBg: const Color(0xFFF0F0F0),
                         inactiveFg: const Color(0xFF9E9E9E),
                         selected:
                             _filtreStatut == StatutCollecteur.achatConfirme,
                         onTap: () => setState(
-                          () => _filtreStatut = StatutCollecteur.achatConfirme,
+                          () =>
+                              _filtreStatut = StatutCollecteur.achatConfirme,
                         ),
                       ),
                     ],
@@ -951,7 +771,7 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
 
           // ── Stats strip ──────────────────────────────────────────────────
           Container(
-            color: _bg,
+            color: colBg,
             padding: const EdgeInsets.fromLTRB(16, 9, 16, 6),
             child: Row(
               children: [
@@ -969,7 +789,6 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
                     fontWeight: FontWeight.w500,
                   ),
                 ),
-
                 if (_dateFilterActive) ...[
                   const SizedBox(width: 8),
                   Icon(
@@ -983,8 +802,8 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
                       _dateDebut != null &&
                               _dateFin != null &&
                               _dateDebut!.isAtSameMomentAs(_dateFin!)
-                          ? 'Le ${_fmt(_dateDebut!)}'
-                          : 'Du ${_fmt(_dateDebut!)}  →  ${_fmt(_dateFin!)}',
+                          ? 'Le ${fmtDate(_dateDebut!)}'
+                          : 'Du ${fmtDate(_dateDebut!)}  →  ${fmtDate(_dateFin!)}',
                       style: TextStyle(
                         color: Colors.grey.shade500,
                         fontSize: 11,
@@ -999,7 +818,9 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
 
           // ── List ──────────────────────────────────────────────────────────
           Expanded(
-            child: items.isEmpty
+            child: _loading
+                ? const Center(child: CircularProgressIndicator())
+                : items.isEmpty
                 ? Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -1023,7 +844,7 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
                 : Theme(
                     data: Theme.of(context).copyWith(
                       scrollbarTheme: ScrollbarThemeData(
-                        thumbColor: WidgetStateProperty.all(_gray),
+                        thumbColor: WidgetStateProperty.all(colGray),
                       ),
                     ),
                     child: Scrollbar(
@@ -1062,30 +883,6 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage> {
   }
 }
 
-// ── Tiny colored dot pill — shows per-status count in the stats strip ─────────
-class _StripPill extends StatelessWidget {
-  final int count;
-  final Color color;
-  const _StripPill({required this.count, required this.color});
-
-  @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-    decoration: BoxDecoration(
-      color: color.withValues(alpha: 0.10),
-      borderRadius: BorderRadius.circular(8),
-      border: Border.all(color: color.withValues(alpha: 0.22)),
-    ),
-    child: Text(
-      '$count',
-      style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: color),
-    ),
-  );
-}
-
-// ── Statut chip — matches _FilterChip behavior from achats_confirmes_ceo_page
-// Active   : solid colored background + white text, no shadow
-// Inactive : pastel tinted background + colored text
 // ─────────────────────────────────────────────────────────────────────────────
 class _StatutChip extends StatelessWidget {
   final String label;

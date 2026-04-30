@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../widgets/ceo_drawer.dart';
 import '../utilisateurs/models/echantillon_ceo_view.dart';
-import '../utilisateurs/widgets/analyse_labo_sheet.dart';
 import '../echantillons/echantillons_ceo_page.dart';
 import '../analyse_organoleptique/analyse_organoleptique_ceo_page.dart';
 import 'analyse_laboratoire_ceo_page.dart';
@@ -18,6 +17,7 @@ import '../utilisateurs/widgets/utilisateurs_ceo_page.dart';
 import '../widgets/search_date_filter_bar.dart';
 import '../widgets/sample_card_echantillon.dart';
 import '../widgets/base_sample_card.dart';
+import '../widgets/status_filter_chip.dart';
 
 const Color _headerBg = Color.fromARGB(255, 220, 233, 226);
 const Color _green = Color(0xFF38835A);
@@ -302,7 +302,7 @@ class _AnalyseLaboratoireCeoPageState extends State<AnalyseLaboratoireCeoPage> {
             padding: const EdgeInsets.fromLTRB(16, 9, 16, 6),
             child: Row(
               children: [
-                _FilterChip(
+                StatusFilterChip(
                   label: 'Tout',
                   isActive: _activeFilter == 'tout',
                   activeBg: const Color(0xFF757575),
@@ -310,7 +310,7 @@ class _AnalyseLaboratoireCeoPageState extends State<AnalyseLaboratoireCeoPage> {
                   onTap: () => setState(() => _activeFilter = 'tout'),
                 ),
                 const SizedBox(width: 8),
-                _FilterChip(
+                StatusFilterChip(
                   label: 'Analyse soumise',
                   isActive: _activeFilter == 'Analyse soumise',
                   activeBg: _green.withValues(alpha: 0.12),
@@ -319,7 +319,7 @@ class _AnalyseLaboratoireCeoPageState extends State<AnalyseLaboratoireCeoPage> {
                       setState(() => _activeFilter = 'Analyse soumise'),
                 ),
                 const SizedBox(width: 8),
-                _FilterChip(
+                StatusFilterChip(
                   label: 'Analyse en attente',
                   isActive: _activeFilter == 'Analyse en attente',
                   activeBg: Colors.orange.shade700.withValues(alpha: 0.12),
@@ -414,61 +414,6 @@ class _AnalyseLaboratoireCeoPageState extends State<AnalyseLaboratoireCeoPage> {
                   ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// FILTER CHIP  — shared pattern across pages
-// Active "Tout"    → solid gray (#757575) bg + white text
-// Active status    → tinted bg + colored text
-// Inactive any     → light gray bg + gray text
-// ─────────────────────────────────────────────────────────────────────────────
-class _FilterChip extends StatelessWidget {
-  final String label;
-  final bool isActive;
-  final Color activeBg;
-  final Color activeFg;
-  final VoidCallback onTap;
-
-  const _FilterChip({
-    required this.label,
-    required this.isActive,
-    required this.activeBg,
-    required this.activeFg,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    const Color inactiveBg = Color(0xFFF0F0F0);
-    const Color inactiveFg = Color(0xFF9E9E9E);
-
-    final bg = isActive ? activeBg : inactiveBg;
-    final fg = isActive ? activeFg : inactiveFg;
-    final borderColor = isActive
-        ? activeFg.withValues(alpha: activeFg == Colors.white ? 0.0 : 0.3)
-        : const Color(0xFFE0E0E0);
-
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: BoxDecoration(
-          color: bg,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: borderColor, width: 1.2),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: fg,
-          ),
-        ),
       ),
     );
   }

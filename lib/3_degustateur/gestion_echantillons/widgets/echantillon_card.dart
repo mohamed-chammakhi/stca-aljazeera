@@ -56,12 +56,23 @@ class _EchantillonCardState extends State<EchantillonCard> {
     super.dispose();
   }
 
-  void _toggleRecuWithFeedback() {
+  Future<void> _toggleRecuWithFeedback() async {
+    final e = widget.echantillon;
+    final willBeReceived = !e.recuPhysiquement;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => _RecuConfirmDialog(
+        referenceBouteille: e.referenceBouteille,
+        isConfirming: willBeReceived,
+      ),
+    );
+    if (confirmed != true) return;
+
     _msgTimer?.cancel();
     widget.onToggleRecu();
-    // After onToggleRecu, the field is already flipped (setState runs fn synchronously)
-    final isNowReceived = widget.echantillon.recuPhysiquement;
-    if (isNowReceived) {
+    if (willBeReceived) {
       setState(() => _showRecuMsg = true);
       _msgTimer = Timer(const Duration(seconds: 6), () {
         if (mounted) setState(() => _showRecuMsg = false);
@@ -380,6 +391,146 @@ class _DetailPanel extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// RECEPTION CONFIRMATION DIALOG
+// ─────────────────────────────────────────────────────────────────────────────
+class _RecuConfirmDialog extends StatelessWidget {
+  final String referenceBouteille;
+  final bool isConfirming;
+
+  const _RecuConfirmDialog({
+    required this.referenceBouteille,
+    required this.isConfirming,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final headerColor = isConfirming
+        ? const Color(0xFFE6F4ED)
+        : const Color(0xFFFEF3E8);
+    final iconColor = isConfirming ? _green : const Color(0xFFD07B2F);
+    final subtitleColor = isConfirming
+        ? const Color(0xFF6B8E7A)
+        : const Color(0xFF9E7A4B);
+    final confirmColor = isConfirming ? _green : const Color(0xFFD07B2F);
+
+    return Dialog(
+      backgroundColor: Colors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.fromLTRB(18, 16, 14, 14),
+            decoration: BoxDecoration(
+              color: headerColor,
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(16),
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  isConfirming
+                      ? Icons.check_circle_outline
+                      : Icons.remove_circle_outline,
+                  color: iconColor,
+                  size: 20,
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        isConfirming
+                            ? 'Confirmer la réception'
+                            : 'Annuler la réception',
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: _dark,
+                        ),
+                      ),
+                      Text(
+                        referenceBouteille,
+                        style: TextStyle(fontSize: 11, color: subtitleColor),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(18, 14, 18, 12),
+            child: Text(
+              isConfirming
+                  ? 'Confirmez-vous que cet échantillon est physiquement présent dans la société ?'
+                  : 'Voulez-vous annuler la réception physique de cet échantillon ?',
+              style: const TextStyle(
+                fontSize: 13,
+                color: Color(0xFF4A4A4A),
+                height: 1.5,
+              ),
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.fromLTRB(18, 8, 18, 14),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF9F6EF),
+              borderRadius: const BorderRadius.vertical(
+                bottom: Radius.circular(16),
+              ),
+              border: Border(top: BorderSide(color: Colors.grey.shade100)),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.pop(context, false),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.grey.shade600,
+                      side: BorderSide(color: Colors.grey.shade300),
+                      padding: const EdgeInsets.symmetric(vertical: 11),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: const Text('Annuler'),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pop(context, true),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: confirmColor,
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(vertical: 11),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: Text(
+                      isConfirming ? 'Confirmer' : 'Annuler réception',
+                      style: const TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

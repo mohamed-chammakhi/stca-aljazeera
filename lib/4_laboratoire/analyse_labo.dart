@@ -82,4 +82,53 @@ class AnalyseLabo {
       indicePeroxyde != null &&
       k270 != null &&
       k232 != null;
+
+  factory AnalyseLabo.fromJson(Map<String, dynamic> json) => AnalyseLabo(
+    echantillonId:     json['echantillon_id']     as String,
+    echantillonRef:    json['echantillon_ref']     as String,
+    aciditeLibre:      (json['acidite_libre']      as num?)?.toDouble(),
+    indicePeroxyde:    (json['indice_peroxyde']    as num?)?.toDouble(),
+    k232:              (json['k232']               as num?)?.toDouble(),
+    k270:              (json['k270']               as num?)?.toDouble(),
+    deltaK:            (json['delta_k']            as num?)?.toDouble(),
+    humidite:          (json['humidite']           as num?)?.toDouble(),
+    impuretes:         (json['impuretes']          as num?)?.toDouble(),
+    polyphenolsTotaux: (json['polyphenols_totaux'] as num?)?.toDouble(),
+    tocopherols:       (json['tocopherols']        as num?)?.toDouble(),
+    acideOleique:      (json['acide_oleique']      as num?)?.toDouble(),
+    acideLinoleique:   (json['acide_linoleique']   as num?)?.toDouble(),
+    acidePalmitique:   (json['acide_palmitique']   as num?)?.toDouble(),
+    classification:    json['classification']      as String?,
+    statut: StatutLabo.values.firstWhere(
+      (s) => s.name == (json['statut'] as String? ?? 'enAttente'),
+      orElse: () => StatutLabo.enAttente,
+    ),
+    dateAnalyse:      json['date_analyse']       as String?,
+    technicienId:     json['technicien_id']      as String?,
+    notes:            json['notes']              as String?,
+    imageRapportUrl:  json['image_rapport_url']  as String?,
+  );
+
+  Map<String, dynamic> toJson() => {
+    'echantillon_id':     echantillonId,
+    'echantillon_ref':    echantillonRef,
+    'acidite_libre':      aciditeLibre,
+    'indice_peroxyde':    indicePeroxyde,
+    'k232':               k232,
+    'k270':               k270,
+    'delta_k':            deltaK,
+    'humidite':           humidite,
+    'impuretes':          impuretes,
+    'polyphenols_totaux': polyphenolsTotaux,
+    'tocopherols':        tocopherols,
+    'acide_oleique':      acideOleique,
+    'acide_linoleique':   acideLinoleique,
+    'acide_palmitique':   acidePalmitique,
+    'classification':     classification,
+    'statut':             statut.name,
+    'date_analyse':       dateAnalyse,
+    'technicien_id':      technicienId,
+    'notes':              notes,
+    'image_rapport_url':  imageRapportUrl,
+  };
 }

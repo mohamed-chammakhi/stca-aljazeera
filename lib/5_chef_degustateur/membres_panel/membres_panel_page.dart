@@ -16,11 +16,11 @@ import '../sessions_degustation/sessions_degustation_page.dart';
 import '../analyse_labo/analyse_laboratoire_page.dart';
 import '../vue_ensemble_evaluations/vue_ensemble_evaluations_page.dart';
 
-const Color gray = Color.fromARGB(255, 81, 82, 81);
-
+const Color _headerBg = Color.fromARGB(255, 220, 233, 226);
 const Color _green = Color(0xFF38835A);
-//const Color _oliveGreen = Color(0xFF6B8143);
-const Color _darkText = Color(0xFF1A2E1F);
+const Color _dark = Color(0xFF1A2E1F);
+const Color _bg = Color(0xFFFFFFFF);
+const Color _gray = Color.fromARGB(255, 81, 82, 81);
 
 class MembresPanelPage extends StatefulWidget {
   const MembresPanelPage({super.key});
@@ -110,20 +110,21 @@ class _MembresPanelPageState extends State<MembresPanelPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF4F7F4),
+      backgroundColor: _bg,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: _headerBg,
         elevation: 0,
         centerTitle: false,
+        toolbarHeight: 65,
         title: Text(
           'Membres du Panel',
           style: GoogleFonts.domine(
             fontSize: 18,
             fontWeight: FontWeight.w700,
-            color: _darkText,
+            color: _dark,
           ),
         ),
-        iconTheme: const IconThemeData(color: _darkText),
+        iconTheme: const IconThemeData(color: _dark),
       ),
 
       body: Padding(
@@ -134,7 +135,7 @@ class _MembresPanelPageState extends State<MembresPanelPage> {
             TextField(
               controller: _searchCtrl,
               onChanged: (v) => setState(() => _recherche = v),
-              style: const TextStyle(fontSize: 14, color: _darkText),
+              style: const TextStyle(fontSize: 14, color: _dark),
               decoration: InputDecoration(
                 hintText: 'Rechercher un membre...',
                 hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 13),
@@ -201,7 +202,7 @@ class _MembresPanelPageState extends State<MembresPanelPage> {
                   : Theme(
                       data: Theme.of(context).copyWith(
                         scrollbarTheme: ScrollbarThemeData(
-                          thumbColor: MaterialStateProperty.all(gray),
+                          thumbColor: MaterialStateProperty.all(_gray),
                         ),
                       ),
                       child: Scrollbar(

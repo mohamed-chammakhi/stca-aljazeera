@@ -22,6 +22,22 @@ class CritereAnalyse {
     this.seuilMax,
   });
 
+  factory CritereAnalyse.fromJson(Map<String, dynamic> json) => CritereAnalyse(
+    label: json['label'] as String,
+    valeur: (json['valeur'] as num).toDouble(),
+    unite: json['unite'] as String,
+    seuilMin: json['seuil_min'] != null ? (json['seuil_min'] as num).toDouble() : null,
+    seuilMax: json['seuil_max'] != null ? (json['seuil_max'] as num).toDouble() : null,
+  );
+
+  Map<String, dynamic> toJson() => {
+    'label': label,
+    'valeur': valeur,
+    'unite': unite,
+    'seuil_min': seuilMin,
+    'seuil_max': seuilMax,
+  };
+
   /// true if value is within allowed range
   bool get conforme {
     if (seuilMin != null && valeur < seuilMin!) return false;
@@ -53,6 +69,28 @@ class AnalyseLabo {
     required this.criteres,
     this.notes,
   });
+
+  factory AnalyseLabo.fromJson(Map<String, dynamic> json) => AnalyseLabo(
+    id: json['id'] as String,
+    echantillonId: json['echantillon_id'] as String,
+    echantillonNom: json['echantillon_nom'] as String,
+    dateAnalyse: json['date_analyse'] as String,
+    technicienNom: json['technicien_nom'] as String,
+    statut: json['statut'] == 'soumise' ? StatutAnalyse.soumise : StatutAnalyse.enAttente,
+    criteres: (json['criteres'] as List).map((c) => CritereAnalyse.fromJson(c as Map<String, dynamic>)).toList(),
+    notes: json['notes'] as String?,
+  );
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'echantillon_id': echantillonId,
+    'echantillon_nom': echantillonNom,
+    'date_analyse': dateAnalyse,
+    'technicien_nom': technicienNom,
+    'statut': statut == StatutAnalyse.soumise ? 'soumise' : 'en_attente',
+    'criteres': criteres.map((c) => c.toJson()).toList(),
+    'notes': notes,
+  };
 
   /// true if ALL criteria are within their allowed range
   bool get toutConforme => criteres.every((c) => c.conforme);

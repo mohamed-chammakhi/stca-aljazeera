@@ -735,12 +735,12 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
                 ),
                 decoration: BoxDecoration(
                   color: value > 0
-                      ? color.withOpacity(0.1)
+                      ? color.withValues(alpha:0.1)
                       : Colors.grey.shade100,
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
                     color: value > 0
-                        ? color.withOpacity(0.4)
+                        ? color.withValues(alpha:0.4)
                         : Colors.grey.shade200,
                   ),
                 ),
@@ -763,7 +763,7 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: color.withOpacity(0.1),
+                    color: color.withValues(alpha:0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
@@ -802,12 +802,12 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
                   height: 34,
                   decoration: BoxDecoration(
                     color: value > 0 && !_estSoumis
-                        ? color.withOpacity(0.1)
+                        ? color.withValues(alpha:0.1)
                         : Colors.grey.shade100,
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
                       color: value > 0 && !_estSoumis
-                          ? color.withOpacity(0.4)
+                          ? color.withValues(alpha:0.4)
                           : Colors.grey.shade200,
                     ),
                   ),
@@ -834,7 +834,7 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
                             : color,
                         inactiveTrackColor: Colors.grey.shade200,
                         thumbColor: _estSoumis ? Colors.grey.shade400 : color,
-                        overlayColor: color.withOpacity(0.15),
+                        overlayColor: color.withValues(alpha:0.15),
                         trackHeight: 5.0,
                         thumbShape: const RoundSliderThumbShape(
                           enabledThumbRadius: 9,
@@ -898,12 +898,12 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
                   height: 34,
                   decoration: BoxDecoration(
                     color: value < 10.0 && !_estSoumis
-                        ? color.withOpacity(0.1)
+                        ? color.withValues(alpha:0.1)
                         : Colors.grey.shade100,
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
                       color: value < 10.0 && !_estSoumis
-                          ? color.withOpacity(0.4)
+                          ? color.withValues(alpha:0.4)
                           : Colors.grey.shade200,
                     ),
                   ),
@@ -1016,9 +1016,9 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha:0.1),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha:0.3)),
       ),
       child: Text(
         '$label: ${value.toStringAsFixed(1)}',

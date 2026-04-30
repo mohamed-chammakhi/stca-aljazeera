@@ -5,8 +5,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'models/echantillon_labo.dart';
+import 'services/labo_service.dart';
 import 'widgets/echantillon_labo_card.dart';
-import 'widgets/statut_analyse_badge.dart';
 import 'widgets/dialogs/analyse_dialog.dart';
 import 'widgets/dialogs/formulaire_analyse_labo_dialog.dart';
 import '../analyse_labo.dart';
@@ -28,80 +28,19 @@ class EchantillonsLaboPage extends StatefulWidget {
 }
 
 class _EchantillonsLaboPageState extends State<EchantillonsLaboPage> {
+  final _service = LaboService();
   final TextEditingController _searchCtrl = TextEditingController();
   String _recherche = '';
   StatutAnalyse? _filtreStatut;
+  List<EchantillonLabo> _echantillons = [];
 
-  // ── MOCK DATA ─────────────────────────────────────────────────────────────
-  final List<EchantillonLabo> _echantillons = [
-    EchantillonLabo(
-      id: 'ECH-001',
-      ref: '2026/0001',
-      gouvernorat: 'Sfax',
-      codeFournisseur: 'SF-42',
-      collecteurNom: 'Ahmed D.',
-      referenceBouteille: 'CHEMLALI-C1',
-      variete: 'Chemlali',
-      quantiteEstimee: '10',
-      dateArrivee: '01/03/2026',
-      origineCampagne: '2025/2026',
-    ),
-    EchantillonLabo(
-      id: 'ECH-002',
-      ref: '2026/0002',
-      gouvernorat: 'Béja',
-      codeFournisseur: 'BJ-15',
-      collecteurNom: 'Ahmed D.',
-      referenceBouteille: 'CHETOUI-C3',
-      variete: 'Chetoui',
-      quantiteEstimee: '8',
-      dateArrivee: '28/02/2026',
-      analyse: AnalyseLabo(
-        echantillonId: 'ECH-002',
-        echantillonRef: '2026/0002',
-        aciditeLibre: 0.42,
-        indicePeroxyde: 8.6,
-        k232: 1.92,
-        k270: 0.14,
-        polyphenolsTotaux: 318,
-        statut: StatutAnalyse.soumis,
-        dateAnalyse: '28/02/2026',
-      ),
-    ),
-    EchantillonLabo(
-      id: 'ECH-003',
-      ref: '2026/0003',
-      gouvernorat: 'Gafsa',
-      codeFournisseur: 'GF-08',
-      collecteurNom: 'Sami B.',
-      referenceBouteille: 'ZALMATI-C7',
-      variete: 'Zalmati',
-      quantiteEstimee: '30',
-      dateArrivee: '20/02/2026',
-      priorite: PrioriteLabo.urgente,
-      analyse: AnalyseLabo(
-        echantillonId: 'ECH-003',
-        echantillonRef: '2026/0003',
-        aciditeLibre: 1.8,
-        indicePeroxyde: 18.0,
-        k270: 0.19,
-        k232: 2.40,
-        statut: StatutAnalyse.soumis,
-        dateAnalyse: '21/02/2026',
-      ),
-    ),
-    EchantillonLabo(
-      id: 'ECH-004',
-      ref: '2026/0004',
-      gouvernorat: 'Kairouan',
-      codeFournisseur: 'KR-22',
-      collecteurNom: 'Leila M.',
-      referenceBouteille: 'OUESLATI-C2',
-      variete: 'Oueslati',
-      quantiteEstimee: '15',
-      dateArrivee: '25/02/2026',
-    ),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _service.fetchEchantillons().then((list) {
+      if (mounted) setState(() => _echantillons = list);
+    });
+  }
 
   // ── Navigation helpers ─────────────────────────────────────────────────────
   void _goTo(Widget page) {
@@ -300,7 +239,6 @@ class _EchantillonsLaboPageState extends State<EchantillonsLaboPage> {
                     children: [
                       _StatutChip(
                         label: 'Tous',
-                        activeColor: const Color(0xFF616161),
                         inactiveColor: const Color(0xFFF0F0F0),
                         inactiveTextColor: const Color(0xFF757575),
                         selected: _filtreStatut == null,
@@ -309,7 +247,6 @@ class _EchantillonsLaboPageState extends State<EchantillonsLaboPage> {
                       const SizedBox(width: 7),
                       _StatutChip(
                         label: 'Analyse en attente',
-                        activeColor: const Color(0xFF3A6EA5),
                         inactiveColor: const Color(0xFFE8F1FB),
                         inactiveTextColor: const Color(0xFF3A6EA5),
                         selected: _filtreStatut == StatutAnalyse.enAttente,
@@ -320,7 +257,6 @@ class _EchantillonsLaboPageState extends State<EchantillonsLaboPage> {
                       const SizedBox(width: 7),
                       _StatutChip(
                         label: 'Analyse en cours',
-                        activeColor: const Color(0xFFD07B2F),
                         inactiveColor: const Color(0xFFFEF3E8),
                         inactiveTextColor: const Color(0xFFD07B2F),
                         selected: _filtreStatut == StatutAnalyse.enCours,
@@ -331,7 +267,6 @@ class _EchantillonsLaboPageState extends State<EchantillonsLaboPage> {
                       const SizedBox(width: 7),
                       _StatutChip(
                         label: 'Analyse soumise',
-                        activeColor: const Color(0xFF38835A),
                         inactiveColor: const Color(0xFFE6F4ED),
                         inactiveTextColor: const Color(0xFF38835A),
                         selected: _filtreStatut == StatutAnalyse.soumis,
@@ -444,168 +379,9 @@ class _EchantillonsLaboPageState extends State<EchantillonsLaboPage> {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Read-only analysis bottom sheet
-// ─────────────────────────────────────────────────────────────────────────────
-class _AnalyseReadOnlySheet extends StatelessWidget {
-  final EchantillonLabo echantillon;
-  const _AnalyseReadOnlySheet({required this.echantillon});
-
-  @override
-  Widget build(BuildContext context) {
-    final a = echantillon.analyse!;
-    final classif = a.classificationAuto;
-    final classifColor = classif == 'Extra Vierge'
-        ? _green
-        : classif == 'Vierge'
-        ? Colors.orange.shade700
-        : Colors.red.shade700;
-
-    return DraggableScrollableSheet(
-      expand: false,
-      initialChildSize: 0.75,
-      maxChildSize: 0.95,
-      builder: (_, ctrl) => Padding(
-        padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
-        child: ListView(
-          controller: ctrl,
-          children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                margin: const EdgeInsets.only(bottom: 16),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-            Text(
-              'Rapport d\'analyse — ${echantillon.referenceBouteille}',
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w800,
-                color: Color(0xFF1A2E1F),
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Soumis le ${a.dateAnalyse ?? "—"}',
-              style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
-            ),
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: classifColor.withValues(alpha: 0.07),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: classifColor.withValues(alpha: 0.25)),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.verified_outlined, color: classifColor, size: 22),
-                  const SizedBox(width: 10),
-                  Text(
-                    classif,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w900,
-                      color: classifColor,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-            _ReadOnlyRow('Acidité libre', a.aciditeLibre, '% ac. oléique'),
-            _ReadOnlyRow('Indice de peroxyde', a.indicePeroxyde, 'meqO₂/kg'),
-            _ReadOnlyRow('K₂₃₂', a.k232, ''),
-            _ReadOnlyRow('K₂₇₀', a.k270, ''),
-            _ReadOnlyRow('ΔK', a.deltaK, ''),
-            _ReadOnlyRow('Humidité', a.humidite, '%'),
-            _ReadOnlyRow('Impuretés', a.impuretes, '%'),
-            _ReadOnlyRow('Polyphénols totaux', a.polyphenolsTotaux, 'mg/kg'),
-            _ReadOnlyRow('Tocophérols', a.tocopherols, 'mg/kg'),
-            _ReadOnlyRow('Acide oléique', a.acideOleique, '%'),
-            _ReadOnlyRow('Acide linoléique', a.acideLinoleique, '%'),
-            _ReadOnlyRow('Acide palmitique', a.acidePalmitique, '%'),
-            if (a.notes != null && a.notes!.isNotEmpty) ...[
-              const SizedBox(height: 12),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade50,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Icon(
-                      Icons.notes_outlined,
-                      size: 14,
-                      color: Colors.grey.shade400,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        a.notes!,
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Colors.grey.shade600,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-            const SizedBox(height: 24),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _ReadOnlyRow extends StatelessWidget {
-  final String label;
-  final double? value;
-  final String unit;
-  const _ReadOnlyRow(this.label, this.value, this.unit);
-
-  @override
-  Widget build(BuildContext context) {
-    if (value == null) return const SizedBox.shrink();
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 5),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              label,
-              style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
-            ),
-          ),
-          Text(
-            '${value!.toStringAsFixed(value! == value!.roundToDouble() ? 0 : 2)} $unit'
-                .trim(),
-            style: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFF1A2E1F),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 // ── Statut chip — soft pastel inactive, tinted active (matches taster design) ──
 class _StatutChip extends StatelessWidget {
   final String label;
-  final Color activeColor;
   final Color inactiveColor;
   final Color inactiveTextColor;
   final bool selected;
@@ -613,7 +389,6 @@ class _StatutChip extends StatelessWidget {
 
   const _StatutChip({
     required this.label,
-    required this.activeColor,
     required this.inactiveColor,
     required this.inactiveTextColor,
     required this.selected,

@@ -14,7 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../analyse_labo.dart';
 import '../../models/echantillon_labo.dart';
-import 'analyse_dialog.dart' show showManuelAnalyseForm;
+import 'formulaire_analyse_labo_dialog.dart';
 
 const Color _green = Color(0xFF38835A);
 const Color _blue = Color(0xFF1565C0);
@@ -201,10 +201,11 @@ class _ScanRapportDialogState extends State<ScanRapportDialog>
             onConfirm: _confirm,
             onEditManually: () {
               Navigator.pop(context);
-              showManuelAnalyseForm(
+              showFormulaireAnalyseLaboDialog(
                 context,
-                echantillon: widget.echantillon,
-                onSave: widget.onSave,
+                echantillonRef: widget.echantillon.referenceBouteille,
+                echantillonId:  widget.echantillon.id,
+                onSave:         widget.onSave,
               );
             },
           ),

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'mes_echantillons/mes_echantillons_page.dart';
 import 'widgets/collecteur_drawer.dart';
+import 'widgets/col_colors.dart';
+import 'widgets/nav_mixin.dart';
 import '../../main.dart';
 
 class ProfileCollecteurPage extends StatefulWidget {
@@ -11,26 +13,8 @@ class ProfileCollecteurPage extends StatefulWidget {
   _ProfileCollecteurPageState createState() => _ProfileCollecteurPageState();
 }
 
-class _ProfileCollecteurPageState extends State<ProfileCollecteurPage> {
-  void _goTo(Widget page) {
-    Navigator.pop(context); // close drawer
-    Navigator.push(context, MaterialPageRoute(builder: (_) => page));
-  }
-
-  // Closes drawer then replaces the whole stack — no back button to homepage
-  void _goToLogin() {
-    Navigator.pop(context);
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => LoginPage()),
-    );
-  }
-
-  // ── Brand Colors ──────────────────────────────────────────────────────────
-  static const Color green = Color(0xFF38835A);
-  static const Color oliveGreen = Color(0xFF6B8143);
-  static const Color headerBg = Color.fromARGB(255, 220, 233, 226);
-  static const Color darkText = Color(0xFF1A2E1F);
+class _ProfileCollecteurPageState extends State<ProfileCollecteurPage>
+    with CollecteurNavMixin {
 
   // ── Controllers — empty by default, filled by backend later ──────────────
   late TextEditingController _nomController;
@@ -162,7 +146,7 @@ class _ProfileCollecteurPageState extends State<ProfileCollecteurPage> {
               style: GoogleFonts.domine(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
-                color: darkText,
+                color: colDark,
               ),
             ),
             const SizedBox(height: 20),
@@ -206,15 +190,15 @@ class _ProfileCollecteurPageState extends State<ProfileCollecteurPage> {
     return Scaffold(
       backgroundColor: Colors.white,
       drawer: CollecteurDrawer(
-        onMesEchantillons: () => _goTo(const MesEchantillonsPage()),
-        onCarte: () => _goTo(const Placeholder()),
-        onMessagerie: () => _goTo(const Placeholder()),
+        onMesEchantillons: () => goToPage(const MesEchantillonsPage()),
+        onCarte: () => goToPage(const Placeholder()),
+        onMessagerie: () => goToPage(const Placeholder()),
 
         onProfil: () => Navigator.pop(context),
-        onDeconnexion: _goToLogin,
+        onDeconnexion: goToLogin,
       ),
       appBar: AppBar(
-        backgroundColor: headerBg,
+        backgroundColor: colHeaderBg,
         elevation: 0,
         centerTitle: false,
         toolbarHeight: 65,
@@ -223,10 +207,10 @@ class _ProfileCollecteurPageState extends State<ProfileCollecteurPage> {
           style: GoogleFonts.domine(
             fontSize: 18,
             fontWeight: FontWeight.w700,
-            color: darkText,
+            color: colDark,
           ),
         ),
-        iconTheme: const IconThemeData(color: darkText),
+        iconTheme: const IconThemeData(color: colDark),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
@@ -244,12 +228,12 @@ class _ProfileCollecteurPageState extends State<ProfileCollecteurPage> {
                   height: 120,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: green.withOpacity(0.2),
-                    border: Border.all(color: green, width: 3),
+                    color: colGreen.withValues(alpha:0.2),
+                    border: Border.all(color: colGreen, width: 3),
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(60),
-                    child: const Icon(Icons.person, size: 60, color: green),
+                    child: const Icon(Icons.person, size: 60, color: colGreen),
                   ),
                 ),
                 Positioned(
@@ -261,12 +245,12 @@ class _ProfileCollecteurPageState extends State<ProfileCollecteurPage> {
                       width: 34,
                       height: 34,
                       decoration: BoxDecoration(
-                        color: green,
+                        color: colGreen,
                         shape: BoxShape.circle,
                         border: Border.all(color: Colors.white, width: 2.5),
                         boxShadow: [
                           BoxShadow(
-                            color: green.withOpacity(0.4),
+                            color: colGreen.withValues(alpha:0.4),
                             blurRadius: 6,
                             offset: const Offset(0, 2),
                           ),
@@ -292,7 +276,7 @@ class _ProfileCollecteurPageState extends State<ProfileCollecteurPage> {
                 style: GoogleFonts.domine(
                   fontSize: 24,
                   fontWeight: FontWeight.w700,
-                  color: darkText,
+                  color: colDark,
                 ),
               ),
 
@@ -308,7 +292,7 @@ class _ProfileCollecteurPageState extends State<ProfileCollecteurPage> {
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: green.withOpacity(0.08),
+                    color: colGreen.withValues(alpha:0.08),
                     blurRadius: 20,
                     offset: const Offset(0, 4),
                   ),
@@ -385,8 +369,8 @@ class _ProfileCollecteurPageState extends State<ProfileCollecteurPage> {
                 icon: const Icon(Icons.lock_outline, size: 18),
                 label: const Text('Changer le mot de passe'),
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: green,
-                  side: const BorderSide(color: green, width: 1.5),
+                  foregroundColor: colGreen,
+                  side: const BorderSide(color: colGreen, width: 1.5),
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -425,24 +409,24 @@ class _ProfileCollecteurPageState extends State<ProfileCollecteurPage> {
           keyboardType: keyboardType,
           readOnly: !isEditing,
           style: TextStyle(
-            color: darkText,
+            color: colDark,
             fontSize: 15,
             fontWeight: isEditing ? FontWeight.w500 : FontWeight.w400,
           ),
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
-            prefixIcon: Icon(icon, color: green, size: 20),
+            prefixIcon: Icon(icon, color: colGreen, size: 20),
             suffixIcon: IconButton(
               icon: Container(
                 padding: const EdgeInsets.all(5),
                 decoration: BoxDecoration(
-                  color: isEditing ? green : green.withOpacity(0.12),
+                  color: isEditing ? colGreen : colGreen.withValues(alpha:0.12),
                   borderRadius: BorderRadius.circular(7),
                 ),
                 child: Icon(
                   isEditing ? Icons.check : Icons.edit,
-                  color: isEditing ? Colors.white : green,
+                  color: isEditing ? Colors.white : colGreen,
                   size: 15,
                 ),
               ),
@@ -461,60 +445,12 @@ class _ProfileCollecteurPageState extends State<ProfileCollecteurPage> {
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: isEditing
-                  ? BorderSide(color: green.withOpacity(0.5), width: 1.5)
+                  ? BorderSide(color: colGreen.withValues(alpha:0.5), width: 1.5)
                   : BorderSide(color: Colors.grey.shade200),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: green, width: 2),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  // ─────────────────────────────────────────────────────────────────────────
-  // HELPER — _buildLockedField
-  // ─────────────────────────────────────────────────────────────────────────
-  Widget _buildLockedField({
-    required String label,
-    required String value,
-    required IconData icon,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _fieldLabel(label),
-        const SizedBox(height: 8),
-        TextField(
-          readOnly: true,
-          controller: TextEditingController(text: value),
-          style: TextStyle(color: Colors.grey.shade500, fontSize: 15),
-          decoration: InputDecoration(
-            prefixIcon: Icon(icon, color: Colors.grey.shade400, size: 20),
-            suffixIcon: Icon(
-              Icons.lock_outline,
-              color: Colors.grey.shade400,
-              size: 18,
-            ),
-            filled: true,
-            fillColor: Colors.grey.shade100,
-            contentPadding: const EdgeInsets.symmetric(
-              vertical: 14,
-              horizontal: 16,
-            ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.grey.shade200),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.grey.shade200),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.grey.shade200),
+              borderSide: const BorderSide(color: colGreen, width: 2),
             ),
           ),
         ),
@@ -531,7 +467,7 @@ class _ProfileCollecteurPageState extends State<ProfileCollecteurPage> {
       style: GoogleFonts.domine(
         fontSize: 18,
         fontWeight: FontWeight.w700,
-        color: darkText,
+        color: colDark,
       ),
     );
   }
@@ -545,7 +481,7 @@ class _ProfileCollecteurPageState extends State<ProfileCollecteurPage> {
       style: const TextStyle(
         fontSize: 13,
         fontWeight: FontWeight.w600,
-        color: oliveGreen,
+        color: colOlive,
         letterSpacing: 0.5,
       ),
     );
@@ -560,12 +496,12 @@ class _ProfileCollecteurPageState extends State<ProfileCollecteurPage> {
     required VoidCallback onTap,
     Color? color,
   }) {
-    final itemColor = color ?? green;
+    final itemColor = color ?? colGreen;
     return ListTile(
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: itemColor.withOpacity(0.1),
+          color: itemColor.withValues(alpha:0.1),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Icon(icon, color: itemColor),
@@ -588,7 +524,7 @@ class _ProfileCollecteurPageState extends State<ProfileCollecteurPage> {
             fontWeight: FontWeight.w600,
           ),
         ),
-        backgroundColor: green,
+        backgroundColor: colGreen,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         margin: const EdgeInsets.all(20),
@@ -616,7 +552,7 @@ class _ProfileCollecteurPageState extends State<ProfileCollecteurPage> {
             style: GoogleFonts.domine(
               fontSize: 18,
               fontWeight: FontWeight.w700,
-              color: darkText,
+              color: colDark,
             ),
           ),
           content: Column(
@@ -627,13 +563,13 @@ class _ProfileCollecteurPageState extends State<ProfileCollecteurPage> {
                 obscureText: obscureCurrent,
                 decoration: InputDecoration(
                   labelText: 'Mot de passe actuel',
-                  labelStyle: const TextStyle(color: oliveGreen),
+                  labelStyle: const TextStyle(color: colOlive),
                   suffixIcon: IconButton(
                     icon: Icon(
                       obscureCurrent
                           ? Icons.visibility_off_outlined
                           : Icons.visibility_outlined,
-                      color: oliveGreen,
+                      color: colOlive,
                       size: 20,
                     ),
                     onPressed: () =>
@@ -644,7 +580,7 @@ class _ProfileCollecteurPageState extends State<ProfileCollecteurPage> {
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(color: green, width: 2),
+                    borderSide: const BorderSide(color: colGreen, width: 2),
                   ),
                 ),
               ),
@@ -654,13 +590,13 @@ class _ProfileCollecteurPageState extends State<ProfileCollecteurPage> {
                 obscureText: obscureNew,
                 decoration: InputDecoration(
                   labelText: 'Nouveau mot de passe',
-                  labelStyle: const TextStyle(color: oliveGreen),
+                  labelStyle: const TextStyle(color: colOlive),
                   suffixIcon: IconButton(
                     icon: Icon(
                       obscureNew
                           ? Icons.visibility_off_outlined
                           : Icons.visibility_outlined,
-                      color: oliveGreen,
+                      color: colOlive,
                       size: 20,
                     ),
                     onPressed: () =>
@@ -671,7 +607,7 @@ class _ProfileCollecteurPageState extends State<ProfileCollecteurPage> {
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(color: green, width: 2),
+                    borderSide: const BorderSide(color: colGreen, width: 2),
                   ),
                 ),
               ),
@@ -681,13 +617,13 @@ class _ProfileCollecteurPageState extends State<ProfileCollecteurPage> {
                 obscureText: obscureConfirm,
                 decoration: InputDecoration(
                   labelText: 'Confirmer le mot de passe',
-                  labelStyle: const TextStyle(color: oliveGreen),
+                  labelStyle: const TextStyle(color: colOlive),
                   suffixIcon: IconButton(
                     icon: Icon(
                       obscureConfirm
                           ? Icons.visibility_off_outlined
                           : Icons.visibility_outlined,
-                      color: oliveGreen,
+                      color: colOlive,
                       size: 20,
                     ),
                     onPressed: () =>
@@ -698,7 +634,7 @@ class _ProfileCollecteurPageState extends State<ProfileCollecteurPage> {
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(color: green, width: 2),
+                    borderSide: const BorderSide(color: colGreen, width: 2),
                   ),
                 ),
               ),
@@ -733,7 +669,7 @@ class _ProfileCollecteurPageState extends State<ProfileCollecteurPage> {
                   );
                 }
               },
-              style: ElevatedButton.styleFrom(backgroundColor: green),
+              style: ElevatedButton.styleFrom(backgroundColor: colGreen),
               child: const Text(
                 'Enregistrer',
                 style: TextStyle(color: Colors.white),

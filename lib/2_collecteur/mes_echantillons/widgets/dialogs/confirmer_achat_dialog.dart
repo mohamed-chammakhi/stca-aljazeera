@@ -7,11 +7,19 @@
 
 import 'package:flutter/material.dart';
 import '../../models/echantillon_collecteur.dart';
-import 'formulaire_sections.dart'
+import 'date_livraison_section.dart'
     show DateLivraisonSection, ModePlanificationUI;
+import '../../../widgets/col_colors.dart';
 
-const Color _green = Color(0xFF38835A);
-const Color _dark = Color(0xFF1A2E1F);
+String? _dateStockStr(EchantillonCollecteur e) {
+  final d = e.dateStockSouhaiteeDebut;
+  final f = e.dateStockSouhaiteeFin;
+  if (d == null) return null;
+  if (f != null && !f.isAtSameMomentAs(d)) {
+    return '${fmtDate(d)} - ${fmtDate(f)}';
+  }
+  return fmtDate(d);
+}
 
 Future<void> showConfirmerAchatDialog({
   required BuildContext context,
@@ -124,7 +132,7 @@ class _ConfirmerAchatDialogState extends State<_ConfirmerAchatDialog> {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.handshake_outlined, color: _dark, size: 20),
+                  const Icon(Icons.handshake_outlined, color: colDark, size: 20),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Column(
@@ -135,7 +143,7 @@ class _ConfirmerAchatDialogState extends State<_ConfirmerAchatDialog> {
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w700,
-                            color: _dark,
+                            color: colDark,
                           ),
                         ),
                         Text(
@@ -161,7 +169,7 @@ class _ConfirmerAchatDialogState extends State<_ConfirmerAchatDialog> {
                   children: [
                     // Direction offer reminder
                     if (e.budgetNegociation != null ||
-                        e.dateStockSouhaitee != null)
+                        _dateStockStr(e) != null)
                       Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 12,
@@ -196,16 +204,16 @@ class _ConfirmerAchatDialogState extends State<_ConfirmerAchatDialog> {
                                 style: const TextStyle(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w600,
-                                  color: _dark,
+                                  color: colDark,
                                 ),
                               ),
-                            if (e.dateStockSouhaitee != null)
+                            if (_dateStockStr(e) != null)
                               Text(
-                                'Date souhaitée : ${e.dateStockSouhaitee}',
+                                'Date souhaitée : ${_dateStockStr(e)}',
                                 style: const TextStyle(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w600,
-                                  color: _dark,
+                                  color: colDark,
                                 ),
                               ),
                           ],
@@ -319,7 +327,7 @@ class _ConfirmerAchatDialogState extends State<_ConfirmerAchatDialog> {
                         );
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: _green,
+                        backgroundColor: colGreen,
                         foregroundColor: Colors.white,
                         elevation: 0,
                         padding: const EdgeInsets.symmetric(vertical: 12),
@@ -376,7 +384,7 @@ InputDecoration _inputDeco(String hint, IconData icon) => InputDecoration(
   ),
   focusedBorder: OutlineInputBorder(
     borderRadius: BorderRadius.circular(10),
-    borderSide: const BorderSide(color: _green, width: 1.5),
+    borderSide: const BorderSide(color: colGreen, width: 1.5),
   ),
 );
 
@@ -396,6 +404,6 @@ InputDecoration _inputDecoNoIcon(String hint) => InputDecoration(
   ),
   focusedBorder: OutlineInputBorder(
     borderRadius: BorderRadius.circular(10),
-    borderSide: const BorderSide(color: _green, width: 1.5),
+    borderSide: const BorderSide(color: colGreen, width: 1.5),
   ),
 );

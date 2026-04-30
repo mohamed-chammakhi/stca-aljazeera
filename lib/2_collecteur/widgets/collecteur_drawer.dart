@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-
-const Color _green = Color(0xFF38835A);
-const Color _dark = Color(0xFF1A2E1F);
-const Color _olive = Color(0xFF6B8143);
-const Color _iconBg = Color(0x1A38835A);
+import 'col_colors.dart';
 
 class CollecteurDrawer extends StatelessWidget {
   final VoidCallback onMesEchantillons;
@@ -70,13 +66,13 @@ class CollecteurDrawer extends StatelessWidget {
                         style: GoogleFonts.domine(
                           fontSize: 18,
                           fontWeight: FontWeight.w700,
-                          color: _dark,
+                          color: colDark,
                         ),
                       ),
                       const SizedBox(height: 2),
                       const Text(
                         'STCA Aljazira',
-                        style: TextStyle(fontSize: 12, color: _dark),
+                        style: TextStyle(fontSize: 12, color: colDark),
                       ),
                     ],
                   ),
@@ -106,7 +102,7 @@ class CollecteurDrawer extends StatelessWidget {
                     onTap: onMessagerie,
                   ),
                   const SizedBox(height: 4),
-                  Divider(color: _olive.withOpacity(0.15), height: 1),
+                  Divider(color: colOlive.withValues(alpha: 0.15), height: 1),
                   const SizedBox(height: 4),
                   _SectionLabel('Compte'),
                   _DrawerItem(
@@ -157,7 +153,7 @@ class _SectionLabel extends StatelessWidget {
       style: const TextStyle(
         fontSize: 10,
         fontWeight: FontWeight.w700,
-        color: _olive,
+        color: colOlive,
         letterSpacing: 1.1,
       ),
     ),
@@ -192,11 +188,11 @@ class _DrawerItem extends StatelessWidget {
               width: 36,
               height: 36,
               decoration: BoxDecoration(
-                color: _iconBg,
+                color: colGreen.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Center(
-                child: customIcon ?? Icon(icon, color: _green, size: 20),
+                child: customIcon ?? Icon(icon, color: colGreen, size: 20),
               ),
             ),
             const SizedBox(width: 14),
@@ -205,7 +201,7 @@ class _DrawerItem extends StatelessWidget {
               style: const TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
-                color: _dark,
+                color: colDark,
               ),
             ),
           ],

@@ -1,9 +1,19 @@
 // ═════════════════════════════════════════════════════════════════════════════
-// FILE : collecteur/pages/mes_echantillons/models/echantillon_collecteur.dart
+// FILE : collecteur/mes_echantillons/models/echantillon_collecteur.dart
 // ═════════════════════════════════════════════════════════════════════════════
 
 export '../../../../../core/models/enums.dart' show StatutCollecteur;
 import '../../../../../core/models/enums.dart' show StatutCollecteur;
+
+// ── Display helpers (used by model and UI layers) ─────────────────────────────
+String fmtDate(DateTime d) =>
+    '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}';
+
+String fmtDateHeure(DateTime d) {
+  final base = fmtDate(d);
+  if (d.hour == 0 && d.minute == 0) return base;
+  return '$base à ${d.hour.toString().padLeft(2, '0')}h${d.minute.toString().padLeft(2, '0')}';
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PLANIFICATION LIVRAISON — stock delivery scheduling (post achatConfirme)
@@ -33,23 +43,37 @@ class PlanificationLivraison {
     camion: camion,
   );
 
+  factory PlanificationLivraison.fromJson(Map<String, dynamic> json) =>
+      PlanificationLivraison._(
+        dateExacte: json['date_exacte'] != null
+            ? DateTime.parse(json['date_exacte'] as String)
+            : null,
+        heure: json['heure'] as String? ?? '',
+        lieu: json['lieu'] as String? ?? '',
+        camion: json['camion'] as String?,
+      );
+
+  Map<String, dynamic> toJson() => {
+    'date_exacte': dateExacte?.toIso8601String(),
+    'heure': heure,
+    'lieu': lieu,
+    'camion': camion,
+  };
+
   bool get isComplete => dateExacte != null && heure.isNotEmpty;
 
   String get libelle {
     final parts = <String>[];
-    if (dateExacte != null) {
-      parts.add(
-        '${dateExacte!.day.toString().padLeft(2, '0')}/'
-        '${dateExacte!.month.toString().padLeft(2, '0')}/'
-        '${dateExacte!.year}',
-      );
-    }
+    if (dateExacte != null) parts.add(fmtDate(dateExacte!));
     if (heure.isNotEmpty) parts.add(heure);
     if (lieu.isNotEmpty) parts.add(lieu);
     return parts.join('  ·  ');
   }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// ECHANTILLON COLLECTEUR
+// ─────────────────────────────────────────────────────────────────────────────
 class EchantillonCollecteur {
   String id;
   String ref;
@@ -73,23 +97,25 @@ class EchantillonCollecteur {
   PlanificationLivraison? livraison;
 
   // Sample delivery date (when the bottle is expected at the company)
-  String? dateArriveeEchantillon;
+  DateTime? dateArriveeEchantillon;
 
   // Physical receipt (set by taster when sample arrives at company)
   bool recuPhysiquement;
-  String? dateReceptionEchantillon; // "03/03/2026" — filled by taster
+  DateTime? dateReceptionEchantillon;
 
   // Negotiation details (communicated by CEO after approval)
-  String? budgetNegociation;    // e.g. "9.50 TND/L"
-  String? dateStockSouhaitee;   // e.g. "01/04/2026 - 15/04/2026"
+  String? budgetNegociation;
+  // Stock delivery window desired by CEO — may be a range or a single date
+  DateTime? dateStockSouhaiteeDebut;
+  DateTime? dateStockSouhaiteeFin;
 
   // Confirmed purchase details (filled by collector when confirming)
-  String? prixFinal;       // e.g. "9.20 TND/L"
-  String? camionLivraison; // e.g. "CAM-07"
+  String? prixFinal;
+  String? camionLivraison;
 
   // Metadata
   String? remarques;
-  String dateAjout;
+  DateTime dateAjout;
 
   String? imageUrl;
   String collecteurId;
@@ -115,7 +141,8 @@ class EchantillonCollecteur {
     this.recuPhysiquement = false,
     this.dateReceptionEchantillon,
     this.budgetNegociation,
-    this.dateStockSouhaitee,
+    this.dateStockSouhaiteeDebut,
+    this.dateStockSouhaiteeFin,
     this.prixFinal,
     this.camionLivraison,
     this.remarques,
@@ -126,12 +153,87 @@ class EchantillonCollecteur {
     required this.statut,
   });
 
-  // Free edit+delete when receptionne and not yet received at company
+  factory EchantillonCollecteur.fromJson(Map<String, dynamic> json) =>
+      EchantillonCollecteur(
+        id: json['id'] as String,
+        ref: json['ref'] as String,
+        gouvernorat: json['gouvernorat'] as String,
+        delegation: json['delegation'] as String?,
+        cite: json['cite'] as String?,
+        codeFournisseur: json['code_fournisseur'] as String,
+        referenceBouteille: json['reference_bouteille'] as String,
+        scellage: json['scellage'] as String?,
+        quantiteEstimee: json['quantite_estimee'] as String?,
+        variete: json['variete'] as String?,
+        achatConfirme: json['achat_confirme'] as bool,
+        livraison: json['livraison'] != null
+            ? PlanificationLivraison.fromJson(
+                json['livraison'] as Map<String, dynamic>)
+            : null,
+        dateArriveeEchantillon: json['date_arrivee_echantillon'] != null
+            ? DateTime.parse(json['date_arrivee_echantillon'] as String)
+            : null,
+        recuPhysiquement: json['recu_physiquement'] as bool? ?? false,
+        dateReceptionEchantillon: json['date_reception_echantillon'] != null
+            ? DateTime.parse(json['date_reception_echantillon'] as String)
+            : null,
+        budgetNegociation: json['budget_negociation'] as String?,
+        dateStockSouhaiteeDebut: json['date_stock_souhaitee_debut'] != null
+            ? DateTime.parse(json['date_stock_souhaitee_debut'] as String)
+            : null,
+        dateStockSouhaiteeFin: json['date_stock_souhaitee_fin'] != null
+            ? DateTime.parse(json['date_stock_souhaitee_fin'] as String)
+            : null,
+        prixFinal: json['prix_final'] as String?,
+        camionLivraison: json['camion_livraison'] as String?,
+        remarques: json['remarques'] as String?,
+        dateAjout: DateTime.parse(json['date_ajout'] as String),
+        imageUrl: json['image_url'] as String?,
+        collecteurId: json['collecteur_id'] as String,
+        collecteurNom: json['collecteur_nom'] as String,
+        statut: StatutCollecteur.values.byName(json['statut'] as String),
+      );
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'ref': ref,
+    'gouvernorat': gouvernorat,
+    'delegation': delegation,
+    'cite': cite,
+    'code_fournisseur': codeFournisseur,
+    'reference_bouteille': referenceBouteille,
+    'scellage': scellage,
+    'quantite_estimee': quantiteEstimee,
+    'variete': variete,
+    'achat_confirme': achatConfirme,
+    'livraison': livraison?.toJson(),
+    'date_arrivee_echantillon': dateArriveeEchantillon?.toIso8601String(),
+    'recu_physiquement': recuPhysiquement,
+    'date_reception_echantillon': dateReceptionEchantillon?.toIso8601String(),
+    'budget_negociation': budgetNegociation,
+    'date_stock_souhaitee_debut': dateStockSouhaiteeDebut?.toIso8601String(),
+    'date_stock_souhaitee_fin': dateStockSouhaiteeFin?.toIso8601String(),
+    'prix_final': prixFinal,
+    'camion_livraison': camionLivraison,
+    'remarques': remarques,
+    'date_ajout': dateAjout.toIso8601String(),
+    'image_url': imageUrl,
+    'collecteur_id': collecteurId,
+    'collecteur_nom': collecteurNom,
+    'statut': statut.name,
+  };
+
+  // Handles Django paginated format: { "count": N, "results": [...] }
+  static List<EchantillonCollecteur> fromJsonList(Map<String, dynamic> json) =>
+      (json['results'] as List)
+          .map((e) => EchantillonCollecteur.fromJson(e as Map<String, dynamic>))
+          .toList();
+
   bool get canModify => statut == StatutCollecteur.receptionne;
-  bool get canDelete => statut == StatutCollecteur.receptionne && !recuPhysiquement;
+  bool get canDelete =>
+      statut == StatutCollecteur.receptionne && !recuPhysiquement;
   bool get canConfirm => statut == StatutCollecteur.enNegociation;
   bool get canPlanifier => statut == StatutCollecteur.achatConfirme;
-  // Scheduling sample-bottle arrival is only available before it's received
   bool get canScheduleArrivee =>
       statut == StatutCollecteur.receptionne && !recuPhysiquement;
 }

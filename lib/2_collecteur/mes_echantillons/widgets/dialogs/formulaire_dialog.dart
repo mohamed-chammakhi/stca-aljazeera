@@ -7,52 +7,10 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../models/echantillon_collecteur.dart';
 import '../../../../core/models/enums.dart';
 import '../../../../2_collecteur/carte_geo/services/geo_service.dart';
+import 'bouteille_row.dart';
+import 'date_livraison_section.dart';
 import 'formulaire_sections.dart';
-
-const Color _green = Color(0xFF38835A);
-const Color _beige = Color(0xFFE9F4EE);
-const Color _olive = Color(0xFF6B8143);
-const Color _dark = Color(0xFF1A2E1F);
-const Color _cream = Color(0xFFF9F6EF);
-const Color _fieldFill = Color(0xFFF7FAF8);
-
-// ─────────────────────────────────────────────────────────────────────────────
-// BOUTEILLE ROW
-// ─────────────────────────────────────────────────────────────────────────────
-class _BouteilleRow {
-  final TextEditingController refCtrl;
-  final TextEditingController varieteCtrl;
-  final TextEditingController scellageCtrl;
-  final TextEditingController qteCtrl;
-
-  _BouteilleRow({
-    required this.refCtrl,
-    required this.varieteCtrl,
-    required this.scellageCtrl,
-    required this.qteCtrl,
-  });
-
-  factory _BouteilleRow.empty() => _BouteilleRow(
-    refCtrl: TextEditingController(),
-    varieteCtrl: TextEditingController(),
-    scellageCtrl: TextEditingController(),
-    qteCtrl: TextEditingController(),
-  );
-
-  factory _BouteilleRow.fromSample(EchantillonCollecteur e) => _BouteilleRow(
-    refCtrl: TextEditingController(text: e.referenceBouteille),
-    varieteCtrl: TextEditingController(text: e.variete ?? ''),
-    scellageCtrl: TextEditingController(text: e.scellage ?? ''),
-    qteCtrl: TextEditingController(text: e.quantiteEstimee ?? ''),
-  );
-
-  void dispose() {
-    refCtrl.dispose();
-    varieteCtrl.dispose();
-    scellageCtrl.dispose();
-    qteCtrl.dispose();
-  }
-}
+import 'formulaire_decorations.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PUBLIC ENTRY POINT
@@ -111,7 +69,7 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
   String? _delegation;
 
   // ── Per-bouteille rows ────────────────────────────────────────────────────
-  final List<_BouteilleRow> _bouteilles = [];
+  final List<BouteilleRow> _bouteilles = [];
 
   bool get _isModification => widget.echantillon != null;
   int get _bottleCount => _bouteilles.length;
@@ -132,14 +90,18 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
         : null;
     _delegation = e?.delegation;
 
-    // Pre-fill date de livraison
-    if (e?.dateArriveeEchantillon != null) {
-      final parsed = DateTime.tryParse(e!.dateArriveeEchantillon!);
-      if (parsed != null) _livExacte = parsed;
-    }
+    // Pre-fill date de livraison — dateArriveeEchantillon is already DateTime?
+    _livExacte = e?.dateArriveeEchantillon;
 
     _bouteilles.add(
-      e != null ? _BouteilleRow.fromSample(e) : _BouteilleRow.empty(),
+      e != null
+          ? BouteilleRow.fromSample(
+              ref: e.referenceBouteille,
+              variete: e.variete ?? '',
+              scellage: e.scellage ?? '',
+              qte: e.quantiteEstimee ?? '',
+            )
+          : BouteilleRow.empty(),
     );
 
     _geo.load().then((_) {
@@ -156,21 +118,10 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
     super.dispose();
   }
 
-  String _todayStr() {
-    final n = DateTime.now();
-    return '${n.day.toString().padLeft(2, '0')}/'
-        '${n.month.toString().padLeft(2, '0')}/${n.year}';
-  }
+  DateTime? get _livDate =>
+      _livMode == ModePlanificationUI.dateExacte ? _livExacte : _livDebut;
 
-  /// Selected delivery date as ISO 8601, or null if none chosen.
-  String? _livDateStr() {
-    final dt = _livMode == ModePlanificationUI.dateExacte
-        ? _livExacte
-        : _livDebut;
-    return dt?.toIso8601String();
-  }
-
-  void _addRow() => setState(() => _bouteilles.add(_BouteilleRow.empty()));
+  void _addRow() => setState(() => _bouteilles.add(BouteilleRow.empty()));
   void _removeRow(int i) {
     setState(() {
       _bouteilles[i].dispose();
@@ -228,7 +179,7 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
       e.remarques = _remarquesCtrl.text.trim().isEmpty
           ? null
           : _remarquesCtrl.text.trim();
-      e.dateArriveeEchantillon = _livDateStr();
+      e.dateArriveeEchantillon = _livDate;
       widget.onSaveMultiple([e]);
     } else {
       final now = DateTime.now();
@@ -257,8 +208,8 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
           quantiteEstimee: b.qteCtrl.text.trim().isEmpty
               ? null
               : b.qteCtrl.text.trim(),
-          dateAjout: _todayStr(),
-          dateArriveeEchantillon: _livDateStr(),
+          dateAjout: DateTime.now(),
+          dateArriveeEchantillon: _livDate,
           achatConfirme: false,
           statut: StatutCollecteur.receptionne,
         );
@@ -286,7 +237,7 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
               width: double.infinity,
               padding: const EdgeInsets.fromLTRB(20, 18, 16, 16),
               decoration: const BoxDecoration(
-                color: _beige,
+                color: Color(0xFFE9F4EE),
                 borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
               ),
               child: Row(
@@ -295,7 +246,7 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
                     _isModification
                         ? Icons.edit_outlined
                         : Icons.add_circle_outline,
-                    color: _dark,
+                    color: kDarkText,
                     size: 20,
                   ),
                   const SizedBox(width: 10),
@@ -307,7 +258,7 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
                       style: GoogleFonts.domine(
                         fontSize: 17,
                         fontWeight: FontWeight.w700,
-                        color: _dark,
+                        color: kDarkText,
                       ),
                     ),
                   ),
@@ -408,10 +359,10 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
                       width: double.infinity,
                       height: 64,
                       decoration: BoxDecoration(
-                        color: _green.withValues(alpha: 0.05),
+                        color: kGreen.withValues(alpha: 0.05),
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(
-                          color: _green.withValues(alpha: 0.25),
+                          color: kGreen.withValues(alpha: 0.25),
                         ),
                       ),
                       child: Row(
@@ -419,7 +370,7 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
                         children: [
                           Icon(
                             Icons.add_photo_alternate_outlined,
-                            color: _green.withValues(alpha: 0.55),
+                            color: kGreen.withValues(alpha: 0.55),
                             size: 22,
                           ),
                           const SizedBox(width: 8),
@@ -427,7 +378,7 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
                             'Ajouter une photo',
                             style: TextStyle(
                               fontSize: 12,
-                              color: _green.withValues(alpha: 0.55),
+                              color: kGreen.withValues(alpha: 0.55),
                             ),
                           ),
                         ],
@@ -443,7 +394,7 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
-                            color: _olive,
+                            color: kOlive,
                           ),
                         ),
                         Text(
@@ -460,7 +411,7 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
                       controller: _remarquesCtrl,
                       maxLines: 3,
                       minLines: 2,
-                      style: const TextStyle(fontSize: 14, color: _dark),
+                      style: const TextStyle(fontSize: 14, color: kDarkText),
                       decoration: InputDecoration(
                         hintText: 'Notes, observations particulières...',
                         hintStyle: TextStyle(
@@ -468,7 +419,7 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
                           fontSize: 13,
                         ),
                         filled: true,
-                        fillColor: _fieldFill,
+                        fillColor: kFieldFill,
                         contentPadding: const EdgeInsets.all(12),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
@@ -481,7 +432,7 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
                           borderSide: const BorderSide(
-                            color: _green,
+                            color: kGreen,
                             width: 1.8,
                           ),
                         ),
@@ -497,7 +448,7 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
             Container(
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
               decoration: BoxDecoration(
-                color: _cream,
+                color: const Color(0xFFF9F6EF),
                 borderRadius: const BorderRadius.vertical(
                   bottom: Radius.circular(16),
                 ),
@@ -542,7 +493,7 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
                           206,
                           201,
                         ),
-                        foregroundColor: _dark,
+                        foregroundColor: kDarkText,
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         elevation: 0,
                         shape: RoundedRectangleBorder(
@@ -588,7 +539,7 @@ class _IdBadge extends StatelessWidget {
         style: const TextStyle(
           fontSize: 12,
           fontWeight: FontWeight.w700,
-          color: _dark,
+          color: kDarkText,
         ),
       ),
     );
@@ -599,7 +550,7 @@ class _IdBadge extends StatelessWidget {
 // BOUTEILLES SECTION
 // ─────────────────────────────────────────────────────────────────────────────
 class _BouteillesSection extends StatelessWidget {
-  final List<_BouteilleRow> bouteilles;
+  final List<BouteilleRow> bouteilles;
   final bool isModification;
   final VoidCallback onAddRow;
   final ValueChanged<int> onRemoveRow;
@@ -625,7 +576,7 @@ class _BouteillesSection extends StatelessWidget {
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color: _olive,
+                color: kOlive,
               ),
             ),
             const Spacer(),
@@ -638,19 +589,19 @@ class _BouteillesSection extends StatelessWidget {
                     vertical: 5,
                   ),
                   decoration: BoxDecoration(
-                    color: _green.withValues(alpha: 0.1),
+                    color: kGreen.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: _green.withValues(alpha: 0.3)),
+                    border: Border.all(color: kGreen.withValues(alpha: 0.3)),
                   ),
                   child: const Row(
                     children: [
-                      Icon(Icons.add, size: 14, color: _green),
+                      Icon(Icons.add, size: 14, color: kGreen),
                       SizedBox(width: 4),
                       Text(
                         'Ajouter une bouteille',
                         style: TextStyle(
                           fontSize: 12,
-                          color: _green,
+                          color: kGreen,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -665,16 +616,16 @@ class _BouteillesSection extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: _green.withValues(alpha: 0.07),
+              color: kGreen.withValues(alpha: 0.07),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: _green.withValues(alpha: 0.2)),
+              border: Border.all(color: kGreen.withValues(alpha: 0.2)),
             ),
             child: Row(
               children: [
                 Icon(
                   Icons.info_outline,
                   size: 14,
-                  color: _green.withValues(alpha: 0.8),
+                  color: kGreen.withValues(alpha: 0.8),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
@@ -682,7 +633,7 @@ class _BouteillesSection extends StatelessWidget {
                     '$count bouteilles → $count échantillons séparés seront créés',
                     style: TextStyle(
                       fontSize: 11,
-                      color: _green.withValues(alpha: 0.9),
+                      color: kGreen.withValues(alpha: 0.9),
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -710,7 +661,7 @@ class _BouteillesSection extends StatelessWidget {
 // BOUTEILLE CARD
 // ─────────────────────────────────────────────────────────────────────────────
 class _BouteilleCard extends StatelessWidget {
-  final _BouteilleRow row;
+  final BouteilleRow row;
   final int index;
   final bool showRemove;
   final VoidCallback onRemove;
@@ -728,7 +679,7 @@ class _BouteilleCard extends StatelessWidget {
         hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 13),
         suffixText: suffixText,
         suffixStyle: const TextStyle(
-          color: _olive,
+          color: kOlive,
           fontWeight: FontWeight.w700,
           fontSize: 14,
         ),
@@ -748,7 +699,7 @@ class _BouteilleCard extends StatelessWidget {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: _green, width: 1.8),
+          borderSide: const BorderSide(color: kGreen, width: 1.8),
         ),
       );
 
@@ -758,7 +709,7 @@ class _BouteilleCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: _fieldFill,
+        color: kFieldFill,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.grey.shade200),
       ),
@@ -770,7 +721,7 @@ class _BouteilleCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: _green.withValues(alpha: 0.1),
+                  color: kGreen.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
@@ -778,7 +729,7 @@ class _BouteilleCard extends StatelessWidget {
                   style: const TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
-                    color: _green,
+                    color: kGreen,
                   ),
                 ),
               ),
@@ -807,7 +758,7 @@ class _BouteilleCard extends StatelessWidget {
           const SizedBox(height: 5),
           TextField(
             controller: row.refCtrl,
-            style: const TextStyle(fontSize: 13, color: _dark),
+            style: const TextStyle(fontSize: 13, color: kDarkText),
             decoration: _fieldDec('Ex: CHEMLALI-C1'),
           ),
           const SizedBox(height: 8),
@@ -822,7 +773,7 @@ class _BouteilleCard extends StatelessWidget {
                     const SizedBox(height: 5),
                     TextField(
                       controller: row.varieteCtrl,
-                      style: const TextStyle(fontSize: 13, color: _dark),
+                      style: const TextStyle(fontSize: 13, color: kDarkText),
                       decoration: _fieldDec('Ex: Chemlali'),
                     ),
                   ],
@@ -837,7 +788,7 @@ class _BouteilleCard extends StatelessWidget {
                     const SizedBox(height: 5),
                     TextField(
                       controller: row.scellageCtrl,
-                      style: const TextStyle(fontSize: 13, color: _dark),
+                      style: const TextStyle(fontSize: 13, color: kDarkText),
                       decoration: _fieldDec('Ex: Z1'),
                     ),
                   ],
@@ -852,7 +803,7 @@ class _BouteilleCard extends StatelessWidget {
           TextField(
             controller: row.qteCtrl,
             keyboardType: TextInputType.number,
-            style: const TextStyle(fontSize: 13, color: _dark),
+            style: const TextStyle(fontSize: 13, color: kDarkText),
             decoration: _fieldDec('Ex: 5000', suffixText: 'T'),
           ),
         ],
@@ -901,7 +852,7 @@ class _FieldLabel extends StatelessWidget {
     style: const TextStyle(
       fontSize: 12,
       fontWeight: FontWeight.w600,
-      color: _olive,
+      color: kOlive,
     ),
   );
 }
@@ -929,12 +880,12 @@ class _FormField extends StatelessWidget {
     hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 13),
     suffixText: suffixText,
     suffixStyle: const TextStyle(
-      color: _olive,
+      color: kOlive,
       fontWeight: FontWeight.w700,
       fontSize: 14,
     ),
     filled: true,
-    fillColor: _fieldFill,
+    fillColor: kFieldFill,
     contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 14),
     border: OutlineInputBorder(
       borderRadius: BorderRadius.circular(10),
@@ -946,7 +897,7 @@ class _FormField extends StatelessWidget {
     ),
     focusedBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(10),
-      borderSide: const BorderSide(color: _green, width: 1.8),
+      borderSide: const BorderSide(color: kGreen, width: 1.8),
     ),
   );
 
@@ -960,14 +911,14 @@ class _FormField extends StatelessWidget {
           style: const TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w600,
-            color: _olive,
+            color: kOlive,
           ),
         ),
         const SizedBox(height: 6),
         TextField(
           controller: controller,
           keyboardType: keyboardType,
-          style: const TextStyle(fontSize: 14, color: _dark),
+          style: const TextStyle(fontSize: 14, color: kDarkText),
           decoration: _dec(),
         ),
       ],
@@ -1006,7 +957,7 @@ class _DropdownField extends StatelessWidget {
           style: const TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w600,
-            color: _olive,
+            color: kOlive,
           ),
         ),
         const SizedBox(height: 6),
@@ -1015,7 +966,7 @@ class _DropdownField extends StatelessWidget {
             width: double.infinity,
             padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 14),
             decoration: BoxDecoration(
-              color: _fieldFill,
+              color: kFieldFill,
               borderRadius: BorderRadius.circular(10),
               border: Border.all(color: Colors.grey.shade200),
             ),
@@ -1027,7 +978,7 @@ class _DropdownField extends StatelessWidget {
                   child: CircularProgressIndicator(
                     strokeWidth: 1.5,
                     valueColor: AlwaysStoppedAnimation<Color>(
-                      _green.withValues(alpha: 0.6),
+                      kGreen.withValues(alpha: 0.6),
                     ),
                   ),
                 ),
@@ -1049,7 +1000,7 @@ class _DropdownField extends StatelessWidget {
                 isExpanded: true,
                 decoration: InputDecoration(
                   filled: true,
-                  fillColor: _fieldFill,
+                  fillColor: kFieldFill,
                   contentPadding: const EdgeInsets.symmetric(
                     vertical: 12,
                     horizontal: 14,
@@ -1064,7 +1015,7 @@ class _DropdownField extends StatelessWidget {
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(color: _green, width: 1.8),
+                    borderSide: const BorderSide(color: kGreen, width: 1.8),
                   ),
                 ),
                 hint: Text(
@@ -1106,7 +1057,7 @@ class _ReadOnlyField extends StatelessWidget {
         style: const TextStyle(
           fontSize: 12,
           fontWeight: FontWeight.w600,
-          color: _olive,
+          color: kOlive,
         ),
       ),
       const SizedBox(height: 6),
@@ -1114,15 +1065,15 @@ class _ReadOnlyField extends StatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
         decoration: BoxDecoration(
-          color: _fieldFill,
+          color: kFieldFill,
           borderRadius: BorderRadius.circular(10),
           border: Border.all(color: Colors.grey.shade200),
         ),
         child: Row(
           children: [
-            Icon(icon, color: _green, size: 20),
+            Icon(icon, color: kGreen, size: 20),
             const SizedBox(width: 12),
-            Text(value, style: const TextStyle(fontSize: 14, color: _dark)),
+            Text(value, style: const TextStyle(fontSize: 14, color: kDarkText)),
             const Spacer(),
             Icon(Icons.lock_outline, size: 14, color: Colors.grey.shade400),
           ],

@@ -928,14 +928,12 @@ class _Field extends StatelessWidget {
   final String hint;
   final TextInputType keyboardType;
   final int maxLines;
-  final ValueChanged<String>? onChanged;
 
   const _Field({
     required this.controller,
     required this.hint,
     this.keyboardType = TextInputType.text,
     this.maxLines = 1,
-    this.onChanged,
   });
 
   @override
@@ -943,7 +941,6 @@ class _Field extends StatelessWidget {
     controller: controller,
     keyboardType: keyboardType,
     maxLines: maxLines,
-    onChanged: onChanged,
     style: const TextStyle(fontSize: 14, color: _dark),
     decoration: InputDecoration(
       hintText: hint,

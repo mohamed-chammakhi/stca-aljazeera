@@ -17,11 +17,9 @@ import '../sessions_degustation/sessions_degustation_page.dart';
 import '../analyse_labo/analyse_laboratoire_page.dart';
 import '../tableau_de_bord/homepage_page.dart';
 
-const Color gray = Color.fromARGB(255, 81, 82, 81);
-
 const Color _green = Color(0xFF38835A);
-//const Color _oliveGreen = Color(0xFF6B8143);
 const Color _darkText = Color(0xFF1A2E1F);
+const Color _headerBg = Color.fromARGB(255, 220, 233, 226);
 
 class MembresPanelPage extends StatefulWidget {
   const MembresPanelPage({super.key});
@@ -80,11 +78,12 @@ class _MembresPanelPageState extends State<MembresPanelPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF4F7F4),
+      backgroundColor: const Color(0xFFFFFFFF),
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: _headerBg,
         elevation: 0,
         centerTitle: false,
+        toolbarHeight: 65,
         title: Text(
           'Membres du Panel',
           style: GoogleFonts.domine(
@@ -171,7 +170,7 @@ class _MembresPanelPageState extends State<MembresPanelPage> {
                   : Theme(
                       data: Theme.of(context).copyWith(
                         scrollbarTheme: ScrollbarThemeData(
-                          thumbColor: MaterialStateProperty.all(gray),
+                          thumbColor: WidgetStateProperty.all(const Color.fromARGB(255, 81, 82, 81)),
                         ),
                       ),
                       child: Scrollbar(
@@ -190,23 +189,11 @@ class _MembresPanelPageState extends State<MembresPanelPage> {
       drawer: AppDrawer(
         onaccueil: () => _goTo(const HomePage()),
 
-        // OLD : EvaluationEchantillonsPage from EvaluationEchantillonsPage.dart
-        // NEW : will be EvaluationEchantillonsPage from
-        //       evaluation_echantillons/evaluation_echantillons_page.dart
-        // TODO : replace with _goTo(const EvaluationEchantillonsPage())
         onEvaluationEchantillons: () =>
             _goTo(const EvaluationEchantillonsPage()),
-
-        // OLD : GestionEchantillonsPage from GestionEchantillon.dart
-        // NEW : GestionEchantillonsPage from
-        //       gestion_echantillons/gestion_echantillons_page.dart ✅ done
         onGestionEchantillons: () => _goTo(const GestionEchantillonsPage()),
-
         onAnalyseLaboratoire: () => _goTo(const AnalyseLaboratoirePage()),
         onSessionsDegustationPage: () => _goTo(const SessionsDegustationPage()),
-
-        // OLD : ProfilePage from profil.dart (same level)
-        // NEW : ProfilePage from ../profil.dart (one level up) ✅ done
         onMembredupanel: () => _goTo(const MembresPanelPage()),
         onProfil: () => _goTo(const ProfilePage()),
 

@@ -34,7 +34,8 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  static const Color green = Color(0xFF38835A);
+  static const Color _headerBg = Color.fromARGB(255, 220, 233, 226);
+  static const Color _dark = Color(0xFF1A2E1F);
 
   // ── Notifications ─────────────────────────────────────────────────────────
   final _notifService = NotificationDegustateurService();
@@ -115,20 +116,21 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF9F6EF),
+      backgroundColor: const Color(0xFFFFFFFF),
 
       appBar: AppBar(
-        backgroundColor: green,
+        backgroundColor: _headerBg,
         elevation: 0,
         centerTitle: false,
-        iconTheme: const IconThemeData(color: Colors.white, size: 28),
+        toolbarHeight: 65,
+        iconTheme: const IconThemeData(color: _dark, size: 28),
         actions: [
           Stack(
             children: [
               IconButton(
                 icon: const Icon(
                   Icons.notifications_outlined,
-                  color: Colors.white,
+                  color: _dark,
                 ),
                 onPressed: _openNotifications,
               ),

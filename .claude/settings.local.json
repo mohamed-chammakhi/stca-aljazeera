@@ -2,6 +2,7 @@
   "permissions": {
     "allow": [
       "Bash(flutter analyze:*)"
-    ]
+    ],
+    "defaultMode": "bypassPermissions"
   }
 }

@@ -31,7 +31,7 @@ class FiltreChip extends StatelessWidget {
         decoration: BoxDecoration(
           color: isSelected
               ? Colors.white
-              : Colors.white.withOpacity(0.2),
+              : Colors.white.withValues(alpha:0.2),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: isSelected ? Colors.white : Colors.transparent,

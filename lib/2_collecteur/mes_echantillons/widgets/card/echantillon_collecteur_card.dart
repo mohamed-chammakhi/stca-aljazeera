@@ -20,7 +20,17 @@
 
 import 'package:flutter/material.dart';
 import '../../models/echantillon_collecteur.dart';
-import 'card_theme.dart';
+import '../../../widgets/col_colors.dart';
+
+String? _dateStockStr(EchantillonCollecteur e) {
+  final d = e.dateStockSouhaiteeDebut;
+  final f = e.dateStockSouhaiteeFin;
+  if (d == null) return null;
+  if (f != null && !f.isAtSameMomentAs(d)) {
+    return '${fmtDate(d)} - ${fmtDate(f)}';
+  }
+  return fmtDate(d);
+}
 
 // ── Status accent color (left bar only) ──────────────────────────────────────
 Color _accentColor(StatutCollecteur s) {
@@ -118,7 +128,7 @@ class _EchantillonComCardState extends State<EchantillonComCard> {
                                   style: const TextStyle(
                                     fontSize: 15,
                                     fontWeight: FontWeight.w700,
-                                    color: kDarkText,
+                                    color: colDark,
                                     letterSpacing: -0.2,
                                   ),
                                   overflow: TextOverflow.ellipsis,
@@ -149,12 +159,12 @@ class _EchantillonComCardState extends State<EchantillonComCard> {
                                 const SizedBox(width: 5),
                                 Tooltip(
                                   message: e.dateReceptionEchantillon != null
-                                      ? 'Reçu le ${e.dateReceptionEchantillon}'
+                                      ? 'Reçu le ${fmtDate(e.dateReceptionEchantillon!)}'
                                       : 'Réceptionné par le labo',
                                   child: const Icon(
                                     Icons.check_circle,
                                     size: 16,
-                                    color: kGreen,
+                                    color: colGreen,
                                   ),
                                 ),
                               ],
@@ -228,7 +238,7 @@ class _QuantityPill extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
     decoration: BoxDecoration(
-      color: kOliveGreen.withValues(alpha: 0.08),
+      color: colOlive.withValues(alpha: 0.08),
       borderRadius: BorderRadius.circular(6),
     ),
     child: Text(
@@ -236,7 +246,7 @@ class _QuantityPill extends StatelessWidget {
       style: const TextStyle(
         fontSize: 11,
         fontWeight: FontWeight.w700,
-        color: kOliveGreen,
+        color: colOlive,
       ),
     ),
   );
@@ -287,8 +297,8 @@ class _ConfirmerAchatRow extends StatelessWidget {
               OutlinedButton(
                 onPressed: onConfirmerAchat,
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: kGreen,
-                  side: BorderSide(color: kGreen.withValues(alpha: 0.5)),
+                  foregroundColor: colGreen,
+                  side: BorderSide(color: colGreen.withValues(alpha: 0.5)),
                   padding: const EdgeInsets.symmetric(
                     horizontal: 14,
                     vertical: 6,
@@ -351,15 +361,15 @@ class _DetailPanel extends StatelessWidget {
               children: [
                 // Received indicator (tick)
                 if (e.recuPhysiquement) ...[
-                  const Icon(Icons.check_circle, size: 14, color: kGreen),
+                  const Icon(Icons.check_circle, size: 14, color: colGreen),
                   const SizedBox(width: 5),
                   Text(
                     e.dateReceptionEchantillon != null
-                        ? 'Reçu le ${e.dateReceptionEchantillon}'
+                        ? 'Reçu le ${fmtDate(e.dateReceptionEchantillon!)}'
                         : 'Réceptionné',
                     style: const TextStyle(
                       fontSize: 12,
-                      color: kGreen,
+                      color: colGreen,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -371,7 +381,7 @@ class _DetailPanel extends StatelessWidget {
                     message: 'Modifier',
                     child: _SmallIconBtn(
                       icon: Icons.edit_outlined,
-                      color: kOliveGreen,
+                      color: colOlive,
                       onTap: onModifier!,
                     ),
                   ),
@@ -570,10 +580,10 @@ class _NegociationDetails extends StatelessWidget {
                 label: 'Budget proposé',
                 value: e.budgetNegociation!,
               ),
-            if (e.dateStockSouhaitee != null)
+            if (_dateStockStr(e) != null)
               _ReceiptLine(
                 label: 'Date souhaitée',
-                value: e.dateStockSouhaitee!,
+                value: _dateStockStr(e)!,
               ),
           ] else ...[
             if (e.prixFinal != null)
@@ -608,7 +618,7 @@ class _SampleDeliveryLine extends StatelessWidget {
     if (e.recuPhysiquement) {
       return Text(
         e.dateReceptionEchantillon != null
-            ? 'Échantillon réceptionné le ${e.dateReceptionEchantillon}'
+            ? 'Échantillon réceptionné le ${fmtDate(e.dateReceptionEchantillon!)}'
             : 'Échantillon réceptionné',
         style: const TextStyle(
           fontSize: 12,
@@ -621,9 +631,8 @@ class _SampleDeliveryLine extends StatelessWidget {
     // Arrival date set or not — stacked layout with Planifier/Modifier below
     final String text;
     final String actionLabel;
-    if (e.dateArriveeEchantillon != null &&
-        e.dateArriveeEchantillon!.isNotEmpty) {
-      text = 'Arrivée prévue le ${e.dateArriveeEchantillon}';
+    if (e.dateArriveeEchantillon != null) {
+      text = 'Arrivée prévue le ${fmtDateHeure(e.dateArriveeEchantillon!)}';
       actionLabel = 'Modifier';
     } else {
       text = 'Arrivée de l\'échantillon non planifiée';
@@ -737,70 +746,6 @@ class _StockDeliveryLine extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// GRAY LINE  (simple gray italic delivery status text)
-// ─────────────────────────────────────────────────────────────────────────────
-class _GrayLine extends StatelessWidget {
-  final String text;
-  const _GrayLine({required this.text});
-
-  @override
-  Widget build(BuildContext context) => Text(
-    text,
-    style: const TextStyle(
-      fontSize: 12,
-      color: _grayText,
-      fontStyle: FontStyle.italic,
-      fontWeight: FontWeight.w400,
-    ),
-  );
-}
-
-class _GrayLineWithAction extends StatelessWidget {
-  final String text;
-  final String actionLabel;
-  final VoidCallback? onAction;
-
-  const _GrayLineWithAction({
-    required this.text,
-    required this.actionLabel,
-    this.onAction,
-  });
-
-  @override
-  Widget build(BuildContext context) => Row(
-    children: [
-      Expanded(
-        child: Text(
-          text,
-          style: const TextStyle(
-            fontSize: 12,
-            color: _grayText,
-            fontStyle: FontStyle.italic,
-            fontWeight: FontWeight.w400,
-          ),
-        ),
-      ),
-      if (onAction != null) ...[
-        const SizedBox(width: 8),
-        GestureDetector(
-          onTap: onAction,
-          child: Text(
-            actionLabel,
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: Color(0xFF3A6EA5),
-              decoration: TextDecoration.underline,
-              decorationColor: Color(0xFF3A6EA5),
-            ),
-          ),
-        ),
-      ],
-    ],
-  );
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
 // RECEIPT LINE  (label : value)
 // ─────────────────────────────────────────────────────────────────────────────
 class _ReceiptLine extends StatelessWidget {
@@ -824,7 +769,7 @@ class _ReceiptLine extends StatelessWidget {
         value,
         style: const TextStyle(
           fontSize: 12,
-          color: kDarkText,
+          color: colDark,
           fontWeight: FontWeight.w700,
         ),
       ),
@@ -859,7 +804,7 @@ class _DetailItem extends StatelessWidget {
         style: const TextStyle(
           fontSize: 13,
           fontWeight: FontWeight.w600,
-          color: kDarkText,
+          color: colDark,
         ),
       ),
     ],

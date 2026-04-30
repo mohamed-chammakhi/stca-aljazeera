@@ -8,7 +8,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import 'package:flutter/material.dart';
-import 'card_theme.dart';
+import '../../../widgets/col_colors.dart';
 
 // ── Outlined button ──────────────────────────────────────────────────────────
 class CardOutlineBtn extends StatelessWidget {
@@ -80,7 +80,7 @@ class CardFilledBtn extends StatelessWidget {
           width: double.infinity,
           padding: const EdgeInsets.symmetric(vertical: 11),
           decoration: BoxDecoration(
-            color: kGreen,
+            color: colGreen,
             borderRadius: BorderRadius.circular(10),
           ),
           child: Row(

@@ -13,6 +13,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/models/echantillon.dart';
 import '../../../../core/models/enums.dart';
 import '../date_input_field.dart';
+// TODO(core): move GeoService to lib/core/services/ — cross-module import from 2_collecteur
 import '../../../../2_collecteur/carte_geo/services/geo_service.dart';
 
 const Color _green = Color(0xFF38835A);

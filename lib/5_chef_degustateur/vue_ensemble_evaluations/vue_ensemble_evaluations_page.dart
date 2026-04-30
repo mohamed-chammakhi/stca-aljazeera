@@ -17,7 +17,9 @@ import '../gestion_echantillons/widgets/search_filter_bar.dart'
 import '../evaluation_echantillons/evaluation_echantillons_page.dart';
 import '../analyse_labo/analyse_laboratoire_page.dart';
 import '../sessions_degustation/sessions_degustation_page.dart';
+// TODO(core): move shared_evaluation_form_sheet to lib/core/widgets/ — cross-module import from 1_ceo
 import '../../../1_ceo/widgets/shared_evaluation_form_sheet.dart';
+// TODO(core): create a shared EchantillonView model in lib/core/models/ — cross-module import from 1_ceo
 import '../../../1_ceo/utilisateurs/models/echantillon_ceo_view.dart';
 import '../../../main.dart';
 

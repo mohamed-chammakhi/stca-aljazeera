@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'tableau_de_bord/homepage_page.dart';
-//import 'degustateur/homepage/homepage_page.dart';
 import 'evaluation_echantillons/evaluation_echantillons_page.dart';
-//import '../../../profil.dart';
 import 'tableau_de_bord/widgets/app_drawer.dart';
 import 'membres_panel/membres_panel_page.dart';
 import '../../../main.dart';
@@ -12,33 +10,6 @@ import 'sessions_degustation/sessions_degustation_page.dart';
 import 'analyse_labo/analyse_laboratoire_page.dart';
 import 'vue_ensemble_evaluations/vue_ensemble_evaluations_page.dart';
 
-/*/
-void main() {
-  runApp(const MyApp());
-}
-
-class MyApp extends StatefulWidget {
-  const MyApp({super.key});
-
-  @override
-  State<MyApp> createState() => _MyAppState();
-}
-
-class _MyAppState extends State<MyApp> {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Votre Profil',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primaryColor: const Color(0xFF38835A),
-        scaffoldBackgroundColor: const Color(0xFFF9F6EF),
-      ),
-      home: const ProfilePage(),
-    );
-  }
-}
-*/
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
 
@@ -522,54 +493,6 @@ class _ProfilePageState extends State<ProfilePage> {
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: const BorderSide(color: green, width: 2),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  // ─────────────────────────────────────────────────────────────────────────
-  // HELPER — _buildLockedField
-  // ─────────────────────────────────────────────────────────────────────────
-  Widget _buildLockedField({
-    required String label,
-    required String value,
-    required IconData icon,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _fieldLabel(label),
-        const SizedBox(height: 8),
-        TextField(
-          readOnly: true,
-          controller: TextEditingController(text: value),
-          style: TextStyle(color: Colors.grey.shade500, fontSize: 15),
-          decoration: InputDecoration(
-            prefixIcon: Icon(icon, color: Colors.grey.shade400, size: 20),
-            suffixIcon: Icon(
-              Icons.lock_outline,
-              color: Colors.grey.shade400,
-              size: 18,
-            ),
-            filled: true,
-            fillColor: Colors.grey.shade100,
-            contentPadding: const EdgeInsets.symmetric(
-              vertical: 14,
-              horizontal: 16,
-            ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.grey.shade200),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.grey.shade200),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.grey.shade200),
             ),
           ),
         ),

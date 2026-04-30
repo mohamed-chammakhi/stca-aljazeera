@@ -445,7 +445,7 @@ class _HomeBodyState extends State<HomeBody> {
   Widget _buildPipeline() {
     final p = _pipeline;
     return _fixedCard(
-      height: 160, // was 142
+      height: 180, // was 142
       header: _sectionBar(
         title: 'Pipeline des échantillons',
         icon: Icons.timeline_outlined,
@@ -497,7 +497,7 @@ class _HomeBodyState extends State<HomeBody> {
             ),
             Text(
               '$exact',
-              style: const TextStyle(fontSize: 8, color: Color(0xFFAAAAAA)),
+              style: const TextStyle(fontSize: 10, color: Color(0xFFAAAAAA)),
             ),
             Container(
               height: 2,
@@ -511,7 +511,7 @@ class _HomeBodyState extends State<HomeBody> {
               subtitle,
               textAlign: TextAlign.center,
               style: const TextStyle(
-                fontSize: 9,
+                fontSize: 11,
                 fontWeight: FontWeight.w600,
                 color: Color(0xFFAAAAAA),
               ),
@@ -541,7 +541,7 @@ class _HomeBodyState extends State<HomeBody> {
     if (total == 0) return const SizedBox.shrink();
 
     return Container(
-      height: 400, // was 350
+      height: 430, // was 350
       decoration: BoxDecoration(
         color: _white,
         borderRadius: BorderRadius.circular(14),
@@ -658,7 +658,7 @@ class _HomeBodyState extends State<HomeBody> {
                 textAlign: TextAlign.center,
                 softWrap: true,
                 style: TextStyle(
-                  fontSize: 11,
+                  fontSize: 13,
                   color: Color(0xFFAAAAAA),
                   fontStyle: FontStyle.italic,
                 ),
@@ -684,7 +684,7 @@ class _HomeBodyState extends State<HomeBody> {
           child: Text(
             label,
             style: TextStyle(
-              fontSize: 10,
+              fontSize: 12,
               fontWeight: FontWeight.w700,
               color: color,
             ),
@@ -699,7 +699,7 @@ class _HomeBodyState extends State<HomeBody> {
           child: Text(
             '$count',
             style: TextStyle(
-              fontSize: 10,
+              fontSize: 12,
               fontWeight: FontWeight.w700,
               color: color,
             ),
@@ -742,7 +742,7 @@ class _HomeBodyState extends State<HomeBody> {
                 const SizedBox(height: 3),
                 Text(
                   '${u.collecteurNom}  ·  ${u.fournisseurNom}',
-                  style: TextStyle(fontSize: 11, color: Colors.grey.shade400),
+                  style: TextStyle(fontSize: 13, color: Colors.grey.shade400),
                 ),
               ],
             ),
@@ -787,7 +787,7 @@ class _HomeBodyState extends State<HomeBody> {
                   const SizedBox(height: 3),
                   Text(
                     '${u.collecteurNom}  ·  ${u.fournisseurNom}',
-                    style: TextStyle(fontSize: 11, color: Colors.grey.shade400),
+                    style: TextStyle(fontSize: 13, color: Colors.grey.shade400),
                   ),
                 ],
               ),
@@ -1031,7 +1031,7 @@ class _HomeBodyState extends State<HomeBody> {
   Widget _buildPresence() {
     final p = _presence;
     return _fixedCard(
-      height: 260,
+      height: 285,
       header: _sectionBar(
         title: 'Présence aux séances',
         icon: Icons.people_outline_rounded,
@@ -1086,7 +1086,7 @@ class _HomeBodyState extends State<HomeBody> {
                         const Text(
                           'présence',
                           style: TextStyle(
-                            fontSize: 9,
+                            fontSize: 11,
                             color: Color(0xFFAAAAAA),
                           ),
                         ),
@@ -1157,7 +1157,7 @@ class _HomeBodyState extends State<HomeBody> {
                           Text(
                             p.prochaineLieu!,
                             style: const TextStyle(
-                              fontSize: 10,
+                              fontSize: 12,
                               color: Color(0xFFAAAAAA),
                             ),
                           ),
@@ -1221,7 +1221,7 @@ class _HomeBodyState extends State<HomeBody> {
   // ── 5. DELAI ─────────────────────────────────────────────────────────────
   Widget _buildDelai() {
     return _fixedCard(
-      height: 270, // was 230
+      height: 295, // was 230
       header: _sectionBar(
         title: 'Délai de soumission — panel',
         icon: Icons.timer_outlined,
@@ -1300,7 +1300,7 @@ class _HomeBodyState extends State<HomeBody> {
           Center(
             child: Text(
               '↕ défiler pour voir tous',
-              style: TextStyle(fontSize: 9, color: Colors.grey.shade400),
+              style: TextStyle(fontSize: 11, color: Colors.grey.shade400),
             ),
           ),
         ],
@@ -1316,7 +1316,7 @@ class _HomeBodyState extends State<HomeBody> {
           Text(
             label,
             style: const TextStyle(
-              fontSize: 9,
+              fontSize: 11,
               fontWeight: FontWeight.w700,
               color: Color(0xFFAAAAAA),
               letterSpacing: 0.4,
@@ -1341,7 +1341,7 @@ class _HomeBodyState extends State<HomeBody> {
   // ── 6. ALIGNEMENT ────────────────────────────────────────────────────────
   Widget _buildAlignement() {
     return _fixedCard(
-      height: 270, // was 230
+      height: 295, // was 230
       header: _sectionBar(
         title: 'Alignement avec le panel',
         icon: Icons.check_box_outlined,
@@ -1394,7 +1394,7 @@ class _HomeBodyState extends State<HomeBody> {
           Center(
             child: Text(
               '↕ défiler pour voir tous',
-              style: TextStyle(fontSize: 9, color: Colors.grey.shade400),
+              style: TextStyle(fontSize: 11, color: Colors.grey.shade400),
             ),
           ),
           const SizedBox(height: 8),
@@ -1407,7 +1407,7 @@ class _HomeBodyState extends State<HomeBody> {
             ),
             child: const Text(
               'Plus le % est élevé, plus le dégustateur classe différemment du reste du panel.',
-              style: TextStyle(fontSize: 10, color: Color(0xFF6B8E7A)),
+              style: TextStyle(fontSize: 12, color: Color(0xFF6B8E7A)),
             ),
           ),
         ],
@@ -1418,7 +1418,7 @@ class _HomeBodyState extends State<HomeBody> {
   // ── 7. CLASSIFICATIONS ───────────────────────────────────────────────────
   Widget _buildClassifications() {
     return _fixedCard(
-      height: 300, // was 260
+      height: 325, // was 260
       header: _sectionBar(
         title: 'Classifications du panel',
         icon: Icons.bar_chart_outlined,
@@ -1517,7 +1517,7 @@ class _HomeBodyState extends State<HomeBody> {
                                 child: Text(
                                   _classifications[i].label,
                                   style: const TextStyle(
-                                    fontSize: 9,
+                                    fontSize: 11,
                                     fontWeight: FontWeight.w600,
                                     color: Color(0xFFAAAAAA),
                                   ),
@@ -1534,7 +1534,7 @@ class _HomeBodyState extends State<HomeBody> {
                                 ? Text(
                                     v.toInt().toString(),
                                     style: const TextStyle(
-                                      fontSize: 9,
+                                      fontSize: 11,
                                       color: Color(0xFFCCCCCC),
                                     ),
                                   )
@@ -1585,7 +1585,7 @@ class _HomeBodyState extends State<HomeBody> {
       Text(
         label,
         style: const TextStyle(
-          fontSize: 10,
+          fontSize: 12,
           fontWeight: FontWeight.w600,
           color: _dark,
         ),
@@ -1596,7 +1596,7 @@ class _HomeBodyState extends State<HomeBody> {
   // ── 8. ACTIVITE ──────────────────────────────────────────────────────────
   Widget _buildActivite() {
     return Container(
-      height: 310, // was 260
+      height: 345, // was 260
       decoration: BoxDecoration(
         color: _white,
         borderRadius: BorderRadius.circular(14),
@@ -1722,7 +1722,7 @@ class _HomeBodyState extends State<HomeBody> {
                       ? '$_activiteTotal sur $_activiteTotal — tout chargé'
                       : '1–${_activite.length} sur $_activiteTotal',
                   style: const TextStyle(
-                    fontSize: 10,
+                    fontSize: 12,
                     fontWeight: FontWeight.w600,
                     color: Color(0xFFAAAAAA),
                   ),
@@ -1812,7 +1812,7 @@ class _HomeBodyState extends State<HomeBody> {
                   Text(
                     item.horodatage,
                     style: const TextStyle(
-                      fontSize: 10,
+                      fontSize: 12,
                       color: Color(0xFFBBBBBB),
                     ),
                   ),

@@ -913,21 +913,15 @@ class _InlineLabel extends StatelessWidget {
 // ─────────────────────────────────────────────────────────────────────────────
 class _FieldLabel extends StatelessWidget {
   final String label;
-  final bool optional;
-  final double fontSize;
-  const _FieldLabel({
-    required this.label,
-    this.optional = false,
-    this.fontSize = 12,
-  });
+  const _FieldLabel({required this.label});
 
   @override
   Widget build(BuildContext context) => Row(
     children: [
       Text(
         label,
-        style: TextStyle(
-          fontSize: fontSize,
+        style: const TextStyle(
+          fontSize: 12,
           fontWeight: FontWeight.w600,
           color: _olive,
         ),
@@ -943,30 +937,16 @@ class _FormField extends StatelessWidget {
   final String label;
   final TextEditingController controller;
   final String hint;
-  final TextInputType keyboardType;
-  final String? suffixText;
-  final bool required;
-  final bool optional;
 
   const _FormField({
     required this.label,
     required this.controller,
     required this.hint,
-    this.keyboardType = TextInputType.text,
-    this.suffixText,
-    this.required = false,
-    this.optional = false,
   });
 
   InputDecoration _dec() => InputDecoration(
     hintText: hint,
     hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 13),
-    suffixText: suffixText,
-    suffixStyle: const TextStyle(
-      color: _olive,
-      fontWeight: FontWeight.w700,
-      fontSize: 14,
-    ),
     filled: true,
     fillColor: _fieldFill,
     contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 14),
@@ -989,27 +969,17 @@ class _FormField extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Text(
-              label,
-              style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: _olive,
-              ),
-            ),
-            if (required)
-              const Text(
-                ' *',
-                style: TextStyle(fontSize: 12, color: Colors.red),
-              ),
-          ],
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: _olive,
+          ),
         ),
         const SizedBox(height: 6),
         TextField(
           controller: controller,
-          keyboardType: keyboardType,
           style: const TextStyle(fontSize: 14, color: _dark),
           decoration: _dec(),
         ),
@@ -1027,7 +997,6 @@ class _DropdownField extends StatelessWidget {
   final List<String> items;
   final String hint;
   final ValueChanged<String?>? onChanged;
-  final bool optional;
 
   const _DropdownField({
     required this.label,
@@ -1035,7 +1004,6 @@ class _DropdownField extends StatelessWidget {
     required this.items,
     required this.hint,
     required this.onChanged,
-    this.optional = false,
   });
 
   @override
@@ -1061,7 +1029,7 @@ class _DropdownField extends StatelessWidget {
           child: Opacity(
             opacity: onChanged == null ? 0.5 : 1.0,
             child: DropdownButtonFormField<String>(
-              value: (value != null && items.contains(value)) ? value : null,
+              initialValue: (value != null && items.contains(value)) ? value : null,
               isExpanded: true,
               decoration: InputDecoration(
                 filled: true,
