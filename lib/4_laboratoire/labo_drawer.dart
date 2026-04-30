@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../core/theme/app_colors.dart';
 
-const Color _green = Color(0xFF38835A);
-const Color _dark = Color(0xFF1A2E1F);
-const Color _olive = Color(0xFF6B8143);
+// Drawer header/button uses a muted olive variant distinct from kGreen.
+const Color _drawerAccent = Color(0xFF55755E);
 const Color _iconBg = Color(0x1A38835A);
 
 class LaboDrawer extends StatelessWidget {
@@ -31,7 +31,7 @@ class LaboDrawer extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.fromLTRB(20, 30, 20, 30),
               decoration: const BoxDecoration(
-                color: Color(0xFF55755E),
+                color: _drawerAccent,
                 borderRadius: BorderRadius.only(
                   bottomRight: Radius.circular(24),
                 ),
@@ -42,12 +42,7 @@ class LaboDrawer extends StatelessWidget {
                     width: 52,
                     height: 52,
                     decoration: BoxDecoration(
-                      color: const Color.fromARGB(
-                        255,
-                        146,
-                        172,
-                        157,
-                      ).withValues(alpha: 0.7),
+                      color: kHeaderBg.withValues(alpha: 0.7),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
@@ -66,13 +61,13 @@ class LaboDrawer extends StatelessWidget {
                         style: GoogleFonts.domine(
                           fontSize: 18,
                           fontWeight: FontWeight.w700,
-                          color: _dark,
+                          color: kDark,
                         ),
                       ),
                       const SizedBox(height: 2),
                       const Text(
                         'STCA Aljazira',
-                        style: TextStyle(fontSize: 12, color: _dark),
+                        style: TextStyle(fontSize: 12, color: kDark),
                       ),
                     ],
                   ),
@@ -92,7 +87,7 @@ class LaboDrawer extends StatelessWidget {
                     onTap: onEchantillons,
                   ),
                   const SizedBox(height: 4),
-                  Divider(color: _olive.withOpacity(0.15), height: 1),
+                  Divider(color: kOlive.withOpacity(0.15), height: 1),
                   const SizedBox(height: 4),
                   _SectionLabel('Compte'),
                   _DrawerItem(
@@ -115,7 +110,7 @@ class LaboDrawer extends StatelessWidget {
                   icon: const Icon(Icons.logout, size: 18),
                   label: const Text('Déconnexion'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF55755E),
+                    backgroundColor: _drawerAccent,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
@@ -143,7 +138,7 @@ class _SectionLabel extends StatelessWidget {
       style: const TextStyle(
         fontSize: 10,
         fontWeight: FontWeight.w700,
-        color: _olive,
+        color: kOlive,
         letterSpacing: 1.1,
       ),
     ),
@@ -182,7 +177,7 @@ class _DrawerItem extends StatelessWidget {
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Center(
-                child: customIcon ?? Icon(icon, color: _green, size: 20),
+                child: customIcon ?? Icon(icon, color: kGreen, size: 20),
               ),
             ),
             const SizedBox(width: 14),
@@ -191,7 +186,7 @@ class _DrawerItem extends StatelessWidget {
               style: const TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
-                color: _dark,
+                color: kDark,
               ),
             ),
           ],

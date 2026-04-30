@@ -1,7 +1,3 @@
-// ═════════════════════════════════════════════════════════════════════════════
-// FILE : laboratoire/echantillons_labo/echantillons_labo_page.dart
-// ═════════════════════════════════════════════════════════════════════════════
-
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'models/echantillon_labo.dart';
@@ -12,12 +8,11 @@ import 'widgets/dialogs/formulaire_analyse_labo_dialog.dart';
 import '../analyse_labo.dart';
 import '../labo_drawer.dart';
 import '../profil_labo_page.dart';
+import '../widgets/labo_nav_mixin.dart';
 import '../../main.dart';
+import '../../core/theme/app_colors.dart';
 
-const Color _green = Color(0xFF38835A);
-const Color _headerBg = Color.fromARGB(255, 220, 233, 226);
-const Color _dark = Color(0xFF1A2E1F);
-const Color _bg = Color.fromARGB(255, 255, 255, 255);
+// Scrollbar thumb — neutral dark not in the global palette.
 const Color _gray = Color.fromARGB(255, 81, 82, 81);
 
 class EchantillonsLaboPage extends StatefulWidget {
@@ -40,12 +35,6 @@ class _EchantillonsLaboPageState extends State<EchantillonsLaboPage> {
     _service.fetchEchantillons().then((list) {
       if (mounted) setState(() => _echantillons = list);
     });
-  }
-
-  // ── Navigation helpers ─────────────────────────────────────────────────────
-  void _goTo(Widget page) {
-    Navigator.pop(context);
-    Navigator.push(context, MaterialPageRoute(builder: (_) => page));
   }
 
   // ── Filter logic ───────────────────────────────────────────────────────────
@@ -82,7 +71,7 @@ class _EchantillonsLaboPageState extends State<EchantillonsLaboPage> {
     showAnalyseChoiceSheet(
       context,
       echantillon: e,
-      existing:    e.analyse,
+      existing: e.analyse,
       onSave: (analyse) {
         setState(() => e.analyse = analyse);
         _showSnack('Analyse modifiée');
@@ -94,16 +83,21 @@ class _EchantillonsLaboPageState extends State<EchantillonsLaboPage> {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('Supprimer l\'analyse',
-            style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+        title: const Text(
+          'Supprimer l\'analyse',
+          style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
+        ),
         content: Text(
-            'Supprimer l\'analyse de ${e.referenceBouteille} ? '
-            'Vous pourrez en soumettre une nouvelle.'),
+          'Supprimer l\'analyse de ${e.referenceBouteille} ? '
+          'Vous pourrez en soumettre une nouvelle.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Annuler',
-                style: TextStyle(color: Color(0xFF38835A))),
+            child: const Text(
+              'Annuler',
+              style: TextStyle(color: kGreen),
+            ),
           ),
           TextButton(
             onPressed: () {
@@ -111,9 +105,13 @@ class _EchantillonsLaboPageState extends State<EchantillonsLaboPage> {
               setState(() => e.analyse = null);
               _showSnack('Analyse supprimée');
             },
-            child: Text('Supprimer',
-                style: TextStyle(color: Colors.red.shade600,
-                    fontWeight: FontWeight.w700)),
+            child: Text(
+              'Supprimer',
+              style: TextStyle(
+                color: Colors.red.shade600,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
           ),
         ],
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -131,7 +129,7 @@ class _EchantillonsLaboPageState extends State<EchantillonsLaboPage> {
             fontWeight: FontWeight.w600,
           ),
         ),
-        backgroundColor: _green,
+        backgroundColor: kGreen,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         margin: const EdgeInsets.all(20),
@@ -139,7 +137,16 @@ class _EchantillonsLaboPageState extends State<EchantillonsLaboPage> {
     );
   }
 
-  bool get _anyFilter => _recherche.isNotEmpty || _filtreStatut != null;
+  void _showAnalyseReadOnly(EchantillonLabo e) {
+    showFormulaireAnalyseLaboDialog(
+      context,
+      echantillonRef: e.referenceBouteille,
+      echantillonId: e.id,
+      analyse: e.analyse,
+      readOnly: true,
+      onSave: (_) {},
+    );
+  }
 
   @override
   void dispose() {
@@ -152,14 +159,14 @@ class _EchantillonsLaboPageState extends State<EchantillonsLaboPage> {
     final items = _filtres;
 
     return Scaffold(
-      backgroundColor: _bg,
+      backgroundColor: kBg,
       drawer: LaboDrawer(
-        onEchantillons: () => _goTo(const EchantillonsLaboPage()),
-        onProfil: () => _goTo(const ProfilLaboPage()),
-        onDeconnexion: () => _goTo(LoginPage()),
+        onEchantillons: () => goToPage(const EchantillonsLaboPage()),
+        onProfil: () => goToPage(const ProfilLaboPage()),
+        onDeconnexion: () => goToPage(LoginPage()),
       ),
       appBar: AppBar(
-        backgroundColor: _headerBg,
+        backgroundColor: kHeaderBg,
         elevation: 0,
         centerTitle: false,
         toolbarHeight: 65,
@@ -168,16 +175,16 @@ class _EchantillonsLaboPageState extends State<EchantillonsLaboPage> {
           style: GoogleFonts.domine(
             fontSize: 18,
             fontWeight: FontWeight.w700,
-            color: _dark,
+            color: kDark,
           ),
         ),
-        iconTheme: const IconThemeData(color: _dark),
+        iconTheme: const IconThemeData(color: kDark),
       ),
       body: Column(
         children: [
           // ── Header zone ──────────────────────────────────────────────────
           Container(
-            color: _headerBg,
+            color: kHeaderBg,
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
             child: Column(
               children: [
@@ -185,7 +192,7 @@ class _EchantillonsLaboPageState extends State<EchantillonsLaboPage> {
                 TextField(
                   controller: _searchCtrl,
                   onChanged: (v) => setState(() => _recherche = v),
-                  style: const TextStyle(fontSize: 14, color: _dark),
+                  style: const TextStyle(fontSize: 14, color: kDark),
                   decoration: InputDecoration(
                     hintText: 'Rechercher réf, fournisseur, gouvernorat…',
                     hintStyle: const TextStyle(
@@ -226,7 +233,7 @@ class _EchantillonsLaboPageState extends State<EchantillonsLaboPage> {
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: _green, width: 1.5),
+                      borderSide: const BorderSide(color: kGreen, width: 1.5),
                     ),
                   ),
                 ),
@@ -284,7 +291,7 @@ class _EchantillonsLaboPageState extends State<EchantillonsLaboPage> {
 
           // ── Stats strip ──────────────────────────────────────────────────
           Container(
-            color: _bg,
+            color: kBg,
             padding: const EdgeInsets.fromLTRB(16, 9, 16, 6),
             child: Row(
               children: [
@@ -366,17 +373,6 @@ class _EchantillonsLaboPageState extends State<EchantillonsLaboPage> {
       ),
     );
   }
-
-  void _showAnalyseReadOnly(EchantillonLabo e) {
-    showFormulaireAnalyseLaboDialog(
-      context,
-      echantillonRef: e.referenceBouteille,
-      echantillonId:  e.id,
-      analyse:        e.analyse,
-      readOnly:       true,
-      onSave:         (_) {},
-    );
-  }
 }
 
 // ── Statut chip — soft pastel inactive, tinted active (matches taster design) ──
@@ -395,7 +391,7 @@ class _StatutChip extends StatelessWidget {
     required this.onTap,
   });
 
-  static const Color _inactiveBg = Color(0xFFF0F0F0);
+  static const Color _inactiveBg = kChipBgGrey;
   static const Color _inactiveFg = Color(0xFF9E9E9E);
   static const Color _inactiveBorder = Color(0xFFE0E0E0);
 
@@ -416,8 +412,8 @@ class _StatutChip extends StatelessWidget {
       fg = Colors.white;
       border = const Color(0xFF757575);
     } else {
-      bg = inactiveColor; // pastel tinted bg
-      fg = inactiveTextColor; // colored text
+      bg = inactiveColor;
+      fg = inactiveTextColor;
       border = inactiveTextColor.withValues(alpha: 0.45);
     }
 
@@ -433,9 +429,10 @@ class _StatutChip extends StatelessWidget {
           boxShadow: selected
               ? [
                   BoxShadow(
-                    color:
-                        (isTous ? const Color(0xFF757575) : inactiveTextColor)
-                            .withValues(alpha: 0.22),
+                    color: (isTous
+                            ? const Color(0xFF757575)
+                            : inactiveTextColor)
+                        .withValues(alpha: 0.22),
                     blurRadius: 6,
                     offset: const Offset(0, 2),
                   ),

@@ -16,10 +16,8 @@ import '../../../analyse_labo.dart';
 import '../../models/echantillon_labo.dart';
 import 'formulaire_analyse_labo_dialog.dart';
 
-const Color _green = Color(0xFF38835A);
+// Scan dialog uses a blue accent distinct from the brand green.
 const Color _blue = Color(0xFF1565C0);
-const Color _cream = Color(0xFFF9F6EF);
-const Color _darkText = Color(0xFF1A2E1F);
 
 void showScanRapportDialog(
   BuildContext context, {
@@ -159,7 +157,7 @@ class _ScanRapportDialogState extends State<ScanRapportDialog>
   Widget build(BuildContext context) {
     return Dialog.fullscreen(
       child: Scaffold(
-        backgroundColor: _cream,
+        backgroundColor: kCream,
         appBar: AppBar(
           backgroundColor: _blue,
           elevation: 0,
@@ -441,7 +439,7 @@ class _AnalysingPhase extends StatelessWidget {
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w800,
-            color: _darkText,
+            color: kDark,
           ),
         ),
         const SizedBox(height: 10),
@@ -695,11 +693,11 @@ class _ExtractedField extends StatelessWidget {
         color: Colors.orange.shade700,
       );
     } else {
-      borderColor = _green.withOpacity(0.3);
-      labelColor = _darkText;
+      borderColor = kGreen.withOpacity(0.3);
+      labelColor = kDark;
       badge = _ConfidenceBadge(
         label: '${(confidence * 100).round()}%',
-        color: _green,
+        color: kGreen,
       );
     }
 
