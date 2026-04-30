@@ -6,6 +6,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'models/membre_panel.dart';
+import 'services/membres_panel_chef_service.dart';
 import 'widgets/membre_card.dart';
 import '../../../main.dart';
 import '../gestion_echantillons/gestion_echantillons_page.dart';
@@ -15,6 +16,8 @@ import '../tableau_de_bord/widgets/app_drawer.dart';
 import '../sessions_degustation/sessions_degustation_page.dart';
 import '../analyse_labo/analyse_laboratoire_page.dart';
 import '../vue_ensemble_evaluations/vue_ensemble_evaluations_page.dart';
+import '../../../core/theme/app_colors.dart';
+import '../widgets/chef_nav_mixin.dart';
 
 const Color _headerBg = Color.fromARGB(255, 220, 233, 226);
 const Color _green = Color(0xFF38835A);
@@ -29,67 +32,21 @@ class MembresPanelPage extends StatefulWidget {
   State<MembresPanelPage> createState() => _MembresPanelPageState();
 }
 
-class _MembresPanelPageState extends State<MembresPanelPage> {
+class _MembresPanelPageState extends State<MembresPanelPage>
+    with ChefNavMixin {
   final TextEditingController _searchCtrl = TextEditingController();
   String _recherche = '';
-  //go to function
-  void _goTo(Widget page) {
-    Navigator.pop(context); // close drawer
-    Navigator.push(context, MaterialPageRoute(builder: (_) => page));
-  }
 
-  // Closes drawer then replaces the whole stack — no back button to homepage
-  void _goToLogin() {
-    Navigator.pop(context);
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => LoginPage()),
-    );
-  }
+  final _service = MembresPanelChefService();
+  List<MembrePanel> _membres = [];
 
-  // ── MOCK DATA — replace with API call when backend is ready ───────────────
-  final List<MembrePanel> _membres = const [
-    MembrePanel(
-      id: '001',
-      nom: 'Chammakhi',
-      prenom: 'Ichrak',
-      role: 'Dégustateur',
-      membreDepuis: 'Jan 2026',
-      estEnLigne: true,
-    ),
-    MembrePanel(
-      id: '002',
-      nom: 'Ennouri',
-      prenom: 'Lobna',
-      role: 'Dégustateur',
-      membreDepuis: 'Jan 2026',
-      estEnLigne: false,
-    ),
-    MembrePanel(
-      id: '003',
-      nom: 'Ouni',
-      prenom: 'Maha',
-      role: 'Dégustateur',
-      membreDepuis: 'Fév 2026',
-      estEnLigne: true,
-    ),
-    MembrePanel(
-      id: '004',
-      nom: 'Fezai',
-      prenom: 'Nayrouz',
-      role: 'Dégustateur',
-      membreDepuis: 'Fév 2026',
-      estEnLigne: false,
-    ),
-    MembrePanel(
-      id: '005',
-      nom: 'Smaali',
-      prenom: 'Yosra',
-      role: 'Dégustateur',
-      membreDepuis: 'Mar 2026',
-      estEnLigne: false,
-    ),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _service.fetchMembres().then((data) {
+      if (mounted) setState(() => _membres = data);
+    });
+  }
 
   // ── FILTERED LIST based on search ─────────────────────────────────────────
   List<MembrePanel> get _membresFiltres {
@@ -139,7 +96,7 @@ class _MembresPanelPageState extends State<MembresPanelPage> {
               decoration: InputDecoration(
                 hintText: 'Rechercher un membre...',
                 hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 13),
-                prefixIcon: const Icon(Icons.search, color: _green, size: 20),
+                prefixIcon: const Icon(Icons.search, color: kGreen, size: 20),
                 suffixIcon: _recherche.isNotEmpty
                     ? IconButton(
                         icon: Icon(
@@ -169,7 +126,7 @@ class _MembresPanelPageState extends State<MembresPanelPage> {
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: _green, width: 1.8),
+                  borderSide: const BorderSide(color: kGreen, width: 1.8),
                 ),
               ),
             ),
@@ -224,26 +181,26 @@ class _MembresPanelPageState extends State<MembresPanelPage> {
         // OLD : EvaluationEchantillonsPage from EvaluationEchantillonsPage.dart
         // NEW : will be EvaluationEchantillonsPage from
         //       evaluation_echantillons/evaluation_echantillons_page.dart
-        // TODO : replace with _goTo(const EvaluationEchantillonsPage())
+        // TODO : replace with goToPage(const EvaluationEchantillonsPage())
         onEvaluationEchantillons: () =>
-            _goTo(const EvaluationEchantillonsPage()),
+            goToPage(const EvaluationEchantillonsPage()),
 
         // OLD : GestionEchantillonsPage from GestionEchantillon.dart
         // NEW : GestionEchantillonsPage from
         //       gestion_echantillons/gestion_echantillons_page.dart ✅ done
-        onGestionEchantillons: () => _goTo(const GestionEchantillonsPage()),
+        onGestionEchantillons: () => goToPage(const GestionEchantillonsPage()),
 
-        onAnalyseLaboratoire: () => _goTo(const AnalyseLaboratoirePage()),
-        onSessionsDegustationPage: () => _goTo(const SessionsDegustationPage()),
+        onAnalyseLaboratoire: () => goToPage(const AnalyseLaboratoirePage()),
+        onSessionsDegustationPage: () => goToPage(const SessionsDegustationPage()),
 
         // OLD : ProfilePage from profil.dart (same level)
         // NEW : ProfilePage from ../profil.dart (one level up) ✅ done
-        onMembredupanel: () => _goTo(const MembresPanelPage()),
+        onMembredupanel: () => goToPage(const MembresPanelPage()),
         onVueEnsembleEvaluations: () =>
-            _goTo(const VueEnsembleEvaluationsPage()),
-        onProfil: () => _goTo(const ProfilePage()),
+            goToPage(const VueEnsembleEvaluationsPage()),
+        onProfil: () => goToPage(const ProfilePage()),
 
-        onDeconnexion: _goToLogin,
+        onDeconnexion: goToLogin,
       ),
     );
   }

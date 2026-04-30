@@ -13,10 +13,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'filtre_chip.dart';
+import '../../widgets/chef_colors.dart';
 
-const Color _green      = Color(0xFF38835A);
 const Color _oliveGreen = Color(0xFF6B8143);
-const Color _darkText   = Color(0xFF1A2E1F);
 const Color _cream      = Color(0xFFF9F6EF);
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -48,7 +47,7 @@ class SearchFilterBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color:   _green,
+      color:   chefGreen,
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
       child: Column(
         children: [
@@ -57,7 +56,7 @@ class SearchFilterBar extends StatelessWidget {
           TextField(
             controller: controller,
             onChanged:  onRechercheChanged,
-            style: const TextStyle(color: _darkText, fontSize: 14),
+            style: const TextStyle(color: chefDark, fontSize: 14),
             decoration: InputDecoration(
               hintText:  'Rechercher...',
               hintStyle: TextStyle(color: Colors.grey.shade500, fontSize: 13),
@@ -153,7 +152,7 @@ class DateFilterButton extends StatelessWidget {
             Icon(
               Icons.calendar_today_outlined,
               size:  15,
-              color: _active ? _green : Colors.white,
+              color: _active ? chefGreen : Colors.white,
             ),
             if (_active) ...[
               const SizedBox(width: 5),
@@ -164,7 +163,7 @@ class DateFilterButton extends StatelessWidget {
                 style: const TextStyle(
                   fontSize:   10,
                   fontWeight: FontWeight.w700,
-                  color:      _green,
+                  color:      chefGreen,
                 ),
               ),
             ],
@@ -223,7 +222,7 @@ class _DateFilterSheetState extends State<DateFilterSheet> {
       builder: (ctx, child) => Theme(
         data: Theme.of(ctx).copyWith(
           colorScheme: const ColorScheme.light(
-            primary:   _green,
+            primary:   chefGreen,
             onPrimary: Colors.white,
           ),
         ),
@@ -264,14 +263,14 @@ class _DateFilterSheetState extends State<DateFilterSheet> {
 
           // title
           Row(children: [
-            const Icon(Icons.calendar_today_outlined, size: 16, color: _green),
+            const Icon(Icons.calendar_today_outlined, size: 16, color: chefGreen),
             const SizedBox(width: 8),
             Text(
               'Filtrer par date',
               style: GoogleFonts.domine(
                 fontSize:   17,
                 fontWeight: FontWeight.w700,
-                color:      _darkText,
+                color:      chefDark,
               ),
             ),
           ]),
@@ -351,7 +350,7 @@ class _DateFilterSheetState extends State<DateFilterSheet> {
                         Navigator.pop(context);
                       },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: _green,
+                  backgroundColor: chefGreen,
                   foregroundColor: Colors.white,
                   padding:   const EdgeInsets.symmetric(vertical: 12),
                   elevation: 0,
@@ -395,7 +394,7 @@ class _ModeSegment extends StatelessWidget {
           borderRadius: BorderRadius.circular(8),
           boxShadow:    selected
               ? [BoxShadow(
-                  color:      _darkText.withValues(alpha: 0.07),
+                  color:      chefDark.withValues(alpha: 0.07),
                   blurRadius: 4,
                   offset:     const Offset(0, 1),
                 )]
@@ -407,7 +406,7 @@ class _ModeSegment extends StatelessWidget {
             style: TextStyle(
               fontSize:   12,
               fontWeight: FontWeight.w600,
-              color: selected ? _darkText : Colors.grey.shade500,
+              color: selected ? chefDark : Colors.grey.shade500,
             ),
           ),
         ),
@@ -428,7 +427,7 @@ class _DatePickerField extends StatelessWidget {
       color:        Colors.white,
       borderRadius: BorderRadius.circular(10),
       border: Border.all(
-        color: value != null ? _green : Colors.grey.shade200,
+        color: value != null ? chefGreen : Colors.grey.shade200,
         width: value != null ? 1.5   : 1,
       ),
     ),
@@ -436,7 +435,7 @@ class _DatePickerField extends StatelessWidget {
       Icon(
         Icons.calendar_today_outlined,
         size:  16,
-        color: value != null ? _green : Colors.grey.shade400,
+        color: value != null ? chefGreen : Colors.grey.shade400,
       ),
       const SizedBox(width: 10),
       Text(
@@ -448,7 +447,7 @@ class _DatePickerField extends StatelessWidget {
         style: TextStyle(
           fontSize:   13,
           fontWeight: value != null ? FontWeight.w700 : FontWeight.w400,
-          color:      value != null ? _darkText : Colors.grey.shade400,
+          color:      value != null ? chefDark : Colors.grey.shade400,
         ),
       ),
     ]),

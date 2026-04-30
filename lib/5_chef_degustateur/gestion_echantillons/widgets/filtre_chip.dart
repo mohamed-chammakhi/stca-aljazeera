@@ -7,8 +7,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import 'package:flutter/material.dart';
-
-const Color _green = Color(0xFF38835A);
+import '../../widgets/chef_colors.dart';
 
 class FiltreChip extends StatelessWidget {
   final String    label;
@@ -40,7 +39,7 @@ class FiltreChip extends StatelessWidget {
         child: Text(
           label,
           style: TextStyle(
-            color:      isSelected ? _green : Colors.white,
+            color:      isSelected ? chefGreen : Colors.white,
             fontSize:   12,
             fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
           ),

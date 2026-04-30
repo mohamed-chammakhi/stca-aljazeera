@@ -6,9 +6,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../models/membre_panel.dart';
-
-const Color _green    = Color(0xFF38835A);
-const Color _darkText = Color(0xFF1A2E1F);
+import '../../widgets/chef_colors.dart';
 
 class MembreCard extends StatelessWidget {
   final MembrePanel membre;
@@ -41,10 +39,10 @@ class MembreCard extends StatelessWidget {
               width:  46,
               height: 46,
               decoration: BoxDecoration(
-                color:        _green.withValues(alpha: 0.10),
+                color:        chefGreen.withValues(alpha: 0.10),
                 borderRadius: BorderRadius.circular(23),
                 border: Border.all(
-                  color: _green.withValues(alpha: 0.25),
+                  color: chefGreen.withValues(alpha: 0.25),
                   width: 1.5,
                 ),
               ),
@@ -54,7 +52,7 @@ class MembreCard extends StatelessWidget {
                   style: GoogleFonts.domine(
                     fontSize:   15,
                     fontWeight: FontWeight.w700,
-                    color:      _green,
+                    color:      chefGreen,
                   ),
                 ),
               ),
@@ -72,7 +70,7 @@ class MembreCard extends StatelessWidget {
                     style: GoogleFonts.domine(
                       fontSize:   15,
                       fontWeight: FontWeight.w700,
-                      color:      _darkText,
+                      color:      chefDark,
                     ),
                   ),
                   const SizedBox(height: 4),

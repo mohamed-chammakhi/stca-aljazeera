@@ -6,10 +6,9 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import 'package:flutter/material.dart';
+import '../../widgets/chef_colors.dart';
 
-const Color _green = Color(0xFF38835A);
 const Color _oliveGreen = Color(0xFF6B8143);
-const Color _darkText = Color(0xFF1A2E1F);
 
 class DateInputField extends StatefulWidget {
   final TextEditingController controller;
@@ -71,9 +70,9 @@ class _DateInputFieldState extends State<DateInputField> {
       builder: (context, child) => Theme(
         data: Theme.of(context).copyWith(
           colorScheme: const ColorScheme.light(
-            primary: _green,
+            primary: chefGreen,
             onPrimary: Colors.white,
-            onSurface: _darkText,
+            onSurface: chefDark,
           ),
         ),
         child: child!,
@@ -123,7 +122,7 @@ class _DateInputFieldState extends State<DateInputField> {
                 controller: widget.controller,
                 keyboardType: TextInputType.number,
                 maxLength: 10, // DD/MM/YYYY = 10 chars
-                style: const TextStyle(fontSize: 14, color: _darkText),
+                style: const TextStyle(fontSize: 14, color: chefDark),
                 decoration: InputDecoration(
                   counterText: '', // hides "0/10" counter
                   hintText: 'JJ/MM/AAAA',
@@ -147,7 +146,7 @@ class _DateInputFieldState extends State<DateInputField> {
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(color: _green, width: 1.8),
+                    borderSide: const BorderSide(color: chefGreen, width: 1.8),
                   ),
                 ),
                 onChanged: (value) {
@@ -173,13 +172,13 @@ class _DateInputFieldState extends State<DateInputField> {
               child: Container(
                 padding: const EdgeInsets.all(11),
                 decoration: BoxDecoration(
-                  color: _green.withOpacity(0.1),
+                  color: chefGreen.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: _green.withOpacity(0.3)),
+                  border: Border.all(color: chefGreen.withOpacity(0.3)),
                 ),
                 child: const Icon(
                   Icons.edit_calendar_outlined,
-                  color: _green,
+                  color: chefGreen,
                   size: 20,
                 ),
               ),
@@ -193,12 +192,12 @@ class _DateInputFieldState extends State<DateInputField> {
             padding: const EdgeInsets.only(top: 8),
             child: Row(
               children: [
-                const Icon(Icons.check_circle_outline, color: _green, size: 15),
+                const Icon(Icons.check_circle_outline, color: chefGreen, size: 15),
                 const SizedBox(width: 6),
                 Text(
                   widget.controller.text,
                   style: const TextStyle(
-                    color: _green,
+                    color: chefGreen,
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
                   ),

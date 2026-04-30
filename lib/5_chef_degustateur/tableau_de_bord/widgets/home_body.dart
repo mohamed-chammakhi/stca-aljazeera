@@ -1,21 +1,18 @@
-import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../models/dashboard_chef_degustateur.dart';
 import '../services/dashboard_chef_degustateur_service.dart';
 import '../../gestion_echantillons/widgets/search_filter_bar.dart';
-import '../../evaluation_echantillons/evaluation_echantillons_page.dart';
-
-const Color _green = Color(0xFF38835A);
-const Color _dark = Color(0xFF1A2E1F);
-const Color _white = Color(0xFFFFFFFF);
-const Color _amber = Color(0xFFD07B2F);
-const Color _red = Color(0xFFC0392B);
-const Color _blue = Color(0xFF3A6EA5);
-const Color _purple = Color(0xFF7B3FC4);
-const Color _olive = Color(0xFF6B8143);
-const Color _headerBg = Color(0xFFDCE9E2);
+import 'home_activite_section.dart';
+import 'home_alignement_section.dart';
+import 'home_classifications_section.dart';
+import 'home_delai_section.dart';
+import 'home_pipeline_section.dart';
+import 'home_presence_section.dart';
+import 'home_sessions_section.dart';
+import 'home_urgentes_section.dart';
+import 'home_shared.dart';
+import '../../widgets/chef_colors.dart';
 
 class HomeBody extends StatefulWidget {
   final VoidCallback onSimulerNotification;
@@ -28,6 +25,7 @@ class HomeBody extends StatefulWidget {
 class _HomeBodyState extends State<HomeBody> {
   final _service = DashboardChefDegustateurService();
 
+  // ── State ─────────────────────────────────────────────────────────────────
   PipelineChefData? _pipeline;
   List<EvaluationUrgenteChef> _urgentes = [];
   List<EvaluationUrgenteCeoChef> _urgentesCeo = [];
@@ -55,21 +53,7 @@ class _HomeBodyState extends State<HomeBody> {
   DateTime? _actDateFin;
   bool _showClearConfirm = false;
 
-  static const _moisAbr = [
-    'Jan',
-    'Fév',
-    'Mar',
-    'Avr',
-    'Mai',
-    'Jun',
-    'Jul',
-    'Aoû',
-    'Sep',
-    'Oct',
-    'Nov',
-    'Déc',
-  ];
-
+  // ── Lifecycle ─────────────────────────────────────────────────────────────
   @override
   void initState() {
     super.initState();
@@ -155,11 +139,12 @@ class _HomeBodyState extends State<HomeBody> {
       dateFin: _actDateFin,
       offset: 0,
     );
-    if (mounted)
+    if (mounted) {
       setState(() {
         _activite = data.items;
         _activiteTotal = data.total;
       });
+    }
   }
 
   Future<void> _loadMoreActivite() async {
@@ -170,12 +155,13 @@ class _HomeBodyState extends State<HomeBody> {
       dateFin: _actDateFin,
       offset: _activite.length,
     );
-    if (mounted)
+    if (mounted) {
       setState(() {
         _activite.addAll(data.items);
         _activiteTotal = data.total;
         _activiteLoading = false;
       });
+    }
   }
 
   Future<void> _openDateSheet({
@@ -197,219 +183,7 @@ class _HomeBodyState extends State<HomeBody> {
     );
   }
 
-  String _fmtDate(DateTime d) =>
-      '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}';
-
-  String _chipLabel({required DateTime? debut, required DateTime? fin}) {
-    if (debut == null) return '';
-    if (fin == null ||
-        (debut.year == fin.year &&
-            debut.month == fin.month &&
-            debut.day == fin.day))
-      return _fmtDate(debut);
-    return '${debut.day} ${_moisAbr[debut.month - 1]} → ${fin.day} ${_moisAbr[fin.month - 1]}';
-  }
-
-  String _fmtN(int n) {
-    if (n >= 1000) {
-      final k = n / 1000;
-      return '${k.toStringAsFixed(k >= 10 ? 0 : 1)}K';
-    }
-    return '$n';
-  }
-
-  // ── Section header bar ────────────────────────────────────────────────────
-  Widget _sectionBar({
-    required String title,
-    required IconData icon,
-    DateTime? dateDebut,
-    DateTime? dateFin,
-    VoidCallback? onDateTap,
-  }) {
-    final active = dateDebut != null;
-    return Container(
-      color: _headerBg,
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      child: Row(
-        children: [
-          Container(
-            width: 3,
-            height: 16,
-            decoration: BoxDecoration(
-              color: _green,
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          const SizedBox(width: 7),
-          Icon(icon, size: 13, color: _dark),
-          const SizedBox(width: 6),
-          Expanded(
-            child: Text(
-              title,
-              style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-                color: _dark,
-              ),
-            ),
-          ),
-          if (onDateTap != null)
-            GestureDetector(
-              onTap: onDateTap,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
-                decoration: BoxDecoration(
-                  color: active ? _green : _green.withValues(alpha: 0.18),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(
-                    color: active ? _green : _green.withValues(alpha: 0.3),
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.calendar_today_outlined,
-                      size: 14,
-                      color: active ? _white : _dark,
-                    ),
-                    if (active) ...[
-                      const SizedBox(width: 5),
-                      Text(
-                        _chipLabel(debut: dateDebut, fin: dateFin),
-                        style: const TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w700,
-                          color: _white,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  // ── Fixed-height card shell ───────────────────────────────────────────────
-  Widget _fixedCard({
-    required double height,
-    required Widget header,
-    required Widget body,
-    Widget? footer,
-  }) => Container(
-    height: height,
-    decoration: BoxDecoration(
-      color: _white,
-      borderRadius: BorderRadius.circular(14),
-      boxShadow: [
-        BoxShadow(
-          color: Colors.black.withValues(alpha: 0.04),
-          blurRadius: 8,
-          offset: const Offset(0, 2),
-        ),
-      ],
-    ),
-    clipBehavior: Clip.hardEdge,
-    child: Column(
-      children: [
-        header,
-        Expanded(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(14, 10, 14, 14),
-            child: body,
-          ),
-        ),
-        if (footer != null) footer,
-      ],
-    ),
-  );
-
-  Widget _buildScrollableRows<T>({
-    required List<T> items,
-    required double Function(T) getValue,
-    required double Function(T) getMax,
-    required Color Function(T) getColor,
-    required String Function(T) getLabel,
-    required String Function(T) getName,
-  }) {
-    final maxVal = getMax(items.first);
-    return ListView.builder(
-      itemCount: items.length,
-      itemBuilder: (_, i) {
-        final item = items[i];
-        final val = getValue(item);
-        final color = getColor(item);
-        final ratio = maxVal == 0 ? 0.0 : (val / maxVal).clamp(0.0, 1.0);
-        final isRed = color == _red;
-        final isOrange = color == _amber;
-        return Container(
-          margin: const EdgeInsets.only(bottom: 5),
-          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 7),
-          decoration: BoxDecoration(
-            color: isRed
-                ? const Color(0xFFFFF8F6)
-                : isOrange
-                ? const Color(0xFFFFFAF5)
-                : Colors.white,
-            borderRadius: BorderRadius.circular(9),
-            border: Border.all(
-              color: isRed
-                  ? const Color(0xFFFFD5CC)
-                  : isOrange
-                  ? const Color(0xFFFFE8CC)
-                  : const Color(0xFFEEEEEE),
-            ),
-          ),
-          child: Row(
-            children: [
-              SizedBox(
-                width: 72,
-                child: Text(
-                  getName(item),
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    color: color,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(3),
-                  child: LinearProgressIndicator(
-                    value: ratio,
-                    minHeight: 6,
-                    backgroundColor: const Color(0xFFEEEEEE),
-                    valueColor: AlwaysStoppedAnimation<Color>(color),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              SizedBox(
-                width: 36,
-                child: Text(
-                  getLabel(item),
-                  textAlign: TextAlign.right,
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w800,
-                    color: color,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
+  // ── Build ─────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
     return Stack(
@@ -417,23 +191,146 @@ class _HomeBodyState extends State<HomeBody> {
         ListView(
           padding: const EdgeInsets.fromLTRB(14, 14, 14, 52),
           children: [
-            _buildPipeline(),
+            PipelineSection(pipeline: _pipeline),
             const SizedBox(height: 12),
-            _buildUrgentes(),
+            UrgentesSection(
+              urgentes: _urgentes,
+              urgentesCeo: _urgentesCeo,
+              ignoredUrgentes: _ignoredUrgentes,
+              ignoredUrgentesCeo: _ignoredUrgentesCeo,
+              onIgnoreUrgente: (id) => setState(() => _ignoredUrgentes.add(id)),
+              onIgnoreUrgenteCeo: (id) =>
+                  setState(() => _ignoredUrgentesCeo.add(id)),
+            ),
             const SizedBox(height: 12),
             if (_sessions.isNotEmpty) ...[
-              _buildSessions(),
+              SessionsSection(sessions: _sessions),
               const SizedBox(height: 12),
             ],
-            _buildPresence(),
+            PresenceSection(
+              presence: _presence,
+              dateDebut: _presDateDebut,
+              dateFin: _presDateFin,
+              onDateTap: () => _openDateSheet(
+                dateDebut: _presDateDebut,
+                dateFin: _presDateFin,
+                onApply: (d, f) {
+                  setState(() {
+                    _presDateDebut = d;
+                    _presDateFin = f;
+                  });
+                  _reloadPresence();
+                },
+                onClear: () {
+                  setState(() {
+                    _presDateDebut = null;
+                    _presDateFin = null;
+                  });
+                  _reloadPresence();
+                },
+              ),
+            ),
             const SizedBox(height: 12),
-            _buildDelai(),
+            DelaiSection(
+              delai: _delai,
+              dateDebut: _delaiDateDebut,
+              dateFin: _delaiDateFin,
+              onDateTap: () => _openDateSheet(
+                dateDebut: _delaiDateDebut,
+                dateFin: _delaiDateFin,
+                onApply: (debut, fin) {
+                  setState(() {
+                    _delaiDateDebut = debut;
+                    _delaiDateFin = fin;
+                  });
+                  _reloadDelai();
+                },
+                onClear: () {
+                  setState(() {
+                    _delaiDateDebut = null;
+                    _delaiDateFin = null;
+                  });
+                  _reloadDelai();
+                },
+              ),
+            ),
             const SizedBox(height: 12),
-            _buildAlignement(),
+            AlignementSection(
+              alignement: _alignement,
+              dateDebut: _alignDateDebut,
+              dateFin: _alignDateFin,
+              onDateTap: () => _openDateSheet(
+                dateDebut: _alignDateDebut,
+                dateFin: _alignDateFin,
+                onApply: (debut, fin) {
+                  setState(() {
+                    _alignDateDebut = debut;
+                    _alignDateFin = fin;
+                  });
+                  _reloadAlignement();
+                },
+                onClear: () {
+                  setState(() {
+                    _alignDateDebut = null;
+                    _alignDateFin = null;
+                  });
+                  _reloadAlignement();
+                },
+              ),
+            ),
             const SizedBox(height: 12),
-            _buildClassifications(),
+            ClassificationsSection(
+              classifications: _classifications,
+              dateDebut: _classDateDebut,
+              dateFin: _classDateFin,
+              onDateTap: () => _openDateSheet(
+                dateDebut: _classDateDebut,
+                dateFin: _classDateFin,
+                onApply: (d, f) {
+                  setState(() {
+                    _classDateDebut = d;
+                    _classDateFin = f;
+                  });
+                  _reloadClassifications();
+                },
+                onClear: () {
+                  setState(() {
+                    _classDateDebut = null;
+                    _classDateFin = null;
+                  });
+                  _reloadClassifications();
+                },
+              ),
+            ),
             const SizedBox(height: 12),
-            _buildActivite(),
+            ActiviteSection(
+              activite: _activite,
+              activiteTotal: _activiteTotal,
+              activiteLoading: _activiteLoading,
+              dateDebut: _actDateDebut,
+              dateFin: _actDateFin,
+              onDateTap: () => _openDateSheet(
+                dateDebut: _actDateDebut,
+                dateFin: _actDateFin,
+                onApply: (d, f) {
+                  setState(() {
+                    _actDateDebut = d;
+                    _actDateFin = f;
+                  });
+                  _reloadActivite();
+                },
+                onClear: () {
+                  setState(() {
+                    _actDateDebut = null;
+                    _actDateFin = null;
+                  });
+                  _reloadActivite();
+                },
+              ),
+              onLoadMore: _loadMoreActivite,
+              onClearFilterTap: () =>
+                  setState(() => _showClearConfirm = true),
+            ),
           ],
         ),
         if (_showClearConfirm) _buildClearConfirmDialog(),
@@ -1849,7 +1746,7 @@ class _HomeBodyState extends State<HomeBody> {
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w700,
-                color: _dark,
+                color: chefDark,
               ),
             ),
             const SizedBox(height: 8),
@@ -1881,7 +1778,7 @@ class _HomeBodyState extends State<HomeBody> {
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w700,
-                          color: _dark,
+                          color: chefDark,
                         ),
                       ),
                     ),
@@ -1901,7 +1798,7 @@ class _HomeBodyState extends State<HomeBody> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 10),
                       decoration: BoxDecoration(
-                        color: _red,
+                        color: chefRed,
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: const Text(
@@ -1923,232 +1820,4 @@ class _HomeBodyState extends State<HomeBody> {
       ),
     ),
   );
-}
-
-// ── Fat donut ring painter ───────────────────────────────────────────────────
-class _DonutPainter extends CustomPainter {
-  final double value;
-  const _DonutPainter({required this.value});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    const strokeWidth = 12.0;
-    final center = Offset(size.width / 2, size.height / 2);
-    final radius = (size.width - strokeWidth) / 2;
-    final rect = Rect.fromCircle(center: center, radius: radius);
-
-    // Background track
-    canvas.drawArc(
-      rect,
-      -1.5707963, // -π/2 (12 o'clock)
-      6.2831853, // full circle
-      false,
-      Paint()
-        ..color = const Color(0xFFF1F4F1)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = strokeWidth
-        ..strokeCap = StrokeCap.round,
-    );
-
-    // Filled arc
-    if (value > 0) {
-      canvas.drawArc(
-        rect,
-        -1.5707963,
-        6.2831853 * value,
-        false,
-        Paint()
-          ..color = const Color(0xFF38835A)
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = strokeWidth
-          ..strokeCap = StrokeCap.round,
-      );
-    }
-  }
-
-  @override
-  bool shouldRepaint(_DonutPainter old) => old.value != value;
-}
-
-// ── Ignore button — uses Overlay so the popup floats above the row ───────────
-//
-// The root cause of the "vertical expansion" bug was that the popup was
-// rendered inline inside the Row, pushing siblings aside.  By inserting it
-// into the Overlay we keep the row height unchanged and the popup floats
-// on top of everything else.
-class _IgnoreButton extends StatefulWidget {
-  final VoidCallback onConfirm;
-  const _IgnoreButton({required this.onConfirm});
-
-  @override
-  State<_IgnoreButton> createState() => _IgnoreButtonState();
-}
-
-class _IgnoreButtonState extends State<_IgnoreButton> {
-  OverlayEntry? _entry;
-
-  void _showPopup() {
-    final overlay = Overlay.of(context);
-    final box = context.findRenderObject() as RenderBox;
-    final position = box.localToGlobal(Offset.zero);
-    final screenWidth = MediaQuery.of(context).size.width;
-
-    // Decide whether to open left or right of the button
-    const popupWidth = 200.0;
-    double left = position.dx - popupWidth + box.size.width;
-    if (left < 8) left = 8;
-    if (left + popupWidth > screenWidth - 8) {
-      left = screenWidth - popupWidth - 8;
-    }
-
-    _entry = OverlayEntry(
-      builder: (_) => Stack(
-        children: [
-          // Transparent full-screen tap target to dismiss
-          Positioned.fill(
-            child: GestureDetector(
-              behavior: HitTestBehavior.translucent,
-              onTap: _dismiss,
-              child: const SizedBox.expand(),
-            ),
-          ),
-          // The actual popup card
-          Positioned(
-            top: position.dy - 80, // slightly above the button
-            left: left,
-            width: popupWidth,
-            child: Material(
-              color: Colors.transparent,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.14),
-                      blurRadius: 18,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                  border: Border.all(color: const Color(0xFFEEEEEE)),
-                ),
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Ignorer cet échantillon ?',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFF1A2E1F),
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    const Text(
-                      "Il ne sera plus affiché dans les urgences.",
-                      style: TextStyle(
-                        fontSize: 10,
-                        color: Color(0xFF888888),
-                        height: 1.4,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: GestureDetector(
-                            onTap: _dismiss,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(vertical: 6),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFF8F8F8),
-                                borderRadius: BorderRadius.circular(7),
-                                border: Border.all(
-                                  color: const Color(0xFFE8E8E8),
-                                ),
-                              ),
-                              child: const Text(
-                                'Annuler',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w600,
-                                  color: Color(0xFF888888),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        Expanded(
-                          child: GestureDetector(
-                            onTap: () {
-                              _dismiss();
-                              widget.onConfirm();
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(vertical: 6),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFC0392B),
-                                borderRadius: BorderRadius.circular(7),
-                              ),
-                              child: const Text(
-                                'Ignorer',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-
-    overlay.insert(_entry!);
-  }
-
-  void _dismiss() {
-    _entry?.remove();
-    _entry = null;
-  }
-
-  @override
-  void dispose() {
-    _dismiss();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: _showPopup,
-      child: Container(
-        width: 28,
-        height: 28,
-        decoration: BoxDecoration(
-          color: const Color(0xFFF5F5F5),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: const Color(0xFFEEEEEE)),
-        ),
-        child: const Icon(
-          Icons.visibility_off_outlined,
-          size: 14,
-          color: Color(0xFFAAAAAA),
-        ),
-      ),
-    );
-  }
 }

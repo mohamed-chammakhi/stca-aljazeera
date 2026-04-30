@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-//import 'EvaluationEchantillonsPage.dart'; // ← pour EchantillonEval (le modèle)
+import 'evaluation_echantillons/widgets/evaluation_slider.dart';
+import 'evaluation_echantillons/widgets/classification_card.dart';
 
-// ─────────────────────────────────────────────────────────────────────────────
-// PAGE — FormulaireEvaluationPage
-// Formulaire de dégustation conforme aux normes COI
-// StatefulWidget car : sliders changent, classification recalculée en temps réel
-// ─────────────────────────────────────────────────────────────────────────────
+// PAGE — Formulaire de dégustation COI (StatefulWidget — sliders + classification temps réel)
 class FormulaireEvaluationPage extends StatefulWidget {
   final String echantillonId;
   final String fournisseur;
@@ -56,9 +53,7 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
   // ── TYPE de fruité (Vert / Mûr) ──────────────────────────────────────────
   bool _fruiteVert = true; // true = Vert, false = Mûr
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // ATTRIBUTS NÉGATIFS (défauts) — tous initialisés à 0.0
-  // ─────────────────────────────────────────────────────────────────────────
+  // ── Attributs négatifs (défauts) ─────────────────────────────────────────
   double _chome = 0.0; // Chômé / Lie de boue
   double _moisi = 0.0; // Moisi / Humide / Terreux
   double _vinaigre = 0.0; // Vinaigré / Acide-Aigre
@@ -66,9 +61,7 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
   double _rance = 0.0; // Rance
   double _autresDefaut = 0.0; // Autres défauts
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // ATTRIBUTS POSITIFS — tous initialisés à 0.0
-  // ─────────────────────────────────────────────────────────────────────────
+  // ── Attributs positifs ───────────────────────────────────────────────────
   double _fruite = 0.0; // Fruité
   double _amer = 0.0; // Amer
   double _piquant = 0.0; // Piquant
@@ -80,19 +73,14 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
   final TextEditingController _autresDefautNomController =
       TextEditingController();
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // CALCUL — Médiane des défauts (valeur max parmi les défauts perçus)
-  // Selon normes COI : médiane du défaut perçu avec la plus grande intensité
-  // ─────────────────────────────────────────────────────────────────────────
+  // ── Médiane défauts COI (max des défauts perçus) ─────────────────────────
   double get _medianeDefauts {
     final defauts = [_chome, _moisi, _vinaigre, _gele, _rance, _autresDefaut];
     // On prend le max comme défaut dominant (norme COI)
     return defauts.reduce((a, b) => a > b ? a : b);
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // CALCUL — Classification automatique selon normes COI
-  // ─────────────────────────────────────────────────────────────────────────
+  // ── Classification COI automatique ───────────────────────────────────────
   Map<String, dynamic> get _classification {
     final med = _medianeDefauts;
     final fruit = _fruite;
@@ -146,23 +134,6 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
     }
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // CALCUL — Intensité selon COI
-  // Délicat ≤ 3.0 | Moyen 3.0–6.0 | Robuste > 6.0
-  // ─────────────────────────────────────────────────────────────────────────
-  String _intensiteLabel(double val) {
-    if (val == 0.0) return '';
-    if (val <= 3.0) return 'Délicat';
-    if (val <= 6.0) return 'Moyen';
-    return 'Robuste';
-  }
-
-  Color _sliderColor(double val) {
-    if (val <= 3.0) return green;
-    if (val <= 6.0) return Colors.orange.shade500;
-    return Colors.red.shade500;
-  }
-
   @override
   void dispose() {
     _notesController.dispose();
@@ -170,11 +141,9 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
     super.dispose();
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // BUILD
-  // ─────────────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
+    final cl = _classification;
     return Scaffold(
       backgroundColor: _bg,
       appBar: AppBar(
@@ -242,69 +211,7 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
             // ══════════════════════════════════════════════════════════════
             _buildSectionCard(
               title: '📋 Informations de l\'Échantillon',
-              child: Column(
-                children: [
-                  // Photo + infos côte à côte
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // ── Photo ──
-                      Container(
-                        width: 80,
-                        height: 80,
-                        decoration: BoxDecoration(
-                          color: _headerBg.withValues(alpha: 0.5),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.grey.shade200),
-                        ),
-                        child: widget.photoUrl != null
-                            ? ClipRRect(
-                                borderRadius: BorderRadius.circular(11),
-                                child: Image.network(
-                                  widget.photoUrl!,
-                                  fit: BoxFit.cover,
-                                ),
-                              )
-                            : Icon(
-                                Icons.image_outlined,
-                                size: 36,
-                                color: Colors.grey.shade400,
-                              ),
-                      ),
-
-                      const SizedBox(width: 14),
-
-                      // ── Infos ──
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              widget.echantillonId,
-                              style: GoogleFonts.domine(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w700,
-                                color: darkText,
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            _infoRow(Icons.store_outlined, widget.fournisseur),
-                            _infoRow(Icons.eco_outlined, widget.variete),
-                            _infoRow(
-                              Icons.location_on_outlined,
-                              widget.origine,
-                            ),
-                            _infoRow(
-                              Icons.calendar_today_outlined,
-                              widget.dateArrivee,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+              child: _buildInfoContent(),
             ),
 
             const SizedBox(height: 16),
@@ -312,7 +219,25 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
             // ══════════════════════════════════════════════════════════════
             // SECTION 2 — CLASSIFICATION EN TEMPS RÉEL
             // ══════════════════════════════════════════════════════════════
-            _buildClassificationCard(),
+            ClassificationCard(
+              classificationLabel: cl['label'] as String,
+              classificationDescription: cl['description'] as String,
+              classificationColor: cl['color'] as Color,
+              classificationBg: cl['bg'] as Color,
+              classificationBorder: cl['border'] as Color,
+              classificationIcon: cl['icon'] as IconData,
+              fruite: _fruite,
+              fruiteVert: _fruiteVert,
+              amer: _amer,
+              piquant: _piquant,
+              chome: _chome,
+              moisi: _moisi,
+              vinaigre: _vinaigre,
+              gele: _gele,
+              rance: _rance,
+              autresDefaut: _autresDefaut,
+              medianeDefauts: _medianeDefauts,
+            ),
 
             const SizedBox(height: 16),
 
@@ -325,115 +250,24 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
               child: Column(
                 children: [
                   // ── Fruité avec toggle Vert / Mûr ──
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildSlider(
-                        label: 'Fruité',
-                        description: 'Sensations olfactives caractéristiques',
-                        value: _fruite,
-                        onChanged: (v) => setState(() => _fruite = v),
-                        isPositif: true,
-                      ),
-                      // Toggle Vert / Mûr
-                      if (_fruite > 0.0) ...[
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            const Text(
-                              'Type de fruité :',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: oliveGreen,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            GestureDetector(
-                              onTap: _estSoumis
-                                  ? null
-                                  : () => setState(() => _fruiteVert = true),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 14,
-                                  vertical: 6,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: _fruiteVert
-                                      ? green
-                                      : Colors.grey.shade100,
-                                  borderRadius: BorderRadius.circular(20),
-                                  border: Border.all(
-                                    color: _fruiteVert
-                                        ? green
-                                        : Colors.grey.shade300,
-                                  ),
-                                ),
-                                child: Text(
-                                  '🌿 Vert',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: _fruiteVert
-                                        ? Colors.white
-                                        : Colors.grey.shade600,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            GestureDetector(
-                              onTap: _estSoumis
-                                  ? null
-                                  : () => setState(() => _fruiteVert = false),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 14,
-                                  vertical: 6,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: !_fruiteVert
-                                      ? oliveGreen
-                                      : Colors.grey.shade100,
-                                  borderRadius: BorderRadius.circular(20),
-                                  border: Border.all(
-                                    color: !_fruiteVert
-                                        ? oliveGreen
-                                        : Colors.grey.shade300,
-                                  ),
-                                ),
-                                child: Text(
-                                  '🫒 Mûr',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: !_fruiteVert
-                                        ? Colors.white
-                                        : Colors.grey.shade600,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ],
-                  ),
+                  _buildFruiteRow(),
 
-                  _buildSlider(
+                  EvaluationSlider(
                     label: 'Amer',
                     description: 'Goût primaire — olives vertes ou en véraison',
                     value: _amer,
                     onChanged: (v) => setState(() => _amer = v),
                     isPositif: true,
+                    readOnly: _estSoumis,
                   ),
-                  _buildSlider(
+                  EvaluationSlider(
                     label: 'Piquant',
                     description:
                         'Sensation tactile — olives en début de campagne',
                     value: _piquant,
                     onChanged: (v) => setState(() => _piquant = v),
                     isPositif: true,
+                    readOnly: _estSoumis,
                   ),
                 ],
               ),
@@ -449,35 +283,40 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
               subtitle: 'Tous les champs sont optionnels',
               child: Column(
                 children: [
-                  _buildSlider(
+                  EvaluationSlider(
                     label: 'Chômé / Lie de boue',
                     description: 'Huile d\'olives en fermentation anaérobie',
                     value: _chome,
                     onChanged: (v) => setState(() => _chome = v),
+                    readOnly: _estSoumis,
                   ),
-                  _buildSlider(
+                  EvaluationSlider(
                     label: 'Moisi / Humide / Terreux',
                     description: 'Olives stockées en conditions humides',
                     value: _moisi,
                     onChanged: (v) => setState(() => _moisi = v),
+                    readOnly: _estSoumis,
                   ),
-                  _buildSlider(
+                  EvaluationSlider(
                     label: 'Vinaigré / Acide-Aigre',
                     description: 'Fermentation aérobie — acide acétique',
                     value: _vinaigre,
                     onChanged: (v) => setState(() => _vinaigre = v),
+                    readOnly: _estSoumis,
                   ),
-                  _buildSlider(
+                  EvaluationSlider(
                     label: 'Gelé (Bois Mouillé)',
                     description: 'Olives blessées par le gel',
                     value: _gele,
                     onChanged: (v) => setState(() => _gele = v),
+                    readOnly: _estSoumis,
                   ),
-                  _buildSlider(
+                  EvaluationSlider(
                     label: 'Rance',
                     description: 'Processus d\'oxydation intense',
                     value: _rance,
                     onChanged: (v) => setState(() => _rance = v),
+                    readOnly: _estSoumis,
                   ),
 
                   // ── Autres défauts avec nom libre ──
@@ -519,11 +358,12 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
                   ),
                   if (_autresDefautNomController.text.isNotEmpty) ...[
                     const SizedBox(height: 8),
-                    _buildSlider(
+                    EvaluationSlider(
                       label: 'Intensité — Autre défaut',
                       description: _autresDefautNomController.text,
                       value: _autresDefaut,
                       onChanged: (v) => setState(() => _autresDefaut = v),
+                      readOnly: _estSoumis,
                     ),
                   ],
                 ],
@@ -579,102 +419,10 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
             // ══════════════════════════════════════════════════════════════
             // SECTION 6 — ACTIONS
             // ══════════════════════════════════════════════════════════════
-            if (!_estSoumis) ...[
-              // ── Enregistrer brouillon ──
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton.icon(
-                  onPressed: _enregistrerBrouillon,
-                  icon: const Icon(Icons.save_outlined, size: 18),
-                  label: const Text('Enregistrer le brouillon'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: green,
-                    side: const BorderSide(color: green, width: 1.5),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 12),
-
-              // ── Soumettre et verrouiller ──
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: _confirmerSoumission,
-                  icon: const Icon(Icons.lock_outline, size: 18),
-                  label: const Text(
-                    'Soumettre & Verrouiller',
-                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: green,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 15),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    elevation: 0,
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 8),
-
-              Center(
-                child: Text(
-                  'Une fois soumis, la fiche ne peut plus être modifiée',
-                  style: TextStyle(fontSize: 11, color: Colors.grey.shade400),
-                ),
-              ),
-            ],
+            if (!_estSoumis) ..._buildActionButtons(),
 
             // ── Message si déjà soumis ──
-            if (_estSoumis)
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: green.withValues(alpha: 0.06),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: green.withValues(alpha: 0.28)),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.check_circle,
-                      color: green,
-                      size: 24,
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Évaluation soumise et verrouillée',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
-                              color: darkText,
-                            ),
-                          ),
-                          Text(
-                            'Cette fiche est en lecture seule',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey.shade600,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+            if (_estSoumis) _buildSoumisBanner(),
 
             const SizedBox(height: 30),
           ],
@@ -683,359 +431,203 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
     );
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // WIDGET — _buildSlider
-  // Slider avec boutons +/- et graduation colorée selon COI
-  // ─────────────────────────────────────────────────────────────────────────
-  Widget _buildSlider({
-    required String label,
-    required String description,
-    required double value,
-    required ValueChanged<double> onChanged,
-    bool isPositif = false,
-  }) {
-    final color = isPositif ? _sliderPositifColor(value) : _sliderColor(value);
-    final intensite = _intensiteLabel(value);
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // ── Label + valeur + intensité ──
-          Row(
+  // ── Photo + infos côte à côte ────────────────────────────────────────────
+  Widget _buildInfoContent() {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // ── Photo ──
+        Container(
+          width: 80,
+          height: 80,
+          decoration: BoxDecoration(
+            color: _headerBg.withValues(alpha: 0.5),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.grey.shade200),
+          ),
+          child: widget.photoUrl != null
+              ? ClipRRect(
+                  borderRadius: BorderRadius.circular(11),
+                  child: Image.network(widget.photoUrl!, fit: BoxFit.cover),
+                )
+              : Icon(Icons.image_outlined, size: 36, color: Colors.grey.shade400),
+        ),
+        const SizedBox(width: 14),
+        // ── Infos ──
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      label,
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                        color: isPositif ? green : darkText,
-                      ),
-                    ),
-                    Text(
-                      description,
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: Colors.grey.shade500,
-                      ),
-                    ),
-                  ],
+              Text(
+                widget.echantillonId,
+                style: GoogleFonts.domine(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: darkText,
                 ),
               ),
-
-              // ── Valeur numérique ──
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 4,
-                ),
-                decoration: BoxDecoration(
-                  color: value > 0
-                      ? color.withOpacity(0.1)
-                      : Colors.grey.shade100,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: value > 0
-                        ? color.withOpacity(0.4)
-                        : Colors.grey.shade200,
-                  ),
-                ),
-                child: Text(
-                  value.toStringAsFixed(1),
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w800,
-                    color: value > 0 ? color : Colors.grey.shade400,
-                  ),
-                ),
-              ),
-
-              // ── Intensité label ──
-              if (intensite.isNotEmpty) ...[
-                const SizedBox(width: 6),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: color.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    intensite,
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w700,
-                      color: color,
-                    ),
-                  ),
-                ),
-              ],
+              const SizedBox(height: 6),
+              _infoRow(Icons.store_outlined, widget.fournisseur),
+              _infoRow(Icons.eco_outlined, widget.variete),
+              _infoRow(Icons.location_on_outlined, widget.origine),
+              _infoRow(Icons.calendar_today_outlined, widget.dateArrivee),
             ],
           ),
-
-          const SizedBox(height: 10),
-
-          // ── [ - ] Slider [ + ] ──
-          Row(
-            children: [
-              // ── Bouton MOINS ──
-              GestureDetector(
-                onTap: _estSoumis
-                    ? null
-                    : () {
-                        if (value > 0.0) {
-                          onChanged(
-                            double.parse(
-                              (value - 0.5).clamp(0.0, 10.0).toStringAsFixed(1),
-                            ),
-                          );
-                        }
-                      },
-                child: Container(
-                  width: 34,
-                  height: 34,
-                  decoration: BoxDecoration(
-                    color: value > 0 && !_estSoumis
-                        ? color.withOpacity(0.1)
-                        : Colors.grey.shade100,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: value > 0 && !_estSoumis
-                          ? color.withOpacity(0.4)
-                          : Colors.grey.shade200,
-                    ),
-                  ),
-                  child: Icon(
-                    Icons.remove,
-                    size: 16,
-                    color: value > 0 && !_estSoumis
-                        ? color
-                        : Colors.grey.shade400,
-                  ),
-                ),
-              ),
-
-              const SizedBox(width: 8),
-
-              // ── Slider ──
-              Expanded(
-                child: Column(
-                  children: [
-                    SliderTheme(
-                      data: SliderTheme.of(context).copyWith(
-                        activeTrackColor: _estSoumis
-                            ? Colors.grey.shade300
-                            : color,
-                        inactiveTrackColor: Colors.grey.shade200,
-                        thumbColor: _estSoumis ? Colors.grey.shade400 : color,
-                        overlayColor: color.withOpacity(0.15),
-                        trackHeight: 5.0,
-                        thumbShape: const RoundSliderThumbShape(
-                          enabledThumbRadius: 9,
-                        ),
-                        overlayShape: const RoundSliderOverlayShape(
-                          overlayRadius: 18,
-                        ),
-                      ),
-                      child: Slider(
-                        value: value,
-                        min: 0.0,
-                        max: 10.0,
-                        divisions: 20, // pas de 0.5
-                        onChanged: _estSoumis ? null : onChanged,
-                      ),
-                    ),
-
-                    // ── Graduation 0 à 10 ──
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: List.generate(11, (i) {
-                          final isActive = value >= i.toDouble();
-                          return Text(
-                            '$i',
-                            style: TextStyle(
-                              fontSize: 9,
-                              color: isActive && !_estSoumis
-                                  ? color
-                                  : Colors.grey.shade400,
-                              fontWeight: isActive
-                                  ? FontWeight.w700
-                                  : FontWeight.w400,
-                            ),
-                          );
-                        }),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(width: 8),
-
-              // ── Bouton PLUS ──
-              GestureDetector(
-                onTap: _estSoumis
-                    ? null
-                    : () {
-                        if (value < 10.0) {
-                          onChanged(
-                            double.parse(
-                              (value + 0.5).clamp(0.0, 10.0).toStringAsFixed(1),
-                            ),
-                          );
-                        }
-                      },
-                child: Container(
-                  width: 34,
-                  height: 34,
-                  decoration: BoxDecoration(
-                    color: value < 10.0 && !_estSoumis
-                        ? color.withOpacity(0.1)
-                        : Colors.grey.shade100,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: value < 10.0 && !_estSoumis
-                          ? color.withOpacity(0.4)
-                          : Colors.grey.shade200,
-                    ),
-                  ),
-                  child: Icon(
-                    Icons.add,
-                    size: 16,
-                    color: value < 10.0 && !_estSoumis
-                        ? color
-                        : Colors.grey.shade400,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // WIDGET — _buildClassificationCard
-  // Affiche la classification en temps réel
-  // ─────────────────────────────────────────────────────────────────────────
-  Widget _buildClassificationCard() {
-    final cl = _classification;
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: (cl['bg'] as Color),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: cl['border'] as Color, width: 1.5),
+  // ── Boutons Brouillon + Soumettre & Verrouiller ──────────────────────────
+  List<Widget> _buildActionButtons() {
+    return [
+      SizedBox(
+        width: double.infinity,
+        child: OutlinedButton.icon(
+          onPressed: _enregistrerBrouillon,
+          icon: const Icon(Icons.save_outlined, size: 18),
+          label: const Text('Enregistrer le brouillon'),
+          style: OutlinedButton.styleFrom(
+            foregroundColor: green,
+            side: const BorderSide(color: green, width: 1.5),
+            padding: const EdgeInsets.symmetric(vertical: 14),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+        ),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+      const SizedBox(height: 12),
+      SizedBox(
+        width: double.infinity,
+        child: ElevatedButton.icon(
+          onPressed: _confirmerSoumission,
+          icon: const Icon(Icons.lock_outline, size: 18),
+          label: const Text(
+            'Soumettre & Verrouiller',
+            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+          ),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: green,
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(vertical: 15),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            elevation: 0,
+          ),
+        ),
+      ),
+      const SizedBox(height: 8),
+      Center(
+        child: Text(
+          'Une fois soumis, la fiche ne peut plus être modifiée',
+          style: TextStyle(fontSize: 11, color: Colors.grey.shade400),
+        ),
+      ),
+    ];
+  }
+
+  // ── Slider Fruité + toggle Vert/Mûr ─────────────────────────────────────
+  Widget _buildFruiteRow() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        EvaluationSlider(
+          label: 'Fruité',
+          description: 'Sensations olfactives caractéristiques',
+          value: _fruite,
+          onChanged: (v) => setState(() => _fruite = v),
+          isPositif: true,
+          readOnly: _estSoumis,
+        ),
+        if (_fruite > 0.0) ...[
+          const SizedBox(height: 8),
           Row(
             children: [
-              Icon(
-                cl['icon'] as IconData,
-                color: cl['color'] as Color,
-                size: 22,
-              ),
-              const SizedBox(width: 10),
-              Text(
-                'Classification COI',
+              const Text(
+                'Type de fruité :',
                 style: TextStyle(
                   fontSize: 12,
-                  color: Colors.grey.shade600,
+                  color: oliveGreen,
                   fontWeight: FontWeight.w600,
-                  letterSpacing: 0.5,
                 ),
               ),
-              const Spacer(),
-              // ── Médiane défaut ──
-              Text(
-                'Méd. défaut: ${_medianeDefauts.toStringAsFixed(1)}',
-                style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            cl['label'] as String,
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.w800,
-              color: cl['color'] as Color,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            cl['description'] as String,
-            style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
-          ),
-
-          const SizedBox(height: 12),
-
-          // ── Résumé des valeurs ──
-          Wrap(
-            spacing: 8,
-            runSpacing: 6,
-            children: [
-              if (_fruite > 0)
-                _valuePill(
-                  'Fruité ${_fruiteVert ? "Vert" : "Mûr"}',
-                  _fruite,
-                  green,
-                ),
-              if (_amer > 0) _valuePill('Amer', _amer, oliveGreen),
-              if (_piquant > 0) _valuePill('Piquant', _piquant, oliveGreen),
-              if (_chome > 0) _valuePill('Chômé', _chome, Colors.orange),
-              if (_moisi > 0) _valuePill('Moisi', _moisi, Colors.orange),
-              if (_vinaigre > 0) _valuePill('Vinaigré', _vinaigre, Colors.red),
-              if (_gele > 0) _valuePill('Gelé', _gele, Colors.red),
-              if (_rance > 0) _valuePill('Rance', _rance, Colors.red),
-              if (_autresDefaut > 0)
-                _valuePill('Autre', _autresDefaut, Colors.red),
+              const SizedBox(width: 12),
+              _fruiteToggleChip('🌿 Vert', isSelected: _fruiteVert, color: green,
+                  onTap: () => setState(() => _fruiteVert = true)),
+              const SizedBox(width: 8),
+              _fruiteToggleChip('🫒 Mûr', isSelected: !_fruiteVert, color: oliveGreen,
+                  onTap: () => setState(() => _fruiteVert = false)),
             ],
           ),
         ],
-      ),
+      ],
     );
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // WIDGET — _valuePill
-  // Petit badge avec nom + valeur
-  // ─────────────────────────────────────────────────────────────────────────
-  Widget _valuePill(String label, double value, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withOpacity(0.3)),
-      ),
-      child: Text(
-        '$label: ${value.toStringAsFixed(1)}',
-        style: TextStyle(
-          fontSize: 11,
-          color: color,
-          fontWeight: FontWeight.w700,
+  Widget _fruiteToggleChip(
+    String label, {
+    required bool isSelected,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: _estSoumis ? null : onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        decoration: BoxDecoration(
+          color: isSelected ? color : Colors.grey.shade100,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: isSelected ? color : Colors.grey.shade300),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            color: isSelected ? Colors.white : Colors.grey.shade600,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ),
     );
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // WIDGET — _buildSectionCard
-  // Carte section avec titre et contenu
-  // ─────────────────────────────────────────────────────────────────────────
+  // ── Bannière lecture seule ───────────────────────────────────────────────
+  Widget _buildSoumisBanner() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: green.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: green.withValues(alpha: 0.28)),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.check_circle, color: green, size: 24),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Évaluation soumise et verrouillée',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: darkText,
+                  ),
+                ),
+                Text(
+                  'Cette fiche est en lecture seule',
+                  style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── Carte section avec titre ────────────────────────────────────────────
   Widget _buildSectionCard({
     required String title,
     String? subtitle,
@@ -1081,10 +673,7 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
     );
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // WIDGET — _infoRow
-  // Ligne d'info avec icône
-  // ─────────────────────────────────────────────────────────────────────────
+  // ── Ligne d'info avec icône ──────────────────────────────────────────────
   Widget _infoRow(IconData icon, String value) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 4),
@@ -1098,18 +687,7 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
     );
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // COULEUR — slider positif (vert uniquement)
-  // ─────────────────────────────────────────────────────────────────────────
-  Color _sliderPositifColor(double val) {
-    if (val <= 3.0) return green;
-    if (val <= 6.0) return oliveGreen;
-    return Colors.teal.shade600;
-  }
-
-  // ─────────────────────────────────────────────────────────────────────────
-  // ACTION — Enregistrer brouillon
-  // ─────────────────────────────────────────────────────────────────────────
+  // ── Action: brouillon ───────────────────────────────────────────────────
   void _enregistrerBrouillon() {
     // TODO: POST /api/evaluations/brouillon
     ScaffoldMessenger.of(context).showSnackBar(
@@ -1126,9 +704,7 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
     );
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // ACTION — Confirmer soumission
-  // ─────────────────────────────────────────────────────────────────────────
+  // ── Action: confirmer soumission ────────────────────────────────────────
   void _confirmerSoumission() {
     showDialog(
       context: context,

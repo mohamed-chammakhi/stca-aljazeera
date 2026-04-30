@@ -7,9 +7,7 @@
 
 import 'package:flutter/material.dart';
 import '../../../../core/models/echantillon.dart';
-
-const Color _green = Color(0xFF38835A);
-const Color _darkText = Color(0xFF1A2E1F);
+import '../../../widgets/chef_colors.dart';
 
 void showSuppressionDialog(
   BuildContext context, {
@@ -39,14 +37,14 @@ void showSuppressionDialog(
       // RichText = multiple styles in the same text block
       content: RichText(
         text: TextSpan(
-          style: const TextStyle(fontSize: 14, color: _darkText),
+          style: const TextStyle(fontSize: 14, color: chefDark),
           children: [
             const TextSpan(text: 'Êtes-vous sûr de supprimer l\'échantillon '),
             TextSpan(
               text: echantillon.id, // green bold ID
               style: const TextStyle(
                 fontWeight: FontWeight.w700,
-                color: _green,
+                color: chefGreen,
               ),
             ),
             const TextSpan(text: ' de '),

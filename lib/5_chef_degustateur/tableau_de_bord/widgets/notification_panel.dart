@@ -8,10 +8,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../models/notification_item.dart';
+import '../../widgets/chef_colors.dart';
 
-const Color _green    = Color(0xFF38835A);
 const Color _cream    = Color(0xFFF9F6EF);
-const Color _darkText = Color(0xFF1A2E1F);
 
 // Function — called from homepage like :
 // showNotificationPanel(context, notifications: _notifications)
@@ -51,7 +50,7 @@ void showNotificationPanel(
                         style: GoogleFonts.domine(
                           fontSize:   20,
                           fontWeight: FontWeight.w700,
-                          color:      _darkText,
+                          color:      chefDark,
                         ),
                       ),
                       IconButton(
@@ -93,12 +92,12 @@ Widget _buildNotificationCard(NotificationItem notif) {
         color:        _cream,
         borderRadius: BorderRadius.circular(12),
         border: Border(
-          left: BorderSide(color: _green, width: 4),
+          left: BorderSide(color: chefGreen, width: 4),
         ),
       ),
       child: Row(
         children: [
-          const Icon(Icons.check_circle_outline, color: _green, size: 24),
+          const Icon(Icons.check_circle_outline, color: chefGreen, size: 24),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -109,7 +108,7 @@ Widget _buildNotificationCard(NotificationItem notif) {
                   style: const TextStyle(
                     fontSize:   14,
                     fontWeight: FontWeight.w600,
-                    color:      _darkText,
+                    color:      chefDark,
                   ),
                 ),
                 const SizedBox(height: 4),

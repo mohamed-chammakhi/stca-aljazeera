@@ -15,17 +15,15 @@ import '../../../../core/models/enums.dart';
 import '../date_input_field.dart';
 // TODO(core): move GeoService to lib/core/services/ — cross-module import from 2_collecteur
 import '../../../../2_collecteur/carte_geo/services/geo_service.dart';
+import '../../../widgets/chef_colors.dart';
 
-const Color _green = Color(0xFF38835A);
 const Color _beige = Color(0xFFE9F4EE);
 
 const Color _olive = Color(0xFF6B8143);
-const Color _dark = Color(0xFF1A2E1F);
 const Color _cream = Color(0xFFF9F6EF);
 const Color _fieldFill = Color(0xFFF7FAF8);
 
 // Section accent colors
-const Color _sectionBouteille = Color(0xFF38835A); // green
 const Color _sectionFournisseur = Color(0xFF2E7D98); // teal-blue
 const Color _sectionLocalisation = Color(0xFF6D4C41); // earthy
 const Color _sectionDate = Color(0xFF5C6BC0); // muted indigo
@@ -297,7 +295,7 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
                     _isModification
                         ? Icons.edit_outlined
                         : Icons.add_circle_outline,
-                    color: _dark,
+                    color: chefDark,
                     size: 20,
                   ),
                   const SizedBox(width: 10),
@@ -309,7 +307,7 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
                       style: GoogleFonts.domine(
                         fontSize: 17,
                         fontWeight: FontWeight.w700,
-                        color: _dark,
+                        color: chefDark,
                       ),
                     ),
                   ),
@@ -409,10 +407,10 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
                       width: double.infinity,
                       height: 64,
                       decoration: BoxDecoration(
-                        color: _green.withValues(alpha: 0.05),
+                        color: chefGreen.withValues(alpha: 0.05),
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(
-                          color: _green.withValues(alpha: 0.25),
+                          color: chefGreen.withValues(alpha: 0.25),
                           style: BorderStyle.solid,
                         ),
                       ),
@@ -421,7 +419,7 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
                         children: [
                           Icon(
                             Icons.add_photo_alternate_outlined,
-                            color: _green.withValues(alpha: 0.55),
+                            color: chefGreen.withValues(alpha: 0.55),
                             size: 22,
                           ),
                           const SizedBox(width: 8),
@@ -429,7 +427,7 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
                             'Ajouter une photo ',
                             style: TextStyle(
                               fontSize: 12,
-                              color: _green.withValues(alpha: 0.55),
+                              color: chefGreen.withValues(alpha: 0.55),
                             ),
                           ),
                         ],
@@ -468,7 +466,7 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
                           minLines: 2,
                           style: const TextStyle(
                             fontSize: 14,
-                            color: _dark,
+                            color: chefDark,
                           ),
                           decoration: InputDecoration(
                             hintText: 'Notes, observations particulières...',
@@ -492,7 +490,7 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),
                               borderSide: const BorderSide(
-                                color: _green,
+                                color: chefGreen,
                                 width: 1.8,
                               ),
                             ),
@@ -556,7 +554,7 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
                           206,
                           201,
                         ),
-                        foregroundColor: _dark,
+                        foregroundColor: chefDark,
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         elevation: 0,
                         shape: RoundedRectangleBorder(
@@ -602,7 +600,7 @@ class _IdBadge extends StatelessWidget {
         style: const TextStyle(
           fontSize: 12,
           fontWeight: FontWeight.w700,
-          color: _dark,
+          color: chefDark,
         ),
       ),
     );
@@ -654,19 +652,19 @@ class _BouteillesSection extends StatelessWidget {
                     vertical: 5,
                   ),
                   decoration: BoxDecoration(
-                    color: _green.withValues(alpha: 0.1),
+                    color: chefGreen.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: _green.withValues(alpha: 0.3)),
+                    border: Border.all(color: chefGreen.withValues(alpha: 0.3)),
                   ),
                   child: const Row(
                     children: [
-                      Icon(Icons.add, size: 14, color: _green),
+                      Icon(Icons.add, size: 14, color: chefGreen),
                       SizedBox(width: 4),
                       Text(
                         'Ajouter une bouteille',
                         style: TextStyle(
                           fontSize: 12,
-                          color: _green,
+                          color: chefGreen,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -682,16 +680,16 @@ class _BouteillesSection extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: _green.withValues(alpha: 0.07),
+              color: chefGreen.withValues(alpha: 0.07),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: _green.withValues(alpha: 0.2)),
+              border: Border.all(color: chefGreen.withValues(alpha: 0.2)),
             ),
             child: Row(
               children: [
                 Icon(
                   Icons.info_outline,
                   size: 14,
-                  color: _green.withValues(alpha: 0.8),
+                  color: chefGreen.withValues(alpha: 0.8),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
@@ -699,7 +697,7 @@ class _BouteillesSection extends StatelessWidget {
                     '$count bouteilles → $count échantillons séparés seront créés',
                     style: TextStyle(
                       fontSize: 11,
-                      color: _green.withValues(alpha: 0.9),
+                      color: chefGreen.withValues(alpha: 0.9),
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -766,7 +764,7 @@ class _BouteilleCard extends StatelessWidget {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: _green, width: 1.8),
+          borderSide: const BorderSide(color: chefGreen, width: 1.8),
         ),
       );
 
@@ -789,7 +787,7 @@ class _BouteilleCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: _green.withValues(alpha: 0.1),
+                  color: chefGreen.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
@@ -797,7 +795,7 @@ class _BouteilleCard extends StatelessWidget {
                   style: const TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
-                    color: _green,
+                    color: chefGreen,
                   ),
                 ),
               ),
@@ -827,7 +825,7 @@ class _BouteilleCard extends StatelessWidget {
           const SizedBox(height: 5),
           TextField(
             controller: row.refCtrl,
-            style: const TextStyle(fontSize: 13, color: _dark),
+            style: const TextStyle(fontSize: 13, color: chefDark),
             decoration: _fieldDec('Ex: CHEMLALI-C1'),
           ),
           const SizedBox(height: 8),
@@ -843,7 +841,7 @@ class _BouteilleCard extends StatelessWidget {
                     const SizedBox(height: 5),
                     TextField(
                       controller: row.varieteCtrl,
-                      style: const TextStyle(fontSize: 13, color: _dark),
+                      style: const TextStyle(fontSize: 13, color: chefDark),
                       decoration: _fieldDec('Ex: Chemlali'),
                     ),
                   ],
@@ -858,7 +856,7 @@ class _BouteilleCard extends StatelessWidget {
                     const SizedBox(height: 5),
                     TextField(
                       controller: row.scellageCtrl,
-                      style: const TextStyle(fontSize: 13, color: _dark),
+                      style: const TextStyle(fontSize: 13, color: chefDark),
                       decoration: _fieldDec('Ex: Z1'),
                     ),
                   ],
@@ -874,7 +872,7 @@ class _BouteilleCard extends StatelessWidget {
           TextField(
             controller: row.qteCtrl,
             keyboardType: TextInputType.number,
-            style: const TextStyle(fontSize: 13, color: _dark),
+            style: const TextStyle(fontSize: 13, color: chefDark),
             decoration: _fieldDec('Ex: 5000', suffixText: 'T'),
           ),
         ],
@@ -981,7 +979,7 @@ class _FormField extends StatelessWidget {
     ),
     focusedBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(10),
-      borderSide: const BorderSide(color: _green, width: 1.8),
+      borderSide: const BorderSide(color: chefGreen, width: 1.8),
     ),
   );
 
@@ -1011,7 +1009,7 @@ class _FormField extends StatelessWidget {
         TextField(
           controller: controller,
           keyboardType: keyboardType,
-          style: const TextStyle(fontSize: 14, color: _dark),
+          style: const TextStyle(fontSize: 14, color: chefDark),
           decoration: _dec(),
         ),
       ],
@@ -1081,7 +1079,7 @@ class _DropdownField extends StatelessWidget {
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: _green, width: 1.8),
+                  borderSide: const BorderSide(color: chefGreen, width: 1.8),
                 ),
               ),
               hint: Text(
@@ -1137,9 +1135,9 @@ class _ReadOnlyField extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Icon(icon, color: _green, size: 20),
+            Icon(icon, color: chefGreen, size: 20),
             const SizedBox(width: 12),
-            Text(value, style: const TextStyle(fontSize: 14, color: _dark)),
+            Text(value, style: const TextStyle(fontSize: 14, color: chefDark)),
             const Spacer(),
             Icon(Icons.lock_outline, size: 14, color: Colors.grey.shade400),
           ],

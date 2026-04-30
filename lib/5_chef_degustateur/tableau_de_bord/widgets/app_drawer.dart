@@ -6,10 +6,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../widgets/chef_colors.dart';
 
-const Color _headerBg = Color.fromARGB(255, 220, 233, 226);
-const Color _green = Color(0xFF38835A);
-const Color _dark = Color(0xFF1A2E1F);
 const Color _olive = Color(0xFF6B8143);
 const Color _iconBg = Color(0x1A38835A); // green at 10% opacity
 
@@ -85,13 +83,13 @@ class AppDrawer extends StatelessWidget {
                         style: GoogleFonts.domine(
                           fontSize: 18,
                           fontWeight: FontWeight.w700,
-                          color: _dark,
+                          color: chefDark,
                         ),
                       ),
                       const SizedBox(height: 2),
                       const Text(
                         'STCA Aljazira',
-                        style: TextStyle(fontSize: 12, color: _dark),
+                        style: TextStyle(fontSize: 12, color: chefDark),
                       ),
                     ],
                   ),
@@ -259,7 +257,7 @@ class _DrawerItem extends StatelessWidget {
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Center(
-                child: customIcon ?? Icon(icon, color: _green, size: 20),
+                child: customIcon ?? Icon(icon, color: chefGreen, size: 20),
               ),
             ),
             const SizedBox(width: 14),
@@ -268,7 +266,7 @@ class _DrawerItem extends StatelessWidget {
               style: const TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
-                color: _dark,
+                color: chefDark,
               ),
             ),
           ],
