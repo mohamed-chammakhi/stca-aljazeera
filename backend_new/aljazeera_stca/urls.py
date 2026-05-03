@@ -23,6 +23,9 @@ urlpatterns = [
     path('api/planifications/', include('planifications.urls')),
     path('api/notifications/', include('notifications.urls')),
     path('api/messages_chat/', include('messages_chat.urls')),
+    path('api/ceo/', include('ceo.urls')),
+    path('api/chef/', include('chef.urls')),
+    path('api/degustateur/', include('degustateur.urls')),
 
     # ── Interactive API docs (Swagger UI) ─────────────────────────────────────
     # Visit http://localhost:8000/api/docs/  to see and test every endpoint
