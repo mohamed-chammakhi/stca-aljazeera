@@ -1,207 +1,219 @@
 // lib/3_degustateur/tableau_de_bord/services/dashboard_degustateur_service.dart
 
 import '../models/dashboard_degustateur.dart';
+import '../../../core/api_client.dart';
 
 class DashboardDegustateurService {
-  // TODO: inject ApiClient here when backend is ready
-  // final ApiClient _api;
+  // ── Private helpers ─────────────────────────────────────────────────────────
+
+  /// Formats an ISO 8601 date string to French short format: "24 Avr · 10h32".
+  String _formatDate(String isoDate) {
+    try {
+      final dt = DateTime.parse(isoDate).toLocal();
+      const months = [
+        'Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin',
+        'Juil', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc',
+      ];
+      final day = dt.day.toString().padLeft(2, '0');
+      final month = months[dt.month - 1];
+      final hour = dt.hour.toString().padLeft(2, '0');
+      final minute = dt.minute.toString().padLeft(2, '0');
+      return '$day $month · ${hour}h$minute';
+    } catch (_) {
+      return isoDate;
+    }
+  }
 
   // ── Urgent evaluations (time-based) ─────────────────────────────────────────
+
+  /// Fetches samples that have been waiting longest for evaluation.
+  ///
+  /// Backend: GET /api/chef/dashboard/urgentes/
+  /// Returns: [{id, numero, variete, days_waiting, badge}, ...]
+  /// Translation: builds a map that EvaluationUrgente.fromJson expects.
   Future<List<EvaluationUrgente>> fetchUrgentes() async {
-    // TODO: replace with: return _api.get('/degustateur/dashboard/urgentes/');
-    return _mockUrgentes();
+    final items = await apiClient.getList('/api/chef/dashboard/urgentes/');
+    return items.map((e) {
+      final api = e as Map<String, dynamic>;
+      return EvaluationUrgente.fromJson({
+        'id':             api['id'],
+        'reference':      '${api['variete'] ?? ''} · ${api['numero'] ?? ''}',
+        'collecteur_nom': '',
+        'fournisseur_nom': '',
+        'jours_en_attente': api['days_waiting'] ?? 0,
+      });
+    }).toList();
   }
 
   // ── Urgent evaluations flagged by CEO ────────────────────────────────────────
+
+  /// Fetches samples that the CEO has flagged as requiring priority evaluation.
+  ///
+  /// Backend: GET /api/chef/dashboard/urgentes-ceo/
+  /// Returns: [{id, numero, variete, collecteur_nom, fournisseur_nom}, ...]
+  /// Translation: builds reference from variete + numero.
   Future<List<EvaluationUrgenteCeo>> fetchUrgentesCeo() async {
-    // TODO: replace with: return _api.get('/degustateur/dashboard/urgentes-ceo/');
-    return _mockUrgentesCeo();
+    final items = await apiClient.getList('/api/chef/dashboard/urgentes-ceo/');
+    return items.map((e) {
+      final api = e as Map<String, dynamic>;
+      return EvaluationUrgenteCeo.fromJson({
+        'id':             api['id'],
+        'reference':      '${api['variete'] ?? ''} · ${api['numero'] ?? ''}',
+        'collecteur_nom': api['collecteur_nom'] ?? '',
+        'fournisseur_nom': api['fournisseur_nom'] ?? '',
+      });
+    }).toList();
   }
 
-  // ── Pipeline ────────────────────────────────────────────────────────────────
+  // ── Pipeline ─────────────────────────────────────────────────────────────────
+
+  /// Fetches the evaluation pipeline counts.
+  ///
+  /// Backend: GET /api/chef/dashboard/pipeline/
+  /// Returns: {receptionne, en_attente_eval, en_cours, soumis}
+  /// Translation: en_attente_eval → non_evaluee, soumis → soumise
   Future<PipelineData> fetchPipeline() async {
-    // TODO: replace with: return _api.get('/degustateur/dashboard/pipeline/');
-    return _mockPipeline();
+    final raw = await apiClient.get('/api/chef/dashboard/pipeline/');
+    return PipelineData.fromJson({
+      'receptionne': raw['receptionne'] ?? 0,
+      'non_evaluee': raw['en_attente_eval'] ?? 0,
+      'en_cours':    raw['en_cours'] ?? 0,
+      'soumise':     raw['soumis'] ?? 0,
+    });
   }
 
-  // ── Classifications ─────────────────────────────────────────────────────────
+  // ── Classifications ──────────────────────────────────────────────────────────
+
+  /// Fetches classification distribution over time, optionally filtered by date range.
+  ///
+  /// Backend: GET /api/chef/dashboard/classifications/?date_debut=...&date_fin=...
+  /// Returns: [{label, extra_vierge, vierge, lampante}, ...] — matches Flutter model directly.
   Future<List<ClassificationPoint>> fetchClassifications({
     DateTime? dateDebut,
     DateTime? dateFin,
   }) async {
-    // TODO: replace with API call passing date params
-    return _mockClassifications();
+    final params = <String, String>{};
+    if (dateDebut != null) {
+      params['date_debut'] = '${dateDebut.year}-${dateDebut.month.toString().padLeft(2, '0')}-${dateDebut.day.toString().padLeft(2, '0')}';
+    }
+    if (dateFin != null) {
+      params['date_fin'] = '${dateFin.year}-${dateFin.month.toString().padLeft(2, '0')}-${dateFin.day.toString().padLeft(2, '0')}';
+    }
+    final path = Uri(
+      path: '/api/chef/dashboard/classifications/',
+      queryParameters: params.isEmpty ? null : params,
+    ).toString();
+    final items = await apiClient.getList(path);
+    return items
+        .map((e) => ClassificationPoint.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 
-  // ── Presence ────────────────────────────────────────────────────────────────
+  // ── Presence ──────────────────────────────────────────────────────────────────
+
+  /// Fetches the degustateur's session attendance summary.
+  ///
+  /// Backend: GET /api/chef/dashboard/presence/?date_debut=...&date_fin=...
+  /// Returns: {present, manquee, prochaine_titre, prochaine_date, prochaine_lieu, prochaine_countdown}
+  /// — matches PresenceData.fromJson directly.
   Future<PresenceData> fetchPresence({
     DateTime? dateDebut,
     DateTime? dateFin,
   }) async {
-    // TODO: replace with API call passing date params
-    return _mockPresence();
+    final params = <String, String>{};
+    if (dateDebut != null) {
+      params['date_debut'] = '${dateDebut.year}-${dateDebut.month.toString().padLeft(2, '0')}-${dateDebut.day.toString().padLeft(2, '0')}';
+    }
+    if (dateFin != null) {
+      params['date_fin'] = '${dateFin.year}-${dateFin.month.toString().padLeft(2, '0')}-${dateFin.day.toString().padLeft(2, '0')}';
+    }
+    final path = Uri(
+      path: '/api/chef/dashboard/presence/',
+      queryParameters: params.isEmpty ? null : params,
+    ).toString();
+    final raw = await apiClient.get(path);
+    return PresenceData.fromJson(raw);
   }
 
-  // ── Délai de soumission ─────────────────────────────────────────────────────
+  // ── Délai de soumission ──────────────────────────────────────────────────────
+
+  /// Fetches the degustateur's submission delay summary over a date range.
+  ///
+  /// Backend: GET /api/degustateur/dashboard/delai/?date_debut=...&date_fin=...
+  /// Returns: {mon_delai_moyen, panel_moyen, nb_evals, points: [{date, delai}]}
+  /// Translation: each point maps delai → mon_delai, adds panel_moyen from root.
   Future<DelaiSummary> fetchDelai({
     required DateTime dateDebut,
     required DateTime dateFin,
   }) async {
-    // TODO: replace with: return _api.get('/degustateur/dashboard/delai/?date_debut=...&date_fin=...');
-    return _mockDelai();
+    String _fmt(DateTime d) =>
+        '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+    final path = Uri(
+      path: '/api/degustateur/dashboard/delai/',
+      queryParameters: {
+        'date_debut': _fmt(dateDebut),
+        'date_fin':   _fmt(dateFin),
+      },
+    ).toString();
+    final raw = await apiClient.get(path);
+    final panelMoyen = (raw['panel_moyen'] as num?)?.toDouble() ?? 0.0;
+    final points = (raw['points'] as List? ?? []).map((p) {
+      final point = p as Map<String, dynamic>;
+      return DelaiPoint.fromJson({
+        'date':        point['date'],
+        'mon_delai':   point['delai'],
+        'panel_moyen': panelMoyen,
+      });
+    }).toList();
+    return DelaiSummary(
+      monDelaiMoyen: (raw['mon_delai_moyen'] as num?)?.toDouble() ?? 0.0,
+      panelMoyen:    panelMoyen,
+      nbEvals:       (raw['nb_evals'] as int?) ?? 0,
+      points:        points,
+    );
   }
 
-  // ── Activité récente ────────────────────────────────────────────────────────
-  // Returns up to [pageSize] items starting at [offset].
-  // Backend: GET /api/activite/?date_debut=...&date_fin=...&offset=0&limit=5
+  // ── Activité récente ─────────────────────────────────────────────────────────
+
+  /// Fetches paginated recent activity for the degustateur.
+  ///
+  /// Backend: GET /api/degustateur/activite/?offset=<n>&limit=<n>
+  /// Returns: {count: N, results: [{type, date, description}, ...]}
+  /// Translation: maps description → action, date → horodatage (French format).
   Future<({List<ActiviteItem> items, int total})> fetchActivite({
     DateTime? dateDebut,
     DateTime? dateFin,
     int offset = 0,
     int pageSize = 5,
   }) async {
-    // TODO: replace with paginated API call
-    final all = _mockActivite();
-    final slice = all.skip(offset).take(pageSize).toList();
-    return (items: slice, total: all.length);
+    final params = <String, String>{
+      'offset': offset.toString(),
+      'limit':  pageSize.toString(),
+    };
+    if (dateDebut != null) {
+      params['date_debut'] = '${dateDebut.year}-${dateDebut.month.toString().padLeft(2, '0')}-${dateDebut.day.toString().padLeft(2, '0')}';
+    }
+    if (dateFin != null) {
+      params['date_fin'] = '${dateFin.year}-${dateFin.month.toString().padLeft(2, '0')}-${dateFin.day.toString().padLeft(2, '0')}';
+    }
+    final path = Uri(
+      path: '/api/degustateur/activite/',
+      queryParameters: params,
+    ).toString();
+    // Use get() (not getList()) so we can read the top-level `count` field.
+    final raw = await apiClient.get(path);
+    final total = (raw['count'] as int?) ?? 0;
+    final results = raw['results'] as List? ?? [];
+    final items = results.asMap().entries.map((entry) {
+      final index = offset + entry.key;
+      final item = entry.value as Map<String, dynamic>;
+      return ActiviteItem.fromJson({
+        'id':         index.toString(),
+        'action':     item['description'] ?? '',
+        'horodatage': _formatDate(item['date'] as String? ?? ''),
+        'type':       item['type'] ?? '',
+      });
+    }).toList();
+    return (items: items, total: total);
   }
-
-  // ── Mock data ───────────────────────────────────────────────────────────────
-  // TODO: remove when backend is ready
-
-  List<EvaluationUrgente> _mockUrgentes() => [
-    const EvaluationUrgente(
-      id: 'urg-1',
-      reference: 'CHEMLALI-C1 · 2026/0001',
-      collecteurNom: 'Ahmed Dridi',
-      fournisseurNom: 'Domaine Bel-Air',
-      joursEnAttente: 3,
-    ),
-    const EvaluationUrgente(
-      id: 'urg-2',
-      reference: 'CHETOUI-C3 · 2026/0003',
-      collecteurNom: 'Rania Hammami',
-      fournisseurNom: 'Ferme Al Jazira',
-      joursEnAttente: 1,
-    ),
-  ];
-
-  // TODO: remove when backend is ready
-  List<EvaluationUrgenteCeo> _mockUrgentesCeo() => const [
-    EvaluationUrgenteCeo(
-      id: 'ceo-1',
-      reference: 'OUESLATI-C2 · 2026/0007',
-      collecteurNom: 'Sami Ben Amor',
-      fournisseurNom: 'Ferme El Baraka',
-    ),
-  ];
-
-  PipelineData _mockPipeline() => const PipelineData(
-    receptionne: 3,
-    nonEvaluee: 5,
-    enCours: 2,
-    soumise: 14,
-  );
-
-  List<ClassificationPoint> _mockClassifications() => const [
-    ClassificationPoint(label: 'Oct', extraVierge: 1, vierge: 0, lampante: 1),
-    ClassificationPoint(label: 'Nov', extraVierge: 2, vierge: 1, lampante: 0),
-    ClassificationPoint(label: 'Déc', extraVierge: 3, vierge: 1, lampante: 0),
-    ClassificationPoint(label: 'Jan', extraVierge: 5, vierge: 2, lampante: 0),
-    ClassificationPoint(label: 'Fév', extraVierge: 2, vierge: 1, lampante: 1),
-    ClassificationPoint(label: 'Mar', extraVierge: 1, vierge: 1, lampante: 0),
-    ClassificationPoint(label: 'Avr', extraVierge: 1, vierge: 0, lampante: 0),
-  ];
-
-  PresenceData _mockPresence() => const PresenceData(
-    present: 13,
-    manquee: 2,
-    prochaineTitre: 'Prochaine séance : 28 Avr 2026',
-    prochaineDate: '28 Avr 2026',
-    prochaineLieu: 'Salle de dégustation A · 09h00',
-    prochaineCountdown: '4j',
-  );
-
-  DelaiSummary _mockDelai() => DelaiSummary(
-    monDelaiMoyen: 1.8,
-    panelMoyen: 1.4,
-    nbEvals: 23,
-    points: [
-      DelaiPoint(date: DateTime(2026, 1, 2), monDelai: 1.0, panelMoyen: 1.2),
-      DelaiPoint(date: DateTime(2026, 1, 9), monDelai: 2.5, panelMoyen: 1.3),
-      DelaiPoint(date: DateTime(2026, 1, 15), monDelai: 1.2, panelMoyen: 1.4),
-      DelaiPoint(date: DateTime(2026, 1, 22), monDelai: 3.0, panelMoyen: 1.5),
-      DelaiPoint(date: DateTime(2026, 2, 5), monDelai: 1.5, panelMoyen: 1.4),
-      DelaiPoint(date: DateTime(2026, 2, 12), monDelai: 0.8, panelMoyen: 1.3),
-      DelaiPoint(date: DateTime(2026, 3, 1), monDelai: 2.0, panelMoyen: 1.4),
-      DelaiPoint(date: DateTime(2026, 3, 14), monDelai: 1.8, panelMoyen: 1.5),
-      DelaiPoint(date: DateTime(2026, 4, 2), monDelai: 2.2, panelMoyen: 1.4),
-      DelaiPoint(date: DateTime(2026, 4, 10), monDelai: 1.0, panelMoyen: 1.3),
-      DelaiPoint(date: DateTime(2026, 4, 19), monDelai: 1.5, panelMoyen: 1.4),
-      DelaiPoint(date: DateTime(2026, 4, 21), monDelai: 1.9, panelMoyen: 1.4),
-    ],
-  );
-
-  List<ActiviteItem> _mockActivite() => const [
-    ActiviteItem(
-      id: 'a1',
-      action: 'Évaluation soumise — CHEMLALI-C4',
-      horodatage: '24 Avr · 10h32',
-      type: 'evaluation',
-    ),
-    ActiviteItem(
-      id: 'a2',
-      action: 'Séance de dégustation rejointe — Séance #14',
-      horodatage: '23 Avr · 09h00',
-      type: 'seance_presente',
-    ),
-    ActiviteItem(
-      id: 'a3',
-      action: 'Évaluation soumise — OUESLATI-C2',
-      horodatage: '21 Avr · 14h15',
-      type: 'evaluation',
-    ),
-    ActiviteItem(
-      id: 'a4',
-      action: 'Séance manquée — Séance #13',
-      horodatage: '19 Avr · 09h00',
-      type: 'seance_manquee',
-    ),
-    ActiviteItem(
-      id: 'a5',
-      action: 'Évaluation soumise — CHETOUI-C2',
-      horodatage: '19 Avr · 11h47',
-      type: 'evaluation',
-    ),
-    ActiviteItem(
-      id: 'a6',
-      action: 'Séance rejointe — Séance #12',
-      horodatage: '15 Avr · 09h00',
-      type: 'seance_presente',
-    ),
-    ActiviteItem(
-      id: 'a7',
-      action: 'Évaluation soumise — ZALMATI-C1',
-      horodatage: '14 Avr · 16h40',
-      type: 'evaluation',
-    ),
-    ActiviteItem(
-      id: 'a8',
-      action: 'Évaluation soumise — CHEMLALI-C2',
-      horodatage: '12 Avr · 10h05',
-      type: 'evaluation',
-    ),
-    ActiviteItem(
-      id: 'a9',
-      action: 'Profil mis à jour',
-      horodatage: '08 Avr · 08h30',
-      type: 'profil',
-    ),
-    ActiviteItem(
-      id: 'a10',
-      action: 'Évaluation soumise — OUESLATI-C1',
-      horodatage: '05 Avr · 14h00',
-      type: 'evaluation',
-    ),
-  ];
 }
