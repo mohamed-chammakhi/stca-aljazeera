@@ -104,7 +104,7 @@ class EchantillonCollecteurService {
       'camion_reserve': json['camion_livraison'],
       'remarques': json['remarques'],
       'image_url': json['image_url'],
-      'statut_collecteur': e.statut.toJson,
+      'statut_collecteur': e.statut.toJson(),
     };
   }
 
@@ -123,15 +123,11 @@ class EchantillonCollecteurService {
     if (statut != null && statut.isNotEmpty) params['statut'] = statut;
     if (search != null && search.isNotEmpty) params['search'] = search;
 
-    final query = params.isEmpty
-        ? ''
-        : '?' +
-            params.entries
-                .map((e) =>
-                    '${Uri.encodeQueryComponent(e.key)}=${Uri.encodeQueryComponent(e.value)}')
-                .join('&');
-
-    final items = await apiClient.getList('/api/echantillons/$query');
+    final uri = Uri(
+      path: '/api/echantillons/',
+      queryParameters: params.isEmpty ? null : params,
+    );
+    final items = await apiClient.getList(uri.toString());
     return items
         .map((e) => EchantillonCollecteur.fromJson(
               _toFlutterMap(e as Map<String, dynamic>),
