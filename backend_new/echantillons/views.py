@@ -227,7 +227,7 @@ class EchantillonOCRView(APIView):
         if not image_file:
             return Response({'detail': 'Champ image requis.'}, status=status.HTTP_400_BAD_REQUEST)
         try:
-            result = extract_echantillon_from_image(image_file.read())
+            result = extract_echantillon_from_image(image_file.read(), content_type=image_file.content_type or 'image/jpeg')
             return Response(result)
         except EnvironmentError as e:
             return Response({'detail': str(e)}, status=status.HTTP_503_SERVICE_UNAVAILABLE)

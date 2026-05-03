@@ -22,7 +22,7 @@ def _parse_json_response(text: str) -> dict:
     return json.loads(text.strip())
 
 
-def extract_echantillon_from_image(image_bytes: bytes) -> dict:
+def extract_echantillon_from_image(image_bytes: bytes, content_type: str = 'image/jpeg') -> dict:
     model = _get_gemini_model()
     image_data = base64.b64encode(image_bytes).decode('utf-8')
     prompt = (
@@ -30,11 +30,11 @@ def extract_echantillon_from_image(image_bytes: bytes) -> dict:
         '{"reference": null, "variete": null, "quantite": null, "fournisseur_nom": null, "gouvernorat": null}\n'
         "Si une information est absente, mets null. Réponds UNIQUEMENT avec le JSON."
     )
-    response = model.generate_content([{'mime_type': 'image/jpeg', 'data': image_data}, prompt])
+    response = model.generate_content([{'mime_type': content_type, 'data': image_data}, prompt])
     return _parse_json_response(response.text)
 
 
-def extract_analyse_from_image(image_bytes: bytes) -> dict:
+def extract_analyse_from_image(image_bytes: bytes, content_type: str = 'image/jpeg') -> dict:
     model = _get_gemini_model()
     image_data = base64.b64encode(image_bytes).decode('utf-8')
     prompt = (
@@ -42,5 +42,5 @@ def extract_analyse_from_image(image_bytes: bytes) -> dict:
         '{"acidite": null, "indice_peroxyde": null, "k232": null, "k270": null, "delta_k": null, "humidite": null, "impuretes": null}\n'
         "Valeurs doivent être des nombres décimaux ou null. Réponds UNIQUEMENT avec le JSON."
     )
-    response = model.generate_content([{'mime_type': 'image/jpeg', 'data': image_data}, prompt])
+    response = model.generate_content([{'mime_type': content_type, 'data': image_data}, prompt])
     return _parse_json_response(response.text)

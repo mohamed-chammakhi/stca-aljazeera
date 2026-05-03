@@ -21,6 +21,10 @@ class AnalyseListCreateView(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
+        user = self.request.user
+        if user.role == 'laboratoire':
+            return AnalyseLabo.objects.filter(technicien=user).order_by('-date_analyse')
+        # Direction and chef_panel can see all analyses
         return AnalyseLabo.objects.all().order_by('-date_analyse')
 
     def perform_create(self, serializer):
@@ -61,7 +65,11 @@ class AnalyseExportView(APIView):
 
     def get(self, request, pk):
         try:
-            analyse = AnalyseLabo.objects.select_related('echantillon', 'technicien').get(pk=pk)
+            qs = AnalyseLabo.objects.select_related('echantillon', 'technicien')
+            if request.user.role == 'laboratoire':
+                analyse = qs.get(pk=pk, technicien=request.user)
+            else:
+                analyse = qs.get(pk=pk)
         except AnalyseLabo.DoesNotExist:
             return Response({'detail': 'Analyse introuvable.'}, status=status.HTTP_404_NOT_FOUND)
 
@@ -104,7 +112,7 @@ class AnalyseOCRView(APIView):
         if not image_file:
             return Response({'detail': 'Champ image requis.'}, status=status.HTTP_400_BAD_REQUEST)
         try:
-            result = extract_analyse_from_image(image_file.read())
+            result = extract_analyse_from_image(image_file.read(), content_type=image_file.content_type or 'image/jpeg')
             return Response(result)
         except EnvironmentError as e:
             return Response({'detail': str(e)}, status=status.HTTP_503_SERVICE_UNAVAILABLE)

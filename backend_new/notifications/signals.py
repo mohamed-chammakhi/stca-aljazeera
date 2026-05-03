@@ -31,12 +31,21 @@ def echantillon_pre_save(sender, instance, **kwargs):
             old = sender.objects.get(pk=instance.pk)
             instance._old_recu_physiquement = old.recu_physiquement
             instance._old_statut_collecteur = old.statut_collecteur
+            instance._old_statut_labo = old.statut_labo
+            instance._old_statut_ceo = old.statut_ceo
+            instance._old_variete = old.variete
         except sender.DoesNotExist:
             instance._old_recu_physiquement = False
             instance._old_statut_collecteur = None
+            instance._old_statut_labo = None
+            instance._old_statut_ceo = None
+            instance._old_variete = None
     else:
         instance._old_recu_physiquement = False
         instance._old_statut_collecteur = None
+        instance._old_statut_labo = None
+        instance._old_statut_ceo = None
+        instance._old_variete = None
 
 
 @receiver(post_save, sender='echantillons.Echantillon')
@@ -74,12 +83,18 @@ def on_echantillon_saved(sender, instance, created, **kwargs):
                 echantillon=instance,
                 section='ACHATS')
     else:
-        recipients = _get_users_by_roles('direction', 'chef_panel')
-        _notify(recipients, 'ECHANTILLON_MODIFIE',
-                'Échantillon modifié',
-                f"L'échantillon {ref} a été modifié.",
-                echantillon=instance,
-                section='ECHANTILLONS')
+        # Only notify if a meaningful field changed (not just timestamp or status already handled)
+        meaningful_change = (
+            getattr(instance, '_old_statut_labo', instance.statut_labo) != instance.statut_labo
+            or getattr(instance, '_old_statut_ceo', instance.statut_ceo) != instance.statut_ceo
+            or getattr(instance, '_old_variete', instance.variete) != instance.variete
+        )
+        if meaningful_change:
+            recipients = _get_users_by_roles('direction', 'chef_panel')
+            _notify(recipients, 'ECHANTILLON_MODIFIE',
+                    'Échantillon modifié',
+                    f"L'échantillon {instance.numero} a été modifié.",
+                    echantillon=instance)
 
 
 @receiver(pre_delete, sender='echantillons.Echantillon')
@@ -101,26 +116,22 @@ def on_evaluation_saved(sender, instance, created, **kwargs):
         return
 
     echantillon = instance.echantillon
-    ref = echantillon.numero or str(echantillon.id)[:8]
-
-    all_submitted = not sender.objects.filter(
-        echantillon=echantillon, statut='en_cours'
-    ).exists()
+    submitted_count = sender.objects.filter(echantillon=echantillon, statut='soumis').count()
+    en_cours_count = sender.objects.filter(echantillon=echantillon, statut='en_cours').count()
+    all_submitted = submitted_count > 0 and en_cours_count == 0
 
     if all_submitted:
         recipients = _get_users_by_roles('direction', 'chef_panel')
         _notify(recipients, 'TOUTES_EVALUATIONS',
                 'Toutes les évaluations soumises',
-                f"Toutes les évaluations de {ref} sont soumises.",
-                echantillon=echantillon,
-                section='EVALUATIONS')
+                f"Toutes les évaluations de {echantillon.numero} sont soumises.",
+                echantillon=echantillon, section='evaluations')
     else:
         recipients = _get_users_by_roles('chef_panel')
         _notify(recipients, 'PREMIERE_EVALUATION',
                 'Évaluation soumise',
-                f"Une évaluation de {ref} a été soumise.",
-                echantillon=echantillon,
-                section='EVALUATIONS')
+                f"Une évaluation de {echantillon.numero} a été soumise.",
+                echantillon=echantillon, section='evaluations')
 
 
 # ── Analyse signals ────────────────────────────────────────────────────────────
