@@ -29,6 +29,14 @@ class AnalyseLabo(models.Model):
         default=Statut.EN_COURS
     )
 
+    acidite         = models.DecimalField(max_digits=6, decimal_places=3, null=True, blank=True)
+    indice_peroxyde = models.DecimalField(max_digits=6, decimal_places=3, null=True, blank=True)
+    k232            = models.DecimalField(max_digits=6, decimal_places=3, null=True, blank=True)
+    k270            = models.DecimalField(max_digits=6, decimal_places=3, null=True, blank=True)
+    delta_k         = models.DecimalField(max_digits=6, decimal_places=3, null=True, blank=True)
+    humidite        = models.DecimalField(max_digits=6, decimal_places=3, null=True, blank=True)
+    impuretes       = models.DecimalField(max_digits=6, decimal_places=3, null=True, blank=True)
+
     photo = models.ImageField(upload_to='analyses/', null=True, blank=True)
     notes = models.TextField(blank=True)
     date_analyse = models.DateTimeField(auto_now_add=True)

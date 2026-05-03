@@ -15,6 +15,7 @@ class AnalyseLaboSerializer(serializers.ModelSerializer):
         model = AnalyseLabo
         fields = [
             'id', 'echantillon', 'technicien', 'statut',
+            'acidite', 'indice_peroxyde', 'k232', 'k270', 'delta_k', 'humidite', 'impuretes',
             'photo', 'notes', 'criteres',
             'date_analyse', 'date_modification',
         ]

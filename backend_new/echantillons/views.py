@@ -1,11 +1,14 @@
 from django.utils import timezone
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
+from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from django_filters.rest_framework import DjangoFilterBackend
 
 from .models import Echantillon
 from .serializers import EchantillonSerializer
+from .filters import EchantillonFilter
 from users.models import User
 from users.permissions import IsDirection, IsCollecteur, IsDegustateur
 
@@ -40,6 +43,11 @@ class EchantillonViewSet(viewsets.ModelViewSet):
     # Every endpoint requires the user to be logged in.
     # If no valid JWT token is provided, Django returns 401 automatically.
     permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_class = EchantillonFilter
+    search_fields = ['numero', 'reference_bouteille', 'variete', 'fournisseur__nom', 'fournisseur__code_fournisseur']
+    ordering_fields = ['date_ajout', 'updated_at', 'statut_collecteur']
+    ordering = ['-date_ajout']
 
     def get_queryset(self):
         # This method decides WHICH samples the logged-in user is allowed to see.
