@@ -1,9 +1,11 @@
 from django.utils import timezone
+from django.db.models import Count
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from django_filters.rest_framework import DjangoFilterBackend
 
 from .models import Echantillon
@@ -212,3 +214,22 @@ class EchantillonViewSet(viewsets.ModelViewSet):
             return Response({'errors': errors}, status=status.HTTP_400_BAD_REQUEST)
         response_status = status.HTTP_201_CREATED if not errors else status.HTTP_207_MULTI_STATUS
         return Response({'created': created, 'errors': errors}, status=response_status)
+
+
+class CollecteurCarteView(APIView):
+    """
+    GET /api/echantillons/collecteur/carte/
+    Returns a summary of this collector's samples grouped by gouvernorat + delegation.
+    Used to populate the map view in the Flutter app.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        delegations = (
+            Echantillon.objects
+            .filter(collecteur=request.user)
+            .values('gouvernorat', 'delegation')
+            .annotate(nb_echantillons=Count('id'))
+            .order_by('gouvernorat', 'delegation')
+        )
+        return Response({'delegations': list(delegations)})

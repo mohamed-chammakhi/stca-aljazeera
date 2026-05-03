@@ -1,7 +1,10 @@
-from rest_framework import generics
+from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
 from .models import SessionDegustation
 from .serializers import SessionDegustationSerializer
+from users.permissions import IsChefPanel
 
 
 # Handles two things:
@@ -29,3 +32,43 @@ class SessionDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = SessionDegustation.objects.all()
     serializer_class = SessionDegustationSerializer
     permission_classes = [IsAuthenticated]
+
+
+class SessionApprouverView(APIView):
+    permission_classes = [IsAuthenticated, IsChefPanel]
+
+    def post(self, request, pk):
+        try:
+            session = SessionDegustation.objects.get(pk=pk)
+        except SessionDegustation.DoesNotExist:
+            return Response({'detail': 'Session non trouvée.'}, status=status.HTTP_404_NOT_FOUND)
+
+        if session.statut != SessionDegustation.Statut.EN_ATTENTE_VALIDATION:
+            return Response(
+                {'detail': 'La session doit être en attente de validation pour être approuvée.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        session.statut = SessionDegustation.Statut.PLANIFIEE
+        session.save()
+        return Response(SessionDegustationSerializer(session, context={'request': request}).data, status=status.HTTP_200_OK)
+
+
+class SessionRefuserView(APIView):
+    permission_classes = [IsAuthenticated, IsChefPanel]
+
+    def post(self, request, pk):
+        try:
+            session = SessionDegustation.objects.get(pk=pk)
+        except SessionDegustation.DoesNotExist:
+            return Response({'detail': 'Session non trouvée.'}, status=status.HTTP_404_NOT_FOUND)
+
+        if session.statut != SessionDegustation.Statut.EN_ATTENTE_VALIDATION:
+            return Response(
+                {'detail': 'La session doit être en attente de validation pour être refusée.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        session.statut = SessionDegustation.Statut.REFUSEE
+        session.save()
+        return Response(SessionDegustationSerializer(session, context={'request': request}).data, status=status.HTTP_200_OK)
