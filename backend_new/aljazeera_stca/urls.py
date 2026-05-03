@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.urls import path, include
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
+from users.views import LogoutView
 
 urlpatterns = [
     # ── Django admin ──────────────────────────────────────────────────────────
@@ -10,6 +11,7 @@ urlpatterns = [
     # ── Auth ──────────────────────────────────────────────────────────────────
     path('api/auth/login/', TokenObtainPairView.as_view(), name='login'),
     path('api/auth/refresh/', TokenRefreshView.as_view(), name='token-refresh'),
+    path('api/auth/logout/', LogoutView.as_view(), name='logout'),
 
     # ── Domain APIs ───────────────────────────────────────────────────────────
     path('api/users/', include('users.urls')),
