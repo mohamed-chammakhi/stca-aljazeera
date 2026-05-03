@@ -41,7 +41,7 @@ def echantillon_pre_save(sender, instance, **kwargs):
 
 @receiver(post_save, sender='echantillons.Echantillon')
 def echantillon_post_save(sender, instance, created, **kwargs):
-    ref = instance.ref or str(instance.id)[:8]
+    ref = instance.numero or str(instance.id)[:8]
 
     if created:
         _notify_ceos(
@@ -88,7 +88,7 @@ def echantillon_post_save(sender, instance, created, **kwargs):
 
 @receiver(pre_delete, sender='echantillons.Echantillon')
 def echantillon_pre_delete(sender, instance, **kwargs):
-    ref = instance.ref or str(instance.id)[:8]
+    ref = instance.numero or str(instance.id)[:8]
     _notify_ceos(
         type='ECHANTILLON_SUPPRIME',
         titre='Échantillon supprimé',
@@ -109,7 +109,7 @@ def evaluation_post_save(sender, instance, **kwargs):
     User = get_user_model()
 
     echantillon = instance.echantillon
-    ref = echantillon.ref or str(echantillon.id)[:8]
+    ref = echantillon.numero or str(echantillon.id)[:8]
 
     submitted_count = sender.objects.filter(echantillon=echantillon, statut='soumis').count()
     total_tasters = User.objects.filter(role='degustateur', is_active=True).count()
@@ -144,7 +144,7 @@ def analyse_post_save(sender, instance, **kwargs):
         return
 
     echantillon = instance.echantillon
-    ref = echantillon.ref if echantillon else '—'
+    ref = echantillon.numero if echantillon else '—'
     _notify_ceos(
         type='ANALYSE_SOUMISE',
         titre='Analyse laboratoire soumise',

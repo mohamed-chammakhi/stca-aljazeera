@@ -4,14 +4,15 @@ from .models import Echantillon
 
 class EchantillonSerializer(serializers.ModelSerializer):
     # Read-only display fields — Flutter expects these alongside the FK ids
-    fournisseur_nom = serializers.SerializerMethodField(read_only=True)
-    collecteur_nom  = serializers.SerializerMethodField(read_only=True)
+    fournisseur_nom  = serializers.SerializerMethodField(read_only=True)
+    code_fournisseur = serializers.SerializerMethodField(read_only=True)
+    collecteur_nom   = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Echantillon
         fields = [
-            'id', 'ref',
-            'fournisseur', 'fournisseur_nom',
+            'id', 'numero', 'reference_bouteille',
+            'fournisseur', 'fournisseur_nom', 'code_fournisseur',
             'collecteur', 'collecteur_nom',
             'gouvernorat', 'delegation', 'cite',
             'variete', 'scellage', 'quantite_estimee', 'image_url',
@@ -22,11 +23,16 @@ class EchantillonSerializer(serializers.ModelSerializer):
             'prix_final',
             'stock_arrive', 'date_livraison_stock',
             'classification', 'remarques',
+            'edit_history',
             'date_ajout', 'updated_at',
         ]
+        read_only_fields = ['id', 'numero', 'collecteur', 'edit_history', 'date_ajout', 'updated_at']
 
     def get_fournisseur_nom(self, obj):
         return obj.fournisseur.nom if obj.fournisseur else None
+
+    def get_code_fournisseur(self, obj):
+        return obj.fournisseur.code_fournisseur if obj.fournisseur else None
 
     def get_collecteur_nom(self, obj):
         if obj.collecteur:

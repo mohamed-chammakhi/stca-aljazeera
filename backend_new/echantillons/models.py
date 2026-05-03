@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime
 from django.db import models
 from django.conf import settings
 
@@ -32,9 +33,9 @@ class Echantillon(models.Model):
         VIERGE_ORDINAIRE = 'vierge_ordinaire', 'Vierge Ordinaire'
         LAMPANTE        = 'lampante',        'Lampante'
 
-    # Identity — `ref` is the bottle reference, each bottle is its own sample
-    id  = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    ref = models.CharField(max_length=100, unique=True)
+    id                  = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    numero              = models.CharField(max_length=20, unique=True, blank=True)
+    reference_bouteille = models.CharField(max_length=100, blank=True)
 
     # Relations
     fournisseur = models.ForeignKey(
@@ -97,9 +98,23 @@ class Echantillon(models.Model):
     classification = models.CharField(max_length=20, choices=Classification.choices, blank=True)
     remarques      = models.TextField(blank=True)
 
+    # Edit history — populated once recu_physiquement=True
+    edit_history = models.JSONField(default=list, blank=True)
+
     # Timestamps
     date_ajout = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    def save(self, *args, **kwargs):
+        if not self.numero:
+            year = datetime.now().year
+            prefix = f"{year}/"
+            last = Echantillon.objects.filter(
+                numero__startswith=prefix
+            ).order_by('-numero').first()
+            next_num = (int(last.numero.split('/')[1]) + 1) if last else 1
+            self.numero = f"{year}/{str(next_num).zfill(4)}"
+        super().save(*args, **kwargs)
+
     def __str__(self):
-        return self.ref
+        return self.numero
