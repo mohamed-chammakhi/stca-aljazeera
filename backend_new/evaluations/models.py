@@ -55,7 +55,7 @@ class EvaluationOrganoleptique(models.Model):
     commentaire = models.TextField(blank=True)
 
     # soumis_le is set when evaluation is submitted (statut → soumis)
-    soumis_le        = models.DateTimeField(auto_now_add=True)
+    soumis_le        = models.DateTimeField(null=True, blank=True)
     date_modification = models.DateTimeField(auto_now=True)
 
     class Meta:

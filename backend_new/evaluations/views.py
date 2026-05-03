@@ -1,4 +1,5 @@
 from django.db import transaction
+from django.utils import timezone
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -45,6 +46,7 @@ class EvaluationSoumettreView(APIView):
             if evaluation.statut == 'soumis':
                 return Response({'detail': 'Évaluation déjà soumise.'}, status=status.HTTP_400_BAD_REQUEST)
             evaluation.statut = 'soumis'
+            evaluation.soumis_le = timezone.now()
             evaluation.save()
             echantillon = Echantillon.objects.select_for_update().get(pk=evaluation.echantillon_id)
             still_in_progress = EvaluationOrganoleptique.objects.filter(

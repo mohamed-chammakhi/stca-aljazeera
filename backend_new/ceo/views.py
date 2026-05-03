@@ -7,6 +7,15 @@ from datetime import timedelta
 from echantillons.models import Echantillon
 
 
+def _month_start(base_dt, months_back):
+    month = base_dt.month - months_back
+    year = base_dt.year
+    while month <= 0:
+        month += 12
+        year -= 1
+    return base_dt.replace(year=year, month=month, day=1, hour=0, minute=0, second=0, microsecond=0)
+
+
 class CeoDashboardView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -32,8 +41,7 @@ class CeoDashboardView(APIView):
 
         evolution_achats = []
         for i in range(5, -1, -1):
-            ref = now.replace(day=1) - timedelta(days=i * 30)
-            month_start = ref.replace(day=1)
+            month_start = _month_start(now, i)
             if month_start.month == 12:
                 month_end = month_start.replace(year=month_start.year + 1, month=1)
             else:

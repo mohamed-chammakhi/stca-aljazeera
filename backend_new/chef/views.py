@@ -123,11 +123,12 @@ class ChefDashboardDelaiView(APIView):
         date_debut = request.query_params.get('date_debut')
         date_fin = request.query_params.get('date_fin')
 
-        qs = EvaluationOrganoleptique.objects.filter(statut='soumis').select_related('degustateur', 'echantillon')
+        qs = EvaluationOrganoleptique.objects.filter(statut='soumis').select_related('degustateur', 'echantillon').order_by('soumis_le')
         if date_debut:
             qs = qs.filter(soumis_le__date__gte=date_debut)
         if date_fin:
             qs = qs.filter(soumis_le__date__lte=date_fin)
+        qs = qs[:1000]
 
         per_member = {}
         all_delays = []
@@ -161,11 +162,12 @@ class ChefDashboardAlignementView(APIView):
         date_debut = request.query_params.get('date_debut')
         date_fin = request.query_params.get('date_fin')
 
-        qs = EvaluationOrganoleptique.objects.filter(statut='soumis').select_related('degustateur')
+        qs = EvaluationOrganoleptique.objects.filter(statut='soumis').select_related('degustateur').order_by('soumis_le')
         if date_debut:
             qs = qs.filter(soumis_le__date__gte=date_debut)
         if date_fin:
             qs = qs.filter(soumis_le__date__lte=date_fin)
+        qs = qs[:1000]
 
         by_sample = {}
         for ev in qs:
@@ -178,17 +180,21 @@ class ChefDashboardAlignementView(APIView):
         for evals in by_sample.values():
             if len(evals) < 2:
                 continue
-            scores = [float(e.fruite or 0) for e in evals]
-            avg = sum(scores) / len(scores)
-            for ev in evals:
-                uid = str(ev.degustateur_id) if ev.degustateur_id else 'inconnu'
-                if uid not in member_data:
-                    member_data[uid] = {
-                        'nom': f"{ev.degustateur.prenom} {ev.degustateur.nom}" if ev.degustateur else 'Inconnu',
-                        'divergent': 0, 'total': 0,
-                    }
-                member_data[uid]['divergent'] += 1 if abs(float(ev.fruite or 0) - avg) > 1.5 else 0
-                member_data[uid]['total'] += 1
+            for attr in ('fruite', 'amertume', 'piquant'):
+                attr_scores = [float(getattr(e, attr) or 0) for e in evals]
+                if not any(attr_scores):
+                    continue
+                avg = sum(attr_scores) / len(attr_scores)
+                for ev in evals:
+                    uid = str(ev.degustateur_id) if ev.degustateur_id else 'inconnu'
+                    if uid not in member_data:
+                        member_data[uid] = {
+                            'nom': f"{ev.degustateur.prenom} {ev.degustateur.nom}" if ev.degustateur else 'Inconnu',
+                            'divergent': 0, 'total': 0,
+                        }
+                    score = float(getattr(ev, attr) or 0)
+                    member_data[uid]['divergent'] += 1 if abs(score - avg) > 1.5 else 0
+                    member_data[uid]['total'] += 1
 
         membres = [{
             'nom': v['nom'],
@@ -205,11 +211,12 @@ class ChefDashboardClassificationsView(APIView):
         date_debut = request.query_params.get('date_debut')
         date_fin = request.query_params.get('date_fin')
 
-        qs = EvaluationOrganoleptique.objects.filter(statut='soumis')
+        qs = EvaluationOrganoleptique.objects.filter(statut='soumis').order_by('soumis_le')
         if date_debut:
             qs = qs.filter(soumis_le__date__gte=date_debut)
         if date_fin:
             qs = qs.filter(soumis_le__date__lte=date_fin)
+        qs = qs[:1000]
 
         from collections import defaultdict
         monthly = defaultdict(lambda: {'extra_vierge': 0, 'vierge': 0, 'lampante': 0})
@@ -233,7 +240,9 @@ class ChefDashboardPresenceView(APIView):
         date_fin = request.query_params.get('date_fin')
         today = timezone.now().date()
 
-        qs = SessionDegustation.objects.filter(participants=request.user)
+        qs = SessionDegustation.objects.filter(
+            Q(participants=request.user) | Q(cree_par=request.user)
+        ).distinct()
         if date_debut:
             qs = qs.filter(date__gte=date_debut)
         if date_fin:
@@ -243,10 +252,10 @@ class ChefDashboardPresenceView(APIView):
         manquee = qs.filter(statut='planifiee', date__lt=today).count()
 
         prochaine = SessionDegustation.objects.filter(
-            participants=request.user,
+            Q(participants=request.user) | Q(cree_par=request.user),
             date__gte=today,
             statut='planifiee'
-        ).order_by('date').first()
+        ).distinct().order_by('date').first()
 
         countdown = f"{(prochaine.date - today).days}j" if prochaine else None
 
@@ -283,9 +292,10 @@ class ChefDashboardActiviteView(APIView):
 
     def get(self, request):
         offset = int(request.query_params.get('offset', 0))
-        limit = int(request.query_params.get('limit', 5))
+        limit = min(int(request.query_params.get('limit', 5)), 100)
         date_debut = request.query_params.get('date_debut')
         date_fin = request.query_params.get('date_fin')
+        cap = offset + limit + 500
 
         evals = EvaluationOrganoleptique.objects.filter(
             degustateur=request.user
@@ -294,6 +304,7 @@ class ChefDashboardActiviteView(APIView):
             evals = evals.filter(soumis_le__date__gte=date_debut)
         if date_fin:
             evals = evals.filter(soumis_le__date__lte=date_fin)
+        evals = evals[:cap]
 
         activities = [{
             'type': 'evaluation',
@@ -306,6 +317,7 @@ class ChefDashboardActiviteView(APIView):
             sessions = sessions.filter(date_creation__date__gte=date_debut)
         if date_fin:
             sessions = sessions.filter(date_creation__date__lte=date_fin)
+        sessions = sessions[:cap]
         for s in sessions:
             activities.append({
                 'type': 'session',

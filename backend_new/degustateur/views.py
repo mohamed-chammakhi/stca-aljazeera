@@ -52,9 +52,10 @@ class DegustateurActiviteView(APIView):
 
     def get(self, request):
         offset = int(request.query_params.get('offset', 0))
-        limit = int(request.query_params.get('limit', 5))
+        limit = min(int(request.query_params.get('limit', 5)), 100)
         date_debut = request.query_params.get('date_debut')
         date_fin = request.query_params.get('date_fin')
+        cap = offset + limit + 500
 
         evals = EvaluationOrganoleptique.objects.filter(
             degustateur=request.user
@@ -63,6 +64,7 @@ class DegustateurActiviteView(APIView):
             evals = evals.filter(soumis_le__date__gte=date_debut)
         if date_fin:
             evals = evals.filter(soumis_le__date__lte=date_fin)
+        evals = evals[:cap]
 
         activities = [{
             'type': 'evaluation',
