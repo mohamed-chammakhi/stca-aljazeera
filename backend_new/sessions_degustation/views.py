@@ -1,3 +1,4 @@
+from django.db import transaction
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -16,7 +17,7 @@ class SessionListCreateView(generics.ListCreateAPIView):
 
     # Returns all sessions, newest first
     def get_queryset(self):
-        return SessionDegustation.objects.all().order_by('-date_creation')
+        return SessionDegustation.objects.select_related('cree_par').order_by('-date_creation')
 
     # When creating a session, automatically set cree_par to the logged-in user
     # The user doesn't need to send their own ID — Django knows who they are from the JWT token
@@ -38,37 +39,35 @@ class SessionApprouverView(APIView):
     permission_classes = [IsAuthenticated, IsChefPanel]
 
     def post(self, request, pk):
-        try:
-            session = SessionDegustation.objects.get(pk=pk)
-        except SessionDegustation.DoesNotExist:
-            return Response({'detail': 'Session non trouvée.'}, status=status.HTTP_404_NOT_FOUND)
-
-        if session.statut != SessionDegustation.Statut.EN_ATTENTE_VALIDATION:
-            return Response(
-                {'detail': 'La session doit être en attente de validation pour être approuvée.'},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        session.statut = SessionDegustation.Statut.PLANIFIEE
-        session.save()
-        return Response(SessionDegustationSerializer(session, context={'request': request}).data, status=status.HTTP_200_OK)
+        with transaction.atomic():
+            try:
+                session = SessionDegustation.objects.select_for_update().get(pk=pk)
+            except SessionDegustation.DoesNotExist:
+                return Response({'detail': 'Session introuvable.'}, status=status.HTTP_404_NOT_FOUND)
+            if session.statut != SessionDegustation.Statut.EN_ATTENTE_VALIDATION:
+                return Response(
+                    {'detail': 'Seules les sessions en attente peuvent être approuvées.'},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            session.statut = SessionDegustation.Statut.PLANIFIEE
+            session.save()
+        return Response(SessionDegustationSerializer(session).data)
 
 
 class SessionRefuserView(APIView):
     permission_classes = [IsAuthenticated, IsChefPanel]
 
     def post(self, request, pk):
-        try:
-            session = SessionDegustation.objects.get(pk=pk)
-        except SessionDegustation.DoesNotExist:
-            return Response({'detail': 'Session non trouvée.'}, status=status.HTTP_404_NOT_FOUND)
-
-        if session.statut != SessionDegustation.Statut.EN_ATTENTE_VALIDATION:
-            return Response(
-                {'detail': 'La session doit être en attente de validation pour être refusée.'},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        session.statut = SessionDegustation.Statut.REFUSEE
-        session.save()
-        return Response(SessionDegustationSerializer(session, context={'request': request}).data, status=status.HTTP_200_OK)
+        with transaction.atomic():
+            try:
+                session = SessionDegustation.objects.select_for_update().get(pk=pk)
+            except SessionDegustation.DoesNotExist:
+                return Response({'detail': 'Session introuvable.'}, status=status.HTTP_404_NOT_FOUND)
+            if session.statut != SessionDegustation.Statut.EN_ATTENTE_VALIDATION:
+                return Response(
+                    {'detail': 'Seules les sessions en attente peuvent être refusées.'},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            session.statut = SessionDegustation.Statut.REFUSEE
+            session.save()
+        return Response(SessionDegustationSerializer(session).data)

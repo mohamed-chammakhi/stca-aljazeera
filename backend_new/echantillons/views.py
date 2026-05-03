@@ -222,7 +222,7 @@ class CollecteurCarteView(APIView):
     Returns a summary of this collector's samples grouped by gouvernorat + delegation.
     Used to populate the map view in the Flutter app.
     """
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsCollecteur]
 
     def get(self, request):
         delegations = (
