@@ -99,7 +99,6 @@ class EchantillonCollecteurService {
       'scellage': json['scellage'],
       'quantite_estimee': json['quantite_estimee'],
       'variete': json['variete'],
-      'recu_physiquement': json['recu_physiquement'],
       'budget_negociation': json['budget_negociation'],
       'prix_final': json['prix_final'],
       'camion_reserve': json['camion_livraison'],
@@ -124,17 +123,15 @@ class EchantillonCollecteurService {
     if (statut != null && statut.isNotEmpty) params['statut'] = statut;
     if (search != null && search.isNotEmpty) params['search'] = search;
 
-    List<dynamic> items;
-    if (params.isEmpty) {
-      items = await apiClient.getList('/api/echantillons/');
-    } else {
-      final query = params.entries
-          .map((e) => '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}')
-          .join('&');
-      final raw = await apiClient.get('/api/echantillons/?$query');
-      items = (raw['results'] as List? ?? []);
-    }
+    final query = params.isEmpty
+        ? ''
+        : '?' +
+            params.entries
+                .map((e) =>
+                    '${Uri.encodeQueryComponent(e.key)}=${Uri.encodeQueryComponent(e.value)}')
+                .join('&');
 
+    final items = await apiClient.getList('/api/echantillons/$query');
     return items
         .map((e) => EchantillonCollecteur.fromJson(
               _toFlutterMap(e as Map<String, dynamic>),
