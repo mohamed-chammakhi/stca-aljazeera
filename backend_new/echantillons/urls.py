@@ -1,10 +1,11 @@
 from django.urls import path
 from rest_framework.routers import DefaultRouter
-from .views import EchantillonViewSet, CollecteurCarteView
+from .views import EchantillonViewSet, CollecteurCarteView, EchantillonOCRView
 
-# The carte endpoint must come BEFORE the router urls so it isn't captured as a UUID pk.
+# Non-router endpoints must come BEFORE the router urls so they aren't captured as UUID pks.
 urlpatterns = [
     path('collecteur/carte/', CollecteurCarteView.as_view(), name='collecteur-carte'),
+    path('ocr/', EchantillonOCRView.as_view(), name='echantillon-ocr'),
 ]
 
 router = DefaultRouter()

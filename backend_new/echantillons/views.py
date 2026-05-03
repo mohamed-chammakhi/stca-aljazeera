@@ -3,10 +3,12 @@ from django.db.models import Count
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter, OrderingFilter
+from rest_framework.parsers import MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django_filters.rest_framework import DjangoFilterBackend
+from core.ocr_service import extract_echantillon_from_image
 
 from .models import Echantillon
 from .serializers import EchantillonSerializer
@@ -214,6 +216,23 @@ class EchantillonViewSet(viewsets.ModelViewSet):
             return Response({'errors': errors}, status=status.HTTP_400_BAD_REQUEST)
         response_status = status.HTTP_201_CREATED if not errors else status.HTTP_207_MULTI_STATUS
         return Response({'created': created, 'errors': errors}, status=response_status)
+
+
+class EchantillonOCRView(APIView):
+    permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser]
+
+    def post(self, request):
+        image_file = request.FILES.get('image')
+        if not image_file:
+            return Response({'detail': 'Champ image requis.'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            result = extract_echantillon_from_image(image_file.read())
+            return Response(result)
+        except EnvironmentError as e:
+            return Response({'detail': str(e)}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+        except Exception as e:
+            return Response({'detail': f'Erreur OCR: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class CollecteurCarteView(APIView):
