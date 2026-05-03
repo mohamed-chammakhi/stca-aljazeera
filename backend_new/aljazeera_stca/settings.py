@@ -52,6 +52,9 @@ INSTALLED_APPS = [
     'planifications' ,
     'messages_chat' ,
     'notifications',
+    'ceo',
+    'chef',
+    'degustateur',
     # Third party
     'django_filters',
     'rest_framework_simplejwt.token_blacklist',

@@ -5,12 +5,13 @@ from django.conf import settings
 
 class SessionDegustation(models.Model):
 
-    # The 4 possible states of a tasting session
+    # The 5 possible states of a tasting session
     class Statut(models.TextChoices):
         EN_ATTENTE_VALIDATION = 'en_attente_validation', 'En attente de validation'  # created, awaiting chef_panel approval
         PLANIFIEE             = 'planifiee',             'Planifiée'                 # approved, scheduled
         EN_COURS              = 'en_cours',              'En cours'                  # currently happening
         TERMINEE              = 'terminee',              'Terminée'                  # finished
+        REFUSEE               = 'refusee',               'Refusée'                   # refused by chef_panel
 
     # Unique ID for each session — Django generates it automatically
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
