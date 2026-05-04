@@ -3,187 +3,177 @@
 // ═════════════════════════════════════════════════════════════════════════════
 
 import '../models/echantillon_collecteur.dart';
+import '../../../../core/api_client.dart';
 
 class EchantillonCollecteurService {
-  // TODO: inject ApiClient here when backend is ready
-  // final ApiClient _api;
+  // ── Field mapping: Django API → Flutter fromJson ───────────────────────────
+  //
+  // The Django API returns field names that differ from what fromJson() expects.
+  // We build an intermediate map that satisfies the model's fromJson contract.
+  //
+  // Key renames:
+  //   numero                   → ref
+  //   statut_collecteur        → statut  (+ value conversion to Dart enum name)
+  //   collecteur               → collecteur_id
+  //   date_arrivee_echantillon → date_reception_echantillon  (actual receipt date)
+  //   camion_reserve           → camion_livraison
+  //   budget_negociation       → budget_negociation  (Decimal/null → String?/null)
+  //   prix_final               → prix_final          (Decimal/null → String?/null)
+  //
+  // Fields always null (not in this endpoint):
+  //   date_arrivee_echantillon → always null  (no scheduled arrival date in backend)
+  //   livraison                → always null  (planification not in this endpoint)
+  // ──────────────────────────────────────────────────────────────────────────
 
-  Future<List<EchantillonCollecteur>> fetchEchantillons() async {
-    // TODO: replace with: return EchantillonCollecteur.fromJsonList(
-    //   await _api.get('/collecteur/echantillons/'));
-    await Future.delayed(const Duration(milliseconds: 200));
-    return _mockEchantillons();
+  /// Converts a Django `statut_collecteur` snake_case value to the Dart enum
+  /// identifier name used by `StatutCollecteur.values.byName()`.
+  ///
+  /// Django   → Dart enum name
+  /// receptionne    → receptionne
+  /// en_negociation → enNegociation
+  /// achat_confirme → achatConfirme
+  String _mapStatut(String djangoStatut) {
+    switch (djangoStatut) {
+      case 'receptionne':
+        return 'receptionne';
+      case 'en_negociation':
+        return 'enNegociation';
+      case 'achat_confirme':
+        return 'achatConfirme';
+      default:
+        return djangoStatut;
+    }
   }
 
+  /// Converts the Django API response map to the intermediate map that
+  /// `EchantillonCollecteur.fromJson()` expects.
+  Map<String, dynamic> _toFlutterMap(Map<String, dynamic> api) {
+    final statutCollecteur = api['statut_collecteur'] as String? ?? 'receptionne';
+    return {
+      'id': api['id'],
+      'ref': api['numero'],
+      'gouvernorat': api['gouvernorat'] ?? '',
+      'delegation': api['delegation'],
+      'cite': api['cite'],
+      'code_fournisseur': api['code_fournisseur'] ?? '',
+      'reference_bouteille': api['reference_bouteille'] ?? '',
+      'scellage': api['scellage'],
+      'quantite_estimee': api['quantite_estimee'],
+      'variete': api['variete'],
+      'achat_confirme': statutCollecteur == 'achat_confirme',
+      'livraison': null,
+      // date_arrivee_echantillon (scheduled) is not in this endpoint — always null.
+      'date_arrivee_echantillon': null,
+      'recu_physiquement': api['recu_physiquement'] ?? false,
+      // date_arrivee_echantillon from API = actual physical reception date.
+      'date_reception_echantillon': api['date_arrivee_echantillon'],
+      'budget_negociation': api['budget_negociation'] != null
+          ? api['budget_negociation'].toString()
+          : null,
+      'date_stock_souhaitee_debut': null,
+      'date_stock_souhaitee_fin': null,
+      'prix_final': api['prix_final'] != null
+          ? api['prix_final'].toString()
+          : null,
+      'camion_livraison': api['camion_reserve'],
+      'remarques': api['remarques'],
+      'date_ajout': api['date_ajout'],
+      'image_url': api['image_url'],
+      'collecteur_id': api['collecteur'] ?? '',
+      'collecteur_nom': api['collecteur_nom'] ?? '',
+      'statut': _mapStatut(statutCollecteur),
+    };
+  }
+
+  /// Converts `EchantillonCollecteur.toJson()` back to Django field names for
+  /// POST/PATCH requests.
+  Map<String, dynamic> _toDjangoMap(EchantillonCollecteur e) {
+    final json = e.toJson();
+    return {
+      'numero': json['ref'],
+      'gouvernorat': json['gouvernorat'],
+      'delegation': json['delegation'],
+      'cite': json['cite'],
+      'code_fournisseur': json['code_fournisseur'],
+      'reference_bouteille': json['reference_bouteille'],
+      'scellage': json['scellage'],
+      'quantite_estimee': json['quantite_estimee'],
+      'variete': json['variete'],
+      'budget_negociation': json['budget_negociation'],
+      'prix_final': json['prix_final'],
+      'camion_reserve': json['camion_livraison'],
+      'remarques': json['remarques'],
+      'image_url': json['image_url'],
+      'statut_collecteur': e.statut.toJson(),
+    };
+  }
+
+  // ── Public API ─────────────────────────────────────────────────────────────
+
+  /// Fetches all echantillons for the current collector.
+  ///
+  /// Optional filters:
+  ///   [statut] — Django snake_case value ('receptionne', 'en_negociation', 'achat_confirme')
+  ///   [search] — free-text search string
+  Future<List<EchantillonCollecteur>> fetchEchantillons({
+    String? statut,
+    String? search,
+  }) async {
+    final params = <String, String>{};
+    if (statut != null && statut.isNotEmpty) params['statut'] = statut;
+    if (search != null && search.isNotEmpty) params['search'] = search;
+
+    final uri = Uri(
+      path: '/api/echantillons/',
+      queryParameters: params.isEmpty ? null : params,
+    );
+    final items = await apiClient.getList(uri.toString());
+    return items
+        .map((e) => EchantillonCollecteur.fromJson(
+              _toFlutterMap(e as Map<String, dynamic>),
+            ))
+        .toList();
+  }
+
+  /// Creates a new echantillon and returns the saved record from the server.
   Future<EchantillonCollecteur> createEchantillon(
       EchantillonCollecteur e) async {
-    // TODO: replace with: return EchantillonCollecteur.fromJson(
-    //   await _api.post('/collecteur/echantillons/', e.toJson()));
-    await Future.delayed(const Duration(milliseconds: 100));
-    return e;
+    final response = await apiClient.post('/api/echantillons/', _toDjangoMap(e));
+    return EchantillonCollecteur.fromJson(_toFlutterMap(response));
   }
 
+  /// Updates an existing echantillon via PATCH and returns the updated record.
   Future<EchantillonCollecteur> updateEchantillon(
       EchantillonCollecteur e) async {
-    // TODO: replace with: return EchantillonCollecteur.fromJson(
-    //   await _api.put('/collecteur/echantillons/${e.id}/', e.toJson()));
-    await Future.delayed(const Duration(milliseconds: 100));
-    return e;
+    final response = await apiClient.patch(
+      '/api/echantillons/${e.id}/',
+      _toDjangoMap(e),
+    );
+    return EchantillonCollecteur.fromJson(_toFlutterMap(response));
   }
 
+  /// Deletes an echantillon by ID.
   Future<void> deleteEchantillon(String id) async {
-    // TODO: replace with: await _api.delete('/collecteur/echantillons/$id/');
-    await Future.delayed(const Duration(milliseconds: 100));
+    await apiClient.delete('/api/echantillons/$id/');
   }
 
-  // TODO: remove when backend is ready
-  List<EchantillonCollecteur> _mockEchantillons() => [
-        // Scenario 1 : Réceptionné — pas encore reçu, pas d'arrivée planifiée
-        EchantillonCollecteur(
-          id: 'ECH-001',
-          ref: '2026/0001',
-          gouvernorat: 'Sfax',
-          delegation: 'Sfax Sud',
-          codeFournisseur: 'SF-42',
-          referenceBouteille: 'CHEMLALI-C1',
-          scellage: 'Z1',
-          achatConfirme: false,
-          dateAjout: DateTime(2026, 3, 1),
-          quantiteEstimee: '10T',
-          variete: 'Chemlali',
-          statut: StatutCollecteur.receptionne,
-          collecteurId: 'COL-001',
-          collecteurNom: 'Ahmed D.',
-          recuPhysiquement: false,
-        ),
-        // Scenario 2 : Réceptionné — arrivée planifiée, pas encore reçu physiquement
-        EchantillonCollecteur(
-          id: 'ECH-002',
-          ref: '2026/0002',
-          gouvernorat: 'Nabeul',
-          delegation: 'Nabeul',
-          codeFournisseur: 'NB-07',
-          referenceBouteille: 'SAYALI-C2',
-          scellage: 'Z3',
-          achatConfirme: false,
-          remarques: 'Récolte tardive',
-          dateAjout: DateTime(2026, 3, 5),
-          quantiteEstimee: '15T',
-          variete: 'Sayali',
-          statut: StatutCollecteur.receptionne,
-          collecteurId: 'COL-001',
-          collecteurNom: 'Ahmed D.',
-          recuPhysiquement: false,
-          dateArriveeEchantillon: DateTime(2026, 3, 12),
-        ),
-        // Scenario 3 : Réceptionné + reçu physiquement — modifiable, non supprimable
-        EchantillonCollecteur(
-          id: 'ECH-003',
-          ref: '2026/0003',
-          gouvernorat: 'Béja',
-          delegation: 'Béja Nord',
-          codeFournisseur: 'BJ-15',
-          referenceBouteille: 'CHETOUI-C3',
-          scellage: 'Z2',
-          achatConfirme: false,
-          dateAjout: DateTime(2026, 3, 8),
-          quantiteEstimee: '20T',
-          variete: 'Chetoui',
-          statut: StatutCollecteur.receptionne,
-          collecteurId: 'COL-001',
-          collecteurNom: 'Ahmed D.',
-          recuPhysiquement: true,
-          dateReceptionEchantillon: DateTime(2026, 3, 10),
-        ),
-        // Scenario 4 : En négociation — budget + date souhaitée définis par la direction
-        EchantillonCollecteur(
-          id: 'ECH-004',
-          ref: '2026/0004',
-          gouvernorat: 'Béja',
-          delegation: 'Amdoun',
-          codeFournisseur: 'BJ-22',
-          referenceBouteille: 'CHETOUI-C4',
-          scellage: 'Z2',
-          achatConfirme: false,
-          remarques: 'Récolte précoce',
-          dateAjout: DateTime(2026, 2, 28),
-          quantiteEstimee: '25T',
-          variete: 'Chetoui',
-          statut: StatutCollecteur.enNegociation,
-          collecteurId: 'COL-001',
-          collecteurNom: 'Ahmed D.',
-          recuPhysiquement: true,
-          dateReceptionEchantillon: DateTime(2026, 3, 5),
-          budgetNegociation: '9.50 TND/L',
-          dateStockSouhaiteeDebut: DateTime(2026, 4, 1),
-          dateStockSouhaiteeFin: DateTime(2026, 4, 15),
-        ),
-        // Scenario 5 : En négociation — pas encore de budget défini
-        EchantillonCollecteur(
-          id: 'ECH-005',
-          ref: '2026/0005',
-          gouvernorat: 'Jendouba',
-          delegation: 'Tabarka',
-          codeFournisseur: 'JN-09',
-          referenceBouteille: 'CHETOUI-C5',
-          scellage: 'Z4',
-          achatConfirme: false,
-          dateAjout: DateTime(2026, 3, 2),
-          quantiteEstimee: '18T',
-          variete: 'Chetoui',
-          statut: StatutCollecteur.enNegociation,
-          collecteurId: 'COL-001',
-          collecteurNom: 'Ahmed D.',
-          recuPhysiquement: true,
-          dateReceptionEchantillon: DateTime(2026, 3, 7),
-        ),
-        // Scenario 6 : Achat confirmé — aucune livraison planifiée
-        EchantillonCollecteur(
-          id: 'ECH-006',
-          ref: '2026/0006',
-          gouvernorat: 'Gabès',
-          delegation: 'Gabès Sud',
-          codeFournisseur: 'GB-11',
-          referenceBouteille: 'CHÉTOUI-C6',
-          scellage: 'Z1',
-          achatConfirme: true,
-          dateAjout: DateTime(2026, 2, 18),
-          quantiteEstimee: '12T',
-          variete: 'Chetoui',
-          statut: StatutCollecteur.achatConfirme,
-          collecteurId: 'COL-001',
-          collecteurNom: 'Ahmed D.',
-          recuPhysiquement: true,
-          dateReceptionEchantillon: DateTime(2026, 2, 22),
-          prixFinal: '8.80 TND/L',
-          camionLivraison: 'CAM-05',
-        ),
-        // Scenario 7 : Achat confirmé — livraison planifiée
-        EchantillonCollecteur(
-          id: 'ECH-007',
-          ref: '2026/0007',
-          gouvernorat: 'Gafsa',
-          delegation: 'Gafsa Sud',
-          codeFournisseur: 'GF-08',
-          referenceBouteille: 'ZALMATI-C7',
-          scellage: 'Z1',
-          achatConfirme: true,
-          dateAjout: DateTime(2026, 2, 20),
-          quantiteEstimee: '30T',
-          variete: 'Zalmati',
-          statut: StatutCollecteur.achatConfirme,
-          collecteurId: 'COL-001',
-          collecteurNom: 'Ahmed D.',
-          recuPhysiquement: true,
-          dateReceptionEchantillon: DateTime(2026, 2, 25),
-          prixFinal: '9.20 TND/L',
-          camionLivraison: 'CAM-03',
-          livraison: PlanificationLivraison.exact(
-            date: DateTime(2026, 3, 15),
-            heure: '9:00 AM',
-            lieu: 'Entrepôt principal Sfax',
-            camion: 'CAM-03',
-          ),
-        ),
-      ];
+  /// Confirms the purchase of an echantillon.
+  ///
+  /// Calls `PATCH /api/echantillons/<id>/confirmer_achat/` with optional
+  /// [prixFinal] and [camionLivraison] values.
+  Future<EchantillonCollecteur> confirmerAchat(
+    String id, {
+    String? prixFinal,
+    String? camionLivraison,
+  }) async {
+    final body = <String, dynamic>{
+      if (prixFinal != null) 'prix_final': prixFinal,
+      if (camionLivraison != null) 'camion_reserve': camionLivraison,
+    };
+    final response = await apiClient.patch(
+      '/api/echantillons/$id/confirmer_achat/',
+      body,
+    );
+    return EchantillonCollecteur.fromJson(_toFlutterMap(response));
+  }
 }

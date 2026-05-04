@@ -1,181 +1,220 @@
 import '../models/dashboard_chef_degustateur.dart';
+import '../../../core/api_client.dart';
 
 class DashboardChefDegustateurService {
-  // TODO: inject ApiClient here when backend is ready
-  // final ApiClient _api;
+  // ── Private helpers ────────────────────────────────────────────────────────
 
+  /// Formats an ISO 8601 datetime string to French short format: "24 Avr · 10h32".
+  String _formatDate(String isoDate) {
+    try {
+      final dt = DateTime.parse(isoDate).toLocal();
+      const months = [
+        'Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin',
+        'Juil', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc',
+      ];
+      final day = dt.day.toString().padLeft(2, '0');
+      final month = months[dt.month - 1];
+      final hour = dt.hour.toString().padLeft(2, '0');
+      final minute = dt.minute.toString().padLeft(2, '0');
+      return '$day $month · ${hour}h$minute';
+    } catch (_) {
+      return isoDate;
+    }
+  }
+
+  /// Formats a [DateTime] to ISO date string "YYYY-MM-DD".
+  String _fmtDate(DateTime d) =>
+      '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+
+  /// Builds a URL path with optional date range query parameters.
+  String _pathWithDates(
+    String basePath, {
+    DateTime? dateDebut,
+    DateTime? dateFin,
+    Map<String, String>? extra,
+  }) {
+    final params = <String, String>{
+      if (extra != null) ...extra,
+      if (dateDebut != null) 'date_debut': _fmtDate(dateDebut),
+      if (dateFin != null) 'date_fin': _fmtDate(dateFin),
+    };
+    return Uri(
+      path: basePath,
+      queryParameters: params.isEmpty ? null : params,
+    ).toString();
+  }
+
+  // ── Pipeline ───────────────────────────────────────────────────────────────
+
+  /// Backend: GET /api/chef/dashboard/pipeline/
+  /// Returns: {receptionne, en_attente_eval, en_cours, soumis}
   Future<PipelineChefData> fetchPipeline() async {
-    // TODO: replace with: return _api.get('/chef/dashboard/pipeline/');
-    return _mockPipeline();
+    final raw = await apiClient.get('/api/chef/dashboard/pipeline/');
+    return PipelineChefData.fromJson(raw);
   }
 
+  // ── Urgentes (time-based) ──────────────────────────────────────────────────
+
+  /// Backend: GET /api/chef/dashboard/urgentes/
+  /// Returns: [{id, numero, variete, days_waiting, badge}, ...]
+  /// Translation: reference = '$variete · $numero', jours_en_attente = days_waiting.
   Future<List<EvaluationUrgenteChef>> fetchUrgentes() async {
-    // TODO: replace with: return _api.get('/chef/dashboard/urgentes/');
-    return _mockUrgentes();
+    final items = await apiClient.getList('/api/chef/dashboard/urgentes/');
+    return items.map((e) {
+      final api = e as Map<String, dynamic>;
+      return EvaluationUrgenteChef.fromJson({
+        'id':              api['id'],
+        'reference':       '${api['variete'] ?? ''} · ${api['numero'] ?? ''}',
+        'collecteur_nom':  '',
+        'fournisseur_nom': '',
+        'jours_en_attente': api['days_waiting'] ?? 0,
+      });
+    }).toList();
   }
 
+  // ── Sessions en attente ────────────────────────────────────────────────────
+
+  /// Backend: GET /api/chef/dashboard/sessions-en-attente/
+  /// Returns: [{id, titre, date, heure, lieu, cree_par}, ...]
+  /// Translation: propose_par = cree_par.
   Future<List<SessionEnAttente>> fetchSessionsEnAttente() async {
-    // TODO: replace with: return _api.get('/chef/dashboard/sessions-en-attente/');
-    return _mockSessions();
+    final items = await apiClient.getList('/api/chef/dashboard/sessions-en-attente/');
+    return items.map((e) {
+      final api = e as Map<String, dynamic>;
+      return SessionEnAttente.fromJson({
+        'id':          api['id'],
+        'titre':       api['titre'] ?? '',
+        'date':        api['date'] ?? '',
+        'heure':       api['heure'] ?? '',
+        'lieu':        api['lieu'] ?? '',
+        'propose_par': api['cree_par'] ?? '',
+      });
+    }).toList();
   }
 
+  // ── Délai de soumission ────────────────────────────────────────────────────
+
+  /// Backend: GET /api/chef/dashboard/delai/?date_debut=...&date_fin=...
+  /// Returns: {membres: [{nom, delai_moyen, panel_moyen}], panel_moyen}
   Future<DelaiPanelData> fetchDelai({DateTime? dateDebut, DateTime? dateFin}) async {
-    // TODO: replace with API call passing date_debut / date_fin params
-    return _mockDelai();
+    final path = _pathWithDates(
+      '/api/chef/dashboard/delai/',
+      dateDebut: dateDebut,
+      dateFin: dateFin,
+    );
+    final raw = await apiClient.get(path);
+    return DelaiPanelData.fromJson(raw);
   }
 
-  Future<AlignementPanelData> fetchAlignement({DateTime? dateDebut, DateTime? dateFin}) async {
-    // TODO: replace with API call passing date_debut / date_fin params
-    return _mockAlignement();
+  // ── Alignement du panel ────────────────────────────────────────────────────
+
+  /// Backend: GET /api/chef/dashboard/alignement/?date_debut=...&date_fin=...
+  /// Returns: {membres: [{nom, divergence_pct}]}
+  Future<AlignementPanelData> fetchAlignement({
+    DateTime? dateDebut,
+    DateTime? dateFin,
+  }) async {
+    final path = _pathWithDates(
+      '/api/chef/dashboard/alignement/',
+      dateDebut: dateDebut,
+      dateFin: dateFin,
+    );
+    final raw = await apiClient.get(path);
+    return AlignementPanelData.fromJson(raw);
   }
 
+  // ── Classifications ────────────────────────────────────────────────────────
+
+  /// Backend: GET /api/chef/dashboard/classifications/?date_debut=...&date_fin=...
+  /// Returns: [{label, extra_vierge, vierge, lampante}] — matches model directly.
   Future<List<ClassificationPoint>> fetchClassifications({
     DateTime? dateDebut,
     DateTime? dateFin,
   }) async {
-    // TODO: replace with API call passing date_debut / date_fin params
-    return _mockClassifications();
+    final path = _pathWithDates(
+      '/api/chef/dashboard/classifications/',
+      dateDebut: dateDebut,
+      dateFin: dateFin,
+    );
+    final items = await apiClient.getList(path);
+    return items
+        .map((e) => ClassificationPoint.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 
+  // ── Urgentes CEO ───────────────────────────────────────────────────────────
+
+  /// Backend: GET /api/chef/dashboard/urgentes-ceo/
+  /// Returns: [{id, numero, variete, collecteur_nom, fournisseur_nom}, ...]
+  /// Translation: reference = '$variete · $numero'.
   Future<List<EvaluationUrgenteCeoChef>> fetchUrgentesCeo() async {
-    // TODO: replace with: return _api.get('/chef/dashboard/urgentes-ceo/');
-    return _mockUrgentesCeo();
+    final items = await apiClient.getList('/api/chef/dashboard/urgentes-ceo/');
+    return items.map((e) {
+      final api = e as Map<String, dynamic>;
+      return EvaluationUrgenteCeoChef.fromJson({
+        'id':              api['id'],
+        'reference':       '${api['variete'] ?? ''} · ${api['numero'] ?? ''}',
+        'collecteur_nom':  api['collecteur_nom'] ?? '',
+        'fournisseur_nom': api['fournisseur_nom'] ?? '',
+      });
+    }).toList();
   }
 
+  // ── Présence ───────────────────────────────────────────────────────────────
+
+  /// Backend: GET /api/chef/dashboard/presence/?date_debut=...&date_fin=...
+  /// Returns: {present, manquee, prochaine_titre, prochaine_date, prochaine_lieu, prochaine_countdown}
+  /// — matches PresenceChefData.fromJson directly.
   Future<PresenceChefData> fetchPresence({
     DateTime? dateDebut,
     DateTime? dateFin,
   }) async {
-    // TODO: replace with API call passing date params
-    return _mockPresence();
+    final path = _pathWithDates(
+      '/api/chef/dashboard/presence/',
+      dateDebut: dateDebut,
+      dateFin: dateFin,
+    );
+    final raw = await apiClient.get(path);
+    return PresenceChefData.fromJson(raw);
   }
 
+  // ── Activité (paginated) ───────────────────────────────────────────────────
+
+  /// Backend: GET /api/chef/dashboard/activite/?offset=<n>&limit=<n>&date_debut=...&date_fin=...
+  /// Returns: {count, results: [{type, date, description}]}
+  /// Translation:
+  ///   id         = (offset + index).toString()
+  ///   action     = item['description']
+  ///   horodatage = _formatDate(item['date'])
+  ///   type       = item['type']
   Future<({List<ActiviteItemChef> items, int total})> fetchActivite({
     DateTime? dateDebut,
     DateTime? dateFin,
     int offset = 0,
     int pageSize = 5,
   }) async {
-    // TODO: replace with paginated API call
-    final all = _mockActivite();
-    final slice = all.skip(offset).take(pageSize).toList();
-    return (items: slice, total: all.length);
+    final path = _pathWithDates(
+      '/api/chef/dashboard/activite/',
+      dateDebut: dateDebut,
+      dateFin: dateFin,
+      extra: {
+        'offset': offset.toString(),
+        'limit':  pageSize.toString(),
+      },
+    );
+    final raw = await apiClient.get(path);
+    final results = (raw['results'] as List? ?? []);
+    final total = (raw['count'] as int?) ?? results.length;
+    final items = results.asMap().entries.map((entry) {
+      final index = entry.key;
+      final api = entry.value as Map<String, dynamic>;
+      return ActiviteItemChef(
+        id:          (offset + index).toString(),
+        action:      (api['description'] as String?) ?? '',
+        horodatage:  _formatDate((api['date'] as String?) ?? ''),
+        type:        (api['type'] as String?) ?? '',
+      );
+    }).toList();
+    return (items: items, total: total);
   }
-
-  // ── Mock data ──────────────────────────────────────────────────────────────
-  // TODO: remove when backend is ready
-
-  PipelineChefData _mockPipeline() => const PipelineChefData(
-    receptionne: 2412,
-    enAttenteEval: 187,
-    enCours: 43,
-    soumis: 1089,
-  );
-
-  List<EvaluationUrgenteChef> _mockUrgentes() => const [
-    EvaluationUrgenteChef(
-      id: 'u1',
-      reference: 'CHEMLALI-C1 · 2026/0001',
-      collecteurNom: 'Ahmed Dridi',
-      fournisseurNom: 'Domaine Bel-Air',
-      joursEnAttente: 2,
-    ),
-    EvaluationUrgenteChef(
-      id: 'u2',
-      reference: 'CHETOUI-C3 · 2026/0003',
-      collecteurNom: 'Rania Hammami',
-      fournisseurNom: 'Ferme Al Jazira',
-      joursEnAttente: 1,
-    ),
-  ];
-
-  List<SessionEnAttente> _mockSessions() => const [
-    SessionEnAttente(
-      id: 's1',
-      titre: 'Session Oueslati — Lot C',
-      date: '28/04/2026',
-      heure: '09:00',
-      lieu: 'Salle A',
-      proposePar: 'Lobna E.',
-    ),
-    SessionEnAttente(
-      id: 's2',
-      titre: 'Session Rkhami — Sfax',
-      date: '02/05/2026',
-      heure: '11:00',
-      lieu: 'Labo 1',
-      proposePar: 'Ichrak C.',
-    ),
-  ];
-
-  DelaiPanelData _mockDelai() => DelaiPanelData(
-    panelMoyen: 1.86,
-    membres: const [
-      DelaiMembre(nom: 'Maha O.',    delaiMoyen: 3.8, panelMoyen: 1.86),
-      DelaiMembre(nom: 'Yosra S.',   delaiMoyen: 2.3, panelMoyen: 1.86),
-      DelaiMembre(nom: 'Lobna E.',   delaiMoyen: 1.6, panelMoyen: 1.86),
-      DelaiMembre(nom: 'Nayrouz F.', delaiMoyen: 1.4, panelMoyen: 1.86),
-      DelaiMembre(nom: 'Ichrak C.',  delaiMoyen: 1.2, panelMoyen: 1.86),
-    ],
-  );
-
-  AlignementPanelData _mockAlignement() => const AlignementPanelData(
-    membres: [
-      AlignementMembre(nom: 'Maha O.',    divergencePct: 62.0),
-      AlignementMembre(nom: 'Yosra S.',   divergencePct: 28.0),
-      AlignementMembre(nom: 'Nayrouz F.', divergencePct: 12.0),
-      AlignementMembre(nom: 'Lobna E.',   divergencePct: 8.0),
-      AlignementMembre(nom: 'Ichrak C.',  divergencePct: 5.0),
-    ],
-  );
-
-  // TODO: remove when backend is ready
-  List<EvaluationUrgenteCeoChef> _mockUrgentesCeo() => const [
-    EvaluationUrgenteCeoChef(
-      id: 'ceo-chef-1',
-      reference: 'OUESLATI-C2 · 2026/0007',
-      collecteurNom: 'Sami Ben Amor',
-      fournisseurNom: 'Ferme El Baraka',
-    ),
-    EvaluationUrgenteCeoChef(
-      id: 'ceo-chef-2',
-      reference: 'ZALMATI-C1 · 2026/0011',
-      collecteurNom: 'Rim Bouzid',
-      fournisseurNom: 'Ferme El Hamra',
-    ),
-  ];
-
-  // TODO: remove when backend is ready
-  PresenceChefData _mockPresence() => const PresenceChefData(
-    present: 18,
-    manquee: 1,
-    prochaineTitre: 'Prochaine séance : 28 Avr 2026',
-    prochaineDate: '28 Avr 2026',
-    prochaineLieu: 'Salle de dégustation A · 09h00',
-    prochaineCountdown: '4j',
-  );
-
-  // TODO: remove when backend is ready
-  List<ActiviteItemChef> _mockActivite() => const [
-    ActiviteItemChef(id: 'ca1', action: 'Session #15 approuvée', horodatage: '24 Avr · 11h00', type: 'approbation'),
-    ActiviteItemChef(id: 'ca2', action: 'Évaluation soumise — CHEMLALI-C4', horodatage: '24 Avr · 10h32', type: 'evaluation'),
-    ActiviteItemChef(id: 'ca3', action: 'Séance de dégustation rejointe — Séance #14', horodatage: '23 Avr · 09h00', type: 'seance_presente'),
-    ActiviteItemChef(id: 'ca4', action: 'Session #14 approuvée', horodatage: '22 Avr · 15h30', type: 'approbation'),
-    ActiviteItemChef(id: 'ca5', action: 'Évaluation soumise — OUESLATI-C2', horodatage: '21 Avr · 14h15', type: 'evaluation'),
-    ActiviteItemChef(id: 'ca6', action: 'Séance manquée — Séance #13', horodatage: '19 Avr · 09h00', type: 'seance_manquee'),
-    ActiviteItemChef(id: 'ca7', action: 'Évaluation soumise — CHETOUI-C2', horodatage: '19 Avr · 11h47', type: 'evaluation'),
-    ActiviteItemChef(id: 'ca8', action: 'Session refusée — Séance Chemlali', horodatage: '17 Avr · 10h00', type: 'refus'),
-    ActiviteItemChef(id: 'ca9', action: 'Séance rejointe — Séance #12', horodatage: '15 Avr · 09h00', type: 'seance_presente'),
-    ActiviteItemChef(id: 'ca10', action: 'Évaluation soumise — ZALMATI-C1', horodatage: '14 Avr · 16h40', type: 'evaluation'),
-  ];
-
-  List<ClassificationPoint> _mockClassifications() => const [
-    ClassificationPoint(label: 'Oct', extraVierge: 1, vierge: 0, lampante: 1),
-    ClassificationPoint(label: 'Nov', extraVierge: 2, vierge: 1, lampante: 0),
-    ClassificationPoint(label: 'Déc', extraVierge: 3, vierge: 1, lampante: 0),
-    ClassificationPoint(label: 'Jan', extraVierge: 5, vierge: 2, lampante: 0),
-    ClassificationPoint(label: 'Fév', extraVierge: 2, vierge: 1, lampante: 1),
-    ClassificationPoint(label: 'Mar', extraVierge: 1, vierge: 1, lampante: 0),
-    ClassificationPoint(label: 'Avr', extraVierge: 1, vierge: 0, lampante: 0),
-  ];
 }
