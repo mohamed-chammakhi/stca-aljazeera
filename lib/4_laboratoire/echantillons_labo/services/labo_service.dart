@@ -157,11 +157,18 @@ class LaboService {
       // Update existing analysis.
       await _api.patch('/api/analyses/$existingId/', payload);
     } else {
-      // Create new analysis and cache the returned id.
-      final created = await _api.post('/api/analyses/', payload);
-      final newId = created['id']?.toString();
-      if (newId != null) {
-        _analyseIds[echantillonId] = newId;
+      // Cache cold — check if an analyse already exists before deciding POST vs PATCH
+      final existing = await _api.getList(
+        '/api/analyses/?echantillon=$echantillonId',
+      );
+      if (existing.isNotEmpty) {
+        final existingMap = existing.first as Map<String, dynamic>;
+        final fetchedId = existingMap['id'] as String;
+        _analyseIds[echantillonId] = fetchedId;
+        await _api.patch('/api/analyses/$fetchedId/', payload);
+      } else {
+        final created = await _api.post('/api/analyses/', payload);
+        _analyseIds[echantillonId] = created['id'] as String;
       }
     }
   }
