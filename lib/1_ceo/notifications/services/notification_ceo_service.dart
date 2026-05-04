@@ -14,11 +14,11 @@ class NotificationCeoService {
   }
 
   Future<void> markAllAsRead() async {
-    await apiClient.post('/api/notifications/mark_all_read/', {});
+    await apiClient.post('/api/notifications/read-all/', {});
   }
 
   Future<int> fetchUnreadCount() async {
-    final data = await apiClient.get('/api/notifications/unread_count/');
+    final data = await apiClient.get('/api/notifications/unread-count/');
     return data['count'] as int;
   }
 }
