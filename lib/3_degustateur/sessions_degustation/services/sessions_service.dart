@@ -34,15 +34,8 @@ class SessionsService {
   }
 
   /// Confirms a participant's presence for a tasting session.
-  ///
-  /// NOTE: This endpoint does not yet exist on the backend.
-  /// Kept as a no-op until the backend adds a presence confirmation endpoint
-  /// (e.g. POST /api/sessions_degustation/<sessionId>/confirmer_presence/).
   Future<void> confirmerPresence(String sessionId, String participantId) async {
-    // TODO: implement when backend adds the confirmer_presence endpoint.
-    // await apiClient.post(
-    //   '/api/sessions_degustation/$sessionId/confirmer_presence/',
-    //   {'participant_id': participantId},
-    // );
+    // Backend endpoint not yet implemented.
+    throw UnimplementedError('confirmerPresence: endpoint not available yet');
   }
 }
