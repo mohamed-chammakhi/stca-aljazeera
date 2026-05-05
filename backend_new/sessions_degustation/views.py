@@ -71,3 +71,15 @@ class SessionRefuserView(APIView):
             session.statut = SessionDegustation.Statut.REFUSEE
             session.save()
         return Response(SessionDegustationSerializer(session).data)
+
+
+class SessionConfirmerPresenceView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk):
+        try:
+            session = SessionDegustation.objects.get(pk=pk)
+        except SessionDegustation.DoesNotExist:
+            return Response({'detail': 'Session introuvable.'}, status=status.HTTP_404_NOT_FOUND)
+        session.participants.add(request.user)
+        return Response(status=status.HTTP_204_NO_CONTENT)

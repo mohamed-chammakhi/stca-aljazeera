@@ -11,7 +11,6 @@ enum RoleUtilisateur {
   degustateur,
   laboratoire,
   chefPanel,
-  responsableFinancier,
 }
 
 extension RoleUtilisateurX on RoleUtilisateur {
@@ -22,7 +21,6 @@ extension RoleUtilisateurX on RoleUtilisateur {
       case RoleUtilisateur.degustateur:         return 'degustateur';
       case RoleUtilisateur.laboratoire:         return 'laboratoire';
       case RoleUtilisateur.chefPanel:           return 'chef_panel';
-      case RoleUtilisateur.responsableFinancier: return 'responsable_financier';
     }
   }
 
@@ -33,7 +31,6 @@ extension RoleUtilisateurX on RoleUtilisateur {
       case RoleUtilisateur.degustateur:         return 'Dégustateur';
       case RoleUtilisateur.laboratoire:         return 'Technicien Labo';
       case RoleUtilisateur.chefPanel:           return 'Chef de Panel';
-      case RoleUtilisateur.responsableFinancier: return 'Responsable Financier';
     }
   }
 
@@ -44,7 +41,6 @@ extension RoleUtilisateurX on RoleUtilisateur {
       case 'degustateur':           return RoleUtilisateur.degustateur;
       case 'laboratoire':           return RoleUtilisateur.laboratoire;
       case 'chef_panel':            return RoleUtilisateur.chefPanel;
-      case 'responsable_financier': return RoleUtilisateur.responsableFinancier;
       default: throw ArgumentError('Unknown role: $s');
     }
   }

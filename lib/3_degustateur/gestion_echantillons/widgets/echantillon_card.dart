@@ -145,76 +145,6 @@ class _EchantillonCardState extends State<EchantillonCard> {
                                 _QuantityPill(quantite: e.quantiteEstimee!),
                                 const SizedBox(width: 6),
                               ],
-                              // ── Inline confirmation message ───────────────
-                              AnimatedSize(
-                                duration: const Duration(milliseconds: 200),
-                                curve: Curves.easeInOut,
-                                child: _showRecuMsg
-                                    ? Container(
-                                        margin: const EdgeInsets.only(right: 6),
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 7,
-                                          vertical: 3,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: _green,
-                                          borderRadius: BorderRadius.circular(
-                                            6,
-                                          ),
-                                        ),
-                                        child: const Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Icon(
-                                              Icons.check,
-                                              size: 10,
-                                              color: Colors.white,
-                                            ),
-                                            SizedBox(width: 4),
-                                            Text(
-                                              'Réception physique confirmée',
-                                              style: TextStyle(
-                                                fontSize: 10,
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.w600,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      )
-                                    : const SizedBox.shrink(),
-                              ),
-                              // ── Physical reception tick ───────────────────
-                              GestureDetector(
-                                onTap: _toggleRecuWithFeedback,
-                                behavior: HitTestBehavior.opaque,
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 4,
-                                    vertical: 2,
-                                  ),
-                                  child: AnimatedSwitcher(
-                                    duration: const Duration(milliseconds: 220),
-                                    switchInCurve: Curves.easeOutBack,
-                                    transitionBuilder: (child, anim) =>
-                                        ScaleTransition(
-                                          scale: anim,
-                                          child: child,
-                                        ),
-                                    child: Icon(
-                                      e.recuPhysiquement
-                                          ? Icons.check_circle
-                                          : Icons.check_circle_outline,
-                                      key: ValueKey(e.recuPhysiquement),
-                                      size: 20,
-                                      color: e.recuPhysiquement
-                                          ? _green
-                                          : Colors.grey.shade400,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 4),
                               AnimatedRotation(
                                 turns: _expanded ? 0.5 : 0.0,
                                 duration: const Duration(milliseconds: 200),
@@ -241,26 +171,99 @@ class _EchantillonCardState extends State<EchantillonCard> {
                                   color: Colors.grey.shade500,
                                 ),
                               ),
-                              const Spacer(),
-                              if (_expanded) ...[
-                                Tooltip(
-                                  message: 'Modifier',
-                                  child: _SmallIconBtn(
-                                    icon: Icons.edit_outlined,
-                                    color: _olive,
-                                    onTap: widget.onModifier,
-                                  ),
+                              Expanded(
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    if (_expanded) ...[
+                                      // ── Inline confirmation message ───────
+                                      Flexible(
+                                        fit: FlexFit.loose,
+                                        child: AnimatedSize(
+                                          duration: const Duration(milliseconds: 200),
+                                          curve: Curves.easeInOut,
+                                          child: _showRecuMsg
+                                              ? Container(
+                                                  margin: const EdgeInsets.only(right: 6),
+                                                  padding: const EdgeInsets.symmetric(
+                                                    horizontal: 7,
+                                                    vertical: 3,
+                                                  ),
+                                                  decoration: BoxDecoration(
+                                                    color: _green,
+                                                    borderRadius: BorderRadius.circular(6),
+                                                  ),
+                                                  child: Row(
+                                                    mainAxisSize: MainAxisSize.min,
+                                                    children: [
+                                                      const Icon(Icons.check, size: 10, color: Colors.white),
+                                                      const SizedBox(width: 4),
+                                                      Flexible(
+                                                        child: Text(
+                                                          'Réception physique confirmée',
+                                                          overflow: TextOverflow.ellipsis,
+                                                          style: const TextStyle(
+                                                            fontSize: 10,
+                                                            color: Colors.white,
+                                                            fontWeight: FontWeight.w600,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                )
+                                              : const SizedBox.shrink(),
+                                        ),
+                                      ),
+                                      // ── Physical reception tick ───────────
+                                      GestureDetector(
+                                        onTap: _toggleRecuWithFeedback,
+                                        behavior: HitTestBehavior.opaque,
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 4,
+                                            vertical: 2,
+                                          ),
+                                          child: AnimatedSwitcher(
+                                            duration: const Duration(milliseconds: 220),
+                                            switchInCurve: Curves.easeOutBack,
+                                            transitionBuilder: (child, anim) =>
+                                                ScaleTransition(scale: anim, child: child),
+                                            child: Icon(
+                                              e.recuPhysiquement
+                                                  ? Icons.check_circle
+                                                  : Icons.check_circle_outline,
+                                              key: ValueKey(e.recuPhysiquement),
+                                              size: 20,
+                                              color: e.recuPhysiquement
+                                                  ? _green
+                                                  : Colors.grey.shade400,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 2),
+                                      Tooltip(
+                                        message: 'Modifier',
+                                        child: _SmallIconBtn(
+                                          icon: Icons.edit_outlined,
+                                          color: _olive,
+                                          onTap: widget.onModifier,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 2),
+                                      Tooltip(
+                                        message: 'Supprimer',
+                                        child: _SmallIconBtn(
+                                          icon: Icons.delete_outline,
+                                          color: Colors.red.shade300,
+                                          onTap: widget.onSupprimer,
+                                        ),
+                                      ),
+                                    ],
+                                  ],
                                 ),
-                                const SizedBox(width: 2),
-                                Tooltip(
-                                  message: 'Supprimer',
-                                  child: _SmallIconBtn(
-                                    icon: Icons.delete_outline,
-                                    color: Colors.red.shade300,
-                                    onTap: widget.onSupprimer,
-                                  ),
-                                ),
-                              ],
+                              ),
                             ],
                           ),
                         ],

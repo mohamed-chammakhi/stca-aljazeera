@@ -96,7 +96,7 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
     _bouteilles.add(
       e != null
           ? BouteilleRow.fromSample(
-              ref: e.referenceBouteille,
+              referenceBouteille: e.referenceBouteille,
               variete: e.variete ?? '',
               scellage: e.scellage ?? '',
               qte: e.quantiteEstimee ?? '',
@@ -189,7 +189,7 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
         final numero = widget.prochainNumero + idx;
         return EchantillonCollecteur(
           id: 'new-${now.millisecondsSinceEpoch}-$idx',
-          ref: '${now.year}/${numero.toString().padLeft(4, '0')}',
+          numero: '${now.year}/${(widget.prochainNumero + idx).toString().padLeft(4, '0')}',
           codeFournisseur: codeFournisseur ?? '',
           collecteurId: 'collecteur-placeholder',
           collecteurNom: collecteur ?? '',

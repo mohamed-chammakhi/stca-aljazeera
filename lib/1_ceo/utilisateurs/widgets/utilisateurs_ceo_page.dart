@@ -41,10 +41,11 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage> with CeoNavMi
   // ── Role accent colors ─────────────────────────────────────────────────────
   // CEO → blue, Laboratoire → orange, Dégustateur → kGreen, Collecteur → pink
   static const _roleColors = {
-    UserRole.direction: (bg: Color(0xFFE6F1FB), fg: Color(0xFF185FA5)),
-    UserRole.laboratoire: (bg: Color(0xFFFAEEDA), fg: Color(0xFF854F0B)),
-    UserRole.degustateur: (bg: Color(0xFFE1F5EE), fg: Color(0xFF0F6E56)),
-    UserRole.collecteur: (bg: Color(0xFFFBEAF0), fg: Color(0xFF993556)),
+    UserRole.direction:             (bg: Color(0xFFE6F1FB), fg: Color(0xFF185FA5)),
+    UserRole.laboratoire:           (bg: Color(0xFFFAEEDA), fg: Color(0xFF854F0B)),
+    UserRole.degustateur:           (bg: Color(0xFFE1F5EE), fg: Color(0xFF0F6E56)),
+    UserRole.collecteur:            (bg: Color(0xFFFBEAF0), fg: Color(0xFF993556)),
+    UserRole.chefPanel:             (bg: Color(0xFFF3EBF9), fg: Color(0xFF6A3D9A)),
   };
 
   // ── Data ──────────────────────────────────────────────────────────────────
@@ -243,6 +244,12 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage> with CeoNavMi
         role: UserRole.collecteur as UserRole?,
         activeBg: Color(0xFFFBEAF0),
         activeFg: Color(0xFF993556),
+      ),
+      (
+        label: 'Chef Panel',
+        role: UserRole.chefPanel as UserRole?,
+        activeBg: Color(0xFFF3EBF9),
+        activeFg: Color(0xFF6A3D9A),
       ),
     ];
 

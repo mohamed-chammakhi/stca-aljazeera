@@ -161,7 +161,7 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
       builder: (_) => AlertDialog(
         title: const Text('Supprimer l\'échantillon'),
         content: Text(
-          'Voulez-vous supprimer "${e.referenceBouteille}" (${e.ref}) ?',
+          'Voulez-vous supprimer "${e.referenceBouteille}" (${e.numero}) ?',
         ),
         actions: [
           TextButton(

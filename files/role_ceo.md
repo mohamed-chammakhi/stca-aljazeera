@@ -76,7 +76,7 @@ Sent automatically to all active CEO accounts (`role='direction'`) via Django si
 ### Signal logic
 - `pre_save` stores `_old_recu_physiquement` and `_old_statut_collecteur` so `post_save` can diff.
 - `ECHANTILLON_MODIFIE` fires on any save that is NOT a creation, NOT a `recu_physiquement` flip, and NOT an `achat_confirme` transition.
-- `ECHANTILLON_SUPPRIME` fires on `pre_delete` so the reference can still be read.
+- `ECHANTILLON_SUPPRIME` fires on `pre_delete` so `numero` and `reference_bouteille` can still be read before the record is gone.
 - "All evaluations" check: count `EvaluationOrganoleptique` with `statut=soumis` and compare to `User.objects.filter(role='degustateur', is_active=True).count()`.
 
 ### Deep-link navigation

@@ -1,166 +1,43 @@
 import '../models/notification_collecteur.dart';
+import '../../../../core/api_client.dart';
+import 'notification_mock_data.dart';
 
 class NotificationCollecteurService {
-  // TODO: inject ApiClient here when backend is ready
-  // final ApiClient _api;
+  static const bool useMock = false;
 
   Future<List<NotificationCollecteur>> fetchNotifications() async {
-    // TODO: replace with: final data = await _api.get('/collecteur/notifications/');
-    // TODO: return (data['results'] as List).map((e) => NotificationCollecteur.fromJson(e)).toList();
-    await Future.delayed(const Duration(milliseconds: 300));
-    return _mockNotifications(); // TODO: remove when backend is ready
+    if (useMock) {
+      await Future.delayed(const Duration(milliseconds: 300));
+      return mockNotifications();
+    }
+    final items = await apiClient.getList('/api/notifications/');
+    return items
+        .map((e) => NotificationCollecteur.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 
   Future<void> markAsRead(String id) async {
-    // TODO: replace with: await _api.put('/collecteur/notifications/$id/', {'is_read': true});
-    await Future.delayed(const Duration(milliseconds: 100));
+    if (useMock) {
+      await Future.delayed(const Duration(milliseconds: 100));
+      return;
+    }
+    await apiClient.patch('/api/notifications/$id/', {'is_read': true});
   }
 
   Future<void> markAllAsRead() async {
-    // TODO: replace with: await _api.post('/collecteur/notifications/read-all/', {});
-    await Future.delayed(const Duration(milliseconds: 100));
+    if (useMock) {
+      await Future.delayed(const Duration(milliseconds: 100));
+      return;
+    }
+    await apiClient.post('/api/notifications/read-all/', {});
   }
 
   Future<int> fetchUnreadCount() async {
-    // TODO: replace with: final data = await _api.get('/collecteur/notifications/unread-count/');
-    // TODO: return data['count'] as int;
-    await Future.delayed(const Duration(milliseconds: 100));
-    return _mockNotifications().where((n) => !n.isRead).length; // TODO: remove when backend is ready
+    if (useMock) {
+      await Future.delayed(const Duration(milliseconds: 100));
+      return mockNotifications().where((n) => !n.isRead).length;
+    }
+    final data = await apiClient.get('/api/notifications/unread-count/');
+    return data['count'] as int? ?? 0;
   }
-
-  // TODO: remove when backend is ready
-  List<NotificationCollecteur> _mockNotifications() {
-    final now = DateTime.now();
-    return [
-      // ── Aujourd'hui ───────────────────────────────────────────────────────────
-
-      // CEO approves a sample → collector must confirm purchase
-      NotificationCollecteur(
-        id: '1',
-        type: 'ECHANTILLON_APPROUVE',
-        titre: 'Échantillon approuvé — négociation ouverte',
-        message:
-            "La direction a approuvé l'échantillon ECH-2026-041 pour achat. "
-            "Budget alloué : 7.80 TND/L. Livraison du stock souhaitée avant le 10/05/2026. "
-            "Confirmez l'achat depuis votre liste d'échantillons.",
-        echantillonId: 'ech-1',
-        echantillonReference: 'ECH-2026-041',
-        section: 'MES_ECHANTILLONS',
-        isRead: false,
-        dateCreation: now.subtract(const Duration(minutes: 25)),
-        budgetNegociation: 7.80,
-        dateLivraisonStockSouhaitee: now.add(const Duration(days: 15)),
-      ),
-
-      // CEO refuses a sample
-      NotificationCollecteur(
-        id: '2',
-        type: 'ECHANTILLON_REFUSE',
-        titre: 'Échantillon refusé par la direction',
-        message:
-            "La direction a refusé l'échantillon ECH-2026-039 après analyse organoleptique. "
-            "Motif : résultats sensoriels insuffisants (score < seuil minimal). "
-            "Cet échantillon ne fera pas l'objet d'un achat.",
-        echantillonId: 'ech-2',
-        echantillonReference: 'ECH-2026-039',
-        section: 'MES_ECHANTILLONS',
-        isRead: false,
-        dateCreation: now.subtract(const Duration(hours: 2)),
-        budgetNegociation: null,
-        dateLivraisonStockSouhaitee: null,
-      ),
-
-      // Stock physically received by company — CEO confirmed arrival
-      NotificationCollecteur(
-        id: '3',
-        type: 'STOCK_RECEPTIONNE',
-        titre: 'Stock réceptionné en entrepôt',
-        message:
-            "La direction a confirmé la réception physique du stock de l'échantillon ECH-2026-037. "
-            "Le stock est arrivé en entrepôt le ${_fmt(now.subtract(const Duration(hours: 4)))}. "
-            "La transaction est clôturée.",
-        echantillonId: 'ech-3',
-        echantillonReference: 'ECH-2026-037',
-        section: 'MES_ECHANTILLONS',
-        isRead: false,
-        dateCreation: now.subtract(const Duration(hours: 4)),
-      ),
-
-      // ── Hier ─────────────────────────────────────────────────────────────────
-
-      // Another approval — already read
-      NotificationCollecteur(
-        id: '4',
-        type: 'ECHANTILLON_APPROUVE',
-        titre: 'Échantillon approuvé — négociation ouverte',
-        message:
-            "La direction a approuvé l'échantillon ECH-2026-035 pour achat. "
-            "Budget alloué : 8.50 TND/L. Livraison du stock souhaitée avant le 05/05/2026. "
-            "Confirmez l'achat depuis votre liste d'échantillons.",
-        echantillonId: 'ech-4',
-        echantillonReference: 'ECH-2026-035',
-        section: 'MES_ECHANTILLONS',
-        isRead: true,
-        dateCreation: now.subtract(const Duration(days: 1, hours: 2)),
-        budgetNegociation: 8.50,
-        dateLivraisonStockSouhaitee: now.add(const Duration(days: 10)),
-      ),
-
-      // Another refusal — already read
-      NotificationCollecteur(
-        id: '5',
-        type: 'ECHANTILLON_REFUSE',
-        titre: 'Échantillon refusé par la direction',
-        message:
-            "La direction a refusé l'échantillon ECH-2026-033 après analyse organoleptique. "
-            "Motif : teneur en acides gras libres hors norme. "
-            "Cet échantillon ne fera pas l'objet d'un achat.",
-        echantillonId: 'ech-5',
-        echantillonReference: 'ECH-2026-033',
-        section: 'MES_ECHANTILLONS',
-        isRead: true,
-        dateCreation: now.subtract(const Duration(days: 1, hours: 5)),
-      ),
-
-      // ── Plus tôt ─────────────────────────────────────────────────────────────
-
-      // Stock received — older, already read
-      NotificationCollecteur(
-        id: '6',
-        type: 'STOCK_RECEPTIONNE',
-        titre: 'Stock réceptionné en entrepôt',
-        message:
-            "La direction a confirmé la réception physique du stock de l'échantillon ECH-2026-029. "
-            "Le stock est arrivé en entrepôt le ${_fmt(now.subtract(const Duration(days: 3)))}. "
-            "La transaction est clôturée.",
-        echantillonId: 'ech-6',
-        echantillonReference: 'ECH-2026-029',
-        section: 'MES_ECHANTILLONS',
-        isRead: true,
-        dateCreation: now.subtract(const Duration(days: 3)),
-      ),
-
-      // Another older approval — already read
-      NotificationCollecteur(
-        id: '7',
-        type: 'ECHANTILLON_APPROUVE',
-        titre: 'Échantillon approuvé — négociation ouverte',
-        message:
-            "La direction a approuvé l'échantillon ECH-2026-025 pour achat. "
-            "Budget alloué : 7.20 TND/L. Livraison du stock souhaitée avant le 01/05/2026. "
-            "Confirmez l'achat depuis votre liste d'échantillons.",
-        echantillonId: 'ech-7',
-        echantillonReference: 'ECH-2026-025',
-        section: 'MES_ECHANTILLONS',
-        isRead: true,
-        dateCreation: now.subtract(const Duration(days: 5)),
-        budgetNegociation: 7.20,
-        dateLivraisonStockSouhaitee: now.add(const Duration(days: 6)),
-      ),
-    ];
-  }
-
-  String _fmt(DateTime dt) =>
-      '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year} '
-      'à ${dt.hour.toString().padLeft(2, '0')}h${dt.minute.toString().padLeft(2, '0')}';
 }

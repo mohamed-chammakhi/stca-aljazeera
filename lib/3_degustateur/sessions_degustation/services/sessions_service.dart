@@ -33,9 +33,8 @@ class SessionsService {
     await apiClient.delete('/api/sessions_degustation/$id/');
   }
 
-  /// Confirms a participant's presence for a tasting session.
-  Future<void> confirmerPresence(String sessionId, String participantId) async {
-    // Backend endpoint not yet implemented.
-    throw UnimplementedError('confirmerPresence: endpoint not available yet');
+  /// Confirms the current user's presence for a tasting session.
+  Future<void> confirmerPresence(String sessionId) async {
+    await apiClient.post('/api/sessions_degustation/$sessionId/confirmer_presence/', {});
   }
 }

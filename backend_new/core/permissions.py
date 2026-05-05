@@ -48,11 +48,6 @@ class IsChefPanel(BasePermission):
         return request.user.is_authenticated and request.user.role == 'chef_panel'
 
 
-class IsResponsableFinancier(BasePermission):
-    def has_permission(self, request, view):
-        return request.user.is_authenticated and request.user.role == 'responsable_financier'
-
-
 class IsDegustateurOrChefPanel(BasePermission):
     """Taster pages accessible to both degustateur and chef_panel."""
     def has_permission(self, request, view):

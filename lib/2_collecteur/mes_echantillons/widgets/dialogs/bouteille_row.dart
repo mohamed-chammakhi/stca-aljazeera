@@ -21,12 +21,12 @@ class BouteilleRow {
   );
 
   factory BouteilleRow.fromSample({
-    required String ref,
+    required String referenceBouteille,
     required String variete,
     required String scellage,
     required String qte,
   }) => BouteilleRow(
-    refCtrl: TextEditingController(text: ref),
+    refCtrl: TextEditingController(text: referenceBouteille),
     varieteCtrl: TextEditingController(text: variete),
     scellageCtrl: TextEditingController(text: scellage),
     qteCtrl: TextEditingController(text: qte),

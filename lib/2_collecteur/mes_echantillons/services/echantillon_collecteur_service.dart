@@ -4,8 +4,11 @@
 
 import '../models/echantillon_collecteur.dart';
 import '../../../../core/api_client.dart';
+import '../../../../core/models/enums.dart' show StatutCollecteurX;
+import 'echantillon_mock_data.dart';
 
 class EchantillonCollecteurService {
+  static const bool useMock = false;
   // ── Field mapping: Django API → Flutter fromJson ───────────────────────────
   //
   // The Django API returns field names that differ from what fromJson() expects.
@@ -51,7 +54,7 @@ class EchantillonCollecteurService {
     final statutCollecteur = api['statut_collecteur'] as String? ?? 'receptionne';
     return {
       'id': api['id'],
-      'ref': api['numero'],
+      'numero': api['numero'],
       'gouvernorat': api['gouvernorat'] ?? '',
       'delegation': api['delegation'],
       'cite': api['cite'],
@@ -90,21 +93,21 @@ class EchantillonCollecteurService {
   Map<String, dynamic> _toDjangoMap(EchantillonCollecteur e) {
     final json = e.toJson();
     return {
-      'numero': json['ref'],
+      'numero': e.numero,
       'gouvernorat': json['gouvernorat'],
       'delegation': json['delegation'],
       'cite': json['cite'],
-      'code_fournisseur': json['code_fournisseur'],
+      'code_fournisseur': e.codeFournisseur,
       'reference_bouteille': json['reference_bouteille'],
       'scellage': json['scellage'],
       'quantite_estimee': json['quantite_estimee'],
       'variete': json['variete'],
       'budget_negociation': json['budget_negociation'],
       'prix_final': json['prix_final'],
-      'camion_reserve': json['camion_livraison'],
+      'camion_reserve': json['camion_reserve'],
       'remarques': json['remarques'],
       'image_url': json['image_url'],
-      'statut_collecteur': e.statut.toJson(),
+      'statut_collecteur': e.statut.toJson,
     };
   }
 
@@ -119,6 +122,20 @@ class EchantillonCollecteurService {
     String? statut,
     String? search,
   }) async {
+    if (useMock) {
+      await Future.delayed(const Duration(milliseconds: 300));
+      final all = mockEchantillons();
+      return all.where((e) {
+        if (statut != null && statut.isNotEmpty && e.statut.toJson != statut) return false;
+        if (search != null && search.isNotEmpty) {
+          final q = search.toLowerCase();
+          if (!e.numero.toLowerCase().contains(q) &&
+              !(e.variete?.toLowerCase().contains(q) ?? false)) { return false; }
+        }
+        return true;
+      }).toList();
+    }
+
     final params = <String, String>{};
     if (statut != null && statut.isNotEmpty) params['statut'] = statut;
     if (search != null && search.isNotEmpty) params['search'] = search;
@@ -138,6 +155,10 @@ class EchantillonCollecteurService {
   /// Creates a new echantillon and returns the saved record from the server.
   Future<EchantillonCollecteur> createEchantillon(
       EchantillonCollecteur e) async {
+    if (useMock) {
+      await Future.delayed(const Duration(milliseconds: 300));
+      return e;
+    }
     final response = await apiClient.post('/api/echantillons/', _toDjangoMap(e));
     return EchantillonCollecteur.fromJson(_toFlutterMap(response));
   }
@@ -145,6 +166,10 @@ class EchantillonCollecteurService {
   /// Updates an existing echantillon via PATCH and returns the updated record.
   Future<EchantillonCollecteur> updateEchantillon(
       EchantillonCollecteur e) async {
+    if (useMock) {
+      await Future.delayed(const Duration(milliseconds: 300));
+      return e;
+    }
     final response = await apiClient.patch(
       '/api/echantillons/${e.id}/',
       _toDjangoMap(e),
@@ -154,6 +179,10 @@ class EchantillonCollecteurService {
 
   /// Deletes an echantillon by ID.
   Future<void> deleteEchantillon(String id) async {
+    if (useMock) {
+      await Future.delayed(const Duration(milliseconds: 300));
+      return;
+    }
     await apiClient.delete('/api/echantillons/$id/');
   }
 
@@ -166,6 +195,11 @@ class EchantillonCollecteurService {
     String? prixFinal,
     String? camionLivraison,
   }) async {
+    if (useMock) {
+      await Future.delayed(const Duration(milliseconds: 300));
+      final all = mockEchantillons();
+      return all.firstWhere((e) => e.id == id, orElse: () => all.first);
+    }
     final body = <String, dynamic>{
       if (prixFinal != null) 'prix_final': prixFinal,
       if (camionLivraison != null) 'camion_reserve': camionLivraison,

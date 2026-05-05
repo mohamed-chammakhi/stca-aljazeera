@@ -4,6 +4,7 @@
 //           expandable detail panel with all attributes + delivery date.
 // ─────────────────────────────────────────────────────────────────────────────
 
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../../../core/models/echantillon.dart';
 import '../../../../core/models/enums.dart';
@@ -46,18 +47,38 @@ class EchantillonCard extends StatefulWidget {
 
 class _EchantillonCardState extends State<EchantillonCard> {
   bool _expanded = false;
+  bool _showRecuMsg = false;
+  Timer? _msgTimer;
+
+  @override
+  void dispose() {
+    _msgTimer?.cancel();
+    super.dispose();
+  }
 
   Future<void> _confirmToggleRecu() async {
     final e = widget.echantillon;
+    final willBeReceived = !e.recuPhysiquement;
     final confirmed = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
       builder: (_) => _RecuConfirmDialog(
         referenceBouteille: e.referenceBouteille,
-        isConfirming: !e.recuPhysiquement,
+        isConfirming: willBeReceived,
       ),
     );
-    if (confirmed == true) widget.onToggleRecu();
+    if (confirmed != true) return;
+
+    _msgTimer?.cancel();
+    widget.onToggleRecu();
+    if (willBeReceived) {
+      setState(() => _showRecuMsg = true);
+      _msgTimer = Timer(const Duration(seconds: 6), () {
+        if (mounted) setState(() => _showRecuMsg = false);
+      });
+    } else {
+      setState(() => _showRecuMsg = false);
+    }
   }
 
   @override
@@ -149,47 +170,87 @@ class _EchantillonCardState extends State<EchantillonCard> {
                                   color: Colors.grey.shade500,
                                 ),
                               ),
-                              const Spacer(),
-                              if (_expanded) ...[
-                                // Physically received toggle
-                                Tooltip(
-                                  message: e.recuPhysiquement
-                                      ? 'Annuler la réception'
-                                      : 'Confirmer la réception physique',
-                                  child: _SmallIconBtn(
-                                    icon: e.recuPhysiquement
-                                        ? Icons.check_circle
-                                        : Icons.check_circle_outline,
-                                    color: e.recuPhysiquement
-                                        ? chefGreen
-                                        : const Color.fromARGB(
-                                            255,
-                                            137,
-                                            136,
-                                            136,
-                                          ),
-                                    onTap: () => _confirmToggleRecu(),
-                                  ),
+                              Expanded(
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    if (_expanded) ...[
+                                      // ── Inline confirmation message ───────
+                                      Flexible(
+                                        fit: FlexFit.loose,
+                                        child: AnimatedSize(
+                                          duration: const Duration(milliseconds: 200),
+                                          curve: Curves.easeInOut,
+                                          child: _showRecuMsg
+                                              ? Container(
+                                                  margin: const EdgeInsets.only(right: 6),
+                                                  padding: const EdgeInsets.symmetric(
+                                                    horizontal: 7,
+                                                    vertical: 3,
+                                                  ),
+                                                  decoration: BoxDecoration(
+                                                    color: _green,
+                                                    borderRadius: BorderRadius.circular(6),
+                                                  ),
+                                                  child: Row(
+                                                    mainAxisSize: MainAxisSize.min,
+                                                    children: [
+                                                      const Icon(Icons.check, size: 10, color: Colors.white),
+                                                      const SizedBox(width: 4),
+                                                      Flexible(
+                                                        child: Text(
+                                                          'Réception physique confirmée',
+                                                          overflow: TextOverflow.ellipsis,
+                                                          style: const TextStyle(
+                                                            fontSize: 10,
+                                                            color: Colors.white,
+                                                            fontWeight: FontWeight.w600,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                )
+                                              : const SizedBox.shrink(),
+                                        ),
+                                      ),
+                                      // ── Physically received toggle ────────
+                                      Tooltip(
+                                        message: e.recuPhysiquement
+                                            ? 'Annuler la réception'
+                                            : 'Confirmer la réception physique',
+                                        child: _SmallIconBtn(
+                                          icon: e.recuPhysiquement
+                                              ? Icons.check_circle
+                                              : Icons.check_circle_outline,
+                                          color: e.recuPhysiquement
+                                              ? chefGreen
+                                              : const Color.fromARGB(255, 137, 136, 136),
+                                          onTap: () => _confirmToggleRecu(),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 2),
+                                      Tooltip(
+                                        message: 'Modifier',
+                                        child: _SmallIconBtn(
+                                          icon: Icons.edit_outlined,
+                                          color: _olive,
+                                          onTap: widget.onModifier,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 2),
+                                      Tooltip(
+                                        message: 'Supprimer',
+                                        child: _SmallIconBtn(
+                                          icon: Icons.delete_outline,
+                                          color: Colors.red.shade300,
+                                          onTap: widget.onSupprimer,
+                                        ),
+                                      ),
+                                    ],
+                                  ],
                                 ),
-                                const SizedBox(width: 2),
-                                Tooltip(
-                                  message: 'Modifier',
-                                  child: _SmallIconBtn(
-                                    icon: Icons.edit_outlined,
-                                    color: _olive,
-                                    onTap: widget.onModifier,
-                                  ),
-                                ),
-                                const SizedBox(width: 2),
-                                Tooltip(
-                                  message: 'Supprimer',
-                                  child: _SmallIconBtn(
-                                    icon: Icons.delete_outline,
-                                    color: Colors.red.shade300,
-                                    onTap: widget.onSupprimer,
-                                  ),
-                                ),
-                              ],
+                              ),
                             ],
                           ),
                         ],

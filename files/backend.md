@@ -34,17 +34,19 @@ Both `fromJson()` and `toJson()` are mandatory on every model.
 
 ```dart
 class Echantillon {
-  final String id;       // String UUID — never int
-  final String reference;
+  final String id;                  // String UUID — never int
+  final String numero;              // Auto-generated: "YYYY/NNNN" — read-only
+  final String referenceBouteille;  // Physical bottle label typed by collector
 
   factory Echantillon.fromJson(Map<String, dynamic> json) => Echantillon(
-    id: json['id'] as String,
-    reference: json['reference'] as String,
+    id:                  json['id']                   as String,
+    numero:              json['numero']               as String,
+    referenceBouteille:  json['reference_bouteille']  as String,
   );
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'reference': reference,
+    'reference_bouteille': referenceBouteille,
+    // 'numero' is server-assigned — do not include in create/update payloads
   };
 
   // Paginated list helper:

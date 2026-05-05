@@ -6,6 +6,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import 'widgets/app_drawer.dart';
 import '../widgets/chef_colors.dart';
@@ -124,15 +125,20 @@ class _HomePageState extends State<HomePage> {
         elevation: 0,
         centerTitle: false,
         toolbarHeight: 65,
+        title: Text(
+          'Tableau de Bord',
+          style: GoogleFonts.domine(
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+            color: _dark,
+          ),
+        ),
         iconTheme: const IconThemeData(color: _dark, size: 28),
         actions: [
           Stack(
             children: [
               IconButton(
-                icon: const Icon(
-                  Icons.notifications_outlined,
-                  color: _dark,
-                ),
+                icon: const Icon(Icons.notifications_outlined, color: _dark),
                 onPressed: _openNotifications,
               ),
               if (_unreadCount > 0)

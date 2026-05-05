@@ -116,4 +116,13 @@ AppBar(
 | `2_collecteur/` | [`files/role_collecteur.md`](files/role_collecteur.md) |
 | `3_degustateur/` | [`files/role_degustateur.md`](files/role_degustateur.md) |
 | `4_laboratoire/` | [`files/role_laboratoire.md`](files/role_laboratoire.md) |
+| `5_chef_degustateur/` | [`files/role_chef_degustateur.md`](files/role_chef_degustateur.md) |
 | Services / models / auth / offline sync | [`files/backend.md`](files/backend.md) |
+| Backend sprint order & API reference | [`files/backend_sprint_plan.md`](files/backend_sprint_plan.md) |
+
+## Backend Development Order
+
+**Start with Sprint 1 — Collector module, NOT authentication.**
+Authentication (JWT) is Sprint 2. The Collector is the entry point of the data pipeline.
+
+See [`files/backend_sprint_plan.md`](files/backend_sprint_plan.md) for the full sprint order, models, endpoints, and permissions per sprint.

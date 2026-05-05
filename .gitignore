@@ -49,3 +49,14 @@ app.*.map.json
 
 
 lib/config.dart
+
+# Python / Django backend
+venv/
+backend_new/venv/
+*.pyc
+__pycache__/
+.env
+backend_new/.env
+
+# Archives
+*.zip

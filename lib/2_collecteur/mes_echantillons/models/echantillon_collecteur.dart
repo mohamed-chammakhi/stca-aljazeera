@@ -76,7 +76,7 @@ class PlanificationLivraison {
 // ─────────────────────────────────────────────────────────────────────────────
 class EchantillonCollecteur {
   String id;
-  String ref;
+  String numero;
 
   // Location
   String gouvernorat;
@@ -126,7 +126,7 @@ class EchantillonCollecteur {
 
   EchantillonCollecteur({
     required this.id,
-    required this.ref,
+    required this.numero,
     required this.gouvernorat,
     this.delegation,
     this.cite,
@@ -156,71 +156,51 @@ class EchantillonCollecteur {
   factory EchantillonCollecteur.fromJson(Map<String, dynamic> json) =>
       EchantillonCollecteur(
         id: json['id'] as String,
-        ref: json['ref'] as String,
+        numero: json['numero'] as String,
         gouvernorat: json['gouvernorat'] as String,
         delegation: json['delegation'] as String?,
         cite: json['cite'] as String?,
-        codeFournisseur: json['code_fournisseur'] as String,
-        referenceBouteille: json['reference_bouteille'] as String,
+        codeFournisseur: json['code_fournisseur'] as String? ?? '',
+        referenceBouteille: json['reference_bouteille'] as String? ?? '',
         scellage: json['scellage'] as String?,
         quantiteEstimee: json['quantite_estimee'] as String?,
         variete: json['variete'] as String?,
-        achatConfirme: json['achat_confirme'] as bool,
-        livraison: json['livraison'] != null
-            ? PlanificationLivraison.fromJson(
-                json['livraison'] as Map<String, dynamic>)
-            : null,
+        achatConfirme: json['statut_collecteur'] == 'achat_confirme',
+        livraison: null,
         dateArriveeEchantillon: json['date_arrivee_echantillon'] != null
             ? DateTime.parse(json['date_arrivee_echantillon'] as String)
             : null,
         recuPhysiquement: json['recu_physiquement'] as bool? ?? false,
-        dateReceptionEchantillon: json['date_reception_echantillon'] != null
-            ? DateTime.parse(json['date_reception_echantillon'] as String)
-            : null,
-        budgetNegociation: json['budget_negociation'] as String?,
-        dateStockSouhaiteeDebut: json['date_stock_souhaitee_debut'] != null
-            ? DateTime.parse(json['date_stock_souhaitee_debut'] as String)
-            : null,
-        dateStockSouhaiteeFin: json['date_stock_souhaitee_fin'] != null
-            ? DateTime.parse(json['date_stock_souhaitee_fin'] as String)
-            : null,
-        prixFinal: json['prix_final'] as String?,
-        camionLivraison: json['camion_livraison'] as String?,
+        dateReceptionEchantillon: null,
+        budgetNegociation: json['budget_negociation']?.toString(),
+        dateStockSouhaiteeDebut: null,
+        dateStockSouhaiteeFin: null,
+        prixFinal: json['prix_final']?.toString(),
+        camionLivraison: json['camion_reserve'] as String?,
         remarques: json['remarques'] as String?,
         dateAjout: DateTime.parse(json['date_ajout'] as String),
         imageUrl: json['image_url'] as String?,
-        collecteurId: json['collecteur_id'] as String,
-        collecteurNom: json['collecteur_nom'] as String,
-        statut: StatutCollecteur.values.byName(json['statut'] as String),
+        collecteurId: json['collecteur']?.toString() ?? '',
+        collecteurNom: json['collecteur_nom'] as String? ?? '',
+        statut: StatutCollecteur.values.byName(json['statut_collecteur'] as String),
       );
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'ref': ref,
     'gouvernorat': gouvernorat,
-    'delegation': delegation,
-    'cite': cite,
-    'code_fournisseur': codeFournisseur,
+    'delegation': delegation ?? '',
+    'cite': cite ?? '',
     'reference_bouteille': referenceBouteille,
-    'scellage': scellage,
-    'quantite_estimee': quantiteEstimee,
-    'variete': variete,
-    'achat_confirme': achatConfirme,
-    'livraison': livraison?.toJson(),
+    'scellage': scellage ?? '',
+    'quantite_estimee': quantiteEstimee ?? '',
+    'variete': variete ?? '',
+    'statut_collecteur': statut.name,
     'date_arrivee_echantillon': dateArriveeEchantillon?.toIso8601String(),
     'recu_physiquement': recuPhysiquement,
-    'date_reception_echantillon': dateReceptionEchantillon?.toIso8601String(),
     'budget_negociation': budgetNegociation,
-    'date_stock_souhaitee_debut': dateStockSouhaiteeDebut?.toIso8601String(),
-    'date_stock_souhaitee_fin': dateStockSouhaiteeFin?.toIso8601String(),
     'prix_final': prixFinal,
-    'camion_livraison': camionLivraison,
-    'remarques': remarques,
-    'date_ajout': dateAjout.toIso8601String(),
-    'image_url': imageUrl,
-    'collecteur_id': collecteurId,
-    'collecteur_nom': collecteurNom,
-    'statut': statut.name,
+    'camion_reserve': camionLivraison ?? '',
+    'remarques': remarques ?? '',
+    'image_url': imageUrl ?? '',
   };
 
   // Handles Django paginated format: { "count": N, "results": [...] }

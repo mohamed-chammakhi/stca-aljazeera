@@ -1,5 +1,10 @@
 {
     "java.configuration.updateBuildConfiguration": "automatic",
+    "java.import.exclusions": [
+        "**/.worktrees/**",
+        "**/build/**",
+        "**/.dart_tool/**"
+    ],
     "cmake.sourceDirectory": "C:/flutterpfe/project3/linux",
     "cmake.configureOnOpen": false,
     "cmake.automaticReconfigure": false

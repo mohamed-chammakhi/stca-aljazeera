@@ -135,7 +135,7 @@ class _EchantillonComCardState extends State<EchantillonComCard> {
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
-                                  e.ref,
+                                  e.numero,
                                   style: const TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w500,
@@ -418,7 +418,7 @@ class _DetailPanel extends StatelessWidget {
                 spacing: 90,
                 runSpacing: 10,
                 children: [
-                  _DetailItem('N° échantillon', e.ref),
+                  _DetailItem('N° échantillon', e.numero),
                   _DetailItem('Réf. bouteille', e.referenceBouteille),
                   _DetailItem('Fournisseur', e.codeFournisseur),
                   if (e.variete != null && e.variete!.isNotEmpty)

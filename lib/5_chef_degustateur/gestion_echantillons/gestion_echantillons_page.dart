@@ -139,10 +139,6 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage>
 
   void _onToggleRecu(Echantillon e) {
     setState(() => e.recuPhysiquement = !e.recuPhysiquement);
-    final msg = e.recuPhysiquement
-        ? 'Réception confirmée pour ${e.referenceBouteille}'
-        : 'Réception annulée pour ${e.referenceBouteille}';
-    _showSuccess(msg);
   }
 
   void _showSuccess(String msg) {
