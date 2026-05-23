@@ -1,8 +1,10 @@
-from django.db.models.signals import post_save, pre_save, pre_delete
+from django.db.models.signals import post_save, pre_delete, pre_save
 from django.dispatch import receiver
 from django.utils import timezone
-from .models import Notification
+
 from users.models import User
+
+from .models import Notification
 
 
 def _get_users_by_roles(*roles):
@@ -10,8 +12,8 @@ def _get_users_by_roles(*roles):
 
 
 def _notify(recipients, type_, titre, message, echantillon=None, section='ECHANTILLONS'):
-    for user in recipients:
-        Notification.objects.create(
+    notifications = [
+        Notification(
             destinataire=user,
             type=type_,
             titre=titre,
@@ -19,13 +21,20 @@ def _notify(recipients, type_, titre, message, echantillon=None, section='ECHANT
             echantillon=echantillon,
             section=section,
         )
+        for user in recipients
+    ]
+    if notifications:
+        Notification.objects.bulk_create(notifications)
 
 
-# ── Echantillon signals ────────────────────────────────────────────────────────
+def _sample_ref(echantillon):
+    if not echantillon:
+        return '-'
+    return echantillon.numero or echantillon.reference_bouteille or str(echantillon.id)[:8]
+
 
 @receiver(pre_save, sender='echantillons.Echantillon')
 def echantillon_pre_save(sender, instance, **kwargs):
-    """Store old field values so post_save can detect what changed."""
     if instance.pk:
         try:
             old = sender.objects.get(pk=instance.pk)
@@ -50,15 +59,22 @@ def echantillon_pre_save(sender, instance, **kwargs):
 
 @receiver(post_save, sender='echantillons.Echantillon')
 def on_echantillon_saved(sender, instance, created, **kwargs):
-    ref = instance.numero or str(instance.id)[:8]
+    ref = _sample_ref(instance)
 
     if created:
-        recipients = _get_users_by_roles('direction', 'chef_panel', 'degustateur')
-        _notify(recipients, 'NOUVEL_ECHANTILLON',
-                'Nouvel échantillon',
-                f"L'échantillon {ref} a été enregistré.",
-                echantillon=instance,
-                section='ECHANTILLONS')
+        recipients = _get_users_by_roles(
+            User.Role.DIRECTION,
+            User.Role.CHEF_PANEL,
+            User.Role.DEGUSTATEUR,
+        )
+        _notify(
+            recipients,
+            Notification.Type.NOUVEL_ECHANTILLON,
+            'Nouvel echantillon',
+            f"L'echantillon {ref} a ete enregistre.",
+            echantillon=instance,
+            section=Notification.Section.ECHANTILLONS,
+        )
         return
 
     old_recu = getattr(instance, '_old_recu_physiquement', None)
@@ -66,49 +82,59 @@ def on_echantillon_saved(sender, instance, created, **kwargs):
 
     if old_recu is False and instance.recu_physiquement:
         now = timezone.now()
-        recipients = _get_users_by_roles('direction', 'chef_panel')
-        _notify(recipients, 'ECHANTILLON_RECU',
-                'Échantillon reçu physiquement',
-                (
-                    f"L'échantillon {ref} a été marqué comme reçu physiquement "
-                    f"le {now.strftime('%d/%m/%Y à %H:%M')}."
-                ),
-                echantillon=instance,
-                section='ECHANTILLONS')
+        recipients = _get_users_by_roles(User.Role.DIRECTION, User.Role.CHEF_PANEL)
+        _notify(
+            recipients,
+            Notification.Type.ECHANTILLON_RECU,
+            'Echantillon recu physiquement',
+            (
+                f"L'echantillon {ref} a ete marque comme recu physiquement "
+                f"le {now.strftime('%d/%m/%Y a %H:%M')}."
+            ),
+            echantillon=instance,
+            section=Notification.Section.ECHANTILLONS,
+        )
     elif old_statut != 'achat_confirme' and instance.statut_collecteur == 'achat_confirme':
-        recipients = _get_users_by_roles('direction', 'chef_panel')
-        _notify(recipients, 'ACHAT_CONFIRME',
-                'Achat confirmé',
-                f"L'achat de {ref} a été confirmé.",
-                echantillon=instance,
-                section='ACHATS')
+        recipients = _get_users_by_roles(User.Role.DIRECTION, User.Role.CHEF_PANEL)
+        _notify(
+            recipients,
+            Notification.Type.ACHAT_CONFIRME,
+            'Achat confirme',
+            f"L'achat de {ref} a ete confirme.",
+            echantillon=instance,
+            section=Notification.Section.ACHATS,
+        )
     else:
-        # Only notify if a meaningful field changed (not just timestamp or status already handled)
         meaningful_change = (
             getattr(instance, '_old_statut_labo', instance.statut_labo) != instance.statut_labo
             or getattr(instance, '_old_statut_ceo', instance.statut_ceo) != instance.statut_ceo
             or getattr(instance, '_old_variete', instance.variete) != instance.variete
         )
         if meaningful_change:
-            recipients = _get_users_by_roles('direction', 'chef_panel')
-            _notify(recipients, 'ECHANTILLON_MODIFIE',
-                    'Échantillon modifié',
-                    f"L'échantillon {instance.numero} a été modifié.",
-                    echantillon=instance)
+            recipients = _get_users_by_roles(User.Role.DIRECTION, User.Role.CHEF_PANEL)
+            _notify(
+                recipients,
+                Notification.Type.ECHANTILLON_MODIFIE,
+                'Echantillon modifie',
+                f"L'echantillon {ref} a ete modifie.",
+                echantillon=instance,
+                section=Notification.Section.ECHANTILLONS,
+            )
 
 
 @receiver(pre_delete, sender='echantillons.Echantillon')
 def on_echantillon_deleted(sender, instance, **kwargs):
-    ref = instance.numero or str(instance.id)[:8]
-    recipients = _get_users_by_roles('direction', 'chef_panel')
-    _notify(recipients, 'ECHANTILLON_SUPPRIME',
-            'Échantillon supprimé',
-            f"L'échantillon {ref} a été supprimé.",
-            echantillon=None,
-            section='ECHANTILLONS')
+    ref = _sample_ref(instance)
+    recipients = _get_users_by_roles(User.Role.DIRECTION, User.Role.CHEF_PANEL)
+    _notify(
+        recipients,
+        Notification.Type.ECHANTILLON_SUPPRIME,
+        'Echantillon supprime',
+        f"L'echantillon {ref} a ete supprime.",
+        echantillon=None,
+        section=Notification.Section.ECHANTILLONS,
+    )
 
-
-# ── Evaluation signals ─────────────────────────────────────────────────────────
 
 @receiver(post_save, sender='evaluations.EvaluationOrganoleptique')
 def on_evaluation_saved(sender, instance, created, **kwargs):
@@ -116,25 +142,37 @@ def on_evaluation_saved(sender, instance, created, **kwargs):
         return
 
     echantillon = instance.echantillon
-    submitted_count = sender.objects.filter(echantillon=echantillon, statut='soumis').count()
-    en_cours_count = sender.objects.filter(echantillon=echantillon, statut='en_cours').count()
-    all_submitted = submitted_count > 0 and en_cours_count == 0
+    ref = _sample_ref(echantillon)
+    submitted_count = sender.objects.filter(
+        echantillon=echantillon,
+        statut='soumis',
+    ).values('degustateur').distinct().count()
+    active_taster_count = User.objects.filter(
+        is_active=True,
+        role__in=[User.Role.DEGUSTATEUR, User.Role.CHEF_PANEL],
+    ).count()
 
-    if all_submitted:
-        recipients = _get_users_by_roles('direction', 'chef_panel')
-        _notify(recipients, 'TOUTES_EVALUATIONS',
-                'Toutes les évaluations soumises',
-                f"Toutes les évaluations de {echantillon.numero} sont soumises.",
-                echantillon=echantillon, section='evaluations')
+    if active_taster_count and submitted_count >= active_taster_count:
+        recipients = _get_users_by_roles(User.Role.DIRECTION, User.Role.CHEF_PANEL)
+        _notify(
+            recipients,
+            Notification.Type.TOUTES_EVALUATIONS,
+            'Toutes les evaluations soumises',
+            f"Toutes les evaluations de {ref} sont soumises.",
+            echantillon=echantillon,
+            section=Notification.Section.EVALUATIONS,
+        )
     else:
-        recipients = _get_users_by_roles('chef_panel')
-        _notify(recipients, 'PREMIERE_EVALUATION',
-                'Évaluation soumise',
-                f"Une évaluation de {echantillon.numero} a été soumise.",
-                echantillon=echantillon, section='evaluations')
+        recipients = _get_users_by_roles(User.Role.CHEF_PANEL).exclude(id=instance.degustateur_id)
+        _notify(
+            recipients,
+            Notification.Type.EVALUATION_SOUMISE,
+            'Evaluation soumise',
+            f"Une evaluation de {ref} a ete soumise.",
+            echantillon=echantillon,
+            section=Notification.Section.EVALUATIONS,
+        )
 
-
-# ── Analyse signals ────────────────────────────────────────────────────────────
 
 @receiver(post_save, sender='analyses.AnalyseLabo')
 def on_analyse_saved(sender, instance, created, **kwargs):
@@ -142,10 +180,34 @@ def on_analyse_saved(sender, instance, created, **kwargs):
         return
 
     echantillon = instance.echantillon
-    ref = echantillon.numero if echantillon else '—'
-    recipients = _get_users_by_roles('direction', 'chef_panel')
-    _notify(recipients, 'ANALYSE_SOUMISE',
-            'Analyse soumise',
-            f"L'analyse de {ref} a été soumise.",
-            echantillon=echantillon,
-            section='ANALYSES')
+    ref = _sample_ref(echantillon)
+    recipients = _get_users_by_roles(User.Role.DIRECTION, User.Role.CHEF_PANEL)
+    _notify(
+        recipients,
+        Notification.Type.ANALYSE_SOUMISE,
+        'Analyse soumise',
+        f"L'analyse de {ref} a ete soumise.",
+        echantillon=echantillon,
+        section=Notification.Section.ANALYSES,
+    )
+
+
+@receiver(post_save, sender='sessions_degustation.SessionDegustation')
+def on_session_saved(sender, instance, created, **kwargs):
+    if not created:
+        return
+
+    creator = instance.cree_par
+    if creator and creator.role == User.Role.DEGUSTATEUR:
+        recipients = _get_users_by_roles(User.Role.CHEF_PANEL)
+    else:
+        recipients = instance.participants.filter(is_active=True)
+
+    _notify(
+        recipients,
+        Notification.Type.NOUVELLE_SESSION,
+        'Nouvelle session',
+        f"La session {instance.titre} a ete creee.",
+        echantillon=None,
+        section=Notification.Section.SESSIONS,
+    )

@@ -24,8 +24,7 @@ import 'widgets/dialogs/formulaire_session_dialog.dart';
 import 'widgets/dialogs/suppression_session_dialog.dart';
 
 // ── Shared date filter ────────────────────────────────────────────────────────
-import '../../../core/widgets/search_filter_bar.dart'
-    show DateFilterSheet;
+import '../../../core/widgets/search_filter_bar.dart' show DateFilterSheet;
 
 // ── App-wide imports ──────────────────────────────────────────────────────────
 import '../profil/profil_page.dart';
@@ -43,7 +42,7 @@ class SessionsDegustationPage extends StatefulWidget {
   const SessionsDegustationPage({super.key});
 
   @override
-  _SessionsDegustationPageState createState() =>
+  State<SessionsDegustationPage> createState() =>
       _SessionsDegustationPageState();
 }
 
@@ -135,19 +134,37 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage>
   // 6. ACTIONS
   // ───────────────────────────────────────────────────────────────────────────
 
-  void _onAjouter(SessionDegustation nouvelle) {
-    setState(() => _sessions.add(nouvelle));
+  Future<void> _onAjouter(SessionDegustation nouvelle) async {
+    final saved = await _service.createSession(nouvelle);
+    if (!mounted) return;
+    setState(() => _sessions.add(saved));
     _showSuccess('Session créée avec succès');
   }
 
-  void _onModifier(SessionDegustation modifiee) {
-    setState(() {});
+  Future<void> _onModifier(SessionDegustation modifiee) async {
+    final saved = await _service.updateSession(modifiee);
+    if (!mounted) return;
+    setState(() {
+      final index = _sessions.indexWhere((s) => s.id == modifiee.id);
+      if (index != -1) _sessions[index] = saved;
+    });
     _showSuccess('Session modifiée avec succès');
   }
 
-  void _onSupprimer(SessionDegustation s) {
+  Future<void> _onSupprimer(SessionDegustation s) async {
+    await _service.deleteSession(s.id);
+    if (!mounted) return;
     setState(() => _sessions.remove(s));
     _showSuccess('Session "${s.titre}" supprimée');
+  }
+
+  Future<void> _onConfirmerPresence(SessionDegustation s) async {
+    final updated = await _service.confirmerPresence(s.id);
+    if (!mounted || updated == null) return;
+    setState(() {
+      final index = _sessions.indexWhere((item) => item.id == s.id);
+      if (index != -1) _sessions[index] = updated;
+    });
   }
 
   Future<void> _showDateFilter() async {
@@ -213,7 +230,8 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage>
             goToPage(const EvaluationEchantillonsPage()),
         onGestionEchantillons: () => goToPage(const GestionEchantillonsPage()),
         onAnalyseLaboratoire: () => goToPage(const AnalyseLaboratoirePage()),
-        onSessionsDegustationPage: () => goToPage(const SessionsDegustationPage()),
+        onSessionsDegustationPage: () =>
+            goToPage(const SessionsDegustationPage()),
         onMembredupanel: () => goToPage(const MembresPanelPage()),
         onProfil: () => goToPage(const ProfilePage()),
         onDeconnexion: goToLogin,
@@ -444,6 +462,7 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage>
                         final isPlanifiee = s.statut == StatutSession.planifiee;
                         return SessionCard(
                           session: s,
+                          onConfirmerPresence: () => _onConfirmerPresence(s),
                           onModifier: isPlanifiee
                               ? null
                               : () => showFormulaireSessionDialog(

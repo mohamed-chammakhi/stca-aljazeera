@@ -1,120 +1,155 @@
-import io
-
 from django.db import transaction
-from django.http import FileResponse
-from reportlab.lib.pagesizes import A4
-from reportlab.pdfgen import canvas
 from rest_framework import generics, status
-from rest_framework.parsers import MultiPartParser
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.exceptions import ValidationError
+from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from core.ocr_service import extract_analyse_from_image
+from echantillons.models import Echantillon
+from users.permissions import IsChefPanel, IsDirection, IsLaboratoire
 
 from .models import AnalyseLabo
-from .serializers import AnalyseLaboSerializer
+from .serializers import AnalyseLaboSerializer, LabEchantillonAnalyseSerializer
+
+
+def _sync_echantillon_labo_status(analyse):
+    if analyse.statut == AnalyseLabo.Statut.SOUMIS:
+        statut = Echantillon.StatutLabo.SOUMIS
+    else:
+        statut = Echantillon.StatutLabo.EN_COURS
+    Echantillon.objects.filter(pk=analyse.echantillon_id).update(statut_labo=statut)
+
+
+class LabEchantillonListView(generics.ListAPIView):
+    serializer_class = LabEchantillonAnalyseSerializer
+    permission_classes = [IsLaboratoire | IsDirection | IsChefPanel]
+
+    def get_queryset(self):
+        return (
+            Echantillon.objects.filter(recu_physiquement=True)
+            .select_related('fournisseur', 'collecteur', 'analyse', 'analyse__technicien')
+            .order_by('-date_arrivee_echantillon', '-date_ajout')
+        )
 
 
 class AnalyseListCreateView(generics.ListCreateAPIView):
     serializer_class = AnalyseLaboSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsLaboratoire | IsDirection | IsChefPanel]
+    # Accept JSON (no photo) AND multipart (photo upload).
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
+
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            return [IsLaboratoire()]
+        return super().get_permissions()
 
     def get_queryset(self):
         user = self.request.user
         if user.role == 'laboratoire':
-            return AnalyseLabo.objects.filter(technicien=user).order_by('-date_analyse')
-        # Direction and chef_panel can see all analyses
-        return AnalyseLabo.objects.all().order_by('-date_analyse')
+            return (
+                AnalyseLabo.objects.filter(echantillon__recu_physiquement=True)
+                .select_related('echantillon', 'technicien')
+                .order_by('-date_analyse')
+            )
+        # Direction and chef_panel can see all analyses.
+        return (
+            AnalyseLabo.objects.all()
+            .select_related('echantillon', 'technicien')
+            .order_by('-date_analyse')
+        )
 
     def perform_create(self, serializer):
-        serializer.save(technicien=self.request.user)
+        with transaction.atomic():
+            analyse = serializer.save(technicien=self.request.user)
+            _sync_echantillon_labo_status(analyse)
 
 
 class AnalyseDetailView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = AnalyseLabo.objects.all()
     serializer_class = AnalyseLaboSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsLaboratoire | IsDirection | IsChefPanel]
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
+
+    def get_permissions(self):
+        if self.request.method in ('PUT', 'PATCH', 'DELETE'):
+            return [IsLaboratoire()]
+        return super().get_permissions()
+
+    def get_queryset(self):
+        queryset = AnalyseLabo.objects.select_related('echantillon', 'technicien')
+        if self.request.user.role == 'laboratoire':
+            queryset = queryset.filter(echantillon__recu_physiquement=True)
+        return queryset
+
+    def perform_update(self, serializer):
+        if self.get_object().statut == AnalyseLabo.Statut.SOUMIS:
+            raise ValidationError({'detail': 'Une analyse soumise ne peut plus etre modifiee.'})
+        with transaction.atomic():
+            analyse = serializer.save()
+            _sync_echantillon_labo_status(analyse)
+
+    def perform_destroy(self, instance):
+        if instance.statut == AnalyseLabo.Statut.SOUMIS:
+            raise ValidationError({'detail': 'Une analyse soumise ne peut plus etre supprimee.'})
+        echantillon_id = instance.echantillon_id
+        with transaction.atomic():
+            instance.delete()
+            Echantillon.objects.filter(pk=echantillon_id).update(
+                statut_labo=Echantillon.StatutLabo.EN_ATTENTE
+            )
 
 
 class AnalyseSoumettreView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsLaboratoire]
 
     def post(self, request, pk):
         try:
             analyse = AnalyseLabo.objects.select_related('echantillon').get(
-                pk=pk, technicien=request.user
+                pk=pk,
+                technicien=request.user,
             )
         except AnalyseLabo.DoesNotExist:
-            return Response({'detail': 'Analyse introuvable.'}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {'detail': 'Analyse introuvable.'},
+                status=status.HTTP_404_NOT_FOUND,
+            )
 
         if analyse.statut == 'soumis':
-            return Response({'detail': 'Analyse déjà soumise.'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {'detail': 'Analyse deja soumise.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         with transaction.atomic():
-            analyse.statut = 'soumis'
+            analyse.statut = AnalyseLabo.Statut.SOUMIS
             analyse.save()
-            analyse.echantillon.statut_labo = 'soumis'
+            analyse.echantillon.statut_labo = Echantillon.StatutLabo.SOUMIS
             analyse.echantillon.save()
 
         return Response(AnalyseLaboSerializer(analyse, context={'request': request}).data)
 
 
-class AnalyseExportView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request, pk):
-        try:
-            qs = AnalyseLabo.objects.select_related('echantillon', 'technicien')
-            if request.user.role == 'laboratoire':
-                analyse = qs.get(pk=pk, technicien=request.user)
-            else:
-                analyse = qs.get(pk=pk)
-        except AnalyseLabo.DoesNotExist:
-            return Response({'detail': 'Analyse introuvable.'}, status=status.HTTP_404_NOT_FOUND)
-
-        buffer = io.BytesIO()
-        p = canvas.Canvas(buffer, pagesize=A4)
-        p.setFont("Helvetica-Bold", 16)
-        p.drawString(50, 800, f"Rapport d'Analyse — {analyse.echantillon.numero}")
-        p.setFont("Helvetica", 12)
-        y = 760
-        fields = [
-            ('Acidité (%)', analyse.acidite),
-            ('Indice de peroxyde', analyse.indice_peroxyde),
-            ('K232', analyse.k232),
-            ('K270', analyse.k270),
-            ('ΔK', analyse.delta_k),
-            ('Humidité (%)', analyse.humidite),
-            ('Impuretés (%)', analyse.impuretes),
-        ]
-        for label, value in fields:
-            display = str(value) if value is not None else 'N/A'
-            p.drawString(50, y, f"{label}: {display}")
-            y -= 22
-        p.drawString(50, y - 10, f"Statut: {analyse.statut}")
-        p.drawString(50, y - 30, f"Date d'analyse: {analyse.date_analyse.strftime('%d/%m/%Y')}")
-        if analyse.technicien:
-            p.drawString(50, y - 50, f"Technicien: {analyse.technicien.prenom} {analyse.technicien.nom}")
-        p.showPage()
-        p.save()
-        buffer.seek(0)
-        filename = f"analyse_{analyse.echantillon.numero}.pdf"
-        return FileResponse(buffer, as_attachment=True, filename=filename, content_type='application/pdf')
-
-
 class AnalyseOCRView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsLaboratoire]
     parser_classes = [MultiPartParser]
 
     def post(self, request):
         image_file = request.FILES.get('image')
         if not image_file:
-            return Response({'detail': 'Champ image requis.'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {'detail': 'Champ image requis.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         try:
-            result = extract_analyse_from_image(image_file.read(), content_type=image_file.content_type or 'image/jpeg')
+            result = extract_analyse_from_image(
+                image_file.read(),
+                content_type=image_file.content_type or 'image/jpeg',
+            )
             return Response(result)
         except EnvironmentError as e:
             return Response({'detail': str(e)}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
         except Exception as e:
-            return Response({'detail': f'Erreur OCR: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response(
+                {'detail': f'Erreur OCR: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )

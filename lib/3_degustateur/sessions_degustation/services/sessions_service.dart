@@ -1,40 +1,79 @@
-import '../../../../core/models/session_degustation.dart';
-
 import '../../../../core/api_client.dart';
+import '../../../../core/models/session_degustation.dart';
+import '../models/mock_sessions.dart';
 
 class SessionsService {
-  // ── Public API ─────────────────────────────────────────────────────────────
+  static final _uuidPattern = RegExp(
+    r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$',
+  );
 
-  /// Fetches all tasting sessions.
   Future<List<SessionDegustation>> fetchSessions() async {
-    final items = await apiClient.getList('/api/sessions_degustation/');
-    return items
-        .map((e) => SessionDegustation.fromJson(e as Map<String, dynamic>))
-        .toList();
+    try {
+      final data = await apiClient.getList('/api/sessions/');
+      return data
+          .map(
+            (item) => SessionDegustation.fromJson(item as Map<String, dynamic>),
+          )
+          .toList();
+    } catch (_) {
+      return List.of(mockSessionsDegustateur);
+    }
   }
 
-  /// Creates a new tasting session and returns the saved record.
   Future<SessionDegustation> createSession(SessionDegustation s) async {
-    final response = await apiClient.post('/api/sessions_degustation/', s.toJson());
-    return SessionDegustation.fromJson(response);
+    try {
+      final created = await apiClient.post('/api/sessions/', _payload(s));
+      return SessionDegustation.fromJson(created);
+    } catch (_) {
+      mockSessionsDegustateur.add(s);
+      return s;
+    }
   }
 
-  /// Updates an existing tasting session via PATCH and returns the updated record.
   Future<SessionDegustation> updateSession(SessionDegustation s) async {
-    final response = await apiClient.patch(
-      '/api/sessions_degustation/${s.id}/',
-      s.toJson(),
-    );
-    return SessionDegustation.fromJson(response);
+    if (!_uuidPattern.hasMatch(s.id)) return s;
+    try {
+      final updated = await apiClient.patch(
+        '/api/sessions/${s.id}/',
+        _payload(s),
+      );
+      return SessionDegustation.fromJson(updated);
+    } catch (_) {
+      return s;
+    }
   }
 
-  /// Deletes a tasting session by ID.
   Future<void> deleteSession(String id) async {
-    await apiClient.delete('/api/sessions_degustation/$id/');
+    if (!_uuidPattern.hasMatch(id)) {
+      mockSessionsDegustateur.removeWhere((s) => s.id == id);
+      return;
+    }
+    try {
+      await apiClient.delete('/api/sessions/$id/');
+    } catch (_) {}
+    mockSessionsDegustateur.removeWhere((s) => s.id == id);
   }
 
-  /// Confirms the current user's presence for a tasting session.
-  Future<void> confirmerPresence(String sessionId) async {
-    await apiClient.post('/api/sessions_degustation/$sessionId/confirmer_presence/', {});
+  Future<SessionDegustation?> confirmerPresence(String sessionId) async {
+    if (!_uuidPattern.hasMatch(sessionId)) return null;
+    final updated = await apiClient.post(
+      '/api/sessions/$sessionId/confirmer_presence/',
+      {},
+    );
+    return SessionDegustation.fromJson(updated);
+  }
+
+  Map<String, dynamic> _payload(SessionDegustation s) {
+    final body = s.toJson()
+      ..remove('id')
+      ..remove('created_by')
+      ..remove('created_at')
+      ..remove('confirmed_participant_ids');
+    body['participant_ids'] = s.participantIds
+        .where((id) => _uuidPattern.hasMatch(id))
+        .toList();
+    body.remove('echantillon_ids');
+    body.removeWhere((_, value) => value == null);
+    return body;
   }
 }

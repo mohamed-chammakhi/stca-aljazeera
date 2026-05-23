@@ -1,35 +1,59 @@
-from rest_framework import generics
+from django.db.models import Q
+from django.utils import timezone
+from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
 from .models import Message
 from .serializers import MessageSerializer
 
 
-# GET /api/messages/    → list all messages for the logged-in user
-# POST /api/messages/   → send a new message
 class MessageListCreateView(generics.ListCreateAPIView):
     serializer_class = MessageSerializer
     permission_classes = [IsAuthenticated]
 
-    # Only show messages where the logged-in user is sender OR receiver
     def get_queryset(self):
         user = self.request.user
-        return Message.objects.filter(
-            expediteur=user
-        ).union(
-            Message.objects.filter(destinataire=user)
-        ).order_by('-date_envoi')
+        return (
+            Message.objects
+            .filter(Q(expediteur=user) | Q(destinataire=user))
+            .select_related('expediteur', 'destinataire')
+            .order_by('-date_envoi')
+        )
 
-    # Automatically set expediteur to the logged-in user when sending
     def perform_create(self, serializer):
         serializer.save(expediteur=self.request.user)
 
 
-# GET /api/messages/<uuid>/    → get one message
-# DELETE /api/messages/<uuid>/ → delete one message
 class MessageDetailView(generics.RetrieveDestroyAPIView):
     serializer_class = MessageSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         user = self.request.user
-        return Message.objects.filter(expediteur=user) | Message.objects.filter(destinataire=user)
+        return (
+            Message.objects
+            .filter(Q(expediteur=user) | Q(destinataire=user))
+            .select_related('expediteur', 'destinataire')
+        )
+
+
+class MessageMarkReadView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def patch(self, request, pk):
+        try:
+            message = Message.objects.get(pk=pk, destinataire=request.user)
+        except Message.DoesNotExist:
+            return Response(
+                {'detail': 'Message introuvable.'},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        if not message.lu:
+            message.lu = True
+            message.lu_le = timezone.now()
+            message.save(update_fields=['lu', 'lu_le'])
+
+        return Response(MessageSerializer(message, context={'request': request}).data)

@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Product Backlog — Al Jazeera STCA</title>
+  <style>
+    body {
+      font-family: "Times New Roman", Times, serif;
+      max-width: 960px;
+      margin: 40px auto;
+      padding: 0 40px 80px;
+      color: #000;
+      line-height: 1.5;
+      font-size: 13px;
+      background: #fff;
+    }
+
+    h1 { font-size: 1.4rem; text-align: center; margin-bottom: 6px; }
+    h2 { font-size: 1.15rem; margin-top: 40px; margin-bottom: 6px; }
+    h3 { font-size: 1rem; margin-top: 32px; margin-bottom: 4px; font-weight: bold; }
+
+    .chapter {
+      font-size: 0.85rem;
+      color: #555;
+      border-bottom: 1px solid #ccc;
+      padding-bottom: 4px;
+      margin-bottom: 24px;
+    }
+
+    p { margin: 6px 0 12px; text-align: justify; }
+
+    ul.intro-list { list-style: disc; padding-left: 20px; margin: 4px 0 10px; }
+    ul.intro-list li { font-weight: bold; margin-bottom: 3px; }
+
+    .table-caption {
+      text-align: center;
+      font-variant: small-caps;
+      font-weight: bold;
+      font-size: 0.82rem;
+      margin: 12px 0 4px;
+      letter-spacing: 0.3px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      margin-bottom: 24px;
+    }
+
+    th, td {
+      border: 1px solid #000;
+      padding: 6px 8px;
+      vertical-align: top;
+    }
+
+    th {
+      font-style: italic;
+      font-weight: bold;
+      background: #fff;
+      text-align: left;
+    }
+
+    .col-id   { width: 32px; text-align: center; }
+    .col-feat { width: 140px; }
+    .col-prio { width: 70px; text-align: center; }
+    .col-est  { width: 100px; text-align: center; }
+    .col-dur  { width: 90px; text-align: center; }
+
+    .tasks-list { margin: 0; padding: 0; list-style: none; }
+    .tasks-list li { margin-bottom: 5px; }
+    .tasks-list li strong { font-weight: bold; }
+
+    hr.section { border: none; border-top: 2px solid #000; margin: 40px 0 24px; }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<!--  PRODUCT BACKLOG                                                    -->
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+
+<h2>6.2 &nbsp; Product Backlog</h2>
+
+<p>
+  The table below presents the project backlog, detailing all the features to be implemented,
+  their priority, and their estimated duration in days for effective development management.
+</p>
+
+<div class="table-caption">Table 2.1 – Product Backlog</div>
+
+<table>
+  <thead>
+    <tr>
+      <th class="col-id">ID</th>
+      <th class="col-feat">Feature</th>
+      <th>User Story</th>
+      <th class="col-prio">Priority</th>
+      <th class="col-est">Estimation (days)</th>
+    </tr>
+  </thead>
+  <tbody>
+
+    <!-- 1 -->
+    <tr>
+      <td class="col-id">1</td>
+      <td class="col-feat">Sample &amp; Supplier Registration</td>
+      <td>
+        <strong>1.1</strong> As a Collector, I want to register a new supplier so that I can associate samples with their source.<br><br>
+        <strong>1.2</strong> As a Collector, I want to register one or multiple samples at once so that the company can track them.<br><br>
+        <strong>1.3</strong> As a Collector, I want to view my samples with search and status filters so that I can monitor their progress.<br><br>
+        <strong>1.4</strong> As a Collector, I want to edit a sample's details (with edit history once physically received) so that I can correct mistakes.<br><br>
+        <strong>1.5</strong> As a Collector, I want to delete a sample so that invalid entries can be removed.
+      </td>
+      <td class="col-prio">High</td>
+      <td class="col-est">15</td>
+    </tr>
+
+    <!-- 2 -->
+    <tr>
+      <td class="col-id">2</td>
+      <td class="col-feat">OCR-Assisted Collection</td>
+      <td>
+        <strong>2-</strong> As a Collector, I want to photograph a handwritten bottle label and have the sample form auto-filled via Gemini Vision OCR so that data entry is faster and less error-prone.
+      </td>
+      <td class="col-prio">High</td>
+      <td class="col-est">6</td>
+    </tr>
+
+    <!-- 3 -->
+    <tr>
+      <td class="col-id">3</td>
+      <td class="col-feat">Logistics Planning</td>
+      <td>
+        <strong>3.1</strong> As a Collector, I want to schedule the sample arrival date so that the taster knows when to expect it.<br><br>
+        <strong>3.2</strong> As a Collector, I want to record stock delivery details (final price, truck, sealing info) so that logistics are tracked after purchase confirmation.
+      </td>
+      <td class="col-prio">High</td>
+      <td class="col-est">4</td>
+    </tr>
+
+    <!-- 4 -->
+    <tr>
+      <td class="col-id">4</td>
+      <td class="col-feat">Geographic Map</td>
+      <td>
+        <strong>4-</strong> As a Collector, I want to view my samples on a map of Tunisian delegations so that I can see visited vs. unvisited zones and plan future routes.
+      </td>
+      <td class="col-prio">Medium</td>
+      <td class="col-est">4</td>
+    </tr>
+
+    <!-- 5 -->
+    <tr>
+      <td class="col-id">5</td>
+      <td class="col-feat">Collector Dashboard</td>
+      <td>
+        <strong>5-</strong> As a Collector, I want to view a dashboard with my personal KPIs and activity summary so that I can track my own performance.
+      </td>
+      <td class="col-prio">Medium</td>
+      <td class="col-est">5</td>
+    </tr>
+
+    <!-- 6 -->
+    <tr>
+      <td class="col-id">6</td>
+      <td class="col-feat">Authentication &amp; Profile</td>
+      <td>
+        <strong>6.1</strong> As any user, I want to log in with my email and password so that I can access my role-specific dashboard.<br><br>
+        <strong>6.2</strong> As any user, I want to view and edit my profile (name, email, phone, photo) and change my password so that my account stays secure and up to date.
+      </td>
+      <td class="col-prio">High</td>
+      <td class="col-est">5</td>
+    </tr>
+
+    <!-- 7 -->
+    <tr>
+      <td class="col-id">7</td>
+      <td class="col-feat">Organoleptic Evaluation</td>
+      <td>
+        <strong>7.1</strong> As a Taster, I want to confirm the physical reception of a sample so that lab analysis is unlocked and the pipeline advances.<br><br>
+        <strong>7.2</strong> As a Taster, I want to submit a sensory evaluation using the COI organoleptic form so that sample quality is formally assessed.<br><br>
+        <strong>7.3</strong> As a Taster, I want to view all my past submitted evaluations so that I can review historical assessments.
+      </td>
+      <td class="col-prio">High</td>
+      <td class="col-est">12</td>
+    </tr>
+
+    <!-- 8 -->
+    <tr>
+      <td class="col-id">8</td>
+      <td class="col-feat">Tasting Sessions</td>
+      <td>
+        <strong>8-</strong> As a Taster, I want to create and manage tasting sessions (date, time, location, participants) so that panel evaluations are organized.
+      </td>
+      <td class="col-prio">Medium</td>
+      <td class="col-est">5</td>
+    </tr>
+
+    <!-- 9 -->
+    <tr>
+      <td class="col-id">9</td>
+      <td class="col-feat">Laboratory Analysis</td>
+      <td>
+        <strong>9.1</strong> As a Lab Technician, I want to photograph a paper analysis report and have AI automatically extract the parameter values into the form so that data entry is faster.<br><br>
+        <strong>9.2</strong> As a Lab Technician, I want to manually enter chemical analysis parameters so that quality data is recorded even without a paper report.<br><br>
+        <strong>9.3</strong> As a Lab Technician, I want to submit a completed analysis and export it so that the CEO and Taster can review the results.
+      </td>
+      <td class="col-prio">High</td>
+      <td class="col-est">13</td>
+    </tr>
+
+    <!-- 10 -->
+    <tr>
+      <td class="col-id">10</td>
+      <td class="col-feat">CEO / Direction</td>
+      <td>
+        <strong>10.1</strong> As a CEO, I want to view an executive dashboard with KPIs, pipeline status, and performance charts so that I can monitor overall operations.<br><br>
+        <strong>10.2</strong> As a CEO, I want to review sensory evaluations and approve or reject a sample for purchase so that I control the acquisition process.<br><br>
+        <strong>10.3</strong> As a CEO, I want to track confirmed purchases (stock in transit / stock received) so that logistics are fully managed.<br><br>
+        <strong>10.4</strong> As a CEO, I want to manage user accounts (create, deactivate, assign roles) so that system access is controlled.
+      </td>
+      <td class="col-prio">High</td>
+      <td class="col-est">14</td>
+    </tr>
+
+    <!-- 11 -->
+    <tr>
+      <td class="col-id">11</td>
+      <td class="col-feat">Head Taster / Chef de Panel</td>
+      <td>
+        <strong>11.1</strong> As a Head Taster, I want to view a multi-section dashboard (pipeline, urgent evaluations, delays per member, panel alignment, classifications) so that I can manage the panel's performance.<br><br>
+        <strong>11.2</strong> As a Head Taster, I want to view all tasters' evaluations side by side per sample with automatic divergence detection (deviation &gt; 1.5) so that I can identify inconsistencies.<br><br>
+        <strong>11.3</strong> As a Head Taster, I want to approve or refuse sessions proposed by panel members so that the session schedule is properly validated.
+      </td>
+      <td class="col-prio">High</td>
+      <td class="col-est">11</td>
+    </tr>
+
+    <!-- 12 -->
+    <tr>
+      <td class="col-id">12</td>
+      <td class="col-feat">Notifications</td>
+      <td>
+        <strong>12-</strong> As any user, I want to receive role-specific notifications for relevant events (new sample, evaluation submitted, analysis submitted, purchase confirmed) and navigate directly to the relevant screen.
+      </td>
+      <td class="col-prio">Medium</td>
+      <td class="col-est">5</td>
+    </tr>
+
+    <!-- 13 -->
+    <tr>
+      <td class="col-id">13</td>
+      <td class="col-feat">Offline Mode &amp; Sync</td>
+      <td>
+        <strong>13-</strong> As a Collector, I want to register samples while offline and have them sync automatically when connectivity is restored so that I can work in areas without internet.
+      </td>
+      <td class="col-prio">Low</td>
+      <td class="col-est">8</td>
+    </tr>
+
+    <!-- 14 -->
+    <tr>
+      <td class="col-id">14</td>
+      <td class="col-feat">Internal Messaging</td>
+      <td>
+        <strong>14-</strong> As a Collector, I want to chat with the CEO so that I can communicate directly without leaving the app.
+      </td>
+      <td class="col-prio">Low</td>
+      <td class="col-est">4</td>
+    </tr>
+
+  </tbody>
+</table>
+
+<hr class="section">
+
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<!--  SPRINT 1                                                           -->
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+
+<div class="chapter">Chapter 3 – Study and Implementation of Sprint 1</div>
+
+<h2>Introduction</h2>
+<p>
+  Having defined the different parts of the project, we begin the first sprint, structured around
+  the core features of the <strong>Collector</strong> module — the starting point of backend development.
+</p>
+<ul class="intro-list">
+  <li>Supplier and sample registration</li>
+  <li>Sample consultation, editing, and deletion</li>
+  <li>Logistics planning (arrival scheduling and delivery)</li>
+</ul>
+
+<h3>1 &nbsp; Sprint 1 Backlog</h3>
+<p>
+  This section presents the backlog of the first sprint, detailing the user stories and their
+  associated tasks with estimated durations.
+</p>
+
+<div class="table-caption">Table 3.1 – Sprint 1 Backlog</div>
+
+<table>
+  <thead>
+    <tr>
+      <th class="col-id">ID</th>
+      <th style="width:210px;">User Story</th>
+      <th>Tasks</th>
+      <th class="col-dur">Duration (Days)</th>
+    </tr>
+  </thead>
+  <tbody>
+
+    <tr>
+      <td class="col-id">1</td>
+      <td>As a Collector, I want to register a new supplier so that I can associate samples with their source.</td>
+      <td>
+        <ul class="tasks-list">
+          <li><strong>1.1</strong> Create the <em>Fournisseur</em> model in Django (name, gouvernorat, delegation, phone, address).</li>
+          <li><strong>1.2</strong> Create the serializer and CRUD viewset for <em>Fournisseur</em>.</li>
+          <li><strong>1.3</strong> Configure the API routes (<code>/api/fournisseurs/</code>).</li>
+          <li><strong>1.4</strong> Test all endpoints using Postman.</li>
+        </ul>
+      </td>
+      <td class="col-dur">3</td>
+    </tr>
+
+    <tr>
+      <td class="col-id">2</td>
+      <td>As a Collector, I want to register one or multiple samples at once so that the company can track them.</td>
+      <td>
+        <ul class="tasks-list">
+          <li><strong>2.1</strong> Create the <em>Echantillon</em> model (reference, fournisseur FK, variety, gouvernorat, delegation, quantity, nb_bottles, status).</li>
+          <li><strong>2.2</strong> Create the <em>EchantillonSerializer</em> with nested supplier data.</li>
+          <li><strong>2.3</strong> Create the CRUD viewset scoped to the logged-in collector's samples only.</li>
+          <li><strong>2.4</strong> Add a bulk-creation endpoint to register multiple samples in one request.</li>
+          <li><strong>2.5</strong> Configure routes (<code>/api/echantillons/</code>) and run tests.</li>
+        </ul>
+      </td>
+      <td class="col-dur">5</td>
+    </tr>
+
+    <tr>
+      <td class="col-id">3</td>
+      <td>As a Collector, I want to view my samples with search and status filters so that I can monitor their progress.</td>
+      <td>
+        <ul class="tasks-list">
+          <li><strong>3.1</strong> Add filtering by status, registration date, and gouvernorat to the viewset.</li>
+          <li><strong>3.2</strong> Add full-text search (reference, supplier code, variety).</li>
+          <li><strong>3.3</strong> Enable pagination in the format <code>&#123;"count": N, "results": [...]&#125;</code>.</li>
+          <li><strong>3.4</strong> Test combined filters.</li>
+        </ul>
+      </td>
+      <td class="col-dur">3</td>
+    </tr>
+
+    <tr>
+      <td class="col-id">4</td>
+      <td>As a Collector, I want to edit and delete a sample (with edit history tracked once physically received).</td>
+      <td>
+        <ul class="tasks-list">
+          <li><strong>4.1</strong> Implement PUT/PATCH on the <em>Echantillon</em> viewset.</li>
+          <li><strong>4.2</strong> Add edit history logic: when <code>recuPhysiquement=true</code>, store the previous value in <code>editHistory</code>.</li>
+          <li><strong>4.3</strong> Implement DELETE with permission check (only the creator collector can delete).</li>
+          <li><strong>4.4</strong> Block deletion if status is not <em>réceptionné</em>.</li>
+        </ul>
+      </td>
+      <td class="col-dur">4</td>
+    </tr>
+
+    <tr>
+      <td class="col-id">5</td>
+      <td>As a Collector, I want to schedule the sample arrival date and record stock delivery details.</td>
+      <td>
+        <ul class="tasks-list">
+          <li><strong>5.1</strong> Add <code>dateArriveeEchantillonPrevue</code> and <code>dateArriveeEchantillonPrevueFin</code> fields to the model.</li>
+          <li><strong>5.2</strong> Add <code>prixFinal</code>, <code>camionLivraison</code>, <code>planificationLivraison</code> fields.</li>
+          <li><strong>5.3</strong> Create the endpoint <code>/api/echantillons/&#123;id&#125;/confirmer-achat/</code>.</li>
+          <li><strong>5.4</strong> Test status transitions (Réceptionné → En négociation → Achat confirmé).</li>
+        </ul>
+      </td>
+      <td class="col-dur">3</td>
+    </tr>
+
+  </tbody>
+</table>
+
+<hr class="section">
+
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<!--  SPRINT 2                                                           -->
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+
+<div class="chapter">Chapter 4 – Study and Implementation of Sprint 2</div>
+
+<h2>Introduction</h2>
+<p>
+  The second sprint completes the Collector module with advanced features (OCR and geographic map)
+  and sets up secure JWT authentication for all roles.
+</p>
+<ul class="intro-list">
+  <li>OCR-assisted sample collection (Gemini Vision)</li>
+  <li>Geographic map of Tunisian delegations</li>
+  <li>JWT authentication and profile management</li>
+</ul>
+
+<h3>2 &nbsp; Sprint 2 Backlog</h3>
+
+<div class="table-caption">Table 4.1 – Sprint 2 Backlog</div>
+
+<table>
+  <thead>
+    <tr>
+      <th class="col-id">ID</th>
+      <th style="width:210px;">User Story</th>
+      <th>Tasks</th>
+      <th class="col-dur">Duration (Days)</th>
+    </tr>
+  </thead>
+  <tbody>
+
+    <tr>
+      <td class="col-id">1</td>
+      <td>As a Collector, I want to photograph a handwritten bottle label and have the form auto-filled via OCR so that data entry is faster.</td>
+      <td>
+        <ul class="tasks-list">
+          <li><strong>1.1</strong> Configure the Gemini Vision API integration in the Django backend.</li>
+          <li><strong>1.2</strong> Create the endpoint <code>/api/echantillons/ocr/</code> accepting an image in <code>multipart/form-data</code>.</li>
+          <li><strong>1.3</strong> Design the prompt to extract fields: reference, variety, quantity, supplier.</li>
+          <li><strong>1.4</strong> Return extracted fields as JSON for Flutter to pre-fill the form.</li>
+          <li><strong>1.5</strong> Handle extraction errors and poor image quality cases.</li>
+        </ul>
+      </td>
+      <td class="col-dur">6</td>
+    </tr>
+
+    <tr>
+      <td class="col-id">2</td>
+      <td>As a Collector, I want to view my samples on a geographic map of Tunisian delegations.</td>
+      <td>
+        <ul class="tasks-list">
+          <li><strong>2.1</strong> Create the endpoint <code>/api/collecteur/carte/</code> returning visited delegations.</li>
+          <li><strong>2.2</strong> Annotate data with the number of samples per delegation.</li>
+          <li><strong>2.3</strong> Distinguish visited delegations from unvisited ones.</li>
+        </ul>
+      </td>
+      <td class="col-dur">3</td>
+    </tr>
+
+    <tr>
+      <td class="col-id">3</td>
+      <td>As any user, I want to log in with my email and password and access my profile.</td>
+      <td>
+        <ul class="tasks-list">
+          <li><strong>3.1</strong> Configure <em>djangorestframework-simplejwt</em>.</li>
+          <li><strong>3.2</strong> Create a custom JWT serializer that injects role, first name, and last name into the token payload.</li>
+          <li><strong>3.3</strong> Expose endpoints: <code>/api/auth/login/</code>, <code>/api/auth/refresh/</code>, <code>/api/auth/logout/</code>.</li>
+          <li><strong>3.4</strong> Create <code>/api/users/me/</code> to retrieve the logged-in user's profile.</li>
+          <li><strong>3.5</strong> Apply role-based permissions (<em>IsCollecteur</em>, <em>IsDegustateur</em>, etc.) across all viewsets.</li>
+        </ul>
+      </td>
+      <td class="col-dur">5</td>
+    </tr>
+
+  </tbody>
+</table>
+
+<hr class="section">
+
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<!--  SPRINT 3                                                           -->
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+
+<div class="chapter">Chapter 5 – Study and Implementation of Sprint 3</div>
+
+<h2>Introduction</h2>
+<p>
+  The third sprint focuses on the <strong>Taster</strong> module — physical reception of samples,
+  COI organoleptic evaluation, and tasting session management.
+</p>
+<ul class="intro-list">
+  <li>Physical reception of samples</li>
+  <li>COI organoleptic evaluation form</li>
+  <li>Tasting session management</li>
+</ul>
+
+<h3>3 &nbsp; Sprint 3 Backlog</h3>
+
+<div class="table-caption">Table 5.1 – Sprint 3 Backlog</div>
+
+<table>
+  <thead>
+    <tr>
+      <th class="col-id">ID</th>
+      <th style="width:210px;">User Story</th>
+      <th>Tasks</th>
+      <th class="col-dur">Duration (Days)</th>
+    </tr>
+  </thead>
+  <tbody>
+
+    <tr>
+      <td class="col-id">1</td>
+      <td>As a Taster, I want to view all samples and confirm their physical reception.</td>
+      <td>
+        <ul class="tasks-list">
+          <li><strong>1.1</strong> Create the Taster-scoped <em>Echantillon</em> viewset (read access to all samples).</li>
+          <li><strong>1.2</strong> Add the endpoint <code>/api/echantillons/&#123;id&#125;/confirmer-reception/</code> (sets <code>recuPhysiquement=true</code> and the reception date).</li>
+          <li><strong>1.3</strong> Trigger status update and notify the CEO.</li>
+        </ul>
+      </td>
+      <td class="col-dur">3</td>
+    </tr>
+
+    <tr>
+      <td class="col-id">2</td>
+      <td>As a Taster, I want to submit a COI organoleptic evaluation so that sample quality is formally assessed.</td>
+      <td>
+        <ul class="tasks-list">
+          <li><strong>2.1</strong> Create the <em>EvaluationOrganoleptique</em> model (sample FK, taster FK, COI attributes, classification, status).</li>
+          <li><strong>2.2</strong> Create the <em>EvaluationSerializer</em> and CRUD viewset.</li>
+          <li><strong>2.3</strong> Implement submission logic (status → submitted, automatic classification calculation).</li>
+          <li><strong>2.4</strong> Configure routes (<code>/api/evaluations/</code>).</li>
+          <li><strong>2.5</strong> Test multiple evaluations per sample (one record per taster).</li>
+        </ul>
+      </td>
+      <td class="col-dur">7</td>
+    </tr>
+
+    <tr>
+      <td class="col-id">3</td>
+      <td>As a Taster, I want to create and manage tasting sessions (date, location, participants).</td>
+      <td>
+        <ul class="tasks-list">
+          <li><strong>3.1</strong> Create the <em>SessionDegustation</em> model (title, date, time, location, participants ManyToMany, status).</li>
+          <li><strong>3.2</strong> Create the serializer and CRUD viewset.</li>
+          <li><strong>3.3</strong> Implement session approval and refusal (Head Taster only).</li>
+          <li><strong>3.4</strong> Configure routes (<code>/api/sessions/</code>).</li>
+        </ul>
+      </td>
+      <td class="col-dur">4</td>
+    </tr>
+
+  </tbody>
+</table>
+
+<hr class="section">
+
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<!--  SPRINT 4                                                           -->
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+
+<div class="chapter">Chapter 6 – Study and Implementation of Sprint 4</div>
+
+<h2>Introduction</h2>
+<p>
+  The fourth sprint focuses on the <strong>Lab Technician</strong> module — entering chemical
+  analysis results either manually or via AI extraction from a paper report, and submitting them.
+</p>
+<ul class="intro-list">
+  <li>View samples assigned for analysis</li>
+  <li>AI extraction from paper analysis report (OCR)</li>
+  <li>Manual entry and submission of analysis</li>
+</ul>
+
+<h3>4 &nbsp; Sprint 4 Backlog</h3>
+
+<div class="table-caption">Table 6.1 – Sprint 4 Backlog</div>
+
+<table>
+  <thead>
+    <tr>
+      <th class="col-id">ID</th>
+      <th style="width:210px;">User Story</th>
+      <th>Tasks</th>
+      <th class="col-dur">Duration (Days)</th>
+    </tr>
+  </thead>
+  <tbody>
+
+    <tr>
+      <td class="col-id">1</td>
+      <td>As a Lab Technician, I want to view all samples assigned to me for analysis (physically received samples only).</td>
+      <td>
+        <ul class="tasks-list">
+          <li><strong>1.1</strong> Create a Lab Technician-scoped <em>Echantillon</em> viewset filtered by <code>recuPhysiquement=true</code>.</li>
+          <li><strong>1.2</strong> Group results by analysis status (pending, in progress, submitted).</li>
+        </ul>
+      </td>
+      <td class="col-dur">2</td>
+    </tr>
+
+    <tr>
+      <td class="col-id">2</td>
+      <td>As a Lab Technician, I want to photograph a paper analysis report and have AI extract the parameter values automatically.</td>
+      <td>
+        <ul class="tasks-list">
+          <li><strong>2.1</strong> Create the endpoint <code>/api/analyses/ocr/</code> accepting a report image in <code>multipart/form-data</code>.</li>
+          <li><strong>2.2</strong> Design the Gemini Vision prompt to extract chemical parameters (acidity, peroxide index, K232, K270, etc.).</li>
+          <li><strong>2.3</strong> Return extracted values as JSON to pre-fill the analysis form in Flutter.</li>
+          <li><strong>2.4</strong> Handle partial extraction cases (missing fields left empty).</li>
+        </ul>
+      </td>
+      <td class="col-dur">6</td>
+    </tr>
+
+    <tr>
+      <td class="col-id">3</td>
+      <td>As a Lab Technician, I want to manually enter chemical analysis parameters, submit the analysis, and export the results.</td>
+      <td>
+        <ul class="tasks-list">
+          <li><strong>3.1</strong> Create the <em>AnalyseLabo</em> model (sample FK, technician FK, chemical parameters, status, report file).</li>
+          <li><strong>3.2</strong> Create the serializer and CRUD viewset.</li>
+          <li><strong>3.3</strong> Implement submission logic (status → submitted) and update the sample status.</li>
+          <li><strong>3.4</strong> Add a PDF/CSV export endpoint for the analysis results.</li>
+          <li><strong>3.5</strong> Configure routes (<code>/api/analyses/</code>) and run tests.</li>
+        </ul>
+      </td>
+      <td class="col-dur">5</td>
+    </tr>
+
+  </tbody>
+</table>
+
+<hr class="section">
+
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<!--  SPRINT 5                                                           -->
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+
+<div class="chapter">Chapter 7 – Study and Implementation of Sprint 5</div>
+
+<h2>Introduction</h2>
+<p>
+  The fifth sprint covers the <strong>CEO</strong> and <strong>Head Taster</strong> modules —
+  executive oversight, purchase approval, user management, and panel performance tracking.
+</p>
+<ul class="intro-list">
+  <li>Executive dashboard and purchase approval (CEO)</li>
+  <li>User management (CEO)</li>
+  <li>Panel dashboard and divergence detection (Head Taster)</li>
+</ul>
+
+<h3>5 &nbsp; Sprint 5 Backlog</h3>
+
+<div class="table-caption">Table 7.1 – Sprint 5 Backlog</div>
+
+<table>
+  <thead>
+    <tr>
+      <th class="col-id">ID</th>
+      <th style="width:210px;">User Story</th>
+      <th>Tasks</th>
+      <th class="col-dur">Duration (Days)</th>
+    </tr>
+  </thead>
+  <tbody>
+
+    <tr>
+      <td class="col-id">1</td>
+      <td>As a CEO, I want to view all samples and approve or reject a sample for purchase.</td>
+      <td>
+        <ul class="tasks-list">
+          <li><strong>1.1</strong> Create the CEO-scoped <em>Echantillon</em> viewset (read all, grouped by collector).</li>
+          <li><strong>1.2</strong> Implement the endpoint <code>/api/echantillons/&#123;id&#125;/approuver/</code> (budgetNegociation, dateLivraisonSouhaitee).</li>
+          <li><strong>1.3</strong> Implement the endpoint <code>/api/echantillons/&#123;id&#125;/refuser/</code> (refusal reason).</li>
+          <li><strong>1.4</strong> Test status transitions and triggered notifications.</li>
+        </ul>
+      </td>
+      <td class="col-dur">4</td>
+    </tr>
+
+    <tr>
+      <td class="col-id">2</td>
+      <td>As a CEO, I want to view an executive dashboard with KPIs, pipeline status, and performance charts.</td>
+      <td>
+        <ul class="tasks-list">
+          <li><strong>2.1</strong> Create the endpoint <code>/api/ceo/dashboard/</code> with KPIs (samples by status, total purchase value).</li>
+          <li><strong>2.2</strong> Compute per-collector performance metrics (sample count, approval rate).</li>
+          <li><strong>2.3</strong> Compute monthly purchase evolution (time series).</li>
+          <li><strong>2.4</strong> Expose delegation coverage data for the map view.</li>
+        </ul>
+      </td>
+      <td class="col-dur">5</td>
+    </tr>
+
+    <tr>
+      <td class="col-id">3</td>
+      <td>As a CEO, I want to manage user accounts (create, deactivate, assign roles).</td>
+      <td>
+        <ul class="tasks-list">
+          <li><strong>3.1</strong> Create the <em>User</em> viewset (list, create, deactivate) accessible to CEO only.</li>
+          <li><strong>3.2</strong> Add role assignment (direction, collecteur, dégustateur, laboratoire, chef_panel).</li>
+          <li><strong>3.3</strong> Implement account activation / deactivation (<code>is_active</code> flag).</li>
+        </ul>
+      </td>
+      <td class="col-dur">3</td>
+    </tr>
+
+    <tr>
+      <td class="col-id">4</td>
+      <td>As a Head Taster, I want to view all evaluations side by side and detect divergences across the panel.</td>
+      <td>
+        <ul class="tasks-list">
+          <li><strong>4.1</strong> Create the endpoint <code>/api/chef/evaluations/</code> (all evaluations grouped by sample).</li>
+          <li><strong>4.2</strong> Implement divergence detection (deviation &gt; 1.5 from panel average, minimum 3 evaluations).</li>
+          <li><strong>4.3</strong> Create the Head Taster dashboard endpoints (<code>/api/chef/dashboard/pipeline/</code>, <code>/api/chef/dashboard/delai/</code>, <code>/api/chef/dashboard/alignement/</code>, <code>/api/chef/dashboard/classifications/</code>).</li>
+          <li><strong>4.4</strong> Test divergence calculation and average delay computation.</li>
+        </ul>
+      </td>
+      <td class="col-dur">6</td>
+    </tr>
+
+  </tbody>
+</table>
+
+<hr class="section">
+
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<!--  SPRINT 6                                                           -->
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+
+<div class="chapter">Chapter 8 – Study and Implementation of Sprint 6</div>
+
+<h2>Introduction</h2>
+<p>
+  The sixth and final sprint covers cross-cutting features: real-time notifications for all roles,
+  offline mode for the Collector, internal messaging, and full system integration testing.
+</p>
+<ul class="intro-list">
+  <li>Notification system (all roles)</li>
+  <li>Offline mode and synchronization (Collector)</li>
+  <li>Internal messaging — Collector ↔ CEO</li>
+</ul>
+
+<h3>6 &nbsp; Sprint 6 Backlog</h3>
+
+<div class="table-caption">Table 8.1 – Sprint 6 Backlog</div>
+
+<table>
+  <thead>
+    <tr>
+      <th class="col-id">ID</th>
+      <th style="width:210px;">User Story</th>
+      <th>Tasks</th>
+      <th class="col-dur">Duration (Days)</th>
+    </tr>
+  </thead>
+  <tbody>
+
+    <tr>
+      <td class="col-id">1</td>
+      <td>As any user, I want to receive role-specific notifications for relevant events and navigate directly to the relevant screen.</td>
+      <td>
+        <ul class="tasks-list">
+          <li><strong>1.1</strong> Create the <em>Notification</em> model (recipient FK, type, title, message, sample FK SET_NULL, section, is_read, created_at).</li>
+          <li><strong>1.2</strong> Implement Django signals (<code>post_save</code>, <code>pre_delete</code>) for all event triggers per role.</li>
+          <li><strong>1.3</strong> Create the endpoints <code>/api/notifications/</code> (list, mark-read, unread-count).</li>
+          <li><strong>1.4</strong> Test all notification types for each role.</li>
+        </ul>
+      </td>
+      <td class="col-dur">5</td>
+    </tr>
+
+    <tr>
+      <td class="col-id">2</td>
+      <td>As a Collector, I want to register samples while offline and have them sync automatically when connectivity is restored.</td>
+      <td>
+        <ul class="tasks-list">
+          <li><strong>2.1</strong> Set up the local sync queue (SQLite/Hive) in Flutter.</li>
+          <li><strong>2.2</strong> Implement the <em>CollecteurSyncService</em> using the same method signatures as the online service.</li>
+          <li><strong>2.3</strong> Handle sync conflicts: local UUIDs replaced by server UUIDs after successful sync.</li>
+          <li><strong>2.4</strong> Test full sync cycle after network reconnection.</li>
+        </ul>
+      </td>
+      <td class="col-dur">8</td>
+    </tr>
+
+    <tr>
+      <td class="col-id">3</td>
+      <td>As a Collector, I want to exchange messages with the CEO without leaving the app.</td>
+      <td>
+        <ul class="tasks-list">
+          <li><strong>3.1</strong> Create the <em>Message</em> model (sender FK, recipient FK, content, timestamp, is_read).</li>
+          <li><strong>3.2</strong> Create the endpoints <code>/api/messages/</code> (list, create, mark-read).</li>
+          <li><strong>3.3</strong> Configure routes and test bidirectional messaging.</li>
+        </ul>
+      </td>
+      <td class="col-dur">4</td>
+    </tr>
+
+  </tbody>
+</table>
+
+</body>
+</html>

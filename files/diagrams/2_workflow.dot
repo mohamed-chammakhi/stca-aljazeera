@@ -1,0 +1,26 @@
+// Workflow / process flow: how a sample moves between the roles
+// Render: dot -Tpng 2_workflow.dot -o 2_workflow.png
+digraph workflow {
+  graph [charset="UTF-8", rankdir=LR, dpi=150, bgcolor="white", pad=0.4,
+         nodesep=0.5, ranksep=0.9, fontname="Arial"];
+  node [shape=box, style="filled,rounded", fontname="Arial", fontsize=12,
+        fillcolor="#DCE9E2", fontcolor="#1A2E1F"];
+  edge [color="#38835A", penwidth=1.6, fontname="Arial", fontsize=10, fontcolor="#1A2E1F"];
+
+  supplier   [label="Supplier\n(Fournisseur)", fillcolor="#F0F0F0"];
+  collector  [label="Collector\n(Collecteur)"];
+  panel      [label="Tasting Panel Member\n(Dégustateur)\n• Sensory evaluation"];
+  lab        [label="Laboratory Technician\n(Technicien Labo)\n• Chemical analysis"];
+  supervisor [label="Panel Evaluation Supervisor\n(Chef Dégustateur)\n• Validation / consolidation"];
+  admin      [label="Administrator\n(Directeur)\n• Purchase approval",
+              fillcolor="#38835A", fontcolor="white"];
+
+  supplier   -> collector  [label="provides sample"];
+  collector  -> panel      [label="sample"];
+  collector  -> lab        [label="sample"];
+  panel      -> supervisor [label="sensory score"];
+  lab        -> supervisor [label="lab results"];
+  supervisor -> admin      [label="consolidated\nevaluation"];
+
+  { rank=same; panel; lab; }
+}

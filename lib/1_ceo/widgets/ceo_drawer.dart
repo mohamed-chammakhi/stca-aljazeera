@@ -8,6 +8,7 @@ class CeoDrawer extends StatelessWidget {
   final VoidCallback onEchantillons;
   final VoidCallback onAnalyseOrganoleptique;
   final VoidCallback onAnalyseLaboratoire;
+  final VoidCallback onValidationAchats;
   final VoidCallback onAchatsConfirmes;
   final VoidCallback onTableauDeBord;
   final VoidCallback onProfil;
@@ -19,6 +20,7 @@ class CeoDrawer extends StatelessWidget {
     required this.onEchantillons,
     required this.onAnalyseOrganoleptique,
     required this.onAnalyseLaboratoire,
+    required this.onValidationAchats,
     required this.onAchatsConfirmes,
     required this.onTableauDeBord,
     required this.onProfil,
@@ -128,6 +130,11 @@ class CeoDrawer extends StatelessWidget {
                     icon: Icons.biotech_outlined,
                     label: 'Analyse laboratoire',
                     onTap: onAnalyseLaboratoire,
+                  ),
+                  _DrawerItem(
+                    icon: Icons.fact_check_outlined,
+                    label: 'Validation achats',
+                    onTap: onValidationAchats,
                   ),
                   _DrawerItem(
                     icon: Icons.handshake_outlined,

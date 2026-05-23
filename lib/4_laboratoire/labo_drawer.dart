@@ -8,12 +8,14 @@ const Color _iconBg = Color(0x1A38835A);
 
 class LaboDrawer extends StatelessWidget {
   final VoidCallback onEchantillons;
+  final VoidCallback onNotifications;
   final VoidCallback onProfil;
   final VoidCallback onDeconnexion;
 
   const LaboDrawer({
     super.key,
     required this.onEchantillons,
+    required this.onNotifications,
     required this.onProfil,
     required this.onDeconnexion,
   });
@@ -85,6 +87,11 @@ class LaboDrawer extends StatelessWidget {
                     icon: Icons.science_outlined,
                     label: 'Échantillons à analyser',
                     onTap: onEchantillons,
+                  ),
+                  _DrawerItem(
+                    icon: Icons.notifications_outlined,
+                    label: 'Notifications',
+                    onTap: onNotifications,
                   ),
                   const SizedBox(height: 4),
                   Divider(color: kOlive.withOpacity(0.15), height: 1),

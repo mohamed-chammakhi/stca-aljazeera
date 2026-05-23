@@ -1,6 +1,7 @@
 import uuid
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.db import models
+from django.utils import timezone
 
 
 class UserManager(BaseUserManager):
@@ -34,6 +35,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     prenom = models.CharField(max_length=100)
     telephone = models.CharField(max_length=20, blank=True)
     role = models.CharField(max_length=25, choices=Role.choices)
+    date_creation = models.DateTimeField(default=timezone.now)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
 

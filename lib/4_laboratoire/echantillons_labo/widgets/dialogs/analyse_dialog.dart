@@ -21,7 +21,7 @@ void showAnalyseChoiceSheet(
   BuildContext context, {
   required EchantillonLabo echantillon,
   AnalyseLabo? existing,
-  required void Function(AnalyseLabo) onSave,
+  required OnAnalyseSave onSave,
 }) {
   showModalBottomSheet(
     context: context,
@@ -40,7 +40,7 @@ void showAnalyseChoiceSheet(
 class _ChoiceSheet extends StatelessWidget {
   final EchantillonLabo echantillon;
   final AnalyseLabo?    existing;
-  final void Function(AnalyseLabo) onSave;
+  final OnAnalyseSave onSave;
 
   const _ChoiceSheet({
     required this.echantillon,
@@ -100,7 +100,8 @@ class _ChoiceSheet extends StatelessWidget {
                 echantillonRef: echantillon.referenceBouteille,
                 echantillonId:  echantillon.id,
                 analyse:        existing,
-                onSave:         onSave,
+                // Manual entry has no photo — drop the optional photo args.
+                onSave:         (analyse) => onSave(analyse),
               );
             },
           ),

@@ -342,6 +342,105 @@ final List<EchantillonCeoView> mockEchantillons = [
       ),
     ],
   ),
+  // ── Propositions d'achat en attente de validation CEO ─────────────────────
+  EchantillonCeoView(
+    id: '2026/0012',
+    referenceBouteille: 'CHEMLALI-K7',
+    gouvernorat: 'Sfax',
+    delegation: 'Kerkennah',
+    codeFournisseur: 'SF-22',
+    variete: 'Chemlali',
+    quantiteEstimee: '40',
+    dateAjout: '18/05/2026',
+    dateArriveeEchantillon: '19/05/2026 à 10h30',
+    collecteurNom: 'Ahmed Dridi',
+    recuPhysiquement: true,
+    statut: StatutCeo.enNegociation,
+    budgetNegociation: '8.20 TND/L',
+    camionReserve: '204 TN 5621',
+    scellage: 'SC-9821',
+    quantiteCibleT: '40',
+    dateLivraisonStock: '23/05/2026 à 09h00',
+    totalTasteurs: 5,
+    evaluations: [
+      EvaluationOrganoleptique(id: 'eval-mock-012', echantillonId: 'mock',
+        tasteurId: 'D1',
+        tasteurNom: 'Ali Ben Salem',
+        classification: ClassificationHuile.extraVierge,
+        soumisLe: '2026-05-19T10:30:00Z',
+        fruite: 8.5,
+        fruiteVert: true,
+        amertume: 5.5,
+        piquant: 6.5,
+      ),
+    ],
+  ),
+  EchantillonCeoView(
+    id: '2026/0013',
+    referenceBouteille: 'CHETOUI-J3',
+    gouvernorat: 'Béja',
+    delegation: 'Téboursouk',
+    codeFournisseur: 'BJ-19',
+    variete: 'Chetoui',
+    quantiteEstimee: '28',
+    dateAjout: '15/05/2026',
+    dateArriveeEchantillon: '17/05/2026 à 14h00',
+    collecteurNom: 'Sami Khaled',
+    recuPhysiquement: true,
+    statut: StatutCeo.enNegociation,
+    budgetNegociation: '7.95 TND/L',
+    camionReserve: 'TRK-009',
+    scellage: 'SC-9745',
+    quantiteCibleT: '28',
+    dateLivraisonStock: '24/05/2026 à 08h30',
+    totalTasteurs: 5,
+    evaluations: [
+      EvaluationOrganoleptique(id: 'eval-mock-013', echantillonId: 'mock',
+        tasteurId: 'D2',
+        tasteurNom: 'Sara Mbarki',
+        classification: ClassificationHuile.extraVierge,
+        soumisLe: '2026-05-18T11:00:00Z',
+        fruite: 7.0,
+        fruiteVert: false,
+        amertume: 5.0,
+        piquant: 5.5,
+      ),
+    ],
+  ),
+  EchantillonCeoView(
+    id: '2026/0014',
+    referenceBouteille: 'OUESLATI-M1',
+    gouvernorat: 'Mahdia',
+    delegation: 'Ksour Essaf',
+    codeFournisseur: 'MH-07',
+    variete: 'Oueslati',
+    quantiteEstimee: '15',
+    dateAjout: '12/05/2026',
+    dateArriveeEchantillon: '14/05/2026 à 09h45',
+    collecteurNom: 'Mounir Zouaghi',
+    recuPhysiquement: true,
+    statut: StatutCeo.enNegociation,
+    budgetNegociation: '8.50 TND/L',
+    camionReserve: 'TRK-002',
+    // no scellage → exercises optional rendering
+    quantiteCibleT: '15',
+    dateLivraisonStock: '21/05/2026',
+    dateLivraisonStockFin: '23/05/2026',
+    totalTasteurs: 5,
+    evaluations: [
+      EvaluationOrganoleptique(id: 'eval-mock-014', echantillonId: 'mock',
+        tasteurId: 'D1',
+        tasteurNom: 'Ali Ben Salem',
+        classification: ClassificationHuile.extraVierge,
+        soumisLe: '2026-05-16T10:00:00Z',
+        fruite: 7.5,
+        fruiteVert: true,
+        amertume: 5.0,
+        piquant: 6.0,
+      ),
+    ],
+  ),
+
   // ── Stock non planifié : achat confirmé mais aucune date de livraison stock ──
   EchantillonCeoView(
     id: '2026/0011',
@@ -384,6 +483,21 @@ List<EchantillonCeoView> get mockEchantillonsLabo => mockEchantillons;
 /// Only confirmed purchases.
 List<EchantillonCeoView> get mockAchatsConfirmes => mockEchantillons
     .where((e) => e.statut == StatutCeo.achatConfirme)
+    .toList();
+
+/// Used by validation_achats_ceo_page.dart
+/// Samples where the collector has submitted a purchase proposal (prix défini)
+/// and the CEO has not yet confirmed or refused.
+List<EchantillonCeoView> get mockPropositionsEnAttente => mockEchantillons
+    .where((e) =>
+        e.statut == StatutCeo.enNegociation && e.budgetNegociation != null)
+    .toList();
+
+/// All samples already decided by the CEO from a proposal (confirmed or refused).
+/// Used as the "Décidées" filter on validation_achats_ceo_page.dart.
+List<EchantillonCeoView> get mockPropositionsDecidees => mockEchantillons
+    .where((e) =>
+        e.statut == StatutCeo.achatConfirme || e.statut == StatutCeo.refuse)
     .toList();
 
 // ─────────────────────────────────────────────────────────────────────────────

@@ -1,15 +1,17 @@
 from django.contrib import admin
+from django.conf import settings
+from django.conf.urls.static import static
 from django.urls import path, include
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from rest_framework_simplejwt.views import TokenRefreshView
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
-from users.views import LogoutView
+from users.views import LoginView, LogoutView
 
 urlpatterns = [
     # ── Django admin ──────────────────────────────────────────────────────────
     path('admin/', admin.site.urls),
 
     # ── Auth ──────────────────────────────────────────────────────────────────
-    path('api/auth/login/', TokenObtainPairView.as_view(), name='login'),
+    path('api/auth/login/', LoginView.as_view(), name='login'),
     path('api/auth/refresh/', TokenRefreshView.as_view(), name='token-refresh'),
     path('api/auth/logout/', LogoutView.as_view(), name='logout'),
 
@@ -19,9 +21,11 @@ urlpatterns = [
     path('api/echantillons/', include('echantillons.urls')),
     path('api/evaluations/', include('evaluations.urls')),
     path('api/analyses/', include('analyses.urls')),
+    path('api/sessions/', include('sessions_degustation.urls')),
     path('api/sessions_degustation/', include('sessions_degustation.urls')),
     path('api/planifications/', include('planifications.urls')),
     path('api/notifications/', include('notifications.urls')),
+    path('api/messages/', include('messages_chat.urls')),
     path('api/messages_chat/', include('messages_chat.urls')),
     path('api/ceo/', include('ceo.urls')),
     path('api/chef/', include('chef.urls')),
@@ -33,3 +37,7 @@ urlpatterns = [
     path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
     path('api/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
 ]
+
+# Serve uploaded bottle photos in development (on-premise only).
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

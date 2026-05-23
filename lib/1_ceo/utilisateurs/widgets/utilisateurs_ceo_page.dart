@@ -1,9 +1,8 @@
-﻿// ═════════════════════════════════════════════════════════════════════════════
+// ═════════════════════════════════════════════════════════════════════════════
 // FILE : ceo/utilisateurs/utilisateurs_ceo_page.dart
 // PURPOSE : CEO user management page — view all users, their roles,
 //           contact info, status, and perform admin actions.
-// DATA   : Reads from mockUtilisateurs (mock/mock_data_patch.dart).
-//           When API is ready: replace the getter with a service call.
+// DATA   : Reads from the Django API, with mockUtilisateurs kept as fallback.
 // STYLE  : Matches ProfilceoPage — same palette, fonts, and component style.
 // ═════════════════════════════════════════════════════════════════════════════
 
@@ -16,10 +15,12 @@ import '../../../main.dart';
 import '../../widgets/ceo_drawer.dart';
 import '../../echantillons/echantillons_ceo_page.dart';
 import '../../achats_confirmes/achats_confirmes_ceo_page.dart';
+import '../../validation_achats/validation_achats_ceo_page.dart';
 import '../../analyse_laboratoire/analyse_laboratoire_ceo_page.dart';
 import '../../analyse_organoleptique/analyse_organoleptique_ceo_page.dart';
 import '../../profil_ceo_page.dart';
 import '../../utilisateurs/models/mock_data_patch.dart';
+import '../../utilisateurs/services/utilisateurs_ceo_service.dart';
 import '../../../../core/models/user_profile.dart';
 import '../../../../core/models/enums.dart';
 import 'user_card.dart';
@@ -27,7 +28,7 @@ import 'user_created_dialog.dart';
 
 // ── Local aliases — keep page code unchanged while using core types ────────────
 typedef UserRole = RoleUtilisateur;
-typedef AppUser  = UserProfile;
+typedef AppUser = UserProfile;
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 class UtilisateursCeoPage extends StatefulWidget {
@@ -37,19 +38,23 @@ class UtilisateursCeoPage extends StatefulWidget {
   State<UtilisateursCeoPage> createState() => _UtilisateursCeoPageState();
 }
 
-class _UtilisateursCeoPageState extends State<UtilisateursCeoPage> with CeoNavMixin {
+class _UtilisateursCeoPageState extends State<UtilisateursCeoPage>
+    with CeoNavMixin {
   // ── Role accent colors ─────────────────────────────────────────────────────
   // CEO → blue, Laboratoire → orange, Dégustateur → kGreen, Collecteur → pink
   static const _roleColors = {
-    UserRole.direction:             (bg: Color(0xFFE6F1FB), fg: Color(0xFF185FA5)),
-    UserRole.laboratoire:           (bg: Color(0xFFFAEEDA), fg: Color(0xFF854F0B)),
-    UserRole.degustateur:           (bg: Color(0xFFE1F5EE), fg: Color(0xFF0F6E56)),
-    UserRole.collecteur:            (bg: Color(0xFFFBEAF0), fg: Color(0xFF993556)),
-    UserRole.chefPanel:             (bg: Color(0xFFF3EBF9), fg: Color(0xFF6A3D9A)),
+    UserRole.direction: (bg: Color(0xFFE6F1FB), fg: Color(0xFF185FA5)),
+    UserRole.laboratoire: (bg: Color(0xFFFAEEDA), fg: Color(0xFF854F0B)),
+    UserRole.degustateur: (bg: Color(0xFFE1F5EE), fg: Color(0xFF0F6E56)),
+    UserRole.collecteur: (bg: Color(0xFFFBEAF0), fg: Color(0xFF993556)),
+    UserRole.chefPanel: (bg: Color(0xFFF3EBF9), fg: Color(0xFF6A3D9A)),
   };
 
   // ── Data ──────────────────────────────────────────────────────────────────
-  List<AppUser> get _utilisateurs => mockUtilisateurs;
+  List<AppUser> _utilisateurs = List<AppUser>.from(mockUtilisateurs);
+  bool _isLoading = false;
+  bool _isMutating = false;
+  bool _usesMockData = true;
 
   // ── Local UI state ─────────────────────────────────────────────────────────
   UserRole? _activeFilter;
@@ -72,11 +77,37 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage> with CeoNavMi
   }
 
   // ── Navigation helpers ────────────────────────────────────────────────────
+  @override
+  void initState() {
+    super.initState();
+    _loadUsers();
+  }
 
   @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadUsers() async {
+    setState(() => _isLoading = true);
+    try {
+      final users = await utilisateursCeoService.fetchUsers();
+      if (!mounted) return;
+      setState(() {
+        _utilisateurs = users;
+        _usesMockData = false;
+      });
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _utilisateurs = List<AppUser>.from(mockUtilisateurs);
+        _usesMockData = true;
+      });
+      _showError(utilisateursCeoService.messageFor(error));
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
   // ── Build ──────────────────────────────────────────────────────────────────
@@ -91,6 +122,7 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage> with CeoNavMi
         onAnalyseOrganoleptique: () =>
             goToPage(const AnalyseOrganoleptiqueCeoPage()),
         onAnalyseLaboratoire: () => goToPage(const AnalyseLaboratoireCeoPage()),
+        onValidationAchats: () => goToPage(const ValidationAchatsCeoPage()),
         onAchatsConfirmes: () => goToPage(const AchatsConfirmesCeoPage()),
         onTableauDeBord: () => Navigator.pop(context),
         onProfil: () => goToPage(const ProfilceoPage()),
@@ -113,16 +145,13 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage> with CeoNavMi
         iconTheme: const IconThemeData(color: kDark),
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: _showAddUserSheet,
+        onPressed: _isLoading ? null : _showAddUserSheet,
         backgroundColor: const Color.fromARGB(255, 197, 206, 201),
         elevation: 2,
         icon: const Icon(Icons.person_add_outlined, color: kDark),
         label: Text(
           'Ajouter',
-          style: GoogleFonts.domine(
-            color: kDark,
-            fontWeight: FontWeight.w700,
-          ),
+          style: GoogleFonts.domine(color: kDark, fontWeight: FontWeight.w700),
         ),
       ),
       body: Column(
@@ -259,7 +288,7 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage> with CeoNavMi
     return ListView.separated(
       scrollDirection: Axis.horizontal,
       itemCount: chips.length,
-      separatorBuilder: (_, __) => const SizedBox(width: 7),
+      separatorBuilder: (_, _) => const SizedBox(width: 7),
       itemBuilder: (_, i) {
         final chip = chips[i];
         final isActive = _activeFilter == chip.role;
@@ -340,23 +369,12 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage> with CeoNavMi
             child: const Text('Annuler'),
           ),
           ElevatedButton(
-            onPressed: () {
-              final idx = mockUtilisateurs.indexWhere((u) => u.id == user.id);
-              if (idx != -1) {
-                final updated = UserProfile(
-                  id: user.id, email: user.email, role: user.role,
-                  nom: user.nom, prenom: user.prenom, telephone: user.telephone,
-                  dateCreation: user.dateCreation, isActive: !user.isActive,
-                );
-                setState(() => mockUtilisateurs[idx] = updated);
-              }
-              Navigator.pop(context);
-              _showSuccess(
-                !user.isActive
-                    ? '${user.nomComplet} réactivé'
-                    : '${user.nomComplet} désactivé',
-              );
-            },
+            onPressed: _isMutating
+                ? null
+                : () async {
+                    Navigator.pop(context);
+                    await _toggleUserStatus(user);
+                  },
             style: ElevatedButton.styleFrom(backgroundColor: kGreen),
             child: Text(
               user.isActive ? 'Désactiver' : 'Réactiver',
@@ -392,13 +410,12 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage> with CeoNavMi
             child: const Text('Annuler'),
           ),
           ElevatedButton(
-            onPressed: () {
-              setState(
-                () => mockUtilisateurs.removeWhere((u) => u.id == user.id),
-              );
-              Navigator.pop(context);
-              _showSuccess('${user.nomComplet} supprimé');
-            },
+            onPressed: _isMutating
+                ? null
+                : () async {
+                    Navigator.pop(context);
+                    await _deleteUser(user);
+                  },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red.shade600,
             ),
@@ -410,6 +427,74 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage> with CeoNavMi
         ],
       ),
     );
+  }
+
+  Future<void> _toggleUserStatus(AppUser user) async {
+    if (_isMutating) return;
+    if (_usesMockData) {
+      final updated = UserProfile(
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        nom: user.nom,
+        prenom: user.prenom,
+        telephone: user.telephone,
+        dateCreation: user.dateCreation,
+        isActive: !user.isActive,
+      );
+      setState(() {
+        final idx = _utilisateurs.indexWhere((u) => u.id == user.id);
+        if (idx != -1) _utilisateurs[idx] = updated;
+      });
+      _showSuccess(
+        updated.isActive
+            ? '${updated.nomComplet} réactivé'
+            : '${updated.nomComplet} désactivé',
+      );
+      return;
+    }
+
+    setState(() => _isMutating = true);
+    try {
+      final updated = await utilisateursCeoService.toggleActive(user.id);
+      if (!mounted) return;
+      setState(() {
+        final idx = _utilisateurs.indexWhere((u) => u.id == user.id);
+        if (idx != -1) _utilisateurs[idx] = updated;
+      });
+      _showSuccess(
+        updated.isActive
+            ? '${updated.nomComplet} réactivé'
+            : '${updated.nomComplet} désactivé',
+      );
+    } catch (error) {
+      if (!mounted) return;
+      _showError(utilisateursCeoService.messageFor(error));
+    } finally {
+      if (mounted) setState(() => _isMutating = false);
+    }
+  }
+
+  Future<void> _deleteUser(AppUser user) async {
+    if (_isMutating) return;
+    if (_usesMockData) {
+      setState(() => _utilisateurs.removeWhere((u) => u.id == user.id));
+      _showSuccess('${user.nomComplet} supprimé');
+      return;
+    }
+
+    setState(() => _isMutating = true);
+    try {
+      await utilisateursCeoService.deleteUser(user.id);
+      if (!mounted) return;
+      setState(() => _utilisateurs.removeWhere((u) => u.id == user.id));
+      _showSuccess('${user.nomComplet} supprimé');
+    } catch (error) {
+      if (!mounted) return;
+      _showError(utilisateursCeoService.messageFor(error));
+    } finally {
+      if (mounted) setState(() => _isMutating = false);
+    }
   }
 
   // ── Profile bottom sheet ───────────────────────────────────────────────────
@@ -506,7 +591,11 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage> with CeoNavMi
               ),
               const SizedBox(height: 12),
               _infoTile(Icons.email_outlined, 'Email', user.email),
-              _infoTile(Icons.phone_outlined, 'Téléphone', user.telephone ?? '—'),
+              _infoTile(
+                Icons.phone_outlined,
+                'Téléphone',
+                user.telephone ?? '—',
+              ),
               _infoTile(
                 Icons.calendar_today_outlined,
                 'Date de début',
@@ -553,6 +642,7 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage> with CeoNavMi
     final emailCtrl = TextEditingController();
     final telCtrl = TextEditingController();
     UserRole selectedRole = UserRole.degustateur;
+    bool isSaving = false;
 
     showModalBottomSheet(
       context: context,
@@ -777,40 +867,79 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage> with CeoNavMi
                   const SizedBox(width: 12),
                   Expanded(
                     child: ElevatedButton(
-                      onPressed: () {
-                        if (prenomCtrl.text.isEmpty ||
-                            nomCtrl.text.isEmpty ||
-                            emailCtrl.text.isEmpty) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text(
-                                'Veuillez remplir tous les champs obligatoires',
-                              ),
-                              backgroundColor: Colors.red,
-                            ),
-                          );
-                          return;
-                        }
-                        final newUser = UserProfile(
-                          id: DateTime.now().millisecondsSinceEpoch.toString(),
-                          email: emailCtrl.text.trim(),
-                          role: selectedRole,
-                          nom: nomCtrl.text.trim(),
-                          prenom: prenomCtrl.text.trim(),
-                          telephone: telCtrl.text.trim(),
-                          dateCreation: _todayFormatted(),
-                        );
-                        setState(() => mockUtilisateurs.add(newUser));
-                        Navigator.pop(ctx);
-                        _showUserCreatedDialog(
-                          prenomCtrl.text.trim(),
-                          nomCtrl.text.trim(),
-                          emailCtrl.text.trim(),
-                        );
-                      },
+                      onPressed: isSaving
+                          ? null
+                          : () async {
+                              if (prenomCtrl.text.isEmpty ||
+                                  nomCtrl.text.isEmpty ||
+                                  emailCtrl.text.isEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Veuillez remplir tous les champs obligatoires',
+                                    ),
+                                    backgroundColor: Colors.red,
+                                  ),
+                                );
+                                return;
+                              }
+                              setSheet(() => isSaving = true);
+                              if (_usesMockData) {
+                                final newUser = UserProfile(
+                                  id: DateTime.now().millisecondsSinceEpoch
+                                      .toString(),
+                                  email: emailCtrl.text.trim(),
+                                  role: selectedRole,
+                                  nom: nomCtrl.text.trim(),
+                                  prenom: prenomCtrl.text.trim(),
+                                  telephone: telCtrl.text.trim(),
+                                  dateCreation: _todayFormatted(),
+                                );
+                                setState(() => _utilisateurs.add(newUser));
+                                if (ctx.mounted) Navigator.pop(ctx);
+                                _showUserCreatedDialog(
+                                  newUser.prenom,
+                                  newUser.nom,
+                                  newUser.email,
+                                );
+                                return;
+                              }
+
+                              try {
+                                final newUser = await utilisateursCeoService
+                                    .createUser(
+                                      prenom: prenomCtrl.text.trim(),
+                                      nom: nomCtrl.text.trim(),
+                                      email: emailCtrl.text.trim(),
+                                      role: selectedRole,
+                                      telephone: telCtrl.text.trim(),
+                                    );
+                                if (!mounted) return;
+                                setState(() => _utilisateurs.add(newUser));
+                                if (ctx.mounted) Navigator.pop(ctx);
+                                _showUserCreatedDialog(
+                                  newUser.prenom,
+                                  newUser.nom,
+                                  newUser.email,
+                                );
+                              } catch (error) {
+                                if (!mounted) return;
+                                _showError(
+                                  utilisateursCeoService.messageFor(error),
+                                );
+                              } finally {
+                                if (ctx.mounted) {
+                                  setSheet(() => isSaving = false);
+                                }
+                              }
+                            },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor:
-                            const Color.fromARGB(255, 197, 206, 201),
+                        backgroundColor: const Color.fromARGB(
+                          255,
+                          197,
+                          206,
+                          201,
+                        ),
                         elevation: 0,
                         padding: const EdgeInsets.symmetric(vertical: 13),
                         shape: RoundedRectangleBorder(
@@ -887,19 +1016,11 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage> with CeoNavMi
   }
 
   // ── User-created success dialog (auto-closes after 4 s) ───────────────────
-  void _showUserCreatedDialog(
-    String prenom,
-    String nom,
-    String email,
-  ) {
+  void _showUserCreatedDialog(String prenom, String nom, String email) {
     showDialog(
       context: context,
       barrierDismissible: true,
-      builder: (_) => UserCreatedDialog(
-        prenom: prenom,
-        nom: nom,
-        email: email,
-      ),
+      builder: (_) => UserCreatedDialog(prenom: prenom, nom: nom, email: email),
     );
   }
 
@@ -928,5 +1049,22 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage> with CeoNavMi
       ),
     );
   }
-}
 
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          message,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        backgroundColor: Colors.red.shade600,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        margin: const EdgeInsets.all(20),
+      ),
+    );
+  }
+}

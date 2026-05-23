@@ -22,6 +22,7 @@ class SessionDegustation(models.Model):
     heure = models.TimeField()                 # what time
     lieu = models.CharField(max_length=200)    # where (room, location)
     notes = models.TextField(blank=True)       # optional extra notes
+    nombre_echantillons_prevus = models.PositiveIntegerField(null=True, blank=True)
 
     # Current state of the session — starts as Planifiée by default
     statut = models.CharField(
@@ -45,6 +46,11 @@ class SessionDegustation(models.Model):
         settings.AUTH_USER_MODEL,
         related_name='sessions_invitees',
         blank=True   # a session can be created with no participants yet
+    )
+    presences_confirmees = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        related_name='sessions_presence_confirmee',
+        blank=True
     )
 
     # Which samples will be tasted in this session —

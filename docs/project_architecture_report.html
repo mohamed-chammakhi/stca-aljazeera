@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project Architecture &mdash; Al Jazeera STCA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Domine:wght@500;700&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f4f6f2;
+    --paper: #ffffff;
+    --ink: #1a2e1f;
+    --muted: #5f6b61;
+    --green: #38835a;
+    --green-soft: #dce9e2;
+    --blue: #3a6ea5;
+    --gold: #c49337;
+    --line: #d9e2dc;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Source Sans 3', Arial, sans-serif;
+    line-height: 1.6;
+  }
+  main { max-width: 1180px; margin: 0 auto; padding: 40px 22px 64px; }
+
+  .eyebrow {
+    color: var(--green);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+  h1 {
+    font-family: 'Domine', Georgia, serif;
+    margin: 10px 0 10px;
+    font-size: 34px;
+    line-height: 1.18;
+    font-weight: 700;
+  }
+  .lead { max-width: 880px; margin: 0; color: var(--muted); font-size: 16.5px; }
+
+  .diagram-card {
+    margin-top: 26px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 18px;
+    overflow-x: auto;
+    box-shadow: 0 12px 30px rgba(26, 46, 31, 0.07);
+  }
+  .diagram-card svg { display: block; min-width: 1100px; margin: 0 auto; }
+  .caption { margin: 10px 4px 2px; color: var(--muted); font-size: 13px; text-align: center; font-style: italic; }
+
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 26px; }
+  .tier-card {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-left: 4px solid var(--green);
+    border-radius: 8px;
+    padding: 18px 20px;
+  }
+  .tier-card.b { border-left-color: var(--gold); }
+  .tier-card.c { border-left-color: var(--blue); }
+  .tier-card h3 { font-family: 'Domine', Georgia, serif; margin: 0 0 4px; font-size: 17px; }
+  .tier-card .role { color: var(--muted); font-size: 12.5px; font-weight: 600; letter-spacing: .4px; text-transform: uppercase; margin-bottom: 8px; }
+  .tier-card p { margin: 0; color: var(--muted); font-size: 14px; }
+
+  .section {
+    margin-top: 26px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 24px 26px;
+  }
+  h2 { font-family: 'Domine', Georgia, serif; margin: 0 0 14px; font-size: 22px; }
+  p { margin: 0 0 12px; }
+  ul { margin: 0; padding-left: 20px; }
+  li { margin: 8px 0; }
+  .section.qa li { color: var(--ink); }
+  .section.qa li span { color: var(--muted); }
+  strong { color: var(--ink); }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div class="eyebrow">System Architecture</div>
+    <h1>General Architecture of the Olive&nbsp;Oil Sample Evaluation System</h1>
+    <p class="lead">
+      The application is built on a simple <strong>3-tier client-server architecture</strong>: a Flutter mobile application
+      (presentation tier) communicates through a REST API with a Django backend (application&nbsp;/&nbsp;logic tier), which
+      stores its data in a PostgreSQL database (data tier).
+    </p>
+  </header>
+
+  <section class="diagram-card" aria-label="Project architecture diagram">
+    <svg xmlns="http://www.w3.org/2000/svg" width="1180" height="720" viewBox="0 0 1180 720" role="img" aria-labelledby="ttl desc" font-family="'Source Sans 3','Segoe UI',Arial,sans-serif">
+      <title id="ttl">3-tier client-server architecture</title>
+      <desc id="desc">Users access a Flutter mobile application that communicates through a REST API with a Django backend, which stores data in PostgreSQL and uploaded photos in media storage.</desc>
+      <style>
+        .tier   { fill:#5f6b61; font-size:13px; font-weight:700; letter-spacing:1px; }
+        .title  { fill:#1a2e1f; font-size:16px; font-weight:700; font-family:'Domine',Georgia,serif; }
+        .small-title { fill:#1a2e1f; font-size:13.5px; font-weight:600; }
+        .body   { fill:#5f6b61; font-size:12.5px; }
+        .tiny   { fill:#5f6b61; font-size:11px; }
+        .alabel { fill:#526158; font-size:11.5px; font-weight:700; }
+        .cap    { fill:#5f6b61; font-size:13px; font-style:italic; font-family:'Domine',Georgia,serif; }
+      </style>
+      <defs>
+        <marker id="arr" markerWidth="9" markerHeight="9" refX="7.5" refY="3" orient="auto" markerUnits="strokeWidth">
+          <path d="M0,0 L0,6 L8,3 z" fill="#526158"/>
+        </marker>
+        <filter id="sh" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="5" stdDeviation="6" flood-color="#1a2e1f" flood-opacity=".12"/>
+        </filter>
+      </defs>
+
+      <rect x="16" y="16" width="1148" height="688" rx="14" fill="#fbfcfa" stroke="#d9e2dc"/>
+
+      <text x="123"  y="52" text-anchor="middle" class="tier">USERS</text>
+      <text x="348"  y="52" text-anchor="middle" class="tier">PRESENTATION TIER</text>
+      <text x="548"  y="52" text-anchor="middle" class="tier">COMMUNICATION</text>
+      <text x="754"  y="52" text-anchor="middle" class="tier">APPLICATION / LOGIC TIER</text>
+      <text x="1010" y="52" text-anchor="middle" class="tier">DATA TIER</text>
+
+      <rect x="44" y="82" width="158" height="320" rx="10" fill="#ffffff" stroke="#d9e2dc" filter="url(#sh)"/>
+      <circle cx="123" cy="128" r="24" fill="#dce9e2" stroke="#38835a" stroke-width="2"/>
+      <path d="M111 124 c0 -10 24 -10 24 0 c0 13 -24 13 -24 0 M99 166 c5 -23 43 -23 48 0" fill="none" stroke="#38835a" stroke-width="3.5" stroke-linecap="round"/>
+      <text x="123" y="208" text-anchor="middle" class="title">System Users</text>
+      <text x="123" y="240" text-anchor="middle" class="body">Administrator</text>
+      <text x="123" y="266" text-anchor="middle" class="body">Sample Collector</text>
+      <text x="123" y="292" text-anchor="middle" class="body">Tasting Panel Member</text>
+      <text x="123" y="318" text-anchor="middle" class="body">Panel Supervisor</text>
+      <text x="123" y="344" text-anchor="middle" class="body">Laboratory Technician</text>
+
+      <rect x="242" y="82" width="212" height="350" rx="10" fill="#ffffff" stroke="#d9e2dc" filter="url(#sh)"/>
+      <rect x="300" y="106" width="96" height="196" rx="16" fill="#e8f1fb" stroke="#3a6ea5" stroke-width="2"/>
+      <rect x="314" y="124" width="68" height="16" rx="3" fill="#3a6ea5"/>
+      <rect x="314" y="150" width="68" height="26" rx="3" fill="#ffffff" stroke="#b6cce0"/>
+      <rect x="314" y="184" width="68" height="26" rx="3" fill="#ffffff" stroke="#b6cce0"/>
+      <rect x="314" y="218" width="68" height="26" rx="3" fill="#ffffff" stroke="#b6cce0"/>
+      <circle cx="348" cy="280" r="7" fill="#3a6ea5"/>
+      <text x="348" y="338" text-anchor="middle" class="title">Flutter Mobile App</text>
+      <text x="348" y="362" text-anchor="middle" class="body">Role-based interfaces</text>
+      <text x="348" y="382" text-anchor="middle" class="tiny">forms &#183; lists &#183; map &#183; dashboards</text>
+      <text x="348" y="402" text-anchor="middle" class="tiny">Android / iOS</text>
+
+      <rect x="242" y="452" width="212" height="86" rx="10" fill="#f4faf6" stroke="#d9e2dc"/>
+      <text x="348" y="480" text-anchor="middle" class="small-title">On-Device Storage</text>
+      <text x="348" y="503" text-anchor="middle" class="tiny">Secure token storage (login)</text>
+      <text x="348" y="522" text-anchor="middle" class="tiny">Local map assets (GeoJSON)</text>
+
+      <rect x="494" y="222" width="108" height="150" rx="10" fill="#fff4df" stroke="#c49337" stroke-width="2" filter="url(#sh)"/>
+      <text x="548" y="262" text-anchor="middle" class="title">REST API</text>
+      <text x="548" y="294" text-anchor="middle" class="body">HTTP / JSON</text>
+      <text x="548" y="318" text-anchor="middle" class="body">JWT-secured</text>
+      <text x="548" y="342" text-anchor="middle" class="body">stateless</text>
+
+      <rect x="642" y="82" width="224" height="410" rx="10" fill="#ffffff" stroke="#d9e2dc" filter="url(#sh)"/>
+      <rect x="668" y="100" width="172" height="42" rx="8" fill="#dce9e2" stroke="#38835a"/>
+      <text x="754" y="126" text-anchor="middle" class="title">Django REST Backend</text>
+      <rect x="666" y="160" width="176" height="40" rx="7" fill="#f7f8f5" stroke="#d9e2dc"/>
+      <text x="754" y="185" text-anchor="middle" class="body">Authentication &amp; JWT</text>
+      <rect x="666" y="208" width="176" height="40" rx="7" fill="#f7f8f5" stroke="#d9e2dc"/>
+      <text x="754" y="233" text-anchor="middle" class="body">Role-based permissions</text>
+      <rect x="666" y="256" width="176" height="40" rx="7" fill="#f7f8f5" stroke="#d9e2dc"/>
+      <text x="754" y="281" text-anchor="middle" class="body">Business modules</text>
+      <rect x="666" y="304" width="176" height="40" rx="7" fill="#f7f8f5" stroke="#d9e2dc"/>
+      <text x="754" y="329" text-anchor="middle" class="body">Serializers &amp; views</text>
+      <rect x="666" y="352" width="176" height="40" rx="7" fill="#f7f8f5" stroke="#d9e2dc"/>
+      <text x="754" y="377" text-anchor="middle" class="body">Bottle-label OCR</text>
+      <rect x="666" y="400" width="176" height="40" rx="7" fill="#f7f8f5" stroke="#d9e2dc"/>
+      <text x="754" y="425" text-anchor="middle" class="body">Notifications</text>
+
+      <path d="M958,108 C958,93 1062,93 1062,108 L1062,248 C1062,263 958,263 958,248 Z" fill="#e8f1fb" stroke="#3a6ea5" stroke-width="2" filter="url(#sh)"/>
+      <ellipse cx="1010" cy="108" rx="52" ry="13" fill="#f5faff" stroke="#3a6ea5" stroke-width="2"/>
+      <text x="1010" y="172" text-anchor="middle" class="title">PostgreSQL</text>
+      <text x="1010" y="200" text-anchor="middle" class="tiny">Users &#183; Samples</text>
+      <text x="1010" y="219" text-anchor="middle" class="tiny">Evaluations &#183; Analyses</text>
+      <text x="1010" y="238" text-anchor="middle" class="tiny">Purchases &#183; Sessions</text>
+
+      <rect x="946" y="300" width="128" height="104" rx="10" fill="#fff4df" stroke="#c49337" stroke-width="2" filter="url(#sh)"/>
+      <path d="M986 332 h48 M986 352 h48 M986 372 h32" stroke="#c49337" stroke-width="5" stroke-linecap="round"/>
+      <text x="1010" y="388" text-anchor="middle" class="small-title">Media Storage</text>
+      <text x="1010" y="406" text-anchor="middle" class="tiny">Uploaded photos</text>
+
+      <line x1="202" y1="242" x2="240" y2="242" stroke="#526158" stroke-width="2.4" marker-end="url(#arr)"/>
+      <text x="221" y="231" text-anchor="middle" class="alabel">use</text>
+      <line x1="454" y1="284" x2="492" y2="284" stroke="#526158" stroke-width="2.4" marker-end="url(#arr)"/>
+      <line x1="494" y1="318" x2="456" y2="318" stroke="#526158" stroke-width="2.4" marker-end="url(#arr)"/>
+      <text x="473" y="273" text-anchor="middle" class="alabel">request</text>
+      <text x="473" y="340" text-anchor="middle" class="alabel">response</text>
+      <line x1="602" y1="284" x2="640" y2="284" stroke="#526158" stroke-width="2.4" marker-end="url(#arr)"/>
+      <line x1="642" y1="318" x2="604" y2="318" stroke="#526158" stroke-width="2.4" marker-end="url(#arr)"/>
+      <line x1="866" y1="150" x2="956" y2="150" stroke="#526158" stroke-width="2.4" marker-end="url(#arr)"/>
+      <line x1="958" y1="184" x2="868" y2="184" stroke="#526158" stroke-width="2.4" marker-end="url(#arr)"/>
+      <text x="911" y="139" text-anchor="middle" class="alabel">write</text>
+      <text x="911" y="206" text-anchor="middle" class="alabel">read</text>
+      <line x1="866" y1="338" x2="944" y2="338" stroke="#526158" stroke-width="2.4" marker-end="url(#arr)"/>
+      <line x1="946" y1="372" x2="868" y2="372" stroke="#526158" stroke-width="2.4" marker-end="url(#arr)"/>
+      <text x="905" y="327" text-anchor="middle" class="alabel">store</text>
+      <text x="905" y="394" text-anchor="middle" class="alabel">serve</text>
+      <line x1="348" y1="432" x2="348" y2="450" stroke="#526158" stroke-width="2.4" marker-end="url(#arr)"/>
+      <text x="590" y="676" text-anchor="middle" class="cap">Figure: 3-tier client-server architecture of the Al Jazeera STCA olive oil sample evaluation system.</text>
+    </svg>
+    <p class="caption">Figure: 3-tier client-server architecture of the Al Jazeera STCA olive oil sample evaluation system.</p>
+  </section>
+
+  <div class="grid">
+    <div class="tier-card">
+      <div class="role">Presentation Tier</div>
+      <h3>Flutter Mobile App</h3>
+      <p>The interface used by every role. It shows only the screens and actions allowed for the connected user and sends all requests to the backend through the REST API.</p>
+    </div>
+    <div class="tier-card b">
+      <div class="role">Application / Logic Tier</div>
+      <h3>Django REST Backend</h3>
+      <p>Handles login and JWT tokens, checks role-based permissions, applies the business rules of each module, and returns structured JSON responses.</p>
+    </div>
+    <div class="tier-card c">
+      <div class="role">Data Tier</div>
+      <h3>PostgreSQL + Media</h3>
+      <p>PostgreSQL stores the structured data (users, samples, evaluations, analyses, purchases). Media storage keeps uploaded files such as bottle-label photos.</p>
+    </div>
+  </div>
+
+  <section class="section">
+    <h2>How It Works</h2>
+    <p>
+      A user opens the Flutter mobile application and signs in. Every screen sends its requests to the
+      <strong>Django backend through the REST API</strong>, exchanging data in JSON format over HTTP. A JWT token,
+      stored securely on the device, accompanies each request so the backend can identify the user and apply the
+      permissions of their role.
+    </p>
+    <p>
+      The backend executes the requested action &mdash; for example, registering a sample, recording an evaluation,
+      reading a bottle label, or confirming a purchase &mdash; then reads from or writes to the
+      <strong>PostgreSQL</strong> database and returns the result. Uploaded photos are kept in a dedicated
+      <strong>media storage</strong> area rather than inside the database. The map of Tunisian delegations is shipped
+      with the application as a local asset, so it does not require a network call.
+    </p>
+  </section>
+
+  <section class="section">
+    <h2>Why This Architecture</h2>
+    <ul>
+      <li>It cleanly <strong>separates the mobile interface from the backend logic</strong>, which keeps the project easy to understand, test, and maintain.</li>
+      <li>A <strong>single REST API serves all five roles</strong>; access stays controlled through authentication and role-based permissions.</li>
+      <li>Business rules live in the <strong>Django backend</strong>, not scattered across the mobile screens, so the same rule is enforced for everyone.</li>
+      <li><strong>PostgreSQL</strong> is well suited to the structured, related data of this domain (users, samples, evaluations, analyses, purchases).</li>
+      <li>It stays <strong>simple and realistic</strong> for the scope of this project &mdash; no microservices, no API gateway, no extra layers that would add complexity without value.</li>
+    </ul>
+  </section>
+
+  <section class="section qa">
+    <h2>Quick Answers (for the defense)</h2>
+    <ul>
+      <li><strong>What architecture is it?</strong> <span>A 3-tier client-server architecture: presentation (Flutter), application/logic (Django REST), and data (PostgreSQL).</span></li>
+      <li><strong>How does the app talk to the server?</strong> <span>Through a REST API &mdash; HTTP requests with JSON data, secured by a JWT token.</span></li>
+      <li><strong>How are the different users separated?</strong> <span>By role-based permissions checked in the backend; each user only reaches their own features.</span></li>
+      <li><strong>Where are photos stored?</strong> <span>In media storage on the server; the database keeps only the reference, not the file itself.</span></li>
+      <li><strong>Why not microservices?</strong> <span>The project is a single, well-defined application; one backend is simpler, faster to build, and enough for the expected load.</span></li>
+    </ul>
+  </section>
+</main>
+</body>
+</html>

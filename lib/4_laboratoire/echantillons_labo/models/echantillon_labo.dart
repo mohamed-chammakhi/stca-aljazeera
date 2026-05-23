@@ -54,43 +54,50 @@ class EchantillonLabo {
 
   bool get isUrgent => priorite == PrioriteLabo.urgente;
 
-  factory EchantillonLabo.fromJson(Map<String, dynamic> json) => EchantillonLabo(
-    id:                 json['id']                 as String,
-    ref:                json['ref']                as String,
-    gouvernorat:        json['gouvernorat']         as String,
-    codeFournisseur:    json['code_fournisseur']    as String,
-    collecteurNom:      json['collecteur_nom']      as String,
-    referenceBouteille: json['reference_bouteille'] as String,
-    variete:            json['variete']             as String?,
-    quantiteEstimee:    json['quantite_estimee']    as String?,
-    dateArrivee:        json['date_arrivee']        as String,
-    numeroLot:          json['numero_lot']          as String?,
-    origineCampagne:    json['origine_campagne']    as String?,
-    priorite: PrioriteLabo.values.firstWhere(
-      (p) => p.name == (json['priorite'] as String? ?? 'normale'),
-      orElse: () => PrioriteLabo.normale,
-    ),
-    notesReception: json['notes_reception'] as String?,
-    analyse: json['analyse'] != null
-        ? AnalyseLabo.fromJson(json['analyse'] as Map<String, dynamic>)
-        : null,
-  );
+  static String _stringValue(dynamic value) => value?.toString() ?? '';
+
+  factory EchantillonLabo.fromJson(Map<String, dynamic> json) =>
+      EchantillonLabo(
+        id: _stringValue(json['id']),
+        ref: _stringValue(json['ref'] ?? json['numero']),
+        gouvernorat: _stringValue(json['gouvernorat']),
+        codeFournisseur: _stringValue(
+          json['code_fournisseur'] ?? json['fournisseur_nom'],
+        ),
+        collecteurNom: _stringValue(json['collecteur_nom']),
+        referenceBouteille: _stringValue(json['reference_bouteille']),
+        variete: json['variete'] as String?,
+        quantiteEstimee: json['quantite_estimee']?.toString(),
+        dateArrivee: _stringValue(
+          json['date_arrivee'] ?? json['date_arrivee_echantillon'],
+        ),
+        numeroLot: json['numero_lot'] as String?,
+        origineCampagne: json['origine_campagne'] as String?,
+        priorite: PrioriteLabo.values.firstWhere(
+          (p) => p.name == (json['priorite'] as String? ?? 'normale'),
+          orElse: () => PrioriteLabo.normale,
+        ),
+        notesReception: json['notes_reception'] as String?,
+        analyse: json['analyse'] != null
+            ? AnalyseLabo.fromJson(json['analyse'] as Map<String, dynamic>)
+            : null,
+      );
 
   Map<String, dynamic> toJson() => {
-    'id':                  id,
-    'ref':                 ref,
-    'gouvernorat':         gouvernorat,
-    'code_fournisseur':    codeFournisseur,
-    'collecteur_nom':      collecteurNom,
+    'id': id,
+    'ref': ref,
+    'gouvernorat': gouvernorat,
+    'code_fournisseur': codeFournisseur,
+    'collecteur_nom': collecteurNom,
     'reference_bouteille': referenceBouteille,
-    'variete':             variete,
-    'quantite_estimee':    quantiteEstimee,
-    'date_arrivee':        dateArrivee,
-    'numero_lot':          numeroLot,
-    'origine_campagne':    origineCampagne,
-    'priorite':            priorite.name,
-    'notes_reception':     notesReception,
-    'analyse':             analyse?.toJson(),
+    'variete': variete,
+    'quantite_estimee': quantiteEstimee,
+    'date_arrivee': dateArrivee,
+    'numero_lot': numeroLot,
+    'origine_campagne': origineCampagne,
+    'priorite': priorite.name,
+    'notes_reception': notesReception,
+    'analyse': analyse?.toJson(),
   };
 }
 

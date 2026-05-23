@@ -1,0 +1,27 @@
+// UML-style actor / context diagram for the olive oil evaluation system
+// Render: dot -Tpng 1_actor_diagram.dot -o 1_actor_diagram.png   (or twopi)
+digraph actors {
+  graph [charset="UTF-8", bgcolor="white", dpi=150, pad=0.4, overlap=false,
+         ranksep=2.0, fontname="Arial"];
+  node  [fontname="Arial", fontsize=12];
+  edge  [color="#1A2E1F", penwidth=1.3, arrowhead=none];
+
+  // Central system
+  system [label="Système d'évaluation\net d'acquisition\nd'huile d'olive\n— Al Jazeera STCA —",
+          shape=ellipse, style="filled", fillcolor="#38835A", fontcolor="white",
+          fontsize=13, width=2.8, height=1.7];
+
+  // Actors
+  node [shape=box, style="filled,rounded", fillcolor="#DCE9E2", fontcolor="#1A2E1F"];
+  collector  [label="Collector\n(Collecteur)"];
+  panel      [label="Tasting Panel Member\n(Dégustateur)"];
+  supervisor [label="Panel Evaluation Supervisor\n(Chef Dégustateur)"];
+  lab        [label="Laboratory Technician\n(Technicien Labo)"];
+  admin      [label="Administrator\n(Directeur)"];
+
+  system -> collector;
+  system -> panel;
+  system -> supervisor;
+  system -> lab;
+  system -> admin;
+}

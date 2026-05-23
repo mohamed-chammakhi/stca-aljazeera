@@ -1,54 +1,95 @@
+import '../../../../core/api_client.dart';
 import '../models/session_degustation.dart';
-import '../../../core/api_client.dart';
+import '../models/mock_sessions.dart';
 
 class SessionsChefService {
-  /// Fetches all tasting sessions.
-  ///
-  /// Backend: GET /api/sessions_degustation/
-  /// Django returns a paginated envelope {count, results:[...]} which
-  /// [SessionDegustation.fromJsonList] unwraps, OR a plain list — handled by
-  /// [apiClient.getList] which unwraps paginated responses automatically.
+  static final _uuidPattern = RegExp(
+    r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$',
+  );
+
   Future<List<SessionDegustation>> fetchSessions() async {
-    final items = await apiClient.getList('/api/sessions_degustation/');
-    return items
-        .map((e) => SessionDegustation.fromJson(e as Map<String, dynamic>))
-        .toList();
+    try {
+      final data = await apiClient.getList('/api/sessions/');
+      return data
+          .map(
+            (item) => SessionDegustation.fromJson(item as Map<String, dynamic>),
+          )
+          .toList();
+    } catch (_) {
+      return List.of(mockSessionsChef);
+    }
   }
 
-  /// Creates a new session.
-  ///
-  /// Backend: POST /api/sessions_degustation/
   Future<SessionDegustation> createSession(SessionDegustation s) async {
-    final raw = await apiClient.post('/api/sessions_degustation/', s.toJson());
-    return SessionDegustation.fromJson(raw);
+    try {
+      final created = await apiClient.post('/api/sessions/', _payload(s));
+      return SessionDegustation.fromJson(created);
+    } catch (_) {
+      mockSessionsChef.add(s);
+      return s;
+    }
   }
 
-  /// Updates an existing session (partial update).
-  ///
-  /// Backend: PATCH /api/sessions_degustation/{id}/
   Future<SessionDegustation> updateSession(SessionDegustation s) async {
-    final raw = await apiClient.patch('/api/sessions_degustation/${s.id}/', s.toJson());
-    return SessionDegustation.fromJson(raw);
+    if (!_uuidPattern.hasMatch(s.id)) return s;
+    try {
+      final updated = await apiClient.patch(
+        '/api/sessions/${s.id}/',
+        _payload(s),
+      );
+      return SessionDegustation.fromJson(updated);
+    } catch (_) {
+      return s;
+    }
   }
 
-  /// Deletes a session.
-  ///
-  /// Backend: DELETE /api/sessions_degustation/{id}/
   Future<void> deleteSession(String id) async {
-    await apiClient.delete('/api/sessions_degustation/$id/');
+    if (!_uuidPattern.hasMatch(id)) {
+      mockSessionsChef.removeWhere((s) => s.id == id);
+      return;
+    }
+    try {
+      await apiClient.delete('/api/sessions/$id/');
+    } catch (_) {}
+    mockSessionsChef.removeWhere((s) => s.id == id);
   }
 
-  /// Approves a session (chef action).
-  ///
-  /// Backend: POST /api/sessions_degustation/{id}/approuver/
   Future<void> approuverSession(String id) async {
-    await apiClient.post('/api/sessions_degustation/$id/approuver/', {});
+    if (_uuidPattern.hasMatch(id)) {
+      await apiClient.post('/api/sessions/$id/approuver/', {});
+    }
+    final idx = mockSessionsChef.indexWhere((s) => s.id == id);
+    if (idx != -1) mockSessionsChef[idx].statut = StatutSession.planifiee;
   }
 
-  /// Refuses a session (chef action).
-  ///
-  /// Backend: POST /api/sessions_degustation/{id}/refuser/
   Future<void> refuserSession(String id) async {
-    await apiClient.post('/api/sessions_degustation/$id/refuser/', {});
+    if (_uuidPattern.hasMatch(id)) {
+      await apiClient.post('/api/sessions/$id/refuser/', {});
+    }
+    final idx = mockSessionsChef.indexWhere((s) => s.id == id);
+    if (idx != -1) mockSessionsChef.removeAt(idx);
+  }
+
+  Future<SessionDegustation?> confirmerPresence(String sessionId) async {
+    if (!_uuidPattern.hasMatch(sessionId)) return null;
+    final updated = await apiClient.post(
+      '/api/sessions/$sessionId/confirmer_presence/',
+      {},
+    );
+    return SessionDegustation.fromJson(updated);
+  }
+
+  Map<String, dynamic> _payload(SessionDegustation s) {
+    final body = s.toJson()
+      ..remove('id')
+      ..remove('created_by')
+      ..remove('created_at')
+      ..remove('confirmed_participant_ids');
+    body['participant_ids'] = s.participantIds
+        .where((id) => _uuidPattern.hasMatch(id))
+        .toList();
+    body.remove('echantillon_ids');
+    body.removeWhere((_, value) => value == null);
+    return body;
   }
 }

@@ -1,0 +1,32 @@
+%%{init: {'theme':'neutral', 'themeVariables': {'fontSize':'13px'}}}%%
+sequenceDiagram
+    autonumber off
+    actor U as :User
+    participant IA as :Authentication Interface
+    participant CA as :Authentication Controller
+    participant MU as :User Model
+
+    U->>IA: 1: Request the login page
+    IA-->>U: 2: Display the login page
+    U->>IA: 3: Enter matricule and password
+    IA->>IA: 4: Check the integrity and conformity of the data
+
+    alt If data is invalid
+        IA-->>U: 5.1.1: Display an error message
+    else If data is valid
+        IA->>CA: 5.2.1: POST /api/auth/login (matricule, password)
+        CA->>MU: 5.2.2: Authenticate the user
+        MU->>MU: 5.2.3: Verify the account existence and the password hash
+
+        alt If credentials are invalid
+            MU-->>CA: 6.1.1: Invalid credentials
+            CA-->>IA: 6.1.2: 401 Unauthorized
+            IA-->>U: 6.1.3: Display an access denied message
+        else If credentials are valid
+            MU-->>CA: 6.2.1: Account authenticated + role
+            CA->>CA: 6.2.2: Generate the JWT token (matricule, role, expiration)
+            CA-->>IA: 6.2.3: 200 OK + JWT token + role
+            IA->>IA: 6.2.4: Store the token in flutter_secure_storage
+            IA-->>U: 6.2.5: Redirect to the role-specific interface
+        end
+    end

@@ -1,0 +1,122 @@
+@startuml
+title Detailed Sequence Diagram - Authentication and Role-Based Redirection
+
+' Project: Al Jazeera STCA olive oil sample evaluation and stock acquisition
+' Feature: Authentication
+' Purpose: Show both the interaction order and the exact data exchanged
+' between Flutter and Django during login.
+
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam sequenceMessageAlign center
+skinparam sequenceArrowThickness 1.2
+skinparam ParticipantPadding 22
+skinparam BoxPadding 12
+skinparam responseMessageBelowArrow true
+
+actor "User" as User
+boundary "LoginPage\n(Flutter UI)" as LoginPage
+control "AuthService\n(Flutter service)" as AuthService
+control "ApiClient\n(HTTP + JWT)" as ApiClient
+database "FlutterSecureStorage\n(local encrypted storage)" as SecureStorage
+control "Auth API\n(Django)" as AuthApi
+entity "User Model\n(CustomUser)" as UserModel
+database "PostgreSQL\nusers table" as DB
+control "Users API\n(Django)" as UsersApi
+boundary "Role Interface\n(Flutter)" as RoleUI
+
+User -> LoginPage : 1. Open application
+LoginPage --> User : 2. Display login form\nemail + password fields
+
+User -> LoginPage : 3. Type credentials\nemail = "collecteur@test.com"\npassword = "Test123!"
+User -> LoginPage : 4. Press "Log In"
+
+LoginPage -> LoginPage : 5. Validate form locally\nemail not empty + contains @\npassword length >= 6\npassword has number + special char
+
+alt Invalid form data
+    LoginPage --> User : 6. Show validation message\nExample: "Veuillez saisir un email valide"
+else Valid form data
+    LoginPage -> AuthService : 7. login(email, password)\nDart values:\nemail: String\npassword: String
+
+    AuthService -> ApiClient : 8. login(email, password)\nSame Dart values passed to HTTP layer
+
+    ApiClient -> AuthApi : 9. POST /api/auth/login/\nContent-Type: application/json\n{\n  "email": "collecteur@test.com",\n  "password": "Test123!"\n}
+
+    AuthApi -> UserModel : 10. authenticate(email, password)
+    UserModel -> DB : 11. SELECT user WHERE email = "collecteur@test.com"
+    DB --> UserModel : 12. User row or null\n{id, email, password_hash, role, is_active}
+
+    UserModel -> UserModel : 13. Check password hash\ncheck_password("Test123!")\nCheck is_active == true
+    UserModel --> AuthApi : 14. Authentication result\nvalid user or error reason
+
+    alt Email not found
+        AuthApi --> ApiClient : 15a. 404 Not Found\n{\n  "detail": "Email not found",\n  "code": "email_not_found"\n}
+        ApiClient --> AuthService : 16a. Throw ApiException(404, code)
+        AuthService --> LoginPage : 17a. Login failed
+        LoginPage --> User : 18a. Show error\n"Aucun compte n'est associe a cet email."
+
+    else Password incorrect
+        AuthApi --> ApiClient : 15b. 401 Unauthorized\n{\n  "detail": "Password incorrect",\n  "code": "password_incorrect"\n}
+        ApiClient --> AuthService : 16b. Throw ApiException(401, code)
+        AuthService --> LoginPage : 17b. Login failed
+        LoginPage --> User : 18b. Show error\n"Mot de passe incorrect."
+
+    else Account inactive
+        AuthApi --> ApiClient : 15c. 403 Forbidden\n{\n  "detail": "Account inactive",\n  "code": "account_inactive"\n}
+        ApiClient --> AuthService : 16c. Throw ApiException(403, code)
+        AuthService --> LoginPage : 17c. Login failed
+        LoginPage --> User : 18c. Show error\n"Ce compte est desactive."
+
+    else Credentials valid
+        AuthApi -> AuthApi : 15d. Generate JWT tokens\naccess token: short-lived\nrefresh token: long-lived
+
+        AuthApi --> ApiClient : 16d. 200 OK\n{\n  "access": "eyJhbGciOi...",\n  "refresh": "eyJhbGciOi..."\n}
+
+        ApiClient -> SecureStorage : 17d. saveTokens(access, refresh)\nkey "access_token" = access\nkey "refresh_token" = refresh
+        SecureStorage --> ApiClient : 18d. Tokens saved
+
+        ApiClient --> AuthService : 19d. Login request completed
+
+        AuthService -> ApiClient : 20d. currentUser()\nget("/api/users/me/")
+        ApiClient -> SecureStorage : 21d. Read "access_token"
+        SecureStorage --> ApiClient : 22d. access token
+
+        ApiClient -> UsersApi : 23d. GET /api/users/me/\nAuthorization: Bearer access_token
+
+        UsersApi -> UserModel : 24d. Load current authenticated user
+        UserModel -> DB : 25d. SELECT user by token subject id
+        DB --> UserModel : 26d. User row\n{id, email, role, nom, prenom, ...}
+        UserModel --> UsersApi : 27d. User profile data
+
+        UsersApi --> ApiClient : 28d. 200 OK\n{\n  "id": "uuid",\n  "email": "collecteur@test.com",\n  "role": "collecteur",\n  "nom": "Ben Ali",\n  "prenom": "Sami",\n  "telephone": null,\n  "photo_url": null,\n  "is_active": true,\n  "date_creation": "2026-05-17T10:30:00Z",\n  "last_login": "2026-05-17T11:00:00Z"\n}
+
+        ApiClient --> AuthService : 29d. Map<String, dynamic>\nJSON profile
+
+        AuthService -> AuthService : 30d. UserProfile.fromJson(data)\nRoleUtilisateurX.fromJson("collecteur")\n=> RoleUtilisateur.collecteur
+
+        AuthService --> LoginPage : 31d. UserProfile object\nuser.role = RoleUtilisateur.collecteur
+
+        LoginPage -> LoginPage : 32d. _destinationForRole(user.role)
+
+        alt role = direction
+            LoginPage -> RoleUI : 33d. Open HomePageCeo
+            RoleUI --> User : 34d. Direction dashboard
+        else role = collecteur
+            LoginPage -> RoleUI : 33d. Open MesEchantillonsPage
+            RoleUI --> User : 34d. Collector sample interface
+        else role = degustateur
+            LoginPage -> RoleUI : 33d. Open HomePage
+            RoleUI --> User : 34d. Taster dashboard
+        else role = laboratoire
+            LoginPage -> RoleUI : 33d. Open EchantillonsLaboPage
+            RoleUI --> User : 34d. Laboratory sample interface
+        else role = chef_panel
+            LoginPage -> RoleUI : 33d. Open Chef HomePage
+            RoleUI --> User : 34d. Panel supervisor dashboard
+        else unknown role
+            LoginPage --> User : 33d. Show configuration error
+        end
+    end
+end
+
+@enduml

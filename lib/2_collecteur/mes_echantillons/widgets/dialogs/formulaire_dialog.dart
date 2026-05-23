@@ -2,15 +2,28 @@
 // FILE : 2_collecteur/mes_echantillons/widgets/dialogs/formulaire_dialog.dart
 // ─────────────────────────────────────────────────────────────────────────────
 
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../models/echantillon_collecteur.dart';
+import '../../services/bottle_label_ocr_service.dart';
 import '../../../../core/models/enums.dart';
 import '../../../../2_collecteur/carte_geo/services/geo_service.dart';
 import 'bouteille_row.dart';
 import 'date_livraison_section.dart';
 import 'formulaire_sections.dart';
 import 'formulaire_decorations.dart';
+
+// Save callback. Carries the optional bottle photo so the page can persist
+// it with the new sample (offline OCR already ran on it in the dialog).
+typedef SaveSamplesCb =
+    void Function(
+      List<EchantillonCollecteur> samples, {
+      List<int>? photoBytes,
+      String? photoName,
+    });
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PUBLIC ENTRY POINT
@@ -19,7 +32,7 @@ void showFormulaireDialog(
   BuildContext context, {
   EchantillonCollecteur? echantillon,
   required int prochainNumero,
-  required Function(List<EchantillonCollecteur>) onSaveMultiple,
+  required SaveSamplesCb onSaveMultiple,
 }) {
   showDialog(
     context: context,
@@ -37,7 +50,7 @@ void showFormulaireDialog(
 class _FormulaireDialog extends StatefulWidget {
   final EchantillonCollecteur? echantillon;
   final int prochainNumero;
-  final Function(List<EchantillonCollecteur>) onSaveMultiple;
+  final SaveSamplesCb onSaveMultiple;
 
   const _FormulaireDialog({
     required this.echantillon,
@@ -70,6 +83,303 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
 
   // ── Per-bouteille rows ────────────────────────────────────────────────────
   final List<BouteilleRow> _bouteilles = [];
+
+  // ── Bottle photo + offline OCR ────────────────────────────────────────────
+  final BottleLabelOcrService _ocrService = BottleLabelOcrService();
+  final ImagePicker _picker = ImagePicker();
+  Uint8List? _photoBytes;
+  String? _photoName;
+  bool _ocrLoading = false;
+  String? _ocrError;
+  Map<String, dynamic> _ocrConfidence = {};
+  // Supplier name as read by OCR — sent to the backend as `fournisseur_nom`
+  // separately from `code_fournisseur` so the server never mistakes a
+  // handwritten name for a supplier code.
+  String? _fournisseurNomFromOcr;
+
+  Future<void> _pickPhoto(ImageSource source) async {
+    try {
+      final XFile? file = await _picker.pickImage(
+        source: source,
+        maxWidth: 2000,
+        imageQuality: 90,
+      );
+      if (file == null) return;
+      final bytes = await file.readAsBytes();
+      if (!mounted) return;
+      setState(() {
+        _photoBytes = bytes;
+        _photoName = file.name;
+        _ocrLoading = true;
+        _ocrError = null;
+      });
+      try {
+        final res = await _ocrService.readLabel(file.path);
+        if (mounted) _applyOcr(res);
+      } catch (_) {
+        if (mounted) {
+          setState(
+            () => _ocrError =
+                'Lecture automatique indisponible — saisie manuelle.',
+          );
+        }
+      } finally {
+        if (mounted) setState(() => _ocrLoading = false);
+      }
+    } catch (_) {
+      if (mounted) setState(() => _ocrLoading = false);
+    }
+  }
+
+  // Only pre-fill EMPTY fields — OCR never overwrites what the collector typed.
+  void _applyOcr(Map<String, dynamic> res) {
+    final fournisseur = res['fournisseur_nom'] as String?;
+    final reference = res['reference'] as String?;
+    final variete = res['variete'] as String?;
+    final scellage = res['scellage'] as String?;
+    final quantite = res['quantite'] as String?;
+    if (fournisseur != null && fournisseur.isNotEmpty) {
+      // Stash the OCR-read name so the save call can send it explicitly as
+      // `fournisseur_nom` (never as the code). The visible field is still
+      // pre-filled so the collector sees the prefill.
+      _fournisseurNomFromOcr = fournisseur;
+      if (_codeFournisseurCtrl.text.trim().isEmpty) {
+        _codeFournisseurCtrl.text = fournisseur;
+      }
+    }
+    if (_bouteilles.isNotEmpty) {
+      final b = _bouteilles.first;
+      if (reference != null &&
+          reference.isNotEmpty &&
+          b.refCtrl.text.trim().isEmpty) {
+        b.refCtrl.text = reference;
+      }
+      if (variete != null &&
+          variete.isNotEmpty &&
+          b.varieteCtrl.text.trim().isEmpty) {
+        b.varieteCtrl.text = variete;
+      }
+      if (scellage != null &&
+          scellage.isNotEmpty &&
+          b.scellageCtrl.text.trim().isEmpty) {
+        b.scellageCtrl.text = scellage;
+      }
+      if (quantite != null &&
+          quantite.isNotEmpty &&
+          b.qteCtrl.text.trim().isEmpty) {
+        b.qteCtrl.text = quantite;
+      }
+    }
+    setState(() {
+      _ocrConfidence =
+          (res['_confidence'] as Map?)?.cast<String, dynamic>() ?? {};
+    });
+  }
+
+  void _removePhoto() => setState(() {
+    _photoBytes = null;
+    _photoName = null;
+    _ocrError = null;
+    _ocrConfidence = {};
+  });
+
+  void _choosePhotoSource() {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (_) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.photo_camera_outlined, color: kGreen),
+              title: const Text('Prendre une photo'),
+              onTap: () {
+                Navigator.pop(context);
+                _pickPhoto(ImageSource.camera);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library_outlined, color: kGreen),
+              title: const Text('Choisir depuis la galerie'),
+              onTap: () {
+                Navigator.pop(context);
+                _pickPhoto(ImageSource.gallery);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPhotoZone() {
+    // ── Loading: OCR reading in progress ────────────────────────────────
+    if (_ocrLoading) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 22),
+        decoration: BoxDecoration(
+          color: kGreen.withValues(alpha: 0.06),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: kGreen.withValues(alpha: 0.25)),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                valueColor: AlwaysStoppedAnimation<Color>(kGreen),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Text(
+              'Lecture en cours…',
+              style: TextStyle(
+                fontSize: 13,
+                color: kGreen.withValues(alpha: 0.85),
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // ── Empty: no photo yet ─────────────────────────────────────────────
+    if (_photoBytes == null) {
+      return InkWell(
+        onTap: _choosePhotoSource,
+        borderRadius: BorderRadius.circular(10),
+        child: Container(
+          width: double.infinity,
+          height: 64,
+          decoration: BoxDecoration(
+            color: kGreen.withValues(alpha: 0.05),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: kGreen.withValues(alpha: 0.25)),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.add_photo_alternate_outlined,
+                color: kGreen.withValues(alpha: 0.55),
+                size: 22,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Ajouter une photo',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: kGreen.withValues(alpha: 0.55),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // ── Filled: photo chosen, OCR applied ───────────────────────────────
+    final lowConf = _ocrConfidence.values.whereType<num>().any(
+      (v) => v > 0 && v < 0.5,
+    );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(10),
+          child: Image.memory(
+            _photoBytes!,
+            width: double.infinity,
+            height: 150,
+            fit: BoxFit.cover,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                _photoName ?? 'photo.jpg',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+              ),
+            ),
+            TextButton.icon(
+              onPressed: _choosePhotoSource,
+              icon: const Icon(Icons.refresh, size: 16, color: kGreen),
+              label: const Text(
+                'Relancer',
+                style: TextStyle(fontSize: 12, color: kGreen),
+              ),
+            ),
+            TextButton.icon(
+              onPressed: _removePhoto,
+              icon: Icon(
+                Icons.delete_outline,
+                size: 16,
+                color: Colors.red.shade400,
+              ),
+              label: Text(
+                'Retirer',
+                style: TextStyle(fontSize: 12, color: Colors.red.shade400),
+              ),
+            ),
+          ],
+        ),
+        if (_ocrError != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: Text(
+              _ocrError!,
+              style: TextStyle(fontSize: 11, color: Colors.orange.shade800),
+            ),
+          )
+        else
+          Container(
+            margin: const EdgeInsets.only(top: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            decoration: BoxDecoration(
+              color: (lowConf ? Colors.orange : kGreen).withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  lowConf
+                      ? Icons.warning_amber_rounded
+                      : Icons.check_circle_outline,
+                  size: 14,
+                  color: lowConf ? Colors.orange.shade800 : kGreen,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    lowConf
+                        ? 'Champs pré-remplis — lecture incertaine, vérifiez bien.'
+                        : 'Champs pré-remplis automatiquement — vérifiez puis confirmez.',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: lowConf ? Colors.orange.shade900 : kGreen,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+      ],
+    );
+  }
 
   bool get _isModification => widget.echantillon != null;
   int get _bottleCount => _bouteilles.length;
@@ -114,7 +424,9 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
     _codeFournisseurCtrl.dispose();
     _collecteurCtrl.dispose();
     _remarquesCtrl.dispose();
-    for (final b in _bouteilles) b.dispose();
+    for (final b in _bouteilles) {
+      b.dispose();
+    }
     super.dispose();
   }
 
@@ -180,7 +492,7 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
           ? null
           : _remarquesCtrl.text.trim();
       e.dateArriveeEchantillon = _livDate;
-      widget.onSaveMultiple([e]);
+      widget.onSaveMultiple([e]); // modification: photo unchanged here
     } else {
       final now = DateTime.now();
       final samples = _bouteilles.asMap().entries.map((entry) {
@@ -189,8 +501,10 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
         final numero = widget.prochainNumero + idx;
         return EchantillonCollecteur(
           id: 'new-${now.millisecondsSinceEpoch}-$idx',
-          numero: '${now.year}/${(widget.prochainNumero + idx).toString().padLeft(4, '0')}',
+          numero:
+              '${now.year}/${(widget.prochainNumero + idx).toString().padLeft(4, '0')}',
           codeFournisseur: codeFournisseur ?? '',
+          fournisseurNom: _fournisseurNomFromOcr,
           collecteurId: 'collecteur-placeholder',
           collecteurNom: collecteur ?? '',
           referenceBouteille: b.refCtrl.text.trim(),
@@ -214,7 +528,11 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
           statut: StatutCollecteur.receptionne,
         );
       }).toList();
-      widget.onSaveMultiple(samples);
+      widget.onSaveMultiple(
+        samples,
+        photoBytes: _photoBytes,
+        photoName: _photoName,
+      );
     }
   }
 
@@ -352,38 +670,23 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
                     ),
                     const SizedBox(height: 16),
 
-                    // Photo
-                    _FieldLabel(label: 'Photo'),
-                    const SizedBox(height: 10),
-                    Container(
-                      width: double.infinity,
-                      height: 64,
-                      decoration: BoxDecoration(
-                        color: kGreen.withValues(alpha: 0.05),
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(
-                          color: kGreen.withValues(alpha: 0.25),
+                    // Photo de la bouteille + lecture automatique (OCR hors-ligne)
+                    Row(
+                      children: [
+                        _FieldLabel(label: 'Photo de la bouteille'),
+                        const SizedBox(width: 6),
+                        Text(
+                          'lecture automatique',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: kGreen.withValues(alpha: 0.7),
+                            fontStyle: FontStyle.italic,
+                          ),
                         ),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.add_photo_alternate_outlined,
-                            color: kGreen.withValues(alpha: 0.55),
-                            size: 22,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Ajouter une photo',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: kGreen.withValues(alpha: 0.55),
-                            ),
-                          ),
-                        ],
-                      ),
+                      ],
                     ),
+                    const SizedBox(height: 10),
+                    _buildPhotoZone(),
                     const SizedBox(height: 12),
 
                     // Remarques
@@ -864,26 +1167,16 @@ class _FormField extends StatelessWidget {
   final String label;
   final TextEditingController controller;
   final String hint;
-  final TextInputType keyboardType;
-  final String? suffixText;
 
   const _FormField({
     required this.label,
     required this.controller,
     required this.hint,
-    this.keyboardType = TextInputType.text,
-    this.suffixText,
   });
 
   InputDecoration _dec() => InputDecoration(
     hintText: hint,
     hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 13),
-    suffixText: suffixText,
-    suffixStyle: const TextStyle(
-      color: kOlive,
-      fontWeight: FontWeight.w700,
-      fontSize: 14,
-    ),
     filled: true,
     fillColor: kFieldFill,
     contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 14),
@@ -917,7 +1210,6 @@ class _FormField extends StatelessWidget {
         const SizedBox(height: 6),
         TextField(
           controller: controller,
-          keyboardType: keyboardType,
           style: const TextStyle(fontSize: 14, color: kDarkText),
           decoration: _dec(),
         ),
@@ -996,7 +1288,9 @@ class _DropdownField extends StatelessWidget {
             child: IgnorePointer(
               ignoring: isDisabled,
               child: DropdownButtonFormField<String>(
-                initialValue: (value != null && items.contains(value)) ? value : null,
+                initialValue: (value != null && items.contains(value))
+                    ? value
+                    : null,
                 isExpanded: true,
                 decoration: InputDecoration(
                   filled: true,

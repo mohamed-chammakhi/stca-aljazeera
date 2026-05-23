@@ -12,18 +12,29 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../../analyse_labo.dart';
 import '../../models/echantillon_labo.dart';
 import 'formulaire_analyse_labo_dialog.dart';
+import '../../../../../core/api_client.dart';
 import '../../../../../core/theme/app_colors.dart';
 
 // Scan dialog uses a blue accent distinct from the brand green.
 const Color _blue = Color(0xFF1565C0);
 
+// Save callback for an analyse. Optional photo bytes are passed only on the
+// "scan rapport" path; the manual-entry path simply omits them.
+typedef OnAnalyseSave =
+    void Function(
+      AnalyseLabo analyse, {
+      Uint8List? photoBytes,
+      String? photoName,
+    });
+
 void showScanRapportDialog(
   BuildContext context, {
   required EchantillonLabo echantillon,
-  required void Function(AnalyseLabo) onSave,
+  required OnAnalyseSave onSave,
 }) {
   showDialog(
     context: context,
@@ -36,7 +47,7 @@ enum _ScanPhase { capture, analysing, review }
 
 class ScanRapportDialog extends StatefulWidget {
   final EchantillonLabo echantillon;
-  final void Function(AnalyseLabo) onSave;
+  final OnAnalyseSave onSave;
 
   const ScanRapportDialog({
     super.key,
@@ -53,6 +64,12 @@ class _ScanRapportDialogState extends State<ScanRapportDialog>
   _ScanPhase _phase = _ScanPhase.capture;
   late AnimationController _pulseCtrl;
   late Animation<double> _pulse;
+
+  // ── Offline OCR state ─────────────────────────────────────────────────────
+  final ImagePicker _picker = ImagePicker();
+  Uint8List? _photoBytes;
+  String? _photoName;
+  String? _ocrError;
 
   // ── Extracted field controllers ───────────────────────────────────────────
   final _aciditeCtrl = TextEditingController();
@@ -99,34 +116,108 @@ class _ScanRapportDialogState extends State<ScanRapportDialog>
     super.dispose();
   }
 
-  // ── Simulate AI scan (replace with actual camera + API call) ─────────────
-  void _startScan() {
-    setState(() => _phase = _ScanPhase.analysing);
-    Future.delayed(const Duration(seconds: 3), () {
+  // ── Real OCR scan — offline PaddleOCR on the on-premise server ──────────
+  // Image never leaves the company; PaddleOCR runs locally and returns the
+  // chemical values + warnings. The technician confirms / corrects every
+  // field before saving (OCR is an assistant, not the authority).
+  Future<void> _startScan() async {
+    final source = await _pickSource();
+    if (source == null) return;
+    await _runOcr(source);
+  }
+
+  Future<ImageSource?> _pickSource() {
+    return showModalBottomSheet<ImageSource>(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (_) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.photo_camera_outlined, color: _blue),
+              title: const Text('Prendre une photo'),
+              onTap: () => Navigator.pop(context, ImageSource.camera),
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library_outlined, color: _blue),
+              title: const Text('Choisir depuis la galerie'),
+              onTap: () => Navigator.pop(context, ImageSource.gallery),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _runOcr(ImageSource source) async {
+    try {
+      final XFile? file = await _picker.pickImage(
+        source: source,
+        maxWidth: 2400,
+        imageQuality: 90,
+      );
+      if (file == null) return;
+      final bytes = await file.readAsBytes();
       if (!mounted) return;
-      // Simulate extracted values with varying confidence
-      _aciditeCtrl.text = '0.42';
-      _peroxydeCtrl.text = '8.6';
-      _k232Ctrl.text = '1.92';
-      _k270Ctrl.text = '0.14';
-      _deltaKCtrl.text = '0.004';
-      _humiditeCtrl.text = '0.16';
-      _impuretesCtrl.text = ''; // not found
-      _polyphenolsCtrl.text = '318';
+      setState(() {
+        _photoBytes = bytes;
+        _photoName = file.name;
+        _ocrError = null;
+        _phase = _ScanPhase.analysing;
+      });
+      final res = await apiClient.postMultipart(
+        '/api/analyses/ocr/',
+        bytes: bytes,
+        filename: file.name,
+      );
+      if (!mounted) return;
+      _applyOcr(res);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _ocrError = 'Lecture indisponible — saisissez manuellement.';
+        _phase = _ScanPhase.review;
+      });
+    }
+  }
 
-      _confidence = {
-        'acidite': 0.97,
-        'peroxyde': 0.95,
-        'k232': 0.88,
-        'k270': 0.91,
-        'deltaK': 0.72, // uncertain → orange
-        'humidite': 0.85,
-        'impuretes': 0.0, // not found → red/empty
-        'polyphenols': 0.78,
-      };
+  void _applyOcr(Map<String, dynamic> res) {
+    String asStr(Object? v) => v == null ? '' : v.toString();
+    _aciditeCtrl.text = asStr(res['acidite']);
+    _peroxydeCtrl.text = asStr(res['indice_peroxyde']);
+    _k232Ctrl.text = asStr(res['k232']);
+    _k270Ctrl.text = asStr(res['k270']);
+    _deltaKCtrl.text = asStr(res['delta_k']);
+    _humiditeCtrl.text = asStr(res['humidite']);
+    _impuretesCtrl.text = asStr(res['impuretes']);
+    // polyphenols not in OCR contract — left empty for manual entry.
 
-      setState(() => _phase = _ScanPhase.review);
-    });
+    final warnings =
+        ((res['_warnings'] as List?)?.cast<String>() ?? const <String>[])
+            .map((w) => w.toLowerCase())
+            .toList();
+    double conf(String backendKey, TextEditingController c) {
+      if (c.text.isEmpty) return 0.0;
+      final flagged = warnings.any((w) => w.contains(backendKey));
+      return flagged ? 0.5 : 0.95;
+    }
+
+    _confidence = {
+      'acidite': conf('acidite', _aciditeCtrl),
+      'peroxyde': conf('indice_peroxyde', _peroxydeCtrl),
+      'k232': conf('k232', _k232Ctrl),
+      'k270': conf('k270', _k270Ctrl),
+      'deltaK': conf('delta_k', _deltaKCtrl),
+      'humidite': conf('humidite', _humiditeCtrl),
+      'impuretes': conf('impuretes', _impuretesCtrl),
+      'polyphenols': 0.0,
+    };
+
+    setState(() => _phase = _ScanPhase.review);
   }
 
   void _confirm() {
@@ -145,7 +236,11 @@ class _ScanRapportDialogState extends State<ScanRapportDialog>
       dateAnalyse: _today(),
     );
     Navigator.pop(context);
-    widget.onSave(analyse);
+    widget.onSave(
+      analyse,
+      photoBytes: _photoBytes,
+      photoName: _photoName,
+    );
   }
 
   String _today() {

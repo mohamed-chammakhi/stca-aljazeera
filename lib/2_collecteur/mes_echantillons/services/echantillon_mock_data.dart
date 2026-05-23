@@ -1,7 +1,7 @@
 // ═════════════════════════════════════════════════════════════════════════════
 // FILE : collecteur/mes_echantillons/services/echantillon_mock_data.dart
 // Mock data — 7 scenarios covering every StatutCollecteur state.
-// Flip useMock = true in EchantillonCollecteurService to use these.
+// Used automatically by EchantillonCollecteurService when Django is unreachable.
 // ═════════════════════════════════════════════════════════════════════════════
 
 import '../models/echantillon_collecteur.dart';

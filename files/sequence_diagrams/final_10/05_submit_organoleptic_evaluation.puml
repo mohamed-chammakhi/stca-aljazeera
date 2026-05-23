@@ -1,0 +1,36 @@
+@startuml
+title Sequence Diagram "Submit Organoleptic Evaluation"
+
+actor "Panel Member / Supervisor" as P
+boundary "Evaluation Interface" as I
+control "Evaluation Service" as S
+control "Django Evaluation API" as API
+entity "Organoleptic Evaluation Model" as M
+
+group Submit Organoleptic Evaluation
+    P -> I : 1. Open evaluation page
+    I -> S : 2. Request samples to evaluate
+    S -> API : 3. Fetch evaluation data
+    API -> M : 4. Retrieve evaluation status
+    M --> API : 5. Return evaluation data
+    API --> S : 6. Return samples
+    S --> I : 7. Return samples
+    I --> P : 8. Display evaluation list
+
+    P -> I : 9. Fill organoleptic evaluation form
+    I -> I : 10. Validate required criteria
+
+    alt If data is invalid
+        I --> P : 10.1 Display validation error
+    else If data is valid
+        I -> S : 11. Send final evaluation
+        S -> API : 12. Submit evaluation
+        API -> M : 13. Save evaluation as submitted
+        M --> API : 14. Confirm submission
+        API --> S : 15. Return submitted evaluation
+        S --> I : 16. Return submission result
+        I --> P : 17. Display submission confirmation
+    end
+end
+
+@enduml

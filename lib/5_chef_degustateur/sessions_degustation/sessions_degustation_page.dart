@@ -31,7 +31,7 @@ class SessionsDegustationPage extends StatefulWidget {
   const SessionsDegustationPage({super.key});
 
   @override
-  _SessionsDegustationPageState createState() =>
+  State<SessionsDegustationPage> createState() =>
       _SessionsDegustationPageState();
 }
 
@@ -118,31 +118,53 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage>
 
   // ── Actions ────────────────────────────────────────────────────────────────
 
-  void _onAjouter(SessionDegustation nouvelle) {
+  Future<void> _onAjouter(SessionDegustation nouvelle) async {
     // Chef's sessions go directly to planifiee
     nouvelle.statut = StatutSession.planifiee;
-    setState(() => _sessions.add(nouvelle));
+    final saved = await _service.createSession(nouvelle);
+    if (!mounted) return;
+    setState(() => _sessions.add(saved));
     _showSuccess('Session créée et planifiée');
   }
 
-  void _onModifier(SessionDegustation modifiee) {
-    setState(() {});
+  Future<void> _onModifier(SessionDegustation modifiee) async {
+    final saved = await _service.updateSession(modifiee);
+    if (!mounted) return;
+    setState(() {
+      final index = _sessions.indexWhere((s) => s.id == modifiee.id);
+      if (index != -1) _sessions[index] = saved;
+    });
     _showSuccess('Session modifiée avec succès');
   }
 
-  void _onSupprimer(SessionDegustation s) {
+  Future<void> _onSupprimer(SessionDegustation s) async {
+    await _service.deleteSession(s.id);
+    if (!mounted) return;
     setState(() => _sessions.remove(s));
     _showSuccess('Session "${s.titre}" supprimée');
   }
 
-  void _onApprouver(SessionDegustation s) {
+  Future<void> _onApprouver(SessionDegustation s) async {
+    await _service.approuverSession(s.id);
+    if (!mounted) return;
     setState(() => s.statut = StatutSession.planifiee);
     _showSuccess('Session "${s.titre}" approuvée');
   }
 
-  void _onRefuser(SessionDegustation s) {
+  Future<void> _onRefuser(SessionDegustation s) async {
+    await _service.refuserSession(s.id);
+    if (!mounted) return;
     setState(() => _sessions.remove(s));
     _showSuccess('Session "${s.titre}" refusée et supprimée');
+  }
+
+  Future<void> _onConfirmerPresence(SessionDegustation s) async {
+    final updated = await _service.confirmerPresence(s.id);
+    if (!mounted || updated == null) return;
+    setState(() {
+      final index = _sessions.indexWhere((item) => item.id == s.id);
+      if (index != -1) _sessions[index] = updated;
+    });
   }
 
   Future<void> _showDateFilter() async {
@@ -201,7 +223,8 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage>
             goToPage(const EvaluationEchantillonsPage()),
         onGestionEchantillons: () => goToPage(const GestionEchantillonsPage()),
         onAnalyseLaboratoire: () => goToPage(const AnalyseLaboratoirePage()),
-        onSessionsDegustationPage: () => goToPage(const SessionsDegustationPage()),
+        onSessionsDegustationPage: () =>
+            goToPage(const SessionsDegustationPage()),
         onMembredupanel: () => goToPage(const MembresPanelPage()),
         onVueEnsembleEvaluations: () =>
             goToPage(const VueEnsembleEvaluationsPage()),
@@ -452,6 +475,7 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage>
                         final isTerminee = s.statut == StatutSession.terminee;
                         return SessionCard(
                           session: s,
+                          onConfirmerPresence: () => _onConfirmerPresence(s),
                           onApprouver: isPending ? () => _onApprouver(s) : null,
                           onRefuser: isPending ? () => _onRefuser(s) : null,
                           onModifier: (!isPending && !isTerminee)
@@ -479,4 +503,3 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage>
     );
   }
 }
-

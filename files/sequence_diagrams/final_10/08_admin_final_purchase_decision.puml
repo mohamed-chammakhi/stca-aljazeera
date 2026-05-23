@@ -1,0 +1,42 @@
+@startuml
+title Sequence Diagram "Administrator Validates Final Purchase Decision"
+
+actor "Administrator" as A
+boundary "Purchase Validation Interface" as I
+control "Administrator Sample Service" as S
+control "Django Echantillon API" as API
+entity "Echantillon Model" as M
+
+group Final Purchase Decision
+    A -> I : 1. Open purchase validation page
+    I -> S : 2. Request purchase proposals
+    S -> API : 3. Fetch samples waiting for validation
+    API -> M : 4. Retrieve purchase proposals
+    M --> API : 5. Return proposals
+    API --> S : 6. Return proposals
+    S --> I : 7. Return proposal list
+    I --> A : 8. Display purchase proposals
+
+    A -> I : 9. Choose final decision
+
+    alt If purchase is confirmed
+        I -> S : 10. Send purchase confirmation
+        S -> API : 11. Submit confirmation request
+        API -> M : 12. Update sample to purchase confirmed
+        M --> API : 13. Confirm update
+        API --> S : 14. Return updated sample
+        S --> I : 15. Return confirmation result
+        I --> A : 16. Display confirmation message
+    else If purchase is refused
+        A -> I : 10. Enter refusal reason
+        I -> S : 11. Send purchase refusal
+        S -> API : 12. Submit refusal request
+        API -> M : 13. Update sample to refused
+        M --> API : 14. Confirm update
+        API --> S : 15. Return updated sample
+        S --> I : 16. Return refusal result
+        I --> A : 17. Display refusal message
+    end
+end
+
+@enduml

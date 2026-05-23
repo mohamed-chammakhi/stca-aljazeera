@@ -3,7 +3,8 @@
 // ═════════════════════════════════════════════════════════════════════════════
 
 export '../../../../../core/models/enums.dart' show StatutCollecteur;
-import '../../../../../core/models/enums.dart' show StatutCollecteur;
+import '../../../../../core/models/enums.dart'
+    show StatutCollecteur, StatutCollecteurX;
 
 // ── Display helpers (used by model and UI layers) ─────────────────────────────
 String fmtDate(DateTime d) =>
@@ -85,6 +86,10 @@ class EchantillonCollecteur {
 
   // Supplier
   String codeFournisseur;
+  // Transient write-only supplier name (OCR-read or user-typed). NOT loaded
+  // from the API; only sent on create so the backend can match by name and
+  // never mistake a handwritten name for a supplier code.
+  String? fournisseurNom;
 
   // Bottle
   String referenceBouteille;
@@ -131,6 +136,7 @@ class EchantillonCollecteur {
     this.delegation,
     this.cite,
     required this.codeFournisseur,
+    this.fournisseurNom,
     required this.referenceBouteille,
     this.scellage,
     this.quantiteEstimee,
@@ -153,6 +159,22 @@ class EchantillonCollecteur {
     required this.statut,
   });
 
+  static StatutCollecteur _statutFromJson(dynamic value) {
+    final raw = value as String? ?? 'receptionne';
+    switch (raw) {
+      case 'enNegociation':
+        return StatutCollecteur.enNegociation;
+      case 'achatConfirme':
+        return StatutCollecteur.achatConfirme;
+      default:
+        try {
+          return StatutCollecteurX.fromJson(raw);
+        } catch (_) {
+          return StatutCollecteur.receptionne;
+        }
+    }
+  }
+
   factory EchantillonCollecteur.fromJson(Map<String, dynamic> json) =>
       EchantillonCollecteur(
         id: json['id'] as String,
@@ -165,7 +187,9 @@ class EchantillonCollecteur {
         scellage: json['scellage'] as String?,
         quantiteEstimee: json['quantite_estimee'] as String?,
         variete: json['variete'] as String?,
-        achatConfirme: json['statut_collecteur'] == 'achat_confirme',
+        achatConfirme:
+            (json['statut_collecteur'] == 'achat_confirme' ||
+            json['statut_collecteur'] == 'achatConfirme'),
         livraison: null,
         dateArriveeEchantillon: json['date_arrivee_echantillon'] != null
             ? DateTime.parse(json['date_arrivee_echantillon'] as String)
@@ -182,7 +206,7 @@ class EchantillonCollecteur {
         imageUrl: json['image_url'] as String?,
         collecteurId: json['collecteur']?.toString() ?? '',
         collecteurNom: json['collecteur_nom'] as String? ?? '',
-        statut: StatutCollecteur.values.byName(json['statut_collecteur'] as String),
+        statut: _statutFromJson(json['statut_collecteur']),
       );
 
   Map<String, dynamic> toJson() => {
@@ -193,7 +217,7 @@ class EchantillonCollecteur {
     'scellage': scellage ?? '',
     'quantite_estimee': quantiteEstimee ?? '',
     'variete': variete ?? '',
-    'statut_collecteur': statut.name,
+    'statut_collecteur': statut.toJson,
     'date_arrivee_echantillon': dateArriveeEchantillon?.toIso8601String(),
     'recu_physiquement': recuPhysiquement,
     'budget_negociation': budgetNegociation,

@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Collector Adds a Sample - Simple Code Map</title>
+<style>
+  :root {
+    --bg: #f6f7f4;
+    --paper: #ffffff;
+    --ink: #1d2b22;
+    --muted: #5f6d63;
+    --line: #d9dfd8;
+    --green: #38835a;
+    --green2: #e7f2ec;
+    --blue: #2e6f9f;
+    --blue2: #e8f1f8;
+    --gold: #a66f1a;
+    --gold2: #fbf0df;
+    --red: #aa3d3d;
+    --red2: #fae9e9;
+    --code: #101820;
+    --codeText: #edf5ef;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: Arial, Helvetica, sans-serif;
+    line-height: 1.6;
+  }
+
+  main {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 34px 18px 70px;
+  }
+
+  header {
+    padding: 28px 0 18px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .eyebrow {
+    color: var(--green);
+    font-weight: 700;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+  }
+
+  h1 {
+    max-width: 850px;
+    margin: 10px 0 12px;
+    font-size: clamp(32px, 5vw, 56px);
+    line-height: 1.04;
+    letter-spacing: -1px;
+  }
+
+  .lead {
+    max-width: 760px;
+    color: var(--muted);
+    font-size: 18px;
+  }
+
+  .big-idea {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin-top: 22px;
+    padding: 18px;
+    background: var(--green2);
+    border: 1px solid #c7dfd1;
+    border-radius: 14px;
+  }
+
+  .big-idea strong { color: var(--green); }
+
+  .graph {
+    margin: 34px 0;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    padding: 22px;
+    overflow-x: auto;
+    box-shadow: 0 12px 34px rgba(29, 43, 34, 0.06);
+  }
+
+  svg { display: block; min-width: 940px; }
+
+  .section-title {
+    margin: 44px 0 16px;
+    font-size: 28px;
+  }
+
+  .step {
+    display: grid;
+    grid-template-columns: 70px 1fr;
+    gap: 16px;
+    padding: 22px 0;
+    border-top: 1px solid var(--line);
+  }
+
+  .num {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    color: white;
+    background: var(--green);
+    font-weight: 800;
+    font-size: 20px;
+  }
+
+  .step h2 {
+    margin: 0 0 8px;
+    font-size: 24px;
+  }
+
+  .plain {
+    margin: 0 0 14px;
+    color: var(--muted);
+    max-width: 850px;
+  }
+
+  .two {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 14px;
+    align-items: start;
+  }
+
+  .box {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+
+  .box h3 {
+    margin: 0;
+    padding: 11px 14px;
+    font-size: 14px;
+    background: #eef1ed;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .box .body {
+    padding: 14px;
+    color: var(--muted);
+    font-size: 15px;
+  }
+
+  .file {
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 13px;
+    color: var(--blue);
+    word-break: break-word;
+  }
+
+  pre {
+    margin: 0;
+    padding: 14px;
+    overflow-x: auto;
+    background: var(--code);
+    color: var(--codeText);
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 13px;
+    line-height: 1.55;
+  }
+
+  .callout {
+    margin-top: 14px;
+    padding: 14px;
+    border-radius: 12px;
+    background: var(--gold2);
+    border: 1px solid #ecd5ae;
+    color: #4b3820;
+  }
+
+  .data {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin: 18px 0 8px;
+  }
+
+  .data-card {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 14px;
+  }
+
+  .data-card b {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--green);
+  }
+
+  .data-card code {
+    display: block;
+    margin-top: 8px;
+    white-space: pre-wrap;
+    background: #f0f3ef;
+    border-radius: 8px;
+    padding: 10px;
+    color: #26332a;
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 12px;
+  }
+
+  .mini-list {
+    margin: 0;
+    padding-left: 18px;
+  }
+
+  .mini-list li { margin: 6px 0; }
+
+  footer {
+    margin-top: 46px;
+    padding-top: 18px;
+    border-top: 1px solid var(--line);
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  @media (max-width: 780px) {
+    .step { grid-template-columns: 1fr; }
+    .two, .data { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div class="eyebrow">Simple project flow</div>
+    <h1>How one collector sample travels through your project</h1>
+    <p class="lead">
+      This page follows one small action: the collector clicks <b>Ajouter</b>,
+      fills the form, and the sample appears in the list. You do not need to
+      understand every line of code. Follow the arrows and look only at the
+      highlighted lines.
+    </p>
+    <div class="big-idea">
+      <div><strong>The easiest way to understand the architecture:</strong> the screen does not save directly to the database.</div>
+      <div>The screen asks a service. The service asks the API client. The API client talks to Django. Django saves in the database. Then the saved sample comes back to the screen.</div>
+    </div>
+  </header>
+
+  <section class="graph" aria-label="Sample creation graph">
+    <svg width="1040" height="520" viewBox="0 0 1040 520" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="#38835a"/>
+        </marker>
+        <style>
+          .title { font: 700 15px Arial; fill: #1d2b22; }
+          .small { font: 13px Arial; fill: #5f6d63; }
+          .mono { font: 12px Consolas, monospace; fill: #315f7f; }
+        </style>
+      </defs>
+
+      <rect x="18" y="30" width="175" height="110" rx="16" fill="#e8f1f8" stroke="#9fc1db"/>
+      <text x="105" y="62" text-anchor="middle" class="title">1. Page</text>
+      <text x="105" y="86" text-anchor="middle" class="small">Button Ajouter</text>
+      <text x="105" y="112" text-anchor="middle" class="mono">showFormulaireDialog()</text>
+
+      <line x1="195" y1="85" x2="260" y2="85" stroke="#38835a" stroke-width="2" marker-end="url(#arrow)"/>
+
+      <rect x="270" y="30" width="185" height="110" rx="16" fill="#e8f1f8" stroke="#9fc1db"/>
+      <text x="362" y="62" text-anchor="middle" class="title">2. Form</text>
+      <text x="362" y="86" text-anchor="middle" class="small">User fields become</text>
+      <text x="362" y="112" text-anchor="middle" class="mono">EchantillonCollecteur</text>
+
+      <line x1="456" y1="85" x2="520" y2="85" stroke="#38835a" stroke-width="2" marker-end="url(#arrow)"/>
+
+      <rect x="530" y="30" width="185" height="110" rx="16" fill="#fbf0df" stroke="#ddb974"/>
+      <text x="622" y="62" text-anchor="middle" class="title">3. Service</text>
+      <text x="622" y="86" text-anchor="middle" class="small">Prepares data</text>
+      <text x="622" y="112" text-anchor="middle" class="mono">createEchantillon()</text>
+
+      <line x1="716" y1="85" x2="780" y2="85" stroke="#38835a" stroke-width="2" marker-end="url(#arrow)"/>
+
+      <rect x="790" y="30" width="220" height="110" rx="16" fill="#e7f2ec" stroke="#95c6aa"/>
+      <text x="900" y="62" text-anchor="middle" class="title">4. ApiClient</text>
+      <text x="900" y="86" text-anchor="middle" class="small">Sends HTTP request</text>
+      <text x="900" y="112" text-anchor="middle" class="mono">POST /api/echantillons/</text>
+
+      <line x1="900" y1="142" x2="900" y2="210" stroke="#38835a" stroke-width="2" marker-end="url(#arrow)"/>
+
+      <rect x="790" y="220" width="220" height="120" rx="16" fill="#fae9e9" stroke="#dcaaaa"/>
+      <text x="900" y="252" text-anchor="middle" class="title">5. Django backend</text>
+      <text x="900" y="276" text-anchor="middle" class="small">Checks role + validates</text>
+      <text x="900" y="302" text-anchor="middle" class="mono">EchantillonViewSet</text>
+      <text x="900" y="322" text-anchor="middle" class="mono">EchantillonSerializer</text>
+
+      <path d="M790 282 H622 V354" fill="none" stroke="#38835a" stroke-width="2" marker-end="url(#arrow)"/>
+
+      <rect x="530" y="365" width="185" height="110" rx="16" fill="#fbf0df" stroke="#ddb974"/>
+      <text x="622" y="397" text-anchor="middle" class="title">6. Service again</text>
+      <text x="622" y="421" text-anchor="middle" class="small">Converts response</text>
+      <text x="622" y="447" text-anchor="middle" class="mono">fromJson()</text>
+
+      <line x1="530" y1="420" x2="456" y2="420" stroke="#38835a" stroke-width="2" marker-end="url(#arrow)"/>
+
+      <rect x="270" y="365" width="185" height="110" rx="16" fill="#e8f1f8" stroke="#9fc1db"/>
+      <text x="362" y="397" text-anchor="middle" class="title">7. Page again</text>
+      <text x="362" y="421" text-anchor="middle" class="small">Adds it to list</text>
+      <text x="362" y="447" text-anchor="middle" class="mono">setState()</text>
+
+      <line x1="270" y1="420" x2="195" y2="420" stroke="#38835a" stroke-width="2" marker-end="url(#arrow)"/>
+
+      <rect x="18" y="365" width="175" height="110" rx="16" fill="#e7f2ec" stroke="#95c6aa"/>
+      <text x="105" y="397" text-anchor="middle" class="title">8. User sees it</text>
+      <text x="105" y="421" text-anchor="middle" class="small">New card appears</text>
+      <text x="105" y="447" text-anchor="middle" class="mono">"B-1207 ajoute"</text>
+
+      <text x="520" y="188" text-anchor="middle" class="small">The sample goes to the server</text>
+      <text x="520" y="314" text-anchor="middle" class="small">The saved sample comes back</text>
+    </svg>
+  </section>
+
+  <h2 class="section-title">The same flow, slowly</h2>
+
+  <section class="step">
+    <div class="num">1</div>
+    <div>
+      <h2>The collector presses the Add button</h2>
+      <p class="plain">
+        Start here. This is the page the collector is looking at. The button does
+        not save anything yet. It only opens the form.
+      </p>
+      <div class="two">
+        <div class="box">
+          <h3>File to open</h3>
+          <div class="body">
+            <div class="file">lib/2_collecteur/mes_echantillons/mes_echantillons_page.dart</div>
+            <p>Look around lines 673 to 699.</p>
+          </div>
+        </div>
+        <div class="box">
+          <h3>The important code</h3>
+<pre>floatingActionButton: FloatingActionButton.extended(
+  onPressed: () {
+    showFormulaireDialog(
+      context,
+      onSaveMultiple: (nouveaux) async {
+        ...
+      },
+    );
+  },
+)</pre>
+        </div>
+      </div>
+      <div class="callout">
+        In simple words: "When the user presses Ajouter, open the form. When the
+        form later gives me samples, I will save them."
+      </div>
+    </div>
+  </section>
+
+  <section class="step">
+    <div class="num">2</div>
+    <div>
+      <h2>The form turns typed text into a sample object</h2>
+      <p class="plain">
+        The collector fills fields like bottle reference, supplier code,
+        governorate, variety, sealing, and quantity. The form gathers those
+        values and creates an <b>EchantillonCollecteur</b> object.
+      </p>
+      <div class="two">
+        <div class="box">
+          <h3>File to open</h3>
+          <div class="body">
+            <div class="file">lib/2_collecteur/mes_echantillons/widgets/dialogs/formulaire_dialog.dart</div>
+            <p>Look around lines 185 to 217.</p>
+          </div>
+        </div>
+        <div class="box">
+          <h3>The important code</h3>
+<pre>final samples = _bouteilles.asMap().entries.map((entry) {
+  final b = entry.value;
+  return EchantillonCollecteur(
+    referenceBouteille: b.refCtrl.text.trim(),
+    variete: b.varieteCtrl.text.trim(),
+    quantiteEstimee: b.qteCtrl.text.trim(),
+    statut: StatutCollecteur.receptionne,
+  );
+}).toList();
+
+widget.onSaveMultiple(samples);</pre>
+        </div>
+      </div>
+      <div class="callout">
+        In simple words: "Take what the collector typed and package it as one
+        sample object. Then give that object back to the page."
+      </div>
+    </div>
+  </section>
+
+  <section class="step">
+    <div class="num">3</div>
+    <div>
+      <h2>The page gives the sample to the service</h2>
+      <p class="plain">
+        Back in the page, the callback receives the list called <b>nouveaux</b>.
+        For each sample, the page calls the service.
+      </p>
+      <div class="two">
+        <div class="box">
+          <h3>File to open</h3>
+          <div class="body">
+            <div class="file">lib/2_collecteur/mes_echantillons/mes_echantillons_page.dart</div>
+            <p>Look at lines 678 to 683.</p>
+          </div>
+        </div>
+        <div class="box">
+          <h3>The important code</h3>
+<pre>onSaveMultiple: (nouveaux) async {
+  final created = &lt;EchantillonCollecteur&gt;[];
+
+  for (final s in nouveaux) {
+    created.add(await _service.createEchantillon(s));
+  }
+}</pre>
+        </div>
+      </div>
+      <div class="callout">
+        In simple words: "For every sample coming from the form, ask the service
+        to save it."
+      </div>
+    </div>
+  </section>
+
+  <section class="step">
+    <div class="num">4</div>
+    <div>
+      <h2>The service prepares the data for Django</h2>
+      <p class="plain">
+        This is an important architecture rule in your project: the page does not
+        talk to the server directly. The service is the middle person.
+      </p>
+      <div class="two">
+        <div class="box">
+          <h3>File to open</h3>
+          <div class="body">
+            <div class="file">lib/2_collecteur/mes_echantillons/services/echantillon_collecteur_service.dart</div>
+            <p>Look at lines 95 to 108, then 161 to 173.</p>
+          </div>
+        </div>
+        <div class="box">
+          <h3>The important code</h3>
+<pre>final response = await apiClient.post(
+  '/api/echantillons/',
+  _toDjangoMap(e),
+);
+
+return EchantillonCollecteur.fromJson(
+  _toFlutterMap(response),
+);</pre>
+        </div>
+      </div>
+      <div class="data">
+        <div class="data-card">
+          <b>Before service</b>
+          Flutter object
+          <code>EchantillonCollecteur(
+  referenceBouteille: "B-1207",
+  variete: "Chemlali"
+)</code>
+        </div>
+        <div class="data-card">
+          <b>Service prepares</b>
+          Django field names
+          <code>{
+  "reference_bouteille": "B-1207",
+  "variete": "Chemlali"
+}</code>
+        </div>
+        <div class="data-card">
+          <b>Why?</b>
+          Flutter and Django do not name everything the same way. The service
+          translates between both sides.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="step">
+    <div class="num">5</div>
+    <div>
+      <h2>The API client sends the real HTTP request</h2>
+      <p class="plain">
+        The API client is the only class responsible for HTTP. It adds the login
+        token, converts the Dart map into JSON text, sends the request, and reads
+        the response.
+      </p>
+      <div class="two">
+        <div class="box">
+          <h3>File to open</h3>
+          <div class="body">
+            <div class="file">lib/core/api_client.dart</div>
+            <p>Look at lines 225 to 235.</p>
+          </div>
+        </div>
+        <div class="box">
+          <h3>The important code</h3>
+<pre>final headers = await _headers();
+
+final response = await _send(
+  () => http.post(
+    _uri(path),
+    headers: headers,
+    body: jsonEncode(body),
+  ),
+);</pre>
+        </div>
+      </div>
+      <div class="callout">
+        The request looks like this: <b>POST /api/echantillons/</b> with a JSON
+        body and an <b>Authorization: Bearer token</b> header.
+      </div>
+    </div>
+  </section>
+
+  <section class="step">
+    <div class="num">6</div>
+    <div>
+      <h2>Django receives the sample and saves it</h2>
+      <p class="plain">
+        Django checks that the connected user is allowed to create samples. Then
+        it validates the data and saves it. The collector is not typed by the
+        user; Django knows the collector from the login token.
+      </p>
+      <div class="two">
+        <div class="box">
+          <h3>Files to open</h3>
+          <div class="body">
+            <div class="file">backend_new/echantillons/views.py</div>
+            <p>Look at lines 73 to 88.</p>
+            <div class="file">backend_new/echantillons/serializers.py</div>
+            <p>Look at lines 14 to 32 and 39 to 43.</p>
+          </div>
+        </div>
+        <div class="box">
+          <h3>The important backend code</h3>
+<pre>if self.action in ['create', 'bulk', 'destroy']:
+    return [IsCollecteur()]
+
+serializer.save(
+    collecteur=self.request.user,
+    statut_collecteur=Echantillon.StatutCollecteur.RECEPTIONNE,
+)</pre>
+        </div>
+      </div>
+      <div class="callout">
+        In simple words: "Only a collector can create this. The backend attaches
+        the sample to the logged-in collector automatically."
+      </div>
+    </div>
+  </section>
+
+  <section class="step">
+    <div class="num">7</div>
+    <div>
+      <h2>The saved sample comes back with server values</h2>
+      <p class="plain">
+        Before saving, the sample has temporary local values. After saving,
+        Django returns the official database version: real UUID, official number,
+        date, collector id, and other fields.
+      </p>
+      <div class="data">
+        <div class="data-card">
+          <b>Flutter sends</b>
+          No official id yet
+          <code>{
+  "reference_bouteille": "B-1207",
+  "variete": "Chemlali",
+  "statut_collecteur": "receptionne"
+}</code>
+        </div>
+        <div class="data-card">
+          <b>Django returns</b>
+          Saved record
+          <code>{
+  "id": "uuid-from-database",
+  "numero": "2026/0042",
+  "reference_bouteille": "B-1207",
+  "date_ajout": "2026-05-17T..."
+}</code>
+        </div>
+        <div class="data-card">
+          <b>Service converts back</b>
+          JSON becomes a Dart object again.
+          <code>EchantillonCollecteur.fromJson(
+  _toFlutterMap(response)
+)</code>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="step">
+    <div class="num">8</div>
+    <div>
+      <h2>The page updates the list on screen</h2>
+      <p class="plain">
+        The saved sample returns to the page in the variable <b>created</b>. The
+        page inserts it at the top of the list and Flutter redraws the screen.
+      </p>
+      <div class="two">
+        <div class="box">
+          <h3>File to open</h3>
+          <div class="body">
+            <div class="file">lib/2_collecteur/mes_echantillons/mes_echantillons_page.dart</div>
+            <p>Look at lines 684 to 694.</p>
+          </div>
+        </div>
+        <div class="box">
+          <h3>The important code</h3>
+<pre>setState(() {
+  for (final s in created) {
+    _echantillons.insert(0, s);
+  }
+});
+
+_showSuccess(label);</pre>
+        </div>
+      </div>
+      <div class="callout">
+        In simple words: "Put the saved sample in the list and show the success
+        message."
+      </div>
+    </div>
+  </section>
+
+  <h2 class="section-title">The architecture in one sentence</h2>
+  <section class="box">
+    <div class="body">
+      <p>
+        For this feature, your project works like this:
+      </p>
+      <p>
+        <b>Flutter page</b> opens the form, <b>the form</b> creates a sample
+        object, <b>the service</b> prepares it, <b>ApiClient</b> sends it to
+        Django, <b>Django</b> validates and saves it, then the saved sample comes
+        back and <b>setState()</b> updates the screen.
+      </p>
+    </div>
+  </section>
+
+  <h2 class="section-title">Files you should open, in this exact order</h2>
+  <section class="box">
+    <div class="body">
+      <ol class="mini-list">
+        <li><span class="file">lib/2_collecteur/mes_echantillons/mes_echantillons_page.dart</span> - button, service call, screen update.</li>
+        <li><span class="file">lib/2_collecteur/mes_echantillons/widgets/dialogs/formulaire_dialog.dart</span> - form fields become sample objects.</li>
+        <li><span class="file">lib/2_collecteur/mes_echantillons/services/echantillon_collecteur_service.dart</span> - sample is prepared for Django.</li>
+        <li><span class="file">lib/core/api_client.dart</span> - HTTP POST is sent.</li>
+        <li><span class="file">backend_new/echantillons/views.py</span> - Django checks role and saves with collector.</li>
+        <li><span class="file">backend_new/echantillons/serializers.py</span> - Django validates fields and returns JSON.</li>
+      </ol>
+    </div>
+  </section>
+
+  <footer>
+    Updated explanation for a beginner-friendly reading path. File:
+    docs/flux_ajout_echantillon.html
+  </footer>
+</main>
+</body>
+</html>

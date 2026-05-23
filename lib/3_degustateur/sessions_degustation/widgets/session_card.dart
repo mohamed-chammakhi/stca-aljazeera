@@ -30,12 +30,14 @@ class SessionCard extends StatefulWidget {
   final SessionDegustation session;
   final VoidCallback? onModifier;
   final VoidCallback? onSupprimer;
+  final Future<void> Function()? onConfirmerPresence;
 
   const SessionCard({
     super.key,
     required this.session,
     this.onModifier,
     this.onSupprimer,
+    this.onConfirmerPresence,
   });
 
   @override
@@ -54,7 +56,7 @@ class _SessionCardState extends State<SessionCard> {
     super.dispose();
   }
 
-  void _togglePresence() {
+  Future<void> _togglePresence() async {
     _msgTimer?.cancel();
     if (_presenceConfirmed) {
       setState(() {
@@ -70,6 +72,9 @@ class _SessionCardState extends State<SessionCard> {
         if (mounted) setState(() => _showPresenceMsg = false);
       });
     }
+    try {
+      await widget.onConfirmerPresence?.call();
+    } catch (_) {}
   }
 
   @override

@@ -28,7 +28,7 @@ Senior taster who also manages the tasting panel. Submits their own individual e
   - `Terminée` — past session.
   The chef can approve or refuse sessions in `En attente validation`. When creating a session: title, date, time, location, notes, participant selection, planned sample count. Only selected participants are notified.
 
-- **Analyse laboratoire** — read-only view of lab analyses per sample. Filter: `En attente` / `Soumis`.
+- **Analyse laboratoire** — read-only view of lab analyses per sample. Filter: `En attente` / `Soumis`. Each analysis card has a small red bell pill button in the header row (alongside the edit/delete actions). Tapping it opens a confirmation dialog; on confirm, sends an `ANALYSE_URGENTE` notification to the lab technician and the button switches to a locked "Urgent" state for the session.
 
 - **Membres du panel** — list of all panel members in the app.
 
@@ -137,6 +137,7 @@ Bell icon in the dashboard AppBar shows live unread count badge (orange). Naviga
 | `EVALUATION_SOUMISE` | Any taster submits an evaluation | EVALUATIONS |
 | `TOUTES_EVALUATIONS` | All active tasters submitted for a sample | EVALUATIONS |
 | `ANALYSE_SOUMISE` | Lab technician submits lab analysis | ANALYSES |
+| `ANALYSE_URGENTE` | Taster or chef sends urgent lab request | ANALYSES |
 | `NOUVELLE_SESSION` | A panel member proposes a new session | SESSIONS |
 
 Note: `EVALUATION_SOUMISE` and `TOUTES_EVALUATIONS` are exclusive to the chef de panel role.

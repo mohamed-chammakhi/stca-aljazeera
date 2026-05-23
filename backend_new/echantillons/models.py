@@ -93,6 +93,7 @@ class Echantillon(models.Model):
     # Stock delivery tracking
     stock_arrive        = models.BooleanField(default=False)
     date_livraison_stock = models.DateTimeField(null=True, blank=True)
+    date_livraison_stock_fin = models.DateTimeField(null=True, blank=True)
 
     # Quality assessment
     classification = models.CharField(max_length=20, choices=Classification.choices, blank=True)

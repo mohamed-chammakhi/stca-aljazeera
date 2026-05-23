@@ -1,31 +1,37 @@
 import uuid
-from django.db import models
+
 from django.conf import settings
+from django.db import models
 
 
 class Notification(models.Model):
-
     class Type(models.TextChoices):
-        NOUVEL_ECHANTILLON   = 'NOUVEL_ECHANTILLON',   'Nouvel échantillon'
-        ECHANTILLON_MODIFIE  = 'ECHANTILLON_MODIFIE',  'Échantillon modifié'
-        ECHANTILLON_SUPPRIME = 'ECHANTILLON_SUPPRIME', 'Échantillon supprimé'
-        ECHANTILLON_RECU     = 'ECHANTILLON_RECU',     'Échantillon reçu physiquement'
-        PREMIERE_EVALUATION  = 'PREMIERE_EVALUATION',  'Première évaluation soumise'
-        TOUTES_EVALUATIONS   = 'TOUTES_EVALUATIONS',   'Toutes les évaluations soumises'
-        ANALYSE_SOUMISE      = 'ANALYSE_SOUMISE',      'Analyse laboratoire soumise'
-        ACHAT_CONFIRME       = 'ACHAT_CONFIRME',       'Achat confirmé'
+        NOUVEL_ECHANTILLON = 'NOUVEL_ECHANTILLON', 'Nouvel echantillon'
+        ECHANTILLON_MODIFIE = 'ECHANTILLON_MODIFIE', 'Echantillon modifie'
+        ECHANTILLON_SUPPRIME = 'ECHANTILLON_SUPPRIME', 'Echantillon supprime'
+        ECHANTILLON_RECU = 'ECHANTILLON_RECU', 'Echantillon recu physiquement'
+        PREMIERE_EVALUATION = 'PREMIERE_EVALUATION', 'Premiere evaluation soumise'
+        EVALUATION_SOUMISE = 'EVALUATION_SOUMISE', 'Evaluation soumise'
+        TOUTES_EVALUATIONS = 'TOUTES_EVALUATIONS', 'Toutes les evaluations soumises'
+        ANALYSE_SOUMISE = 'ANALYSE_SOUMISE', 'Analyse laboratoire soumise'
+        ACHAT_CONFIRME = 'ACHAT_CONFIRME', 'Achat confirme'
+        PROPOSITION_ACHAT_ATTENTE = 'proposition_achat_attente', "Proposition d'achat en attente"
+        ANALYSE_URGENTE = 'ANALYSE_URGENTE', 'Analyse urgente demandee'
+        NOUVELLE_SESSION = 'NOUVELLE_SESSION', 'Nouvelle session'
 
     class Section(models.TextChoices):
-        ECHANTILLONS = 'ECHANTILLONS', 'Échantillons'
-        EVALUATIONS  = 'EVALUATIONS',  'Évaluations'
-        ANALYSES     = 'ANALYSES',     'Analyses'
-        ACHATS       = 'ACHATS',       'Achats'
+        ECHANTILLONS = 'ECHANTILLONS', 'Echantillons'
+        EVALUATIONS = 'EVALUATIONS', 'Evaluations'
+        ANALYSES = 'ANALYSES', 'Analyses'
+        ACHATS = 'ACHATS', 'Achats'
+        ACHATS_VALIDATION = 'ACHATS_VALIDATION', 'Validation achats'
+        SESSIONS = 'SESSIONS', 'Sessions'
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     destinataire = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name='notifications'
+        related_name='notifications',
     )
     type = models.CharField(max_length=40, choices=Type.choices)
     titre = models.CharField(max_length=200)
@@ -35,9 +41,13 @@ class Notification(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name='notifications'
+        related_name='notifications',
     )
-    section = models.CharField(max_length=20, choices=Section.choices, default=Section.ECHANTILLONS)
+    section = models.CharField(
+        max_length=20,
+        choices=Section.choices,
+        default=Section.ECHANTILLONS,
+    )
     is_read = models.BooleanField(default=False)
     date_creation = models.DateTimeField(auto_now_add=True)
 
@@ -45,4 +55,4 @@ class Notification(models.Model):
         ordering = ['-date_creation']
 
     def __str__(self):
-        return f"[{self.type}] → {self.destinataire} : {self.titre}"
+        return f"[{self.type}] -> {self.destinataire}: {self.titre}"

@@ -1,0 +1,32 @@
+@startuml
+title Authentication Sequence Diagram
+
+actor "User" as User
+boundary "Authentication Interface" as Interface
+control "Authentication Controller" as Controller
+entity "User Model" as Model
+
+User -> Interface : Request the login page
+Interface --> User : Display the login form
+
+User -> Interface : Enter email and password
+Interface -> Interface : Verify the entered data
+
+alt Incorrect data
+    Interface --> User : Display an error message
+else Correct data
+    Interface -> Controller : Send authentication request
+    Controller -> Model : Verify user credentials
+
+    alt Authentication refused
+        Model --> Controller : Invalid credentials
+        Controller --> Interface : Refuse access
+        Interface --> User : Display an authentication error
+    else Authentication accepted
+        Model --> Controller : User authenticated with role
+        Controller --> Interface : Confirm authentication
+        Interface --> User : Redirect to the role-specific interface
+    end
+end
+
+@enduml

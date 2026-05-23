@@ -31,6 +31,7 @@ class SessionCard extends StatefulWidget {
   final VoidCallback? onSupprimer;
   final VoidCallback? onApprouver;
   final VoidCallback? onRefuser;
+  final Future<void> Function()? onConfirmerPresence;
 
   const SessionCard({
     super.key,
@@ -39,6 +40,7 @@ class SessionCard extends StatefulWidget {
     this.onSupprimer,
     this.onApprouver,
     this.onRefuser,
+    this.onConfirmerPresence,
   });
 
   @override
@@ -46,9 +48,9 @@ class SessionCard extends StatefulWidget {
 }
 
 class _SessionCardState extends State<SessionCard> {
-  bool _expanded          = false;
+  bool _expanded = false;
   bool _presenceConfirmed = false;
-  bool _showPresenceMsg   = false;
+  bool _showPresenceMsg = false;
   Timer? _msgTimer;
 
   @override
@@ -57,22 +59,25 @@ class _SessionCardState extends State<SessionCard> {
     super.dispose();
   }
 
-  void _togglePresence() {
+  Future<void> _togglePresence() async {
     _msgTimer?.cancel();
     if (_presenceConfirmed) {
       setState(() {
         _presenceConfirmed = false;
-        _showPresenceMsg   = false;
+        _showPresenceMsg = false;
       });
     } else {
       setState(() {
         _presenceConfirmed = true;
-        _showPresenceMsg   = true;
+        _showPresenceMsg = true;
       });
       _msgTimer = Timer(const Duration(seconds: 6), () {
         if (mounted) setState(() => _showPresenceMsg = false);
       });
     }
+    try {
+      await widget.onConfirmerPresence?.call();
+    } catch (_) {}
   }
 
   @override
@@ -143,7 +148,9 @@ class _SessionCardState extends State<SessionCard> {
                                         ),
                                         decoration: BoxDecoration(
                                           color: chefGreen,
-                                          borderRadius: BorderRadius.circular(6),
+                                          borderRadius: BorderRadius.circular(
+                                            6,
+                                          ),
                                         ),
                                         child: const Row(
                                           mainAxisSize: MainAxisSize.min,
@@ -226,7 +233,8 @@ class _SessionCardState extends State<SessionCard> {
                               ),
                               const Spacer(),
                               if (_expanded &&
-                              widget.session.statut != StatutSession.enAttenteValidation) ...[
+                                  widget.session.statut !=
+                                      StatutSession.enAttenteValidation) ...[
                                 if (widget.onModifier != null)
                                   Tooltip(
                                     message: 'Modifier',
@@ -368,10 +376,7 @@ class _DecisionPill extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.transparent,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: color.withValues(alpha: 0.35),
-            width: 1.2,
-          ),
+          border: Border.all(color: color.withValues(alpha: 0.35), width: 1.2),
         ),
         child: Text(
           label,
@@ -435,8 +440,10 @@ class _DetailPanel extends StatelessWidget {
                 const Text(
                   'PARTICIPANTS',
                   style: TextStyle(
-                    fontSize: 11, fontWeight: FontWeight.w600,
-                    color: Color(0xFFAAAAAA), letterSpacing: 0.3,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFFAAAAAA),
+                    letterSpacing: 0.3,
                   ),
                 ),
                 const SizedBox(height: 6),
@@ -444,10 +451,12 @@ class _DetailPanel extends StatelessWidget {
                   spacing: 6,
                   runSpacing: 6,
                   children: allNoms
-                      .map((nom) => _PresenceChip(
-                            name: nom,
-                            confirmed: confirmedNoms.contains(nom),
-                          ))
+                      .map(
+                        (nom) => _PresenceChip(
+                          name: nom,
+                          confirmed: confirmedNoms.contains(nom),
+                        ),
+                      )
                       .toList(),
                 ),
               ] else

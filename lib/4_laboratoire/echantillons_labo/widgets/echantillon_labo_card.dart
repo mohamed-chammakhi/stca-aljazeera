@@ -135,30 +135,37 @@ class _EchantillonLaboCardState extends State<EchantillonLaboCard> {
                               ),
                               const Spacer(),
                               if (_expanded) ...[
-                                if (!hasAnalyse)
+                                if (!hasAnalyse &&
+                                    widget.onAjouterAnalyse != null)
                                   GestureDetector(
-                                    onTap: widget.onAjouterAnalyse ?? () {},
+                                    onTap: widget.onAjouterAnalyse!,
                                     child: Container(
                                       padding: const EdgeInsets.symmetric(
-                                          horizontal: 10, vertical: 5),
+                                        horizontal: 10,
+                                        vertical: 5,
+                                      ),
                                       decoration: BoxDecoration(
                                         color: kGreen.withValues(alpha: 0.08),
                                         borderRadius: BorderRadius.circular(8),
                                         border: Border.all(
-                                            color: kGreen.withValues(alpha: 0.25)),
+                                          color: kGreen.withValues(alpha: 0.25),
+                                        ),
                                       ),
                                       child: Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
-                                          Icon(Icons.add_circle_outline,
-                                              size: 14, color: kGreen),
+                                          Icon(
+                                            Icons.add_circle_outline,
+                                            size: 14,
+                                            color: kGreen,
+                                          ),
                                           const SizedBox(width: 5),
                                           Text(
                                             'Ajouter une analyse',
                                             style: TextStyle(
-                                              fontSize:   11,
+                                              fontSize: 11,
                                               fontWeight: FontWeight.w700,
-                                              color:      kGreen,
+                                              color: kGreen,
                                             ),
                                           ),
                                         ],
@@ -169,29 +176,33 @@ class _EchantillonLaboCardState extends State<EchantillonLaboCard> {
                                   Tooltip(
                                     message: 'Voir rapport',
                                     child: _SmallIconBtn(
-                                      icon:  Icons.visibility_outlined,
+                                      icon: Icons.visibility_outlined,
                                       color: kGreen,
                                       onTap: widget.onVoirAnalyse ?? () {},
                                     ),
                                   ),
-                                  const SizedBox(width: 2),
-                                  Tooltip(
-                                    message: 'Modifier',
-                                    child: _SmallIconBtn(
-                                      icon:  Icons.edit_outlined,
-                                      color: Colors.orange.shade700,
-                                      onTap: widget.onModifierAnalyse ?? () {},
+                                  if (widget.onModifierAnalyse != null) ...[
+                                    const SizedBox(width: 2),
+                                    Tooltip(
+                                      message: 'Modifier',
+                                      child: _SmallIconBtn(
+                                        icon: Icons.edit_outlined,
+                                        color: Colors.orange.shade700,
+                                        onTap: widget.onModifierAnalyse!,
+                                      ),
                                     ),
-                                  ),
-                                  const SizedBox(width: 2),
-                                  Tooltip(
-                                    message: 'Supprimer l\'analyse',
-                                    child: _SmallIconBtn(
-                                      icon:  Icons.delete_outline,
-                                      color: Colors.red.shade600,
-                                      onTap: widget.onSupprimerAnalyse ?? () {},
+                                  ],
+                                  if (widget.onSupprimerAnalyse != null) ...[
+                                    const SizedBox(width: 2),
+                                    Tooltip(
+                                      message: 'Supprimer l\'analyse',
+                                      child: _SmallIconBtn(
+                                        icon: Icons.delete_outline,
+                                        color: Colors.red.shade600,
+                                        onTap: widget.onSupprimerAnalyse!,
+                                      ),
                                     ),
-                                  ),
+                                  ],
                                 ],
                               ],
                             ],
@@ -307,8 +318,7 @@ class _DetailPanel extends StatelessWidget {
                   _DetailItem('Date arrivée', e.dateArrivee),
                   if (e.variete != null && e.variete!.isNotEmpty)
                     _DetailItem('Variété', e.variete!),
-                  if (e.numeroLot != null)
-                    _DetailItem('N° lot', e.numeroLot!),
+                  if (e.numeroLot != null) _DetailItem('N° lot', e.numeroLot!),
                   if (e.origineCampagne != null)
                     _DetailItem('Campagne', e.origineCampagne!),
                   _DetailItem(
@@ -358,4 +368,3 @@ class _DetailItem extends StatelessWidget {
     ],
   );
 }
-

@@ -1,0 +1,241 @@
+from django.utils import timezone
+from rest_framework import status
+from rest_framework.test import APITestCase
+
+from echantillons.models import Echantillon
+from evaluations.models import EvaluationOrganoleptique
+from sessions_degustation.models import SessionDegustation
+from users.models import User
+
+from .models import Notification
+
+
+class NotificationApiTests(APITestCase):
+    def setUp(self):
+        self.direction = User.objects.create_user(
+            email='direction.notifications@example.com',
+            password='Test@12345',
+            nom='Direction',
+            prenom='User',
+            role=User.Role.DIRECTION,
+        )
+        self.chef = User.objects.create_user(
+            email='chef.notifications@example.com',
+            password='Test@12345',
+            nom='Panel',
+            prenom='Chef',
+            role=User.Role.CHEF_PANEL,
+        )
+        self.degustateur = User.objects.create_user(
+            email='degustateur.notifications@example.com',
+            password='Test@12345',
+            nom='One',
+            prenom='Taster',
+            role=User.Role.DEGUSTATEUR,
+        )
+        self.other_degustateur = User.objects.create_user(
+            email='degustateur.notifications.other@example.com',
+            password='Test@12345',
+            nom='Two',
+            prenom='Taster',
+            role=User.Role.DEGUSTATEUR,
+        )
+        self.collecteur = User.objects.create_user(
+            email='collecteur.notifications@example.com',
+            password='Test@12345',
+            nom='Collector',
+            prenom='User',
+            role=User.Role.COLLECTEUR,
+        )
+        self.sample = Echantillon.objects.create(
+            reference_bouteille='REF-NOTIF-001',
+            collecteur=self.collecteur,
+            gouvernorat='Sfax',
+            delegation='Sfax Sud',
+            variete='Chemlali',
+            recu_physiquement=True,
+            date_arrivee_echantillon=timezone.now(),
+        )
+        Notification.objects.all().delete()
+
+    def authenticate(self, user):
+        self.client.force_authenticate(user=user)
+
+    def _notification(self, user, is_read=False):
+        return Notification.objects.create(
+            destinataire=user,
+            type=Notification.Type.NOUVEL_ECHANTILLON,
+            titre='Nouvel echantillon',
+            message='Message',
+            echantillon=self.sample,
+            section=Notification.Section.ECHANTILLONS,
+            is_read=is_read,
+        )
+
+    def test_user_lists_only_own_notifications_with_sample_reference(self):
+        own = self._notification(self.direction)
+        self._notification(self.chef)
+        self.authenticate(self.direction)
+
+        response = self.client.get('/api/notifications/')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.json()
+        results = data.get('results', data)
+        self.assertEqual([item['id'] for item in results], [str(own.id)])
+        self.assertEqual(results[0]['echantillon'], str(self.sample.id))
+        self.assertEqual(results[0]['echantillon_reference'], 'REF-NOTIF-001')
+        self.assertEqual(results[0]['echantillon_numero'], self.sample.numero)
+
+    def test_unread_filter_and_count_aliases(self):
+        self._notification(self.direction, is_read=False)
+        self._notification(self.direction, is_read=True)
+        self.authenticate(self.direction)
+
+        unread_list = self.client.get('/api/notifications/?is_read=false')
+        unread_count = self.client.get('/api/notifications/unread-count/')
+        unread_count_alias = self.client.get('/api/notifications/non-lus/')
+
+        self.assertEqual(unread_list.status_code, status.HTTP_200_OK)
+        results = unread_list.json().get('results', unread_list.json())
+        self.assertEqual(len(results), 1)
+        self.assertEqual(unread_count.json(), {'count': 1})
+        self.assertEqual(unread_count_alias.json(), {'count': 1})
+
+    def test_mark_one_and_all_read_aliases(self):
+        notification = self._notification(self.direction, is_read=False)
+        self._notification(self.direction, is_read=False)
+        self.authenticate(self.direction)
+
+        mark_one = self.client.patch(f'/api/notifications/{notification.id}/lire/')
+        mark_all = self.client.post('/api/notifications/lire-tout/')
+
+        self.assertEqual(mark_one.status_code, status.HTTP_200_OK)
+        self.assertTrue(Notification.objects.get(id=notification.id).is_read)
+        self.assertEqual(mark_all.status_code, status.HTTP_200_OK)
+        self.assertFalse(Notification.objects.filter(destinataire=self.direction, is_read=False).exists())
+
+    def test_notification_detail_is_scoped_to_recipient(self):
+        notification = self._notification(self.direction)
+        self.authenticate(self.chef)
+
+        response = self.client.patch(f'/api/notifications/{notification.id}/lire/')
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertFalse(Notification.objects.get(id=notification.id).is_read)
+
+
+class NotificationSignalTests(APITestCase):
+    def setUp(self):
+        self.direction = User.objects.create_user(
+            email='direction.signal@example.com',
+            password='Test@12345',
+            nom='Direction',
+            prenom='User',
+            role=User.Role.DIRECTION,
+        )
+        self.chef = User.objects.create_user(
+            email='chef.signal@example.com',
+            password='Test@12345',
+            nom='Panel',
+            prenom='Chef',
+            role=User.Role.CHEF_PANEL,
+        )
+        self.taster_one = User.objects.create_user(
+            email='taster.signal.one@example.com',
+            password='Test@12345',
+            nom='One',
+            prenom='Taster',
+            role=User.Role.DEGUSTATEUR,
+        )
+        self.taster_two = User.objects.create_user(
+            email='taster.signal.two@example.com',
+            password='Test@12345',
+            nom='Two',
+            prenom='Taster',
+            role=User.Role.DEGUSTATEUR,
+        )
+        self.collecteur = User.objects.create_user(
+            email='collector.signal@example.com',
+            password='Test@12345',
+            nom='Collector',
+            prenom='User',
+            role=User.Role.COLLECTEUR,
+        )
+
+    def test_sample_creation_notifies_direction_chef_and_tasters(self):
+        Echantillon.objects.create(
+            reference_bouteille='REF-SIGNAL-001',
+            collecteur=self.collecteur,
+            gouvernorat='Sfax',
+            variete='Chemlali',
+        )
+
+        recipients = set(
+            Notification.objects.filter(
+                type=Notification.Type.NOUVEL_ECHANTILLON,
+            ).values_list('destinataire__email', flat=True)
+        )
+
+        self.assertEqual(
+            recipients,
+            {
+                self.direction.email,
+                self.chef.email,
+                self.taster_one.email,
+                self.taster_two.email,
+            },
+        )
+
+    def test_all_evaluations_signal_waits_for_all_active_panel_members(self):
+        sample = Echantillon.objects.create(
+            reference_bouteille='REF-EVAL-001',
+            collecteur=self.collecteur,
+            gouvernorat='Sfax',
+            variete='Chemlali',
+            recu_physiquement=True,
+            date_arrivee_echantillon=timezone.now(),
+        )
+        Notification.objects.all().delete()
+
+        for user in (self.taster_one, self.taster_two):
+            EvaluationOrganoleptique.objects.create(
+                echantillon=sample,
+                degustateur=user,
+                statut=EvaluationOrganoleptique.Statut.SOUMIS,
+                fruite='3.0',
+                soumis_le=timezone.now(),
+            )
+        self.assertFalse(
+            Notification.objects.filter(type=Notification.Type.TOUTES_EVALUATIONS).exists()
+        )
+
+        EvaluationOrganoleptique.objects.create(
+            echantillon=sample,
+            degustateur=self.chef,
+            statut=EvaluationOrganoleptique.Statut.SOUMIS,
+            fruite='3.0',
+            soumis_le=timezone.now(),
+        )
+
+        recipients = set(
+            Notification.objects.filter(
+                type=Notification.Type.TOUTES_EVALUATIONS,
+            ).values_list('destinataire__email', flat=True)
+        )
+        self.assertEqual(recipients, {self.direction.email, self.chef.email})
+
+    def test_degustateur_created_session_notifies_chef(self):
+        Notification.objects.all().delete()
+
+        SessionDegustation.objects.create(
+            titre='Session a valider',
+            date='2026-05-20',
+            heure='09:00',
+            lieu='Salle A',
+            cree_par=self.taster_one,
+        )
+
+        notification = Notification.objects.get(type=Notification.Type.NOUVELLE_SESSION)
+        self.assertEqual(notification.destinataire, self.chef)
+        self.assertEqual(notification.section, Notification.Section.SESSIONS)

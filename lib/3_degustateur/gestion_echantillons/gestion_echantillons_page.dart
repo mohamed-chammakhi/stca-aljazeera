@@ -6,6 +6,7 @@ import '../../../core/models/echantillon.dart';
 import '../../../core/models/enums.dart';
 import '../../../core/utils/date_utils.dart';
 import 'services/gestion_echantillons_service.dart';
+import 'models/mock_echantillons.dart';
 import 'widgets/echantillon_card.dart';
 import '../../../core/widgets/empty_state.dart';
 import 'widgets/dialogs/formulaire_dialog.dart';
@@ -19,7 +20,6 @@ import '../sessions_degustation/sessions_degustation_page.dart';
 import '../analyse_labo/analyse_laboratoire_page.dart';
 import '../../../core/widgets/statut_chip.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../core/utils/date_utils.dart';
 import '../widgets/degustateur_nav_mixin.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -29,19 +29,18 @@ class GestionEchantillonsPage extends StatefulWidget {
   const GestionEchantillonsPage({super.key});
 
   @override
-  _GestionEchantillonsPageState createState() =>
+  State<GestionEchantillonsPage> createState() =>
       _GestionEchantillonsPageState();
 }
 
 class _GestionEchantillonsPageState extends State<GestionEchantillonsPage>
     with DegustateurNavMixin {
-  final _service = GestionEchantillonsService();
-
   // ───────────────────────────────────────────────────────────────────────────
   // 1. STATE
   // ───────────────────────────────────────────────────────────────────────────
 
   final TextEditingController _searchController = TextEditingController();
+  final GestionEchantillonsService _service = GestionEchantillonsService();
   String _recherche = '';
   String? _filtreStatut;
   DateTime? _dateDebut;
@@ -62,8 +61,13 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage>
   }
 
   Future<void> _loadData() async {
-    final data = await _service.fetchEchantillons();
-    setState(() => _echantillons = data);
+    try {
+      final data = await _service.fetchEchantillons();
+      if (!mounted) return;
+      setState(() => _echantillons = data);
+    } catch (_) {
+      setState(() => _echantillons = List.of(mockEchantillonsGestion));
+    }
   }
 
   // ───────────────────────────────────────────────────────────────────────────
@@ -139,8 +143,21 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage>
     _showSuccess('Échantillon ${e.id} supprimé');
   }
 
-  void _onToggleRecu(Echantillon e) {
+  Future<void> _onToggleRecu(Echantillon e) async {
+    if (e.recuPhysiquement) {
+      _showSuccess('Reception physique deja confirmee');
+      return;
+    }
+    final previous = e.recuPhysiquement;
     setState(() => e.recuPhysiquement = !e.recuPhysiquement);
+    try {
+      await _service.toggleRecuPhysiquement(e.id, e.recuPhysiquement);
+      _showSuccess('Reception physique confirmee');
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => e.recuPhysiquement = previous);
+      _showSuccess('Action conservee en mode demonstration');
+    }
   }
 
   void _showSuccess(String msg) {
@@ -210,7 +227,8 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage>
             goToPage(const EvaluationEchantillonsPage()),
         onGestionEchantillons: () => goToPage(const GestionEchantillonsPage()),
         onAnalyseLaboratoire: () => goToPage(const AnalyseLaboratoirePage()),
-        onSessionsDegustationPage: () => goToPage(const SessionsDegustationPage()),
+        onSessionsDegustationPage: () =>
+            goToPage(const SessionsDegustationPage()),
         onMembredupanel: () => goToPage(const MembresPanelPage()),
         onProfil: () => goToPage(const ProfilePage()),
         onDeconnexion: goToLogin,

@@ -20,7 +20,7 @@ Part of a tasting team (multiple tasters, not just one).
 
 - **Séances de dégustation** — tasting session planner. States: `Planifiée` (upcoming) / `Terminée` (past). To create: title, date, time, location, notes, select participant panel members. Only selected participants receive notification. Each invited participant can confirm attendance with a checkmark.
 
-- **Analyse laboratoire** — read-only view of lab analyses per sample. Filter: `En attente` / `Soumis`.
+- **Analyse laboratoire** — read-only view of lab analyses per sample. Filter: `En attente` / `Soumis`. Each analysis card has a small red bell pill button in the header row. Tapping it opens a confirmation dialog; on confirm, sends an `ANALYSE_URGENTE` notification to the lab technician and the button switches to a locked "Urgent" state for the session.
 
 - **Membres du panel** — list of all panel members in the app.
 

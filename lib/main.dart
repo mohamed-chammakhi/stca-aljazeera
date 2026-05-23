@@ -6,6 +6,8 @@ import '1_ceo/tableau_de_bord/tableau_de_bord.dart';
 import '4_laboratoire/echantillons_labo/echantillons_labo_page.dart';
 import '5_chef_degustateur/tableau_de_bord/homepage_page.dart' as chef;
 import 'core/api_client.dart';
+import 'core/models/enums.dart';
+import 'core/services/auth_service.dart';
 
 // ENTRY POINT
 void main() {
@@ -29,7 +31,57 @@ class _MyAppState extends State<MyApp> {
         primaryColor: const Color(0xFF38835A),
         scaffoldBackgroundColor: const Color(0xFFF9F6EF),
       ),
-      home: const LoginPage(),
+      home: const AuthGate(),
+    );
+  }
+}
+
+Widget _destinationForRole(RoleUtilisateur role) {
+  return switch (role) {
+    RoleUtilisateur.direction => const HomePageCeo(),
+    RoleUtilisateur.collecteur => const MesEchantillonsPage(),
+    RoleUtilisateur.degustateur => const HomePage(),
+    RoleUtilisateur.laboratoire => const EchantillonsLaboPage(),
+    RoleUtilisateur.chefPanel => const chef.HomePage(),
+  };
+}
+
+class AuthGate extends StatefulWidget {
+  const AuthGate({super.key});
+
+  @override
+  State<AuthGate> createState() => _AuthGateState();
+}
+
+class _AuthGateState extends State<AuthGate> {
+  bool _checkingSession = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _restoreSession();
+  }
+
+  Future<void> _restoreSession() async {
+    try {
+      final user = await authService.currentUser();
+      if (!mounted) return;
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => _destinationForRole(user.role)),
+      );
+    } catch (_) {
+      if (mounted) setState(() => _checkingSession = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_checkingSession) return const LoginPage();
+
+    return const Scaffold(
+      backgroundColor: Color(0xFFF9F6EF),
+      body: Center(child: CircularProgressIndicator(color: Color(0xFF38835A))),
     );
   }
 }
@@ -38,7 +90,7 @@ class _MyAppState extends State<MyApp> {
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
   @override
-  _LoginPageState createState() => _LoginPageState();
+  State<LoginPage> createState() => _LoginPageState();
 }
 
 class _LoginPageState extends State<LoginPage> {
@@ -59,18 +111,22 @@ class _LoginPageState extends State<LoginPage> {
 
   // ── Validators ────────────────────────────────────────────────────────────
   String? _validateEmail(String? value) {
-    if (value == null || value.isEmpty) return 'Email field is required';
-    if (!value.contains('@')) return 'Please enter a valid email';
+    if (value == null || value.isEmpty) return 'Le champ email est obligatoire';
+    if (!value.contains('@')) return 'Veuillez saisir un email valide';
     return null;
   }
 
   String? _validatePassword(String? value) {
-    if (value == null || value.isEmpty) return 'Password field is required';
-    if (value.length < 6) return 'Please enter a valid password';
-    if (!value.contains(RegExp(r'[0-9]')))
-      return 'Please enter a valid password';
-    if (!value.contains(RegExp(r'[^a-zA-Z0-9]')))
-      return 'Please enter a valid password';
+    if (value == null || value.isEmpty) {
+      return 'Le champ mot de passe est obligatoire';
+    }
+    if (value.length < 6) return 'Veuillez saisir un mot de passe valide';
+    if (!value.contains(RegExp(r'[0-9]'))) {
+      return 'Veuillez saisir un mot de passe valide';
+    }
+    if (!value.contains(RegExp(r'[^a-zA-Z0-9]'))) {
+      return 'Veuillez saisir un mot de passe valide';
+    }
     return null;
   }
 
@@ -83,47 +139,64 @@ class _LoginPageState extends State<LoginPage> {
   Future<void> _login() async {
     if (!_formKey.currentState!.validate()) return;
     FocusScope.of(context).unfocus();
-    setState(() { _isLoading = true; _errorMessage = null; });
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
 
     try {
+      // TODO: replace with real API call
       // 1. Authenticate — saves JWT tokens automatically
-      await apiClient.login(emailController.text.trim(), passwordController.text);
+      final user = await authService.login(
+        email: emailController.text.trim(),
+        password: passwordController.text,
+      );
 
-      // 2. Fetch current user profile to get the role
-      final userData = await apiClient.get('/api/users/me/');
-      final role = userData['role'] as String?;
+      // 2. Use the returned profile role for navigation.
+      final role = user.role;
 
-      // 3. Navigate to the correct dashboard based on role
+      // 3. Navigate to the correct dashboard based on role.
       if (!mounted) return;
-      final Widget destination = switch (role) {
-        'direction'   => const HomePageCeo(),
-        'collecteur'  => const MesEchantillonsPage(),
-        'degustateur' => const HomePage(),
-        'laboratoire' => const EchantillonsLaboPage(),
-        _             => const HomePage(),
-      };
+      final destination = _destinationForRole(role);
 
       Navigator.pushReplacement(
         context,
         PageRouteBuilder(
           transitionDuration: const Duration(milliseconds: 400),
-          pageBuilder: (_, __, ___) => destination,
-          transitionsBuilder: (_, animation, __, child) => FadeTransition(
-            opacity: CurvedAnimation(parent: animation, curve: Curves.easeIn),
-            child: child,
-          ),
+          pageBuilder: (context, animation, secondaryAnimation) => destination,
+          transitionsBuilder: (context, animation, secondaryAnimation, child) =>
+              FadeTransition(
+                opacity: CurvedAnimation(
+                  parent: animation,
+                  curve: Curves.easeIn,
+                ),
+                child: child,
+              ),
         ),
       );
     } on ApiException catch (e) {
       setState(() {
-        _errorMessage = e.statusCode == 401
-            ? 'Email ou mot de passe incorrect.'
-            : 'Erreur serveur (${e.statusCode}). Réessayez.';
+        _errorMessage = switch (e.code) {
+          'email_not_found' => "Aucun compte n'est associé à cet email.",
+          'password_incorrect' => 'Mot de passe incorrect.',
+          'account_inactive' => 'Ce compte est désactivé.',
+          _ =>
+            e.statusCode == 401
+                ? 'Email ou mot de passe incorrect.'
+                : 'Erreur serveur (${e.statusCode}). Réessayez.',
+        };
       });
     } catch (_) {
-      setState(() { _errorMessage = 'Impossible de joindre le serveur. Vérifiez votre connexion.'; });
+      setState(() {
+        _errorMessage =
+            'Impossible de joindre le serveur. Vérifiez votre connexion.';
+      });
     } finally {
-      if (mounted) setState(() { _isLoading = false; });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -162,27 +235,27 @@ class _LoginPageState extends State<LoginPage> {
                 Positioned(
                   top: -60,
                   right: -60,
-                  child: _circle(220, green.withOpacity(0.12)),
+                  child: _circle(220, green.withValues(alpha: 0.12)),
                 ),
                 Positioned(
                   bottom: -80,
                   left: -50,
-                  child: _circle(280, oliveGreen.withOpacity(0.10)),
+                  child: _circle(280, oliveGreen.withValues(alpha: 0.10)),
                 ),
                 Positioned(
                   top: screenHeight * 0.35,
                   left: -30,
-                  child: _circle(100, yellow.withOpacity(0.15)),
+                  child: _circle(100, yellow.withValues(alpha: 0.15)),
                 ),
                 Positioned(
                   bottom: screenHeight * 0.04,
                   right: -40,
-                  child: _circle(150, green.withOpacity(0.08)),
+                  child: _circle(150, green.withValues(alpha: 0.08)),
                 ),
                 Positioned(
                   bottom: screenHeight * 0.10,
                   left: screenWidth * 0.35,
-                  child: _circle(60, yellow.withOpacity(0.10)),
+                  child: _circle(60, yellow.withValues(alpha: 0.10)),
                 ),
               ],
             ),
@@ -242,7 +315,7 @@ class _LoginPageState extends State<LoginPage> {
                       borderRadius: BorderRadius.circular(24),
                       boxShadow: [
                         BoxShadow(
-                          color: green.withOpacity(0.08),
+                          color: green.withValues(alpha: 0.08),
                           blurRadius: 30,
                           offset: const Offset(0, 10),
                         ),
@@ -322,7 +395,10 @@ class _LoginPageState extends State<LoginPage> {
                               child: Text(
                                 _errorMessage!,
                                 textAlign: TextAlign.center,
-                                style: const TextStyle(color: red, fontSize: 13),
+                                style: const TextStyle(
+                                  color: red,
+                                  fontSize: 13,
+                                ),
                               ),
                             ),
                           SizedBox(
@@ -331,7 +407,12 @@ class _LoginPageState extends State<LoginPage> {
                             child: ElevatedButton(
                               onPressed: _isLoading ? null : _login,
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color.fromARGB(233, 22, 61, 39),
+                                backgroundColor: const Color.fromARGB(
+                                  233,
+                                  22,
+                                  61,
+                                  39,
+                                ),
                                 foregroundColor: Colors.white,
                                 elevation: 0,
                                 shape: RoundedRectangleBorder(
@@ -393,8 +474,10 @@ class _LoginPageState extends State<LoginPage> {
                         'Technicien labo',
                         () => _goTo(const EchantillonsLaboPage()),
                       ),
-                      _debugBtn('Chef de degus', () => _goTo(const chef.HomePage())),
-
+                      _debugBtn(
+                        'Chef de degus',
+                        () => _goTo(const chef.HomePage()),
+                      ),
                     ],
                   ),
 

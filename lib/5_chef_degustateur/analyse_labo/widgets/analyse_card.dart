@@ -26,12 +26,16 @@ class AnalyseCard extends StatefulWidget {
   final AnalyseLabo analyse;
   final VoidCallback? onModifier;
   final VoidCallback? onSupprimer;
+  final VoidCallback? onUrgentLabo;
+  final bool isUrgentLabo;
 
   const AnalyseCard({
     super.key,
     required this.analyse,
     this.onModifier,
     this.onSupprimer,
+    this.onUrgentLabo,
+    this.isUrgentLabo = false,
   });
 
   @override
@@ -131,6 +135,15 @@ class _AnalyseCardState extends State<AnalyseCard> {
                               const SizedBox(width: 10),
 
                               const Spacer(),
+                              if (widget.onUrgentLabo != null) ...[
+                                _UrgentLaboBtn(
+                                  isUrgent: widget.isUrgentLabo,
+                                  onTap: widget.isUrgentLabo
+                                      ? null
+                                      : widget.onUrgentLabo,
+                                ),
+                                const SizedBox(width: 4),
+                              ],
                               if (_expanded &&
                                   (widget.onModifier != null ||
                                       widget.onSupprimer != null)) ...[
@@ -179,6 +192,58 @@ class _AnalyseCardState extends State<AnalyseCard> {
       ),
     );
   }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// URGENT LAB BUTTON
+// ─────────────────────────────────────────────────────────────────────────────
+class _UrgentLaboBtn extends StatelessWidget {
+  final bool isUrgent;
+  final VoidCallback? onTap;
+  const _UrgentLaboBtn({required this.isUrgent, this.onTap});
+
+  static const _urgent = Color(0xFFC62828);
+  static const _urgentBg = Color(0xFFFFEBEE);
+
+  @override
+  Widget build(BuildContext context) => GestureDetector(
+    onTap: onTap,
+    child: AnimatedContainer(
+      duration: const Duration(milliseconds: 250),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: isUrgent ? _urgentBg : Colors.transparent,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: isUrgent ? _urgent : const Color(0xFFE0E0E0),
+          width: 1.2,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            isUrgent
+                ? Icons.notifications_active
+                : Icons.notifications_outlined,
+            size: 13,
+            color: isUrgent ? _urgent : Colors.grey.shade400,
+          ),
+          if (isUrgent) ...[
+            const SizedBox(width: 4),
+            const Text(
+              'Urgent',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                color: _urgent,
+              ),
+            ),
+          ],
+        ],
+      ),
+    ),
+  );
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

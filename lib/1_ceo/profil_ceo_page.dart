@@ -1,10 +1,11 @@
-// ═════════════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // FILE : 1_ceo/profil_ceo_page.dart
-// PURPOSE : CEO profile page — personal info and account settings
-// ═════════════════════════════════════════════════════════════════════════════
+// PURPOSE : CEO profile page â€” personal info and account settings
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 import 'package:flutter/material.dart';
 import 'package:project3/core/theme/app_colors.dart';
+import 'package:project3/core/services/profile_service.dart';
 import 'widgets/ceo_nav_mixin.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -12,6 +13,7 @@ import 'echantillons/echantillons_ceo_page.dart';
 import '../../../main.dart';
 import 'widgets/ceo_drawer.dart';
 import 'achats_confirmes/achats_confirmes_ceo_page.dart';
+import 'validation_achats/validation_achats_ceo_page.dart';
 import 'analyse_laboratoire/analyse_laboratoire_ceo_page.dart';
 import 'analyse_organoleptique/analyse_organoleptique_ceo_page.dart';
 import 'utilisateurs/widgets/utilisateurs_ceo_page.dart';
@@ -24,44 +26,46 @@ class ProfilceoPage extends StatefulWidget {
 }
 
 class _ProfilceoPageState extends State<ProfilceoPage> with CeoNavMixin {
+  // â”€â”€ Brand Colors â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-  // ── Brand Colors ──────────────────────────────────────────────────────────
-
-  // ── Controllers — empty by default, filled by backend later ──────────────
+  // â”€â”€ Controllers â€” empty by default, filled by backend later â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   late TextEditingController _nomController;
   late TextEditingController _prenomController;
   late TextEditingController _emailController;
   late TextEditingController _numeroController;
 
-  // ── Per-field editing booleans ────────────────────────────────────────────
+  // â”€â”€ Per-field editing booleans â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   bool _editingNom = false;
   bool _editingPrenom = false;
   bool _editingEmail = false;
   bool _editingnumero = false;
+  bool _profileLoading = false;
+  bool _profileSaving = false;
 
-  // ── Displayed header values ───────────────────────────────────────────────
+  // â”€â”€ Displayed header values â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   String _displayedFullName = '';
 
-  // ── FocusNodes ────────────────────────────────────────────────────────────
+  // â”€â”€ FocusNodes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   final FocusNode _nomFocus = FocusNode();
   final FocusNode _prenomFocus = FocusNode();
   final FocusNode _emailFocus = FocusNode();
   final FocusNode _numeroFocus = FocusNode();
 
-  // ── initState ─────────────────────────────────────────────────────────────
+  // â”€â”€ initState â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   @override
   void initState() {
     super.initState();
-    // ✅ Empty controllers — no default values
+    // âœ… Empty controllers â€” no default values
     // Later: populate from Spring Boot API response
-    // Example: GET /api/user/profile → _nomController.text = response.nom
+    // Example: GET /api/user/profile â†’ _nomController.text = response.nom
     _nomController = TextEditingController(text: '');
     _prenomController = TextEditingController(text: '');
     _emailController = TextEditingController(text: '');
     _numeroController = TextEditingController(text: '');
+    _loadProfile();
   }
 
-  // ── dispose ───────────────────────────────────────────────────────────────
+  // â”€â”€ dispose â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   @override
   void dispose() {
     _nomController.dispose();
@@ -75,65 +79,154 @@ class _ProfilceoPageState extends State<ProfilceoPage> with CeoNavMixin {
     super.dispose();
   }
 
-  // ── Toggle edit/save ─────────────────────────────────────────────────────
-  void _toggleEdit(String fieldKey) {
+  // â”€â”€ Toggle edit/save â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  Future<void> _loadProfile() async {
+    setState(() => _profileLoading = true);
+    try {
+      final profile = await profileService.currentProfile();
+      if (!mounted) return;
+      setState(() {
+        _nomController.text = profile.nom;
+        _prenomController.text = profile.prenom;
+        _emailController.text = profile.email;
+        _numeroController.text = profile.telephone ?? '';
+        _displayedFullName = profile.nomComplet;
+      });
+    } catch (error) {
+      if (!mounted) return;
+      _showError(profileService.messageFor(error));
+    } finally {
+      if (mounted) setState(() => _profileLoading = false);
+    }
+  }
+
+  Future<bool> _saveProfile(String successMessage) async {
+    if (_profileSaving) return false;
+    setState(() => _profileSaving = true);
+    try {
+      final profile = await profileService.updateCurrentProfile(
+        nom: _nomController.text.trim(),
+        prenom: _prenomController.text.trim(),
+        email: _emailController.text.trim(),
+        telephone: _numeroController.text.trim(),
+      );
+      if (!mounted) return false;
+      setState(() {
+        _nomController.text = profile.nom;
+        _prenomController.text = profile.prenom;
+        _emailController.text = profile.email;
+        _numeroController.text = profile.telephone ?? '';
+        _displayedFullName = profile.nomComplet;
+      });
+      _showSuccess(successMessage);
+      return true;
+    } catch (error) {
+      if (!mounted) return false;
+      _showError(profileService.messageFor(error));
+      return false;
+    } finally {
+      if (mounted) setState(() => _profileSaving = false);
+    }
+  }
+
+  void _focusField(String fieldKey) {
+    FocusNode? focusNode;
+    switch (fieldKey) {
+      case 'prenom':
+        focusNode = _prenomFocus;
+        break;
+      case 'nom':
+        focusNode = _nomFocus;
+        break;
+      case 'email':
+        focusNode = _emailFocus;
+        break;
+      case 'numero':
+        focusNode = _numeroFocus;
+        break;
+    }
+    if (focusNode != null) {
+      Future.delayed(const Duration(milliseconds: 50), focusNode.requestFocus);
+    }
+  }
+
+  Future<void> _toggleEdit(String fieldKey) async {
+    if (_profileLoading || _profileSaving) return;
+    var enteringEdit = false;
+    var successMessage = '';
+
     setState(() {
       switch (fieldKey) {
         case 'prenom':
           _editingPrenom = !_editingPrenom;
           if (_editingPrenom) {
-            Future.delayed(
-              const Duration(milliseconds: 50),
-              () => _prenomFocus.requestFocus(),
-            );
+            enteringEdit = true;
           } else {
             _displayedFullName =
                 '${_prenomController.text} ${_nomController.text}'.trim();
-            _showSuccess('Prénom mis à jour');
+            successMessage = 'Prénom mis à jour';
           }
           break;
 
         case 'nom':
           _editingNom = !_editingNom;
           if (_editingNom) {
-            Future.delayed(
-              const Duration(milliseconds: 50),
-              () => _nomFocus.requestFocus(),
-            );
+            enteringEdit = true;
           } else {
             _displayedFullName =
                 '${_prenomController.text} ${_nomController.text}'.trim();
-            _showSuccess('Nom mis à jour');
+            successMessage = 'Nom mis à jour';
           }
           break;
 
         case 'email':
           _editingEmail = !_editingEmail;
           if (_editingEmail) {
-            Future.delayed(
-              const Duration(milliseconds: 50),
-              () => _emailFocus.requestFocus(),
-            );
+            enteringEdit = true;
           } else {
-            _showSuccess('Email mis à jour');
+            successMessage = 'Email mis à jour';
           }
           break;
+
         case 'numero':
           _editingnumero = !_editingnumero;
           if (_editingnumero) {
-            Future.delayed(
-              const Duration(milliseconds: 50),
-              () => _numeroFocus.requestFocus(),
-            );
+            enteringEdit = true;
           } else {
-            _showSuccess('numero mis à jour');
+            successMessage = 'Numéro mis à jour';
           }
           break;
       }
     });
+
+    if (enteringEdit) {
+      _focusField(fieldKey);
+      return;
+    }
+
+    final saved = await _saveProfile(successMessage);
+    if (!saved && mounted) {
+      setState(() {
+        switch (fieldKey) {
+          case 'prenom':
+            _editingPrenom = true;
+            break;
+          case 'nom':
+            _editingNom = true;
+            break;
+          case 'email':
+            _editingEmail = true;
+            break;
+          case 'numero':
+            _editingnumero = true;
+            break;
+        }
+      });
+      _focusField(fieldKey);
+    }
   }
 
-  // ── Profile picture bottom sheet ──────────────────────────────────────────
+  // â”€â”€ Profile picture bottom sheet â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   void _onChangeProfilePicture() {
     showModalBottomSheet(
       context: context,
@@ -168,7 +261,7 @@ class _ProfilceoPageState extends State<ProfilceoPage> with CeoNavMixin {
               label: 'Choisir depuis la galerie',
               onTap: () {
                 Navigator.pop(context);
-                _showSuccess('Galerie — disponible avec image_picker');
+                _showSuccess('Galerie - disponible avec image_picker');
               },
             ),
             const SizedBox(height: 4),
@@ -177,7 +270,7 @@ class _ProfilceoPageState extends State<ProfilceoPage> with CeoNavMixin {
               label: 'Prendre une photo',
               onTap: () {
                 Navigator.pop(context);
-                _showSuccess('Caméra — disponible avec image_picker');
+                _showSuccess('Caméra - disponible avec image_picker');
               },
             ),
             const SizedBox(height: 4),
@@ -197,7 +290,7 @@ class _ProfilceoPageState extends State<ProfilceoPage> with CeoNavMixin {
     );
   }
 
-  // ── Build ─────────────────────────────────────────────────────────────────
+  // â”€â”€ Build â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -207,6 +300,7 @@ class _ProfilceoPageState extends State<ProfilceoPage> with CeoNavMixin {
         onAnalyseOrganoleptique: () =>
             goToPage(const AnalyseOrganoleptiqueCeoPage()),
         onAnalyseLaboratoire: () => goToPage(const AnalyseLaboratoireCeoPage()),
+        onValidationAchats: () => goToPage(const ValidationAchatsCeoPage()),
         onAchatsConfirmes: () => goToPage(const AchatsConfirmesCeoPage()),
         onTableauDeBord: () => Navigator.pop(context),
         onProfil: () => goToPage(const ProfilceoPage()),
@@ -234,9 +328,9 @@ class _ProfilceoPageState extends State<ProfilceoPage> with CeoNavMixin {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // ══════════════════════════════════════════════════════════════
+            // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
             // AVATAR + pen icon
-            // ══════════════════════════════════════════════════════════════
+            // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
             Stack(
               clipBehavior: Clip.none,
               children: [
@@ -286,7 +380,7 @@ class _ProfilceoPageState extends State<ProfilceoPage> with CeoNavMixin {
 
             const SizedBox(height: 10),
 
-            // ── Full name — shows after user saves prenom + nom ──
+            // â”€â”€ Full name â€” shows after user saves prenom + nom â”€â”€
             if (_displayedFullName.isNotEmpty)
               Text(
                 _displayedFullName,
@@ -299,9 +393,9 @@ class _ProfilceoPageState extends State<ProfilceoPage> with CeoNavMixin {
 
             const SizedBox(height: 30),
 
-            // ══════════════════════════════════════════════════════════════
+            // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
             // INFO CARD
-            // ══════════════════════════════════════════════════════════════
+            // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
@@ -321,7 +415,7 @@ class _ProfilceoPageState extends State<ProfilceoPage> with CeoNavMixin {
                   _sectionTitle('Informations Personnelles'),
                   const SizedBox(height: 20),
 
-                  // ── Prénom ──
+                  // â”€â”€ PrÃ©nom â”€â”€
                   _buildField(
                     label: 'Prénom',
                     controller: _prenomController,
@@ -329,12 +423,12 @@ class _ProfilceoPageState extends State<ProfilceoPage> with CeoNavMixin {
                     icon: Icons.person_outline,
                     isEditing: _editingPrenom,
                     fieldKey: 'prenom',
-                    hint: 'Votre prénom', // ✅ hint instead of default value
+                    hint: 'Votre prénom',
                     keyboardType: TextInputType.name,
                   ),
                   const SizedBox(height: 16),
 
-                  // ── Nom ──
+                  // â”€â”€ Nom â”€â”€
                   _buildField(
                     label: 'Nom',
                     controller: _nomController,
@@ -342,12 +436,12 @@ class _ProfilceoPageState extends State<ProfilceoPage> with CeoNavMixin {
                     icon: Icons.person_outline,
                     isEditing: _editingNom,
                     fieldKey: 'nom',
-                    hint: 'Votre nom', // ✅ hint instead of default value
+                    hint: 'Votre nom',
                     keyboardType: TextInputType.name,
                   ),
                   const SizedBox(height: 16),
 
-                  // ── Email ──
+                  // â”€â”€ Email â”€â”€
                   _buildField(
                     label: 'Email',
                     controller: _emailController,
@@ -355,11 +449,11 @@ class _ProfilceoPageState extends State<ProfilceoPage> with CeoNavMixin {
                     icon: Icons.email_outlined,
                     isEditing: _editingEmail,
                     fieldKey: 'email',
-                    hint: 'Votre email', // ✅ hint instead of default value
+                    hint: 'Votre email',
                     keyboardType: TextInputType.emailAddress,
                   ),
                   const SizedBox(height: 20),
-                  // ── Email ──
+                  // â”€â”€ Email â”€â”€
                   _buildField(
                     label: 'Numéro de Téléphone',
                     controller: _numeroController,
@@ -367,8 +461,7 @@ class _ProfilceoPageState extends State<ProfilceoPage> with CeoNavMixin {
                     icon: Icons.phone_outlined,
                     isEditing: _editingnumero,
                     fieldKey: 'numero',
-                    hint:
-                        'Votre Numéro de Téléphone', // ✅ hint instead of default value
+                    hint: 'Votre Numéro de Téléphone',
                     keyboardType: TextInputType.phone,
                   ),
                 ],
@@ -377,7 +470,7 @@ class _ProfilceoPageState extends State<ProfilceoPage> with CeoNavMixin {
 
             const SizedBox(height: 30),
 
-            // ── Change password ──
+            // â”€â”€ Change password â”€â”€
             SizedBox(
               width: double.infinity,
               child: OutlinedButton.icon(
@@ -401,9 +494,9 @@ class _ProfilceoPageState extends State<ProfilceoPage> with CeoNavMixin {
     );
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // HELPER — _buildField
-  // ─────────────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // HELPER â€” _buildField
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildField({
     required String label,
     required TextEditingController controller,
@@ -411,7 +504,7 @@ class _ProfilceoPageState extends State<ProfilceoPage> with CeoNavMixin {
     required IconData icon,
     required bool isEditing,
     required String fieldKey,
-    required String hint, // ✅ hint is now required
+    required String hint, // âœ… hint is now required
     TextInputType keyboardType = TextInputType.text,
   }) {
     return Column(
@@ -430,7 +523,7 @@ class _ProfilceoPageState extends State<ProfilceoPage> with CeoNavMixin {
             fontWeight: isEditing ? FontWeight.w500 : FontWeight.w400,
           ),
           decoration: InputDecoration(
-            hintText: hint, // ✅ shows hint when field is empty
+            hintText: hint, // âœ… shows hint when field is empty
             hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
             prefixIcon: Icon(icon, color: kGreen, size: 20),
             suffixIcon: IconButton(
@@ -446,7 +539,11 @@ class _ProfilceoPageState extends State<ProfilceoPage> with CeoNavMixin {
                   size: 15,
                 ),
               ),
-              onPressed: () => _toggleEdit(fieldKey),
+              onPressed: _profileLoading || _profileSaving
+                  ? null
+                  : () {
+                      _toggleEdit(fieldKey);
+                    },
             ),
             filled: true,
             fillColor: isEditing ? Colors.white : Colors.grey.shade50,
@@ -474,9 +571,9 @@ class _ProfilceoPageState extends State<ProfilceoPage> with CeoNavMixin {
     );
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // HELPER — _buildLockedField
-  // ─────────────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // HELPER â€” _buildLockedField
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildLockedField({
     required String label,
     required String value,
@@ -522,9 +619,9 @@ class _ProfilceoPageState extends State<ProfilceoPage> with CeoNavMixin {
     );
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // HELPER — _sectionTitle
-  // ─────────────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // HELPER â€” _sectionTitle
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _sectionTitle(String title) {
     return Text(
       title,
@@ -536,9 +633,9 @@ class _ProfilceoPageState extends State<ProfilceoPage> with CeoNavMixin {
     );
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // HELPER — _fieldLabel
-  // ─────────────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // HELPER â€” _fieldLabel
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _fieldLabel(String label) {
     return Text(
       label,
@@ -551,9 +648,9 @@ class _ProfilceoPageState extends State<ProfilceoPage> with CeoNavMixin {
     );
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // HELPER — _bottomSheetItem
-  // ─────────────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // HELPER â€” _bottomSheetItem
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _bottomSheetItem({
     required IconData icon,
     required String label,
@@ -575,9 +672,9 @@ class _ProfilceoPageState extends State<ProfilceoPage> with CeoNavMixin {
     );
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // HELPER — _showSuccess
-  // ─────────────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // HELPER â€” _showSuccess
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   void _showSuccess(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -596,9 +693,27 @@ class _ProfilceoPageState extends State<ProfilceoPage> with CeoNavMixin {
     );
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // HELPER — _showChangePasswordDialog
-  // ─────────────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // HELPER â€” _showChangePasswordDialog
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          message,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        backgroundColor: Colors.red.shade600,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        margin: const EdgeInsets.all(20),
+      ),
+    );
+  }
+
   void _showChangePasswordDialog() {
     final currentPwController = TextEditingController();
     final newPwController = TextEditingController();
@@ -745,6 +860,3 @@ class _ProfilceoPageState extends State<ProfilceoPage> with CeoNavMixin {
     );
   }
 }
-
-
-

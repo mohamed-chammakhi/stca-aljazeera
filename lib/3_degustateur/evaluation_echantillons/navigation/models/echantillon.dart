@@ -68,10 +68,15 @@ class Echantillon {
 
   static StatutEchantillon _parseStatut(String s) {
     switch (s) {
+      case 'en_cours':
       case 'EN_COURS':
         return StatutEchantillon.enCours;
+      case 'soumis':
       case 'SOUMIS':
         return StatutEchantillon.soumis;
+      case 'non_evaluee':
+      case 'en_attente':
+      case 'EN_ATTENTE':
       default:
         return StatutEchantillon.enAttente;
     }

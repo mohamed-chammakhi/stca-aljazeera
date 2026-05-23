@@ -1,0 +1,13 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Flutter phone - Django WiFi",
+      "request": "launch",
+      "type": "dart",
+      "toolArgs": [
+        "--dart-define=API_BASE_URL=http://10.220.54.8:8000"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,61 @@
+@startuml
+title Diagramme de sequence - Soumission d'une analyse laboratoire avec OCR
+
+actor "Technicien Labo" as Lab
+boundary "Interface Echantillons a Analyser" as UI
+control "Controleur Analyse Laboratoire" as Controller
+control "Service OCR" as OCR
+entity "Modele Analyse Laboratoire" as Analysis
+entity "Modele Echantillon" as Sample
+database "Base de donnees" as DB
+
+Lab -> UI : Demander la page des echantillons a analyser
+UI -> Controller : Charger les echantillons recus physiquement
+Controller -> Sample : Recuperer les echantillons eligibles
+Sample -> DB : Lire les echantillons recus physiquement
+DB --> Sample : Retourner la liste
+Sample --> Controller : Liste des echantillons
+Controller --> UI : Envoyer la liste
+UI --> Lab : Afficher les echantillons
+
+Lab -> UI : Selectionner un echantillon
+UI -> Controller : Charger le formulaire d'analyse
+Controller -> Analysis : Verifier l'analyse existante
+Analysis -> DB : Rechercher l'analyse de l'echantillon
+DB --> Analysis : Resultat de recherche
+Analysis --> Controller : Analyse existante ou nouveau formulaire
+Controller --> UI : Afficher le formulaire
+
+alt Utilisation de l'OCR
+    Lab -> UI : Importer le rapport papier
+    UI -> OCR : Envoyer l'image du rapport
+    OCR --> UI : Retourner les valeurs extraites
+    UI --> Lab : Pre-remplir le formulaire d'analyse
+else Saisie manuelle
+    Lab -> UI : Saisir les resultats d'analyse
+end
+
+Lab -> UI : Enregistrer ou soumettre l'analyse
+UI -> UI : Verifier les champs obligatoires
+
+alt Donnees invalides
+    UI --> Lab : Afficher un message d'erreur
+else Analyse deja soumise
+    UI -> Controller : Verifier l'etat de l'analyse
+    Controller -> Analysis : Lire l'etat
+    Analysis -> DB : Recuperer l'etat actuel
+    DB --> Analysis : Analyse soumise
+    Analysis --> Controller : Modification interdite
+    Controller --> UI : Refuser la modification
+    UI --> Lab : Afficher un message d'erreur
+else Donnees valides
+    UI -> Controller : Envoyer les resultats d'analyse
+    Controller -> Analysis : Enregistrer les resultats
+    Analysis -> DB : Sauvegarder l'analyse
+    DB --> Analysis : Confirmation
+    Analysis --> Controller : Analyse enregistree
+    Controller --> UI : Confirmer l'operation
+    UI --> Lab : Afficher un message de succes
+end
+
+@enduml

@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>CEO Final Confirmation — Design Options</title>
+<style>
+  body { font-family: -apple-system, system-ui, sans-serif; background:#f4f4f0; margin:0; padding:32px; color:#1A2E1F;}
+  h1 { font-family: Georgia, serif; font-size:24px; margin:0 0 8px;}
+  .subtitle { color:#666; margin-bottom:32px; font-size:14px;}
+  .grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap:28px; }
+  .card { background:white; border-radius:18px; padding:20px; box-shadow:0 2px 12px rgba(0,0,0,.06); cursor:pointer; transition:transform .15s, box-shadow .15s; border:2px solid transparent;}
+  .card:hover { transform:translateY(-3px); box-shadow:0 6px 24px rgba(0,0,0,.1);}
+  .card.selected { border-color:#38835A; box-shadow:0 0 0 4px rgba(56,131,90,.15);}
+  .card h3 { font-family: Georgia, serif; margin:0 0 4px; font-size:18px; color:#1A2E1F;}
+  .card .tag { display:inline-block; font-size:11px; background:#DCE9E2; color:#38835A; padding:3px 10px; border-radius:99px; font-weight:600; margin-bottom:10px;}
+  .card p.desc { font-size:13px; color:#555; line-height:1.5; margin:10px 0 14px;}
+
+  /* Phone frame */
+  .phone { background:#fff; border-radius:24px; border:1px solid #e0e0d8; overflow:hidden; margin:8px 0; aspect-ratio: 9/16; max-height:520px; display:flex; flex-direction:column;}
+  .appbar { background:#DCE9E2; padding:14px 16px; display:flex; align-items:center; gap:10px; border-bottom:1px solid rgba(0,0,0,.05);}
+  .appbar .menu { color:#1A2E1F; font-size:18px;}
+  .appbar .title { font-family:Georgia,serif; font-weight:700; color:#1A2E1F; font-size:14px;}
+  .appbar .bell { margin-left:auto; position:relative; color:#1A2E1F;}
+  .appbar .bell .dot { position:absolute; top:-2px; right:-2px; background:#E25C5C; width:8px; height:8px; border-radius:50%;}
+  .body { flex:1; overflow:hidden; position:relative; background:#fff;}
+  .search-zone { background:#DCE9E2; padding:0 14px 12px;}
+  .search { background:white; border-radius:10px; padding:8px 12px; font-size:11px; color:#999;}
+  .filter-row { padding:8px 14px; display:flex; gap:6px; font-size:10px;}
+  .chip { padding:4px 10px; border-radius:99px; background:#F0F0F0; color:#444;}
+  .chip.active { background:#38835A; color:white;}
+  .sample-card { margin:8px 14px; border:1px solid #ecece4; border-radius:12px; padding:10px;}
+  .sample-card .ref { font-weight:700; font-size:12px; color:#1A2E1F;}
+  .sample-card .meta { font-size:10px; color:#888; margin-top:2px;}
+  .sample-card .pill { display:inline-block; font-size:9px; padding:2px 8px; border-radius:99px; margin-top:6px; font-weight:600;}
+  .pill-pending { background:#FFF3E0; color:#D07B2F;}
+  .pill-confirmed { background:#E6F4ED; color:#38835A;}
+
+  /* Drawer */
+  .drawer-mock { position:absolute; left:0; top:0; bottom:0; width:65%; background:#1A2E1F; color:white; padding:16px; font-size:11px;}
+  .drawer-mock .item { padding:8px 10px; border-radius:8px; margin-bottom:4px; opacity:.7;}
+  .drawer-mock .item.new { background:#38835A; opacity:1; font-weight:700;}
+  .drawer-mock .item.new::after { content:" • 3"; background:#E25C5C; padding:1px 6px; border-radius:99px; font-size:9px; margin-left:6px;}
+
+  /* Modal/sheet */
+  .sheet { position:absolute; left:0; right:0; bottom:0; background:white; border-top-left-radius:20px; border-top-right-radius:20px; padding:16px; box-shadow:0 -8px 24px rgba(0,0,0,.15); max-height:75%; overflow:auto;}
+  .sheet .handle { width:40px; height:4px; background:#ddd; border-radius:2px; margin:0 auto 12px;}
+  .sheet h4 { font-family:Georgia,serif; margin:0 0 4px; font-size:14px; color:#1A2E1F;}
+  .sheet .sub { font-size:10px; color:#888; margin-bottom:12px;}
+  .sheet .row { display:flex; justify-content:space-between; padding:6px 0; font-size:11px; border-bottom:1px dashed #eee;}
+  .sheet .row .k { color:#888;}
+  .sheet .row .v { color:#1A2E1F; font-weight:600;}
+  .sheet .actions { display:flex; gap:8px; margin-top:14px;}
+  .btn { flex:1; padding:10px; border-radius:10px; font-size:11px; font-weight:700; text-align:center; border:none;}
+  .btn-confirm { background:#38835A; color:white;}
+  .btn-refuse { background:white; color:#E25C5C; border:1.5px solid #E25C5C;}
+
+  /* Notification screen */
+  .notif-card { margin:8px 14px; padding:12px; border-radius:12px; background:#F8FAF9; border-left:3px solid #38835A; font-size:11px;}
+  .notif-card.unread { background:#E6F4ED;}
+  .notif-card .h { font-weight:700; color:#1A2E1F; font-size:12px;}
+  .notif-card .t { color:#666; margin-top:3px;}
+  .notif-card .time { color:#999; font-size:9px; margin-top:6px;}
+
+  /* Banner on existing page */
+  .banner { margin:8px 14px; padding:10px 12px; background:linear-gradient(135deg,#FFF3E0,#FEF8F0); border:1px solid #FFD8AA; border-radius:10px; font-size:11px; display:flex; align-items:center; gap:8px;}
+  .banner .ico { background:#D07B2F; color:white; border-radius:50%; width:24px; height:24px; display:grid; place-items:center; font-size:13px; flex-shrink:0;}
+  .banner .txt { flex:1; color:#1A2E1F;}
+  .banner .cta { background:#D07B2F; color:white; padding:5px 10px; border-radius:8px; font-size:10px; font-weight:700;}
+
+  /* Dashboard widget */
+  .dash-widget { margin:8px 14px; background:white; border:1px solid #ecece4; border-radius:14px; padding:12px;}
+  .dash-widget .h { display:flex; align-items:center; gap:8px; margin-bottom:8px;}
+  .dash-widget .h .ico { width:28px; height:28px; background:#FFF3E0; color:#D07B2F; border-radius:8px; display:grid; place-items:center;}
+  .dash-widget .h .ttl { font-weight:700; color:#1A2E1F; font-size:12px;}
+  .dash-widget .h .badge { margin-left:auto; background:#D07B2F; color:white; padding:2px 8px; border-radius:99px; font-size:10px; font-weight:700;}
+  .dash-widget .item { padding:8px 0; border-top:1px solid #f0f0e8; font-size:11px; display:flex; justify-content:space-between;}
+  .dash-widget .item:first-of-type { border-top:none;}
+  .dash-widget .item .arrow { color:#D07B2F;}
+
+  .tradeoffs { font-size:11px; line-height:1.6; margin-top:10px;}
+  .tradeoffs .good { color:#38835A;}
+  .tradeoffs .bad { color:#B05050;}
+</style>
+</head>
+<body>
+
+<h1>Confirmation finale de l'achat — où le CEO la voit-il ?</h1>
+<p class="subtitle">4 designs réels pour intégrer le moment où le CEO valide la proposition d'achat du collecteur. Clique celui qui te parle.</p>
+
+<div class="grid">
+
+  <!-- OPTION A: Notification → tap → modal sheet -->
+  <div class="card" onclick="select(this,'a')">
+    <div class="tag">Option A</div>
+    <h3>Notification → bottom sheet</h3>
+    <p class="desc">La proposition arrive dans le centre de notifications du CEO. Il tape la notif → un bottom sheet s'ouvre avec tous les détails + boutons Confirmer / Refuser. Décision en 2 taps depuis la cloche.</p>
+    <div class="phone">
+      <div class="appbar">
+        <span class="menu">☰</span>
+        <span class="title">Notifications</span>
+        <span class="bell">🔔<span class="dot"></span></span>
+      </div>
+      <div class="body" style="overflow:auto;">
+        <div class="notif-card unread">
+          <div class="h">Nouvelle proposition d'achat</div>
+          <div class="t">B-1287 (Sfax) — Ali Trabelsi propose 8 200 DT/T</div>
+          <div class="time">il y a 4 min</div>
+        </div>
+        <div class="notif-card">
+          <div class="h">Analyse labo soumise</div>
+          <div class="t">B-1284 (Médenine) — acidité 0.42%</div>
+          <div class="time">il y a 1h</div>
+        </div>
+        <div class="sheet" style="bottom:0;">
+          <div class="handle"></div>
+          <h4>Proposition d'achat — B-1287</h4>
+          <div class="sub">Soumise par Ali Trabelsi · Sfax</div>
+          <div class="row"><span class="k">Prix négocié</span><span class="v">8 200 DT/T</span></div>
+          <div class="row"><span class="k">Quantité</span><span class="v">12 T</span></div>
+          <div class="row"><span class="k">Camion</span><span class="v">204 TN 5621</span></div>
+          <div class="row"><span class="k">Scellage</span><span class="v">SC-9821</span></div>
+          <div class="row"><span class="k">Arrivée prévue</span><span class="v">23 mai 2026</span></div>
+          <div class="actions">
+            <button class="btn btn-refuse">Refuser</button>
+            <button class="btn btn-confirm">Confirmer l'achat</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="tradeoffs">
+      <span class="good">+ Cohérent avec les autres alertes</span> · le CEO a déjà l'habitude des notifs<br>
+      <span class="good">+ Aucune nouvelle page à créer</span><br>
+      <span class="bad">– Si la notif est ratée, la proposition reste invisible</span>
+    </div>
+  </div>
+
+  <!-- OPTION B: Dashboard widget -->
+  <div class="card" onclick="select(this,'b')">
+    <div class="tag">Option B</div>
+    <h3>Bloc "À valider" sur le tableau de bord</h3>
+    <p class="desc">Un widget dédié sur le dashboard CEO liste les propositions en attente avec un badge orange. Premier écran d'ouverture de l'app = on voit immédiatement ce qu'il y a à valider.</p>
+    <div class="phone">
+      <div class="appbar">
+        <span class="menu">☰</span>
+        <span class="title">Tableau de bord</span>
+        <span class="bell">🔔<span class="dot"></span></span>
+      </div>
+      <div class="body" style="overflow:auto; background:#f9f9f4;">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; padding:10px 14px;">
+          <div style="background:white; padding:8px; border-radius:10px; font-size:10px;"><div style="color:#888;">Échantillons</div><div style="font-weight:700; font-size:16px;">147</div></div>
+          <div style="background:white; padding:8px; border-radius:10px; font-size:10px;"><div style="color:#888;">Achats confirmés</div><div style="font-weight:700; font-size:16px;">23</div></div>
+        </div>
+        <div class="dash-widget">
+          <div class="h">
+            <div class="ico">⚖️</div>
+            <div class="ttl">Propositions à valider</div>
+            <div class="badge">3</div>
+          </div>
+          <div class="item"><span><strong>B-1287</strong> · Sfax · 8 200 DT/T</span><span class="arrow">›</span></div>
+          <div class="item"><span><strong>B-1284</strong> · Médenine · 7 950 DT/T</span><span class="arrow">›</span></div>
+          <div class="item"><span><strong>B-1279</strong> · Mahdia · 8 350 DT/T</span><span class="arrow">›</span></div>
+        </div>
+        <div class="dash-widget" style="opacity:.6;">
+          <div class="h"><div class="ttl" style="font-size:11px;">Stock en transit</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="tradeoffs">
+      <span class="good">+ Visibilité maximale</span> dès l'ouverture<br>
+      <span class="good">+ Compte clair des décisions en attente</span><br>
+      <span class="bad">– Demande une nouvelle section sur le dashboard</span>
+    </div>
+  </div>
+
+  <!-- OPTION C: New drawer entry -->
+  <div class="card" onclick="select(this,'c')">
+    <div class="tag">Option C</div>
+    <h3>Nouvelle entrée drawer "Validation achats"</h3>
+    <p class="desc">Une page complète dédiée dans le menu CEO entre "Analyse labo" et "Achats confirmés". Liste filtrable des propositions en attente avec workflow Confirmer/Refuser. Sépare clairement "à décider" de "déjà confirmé".</p>
+    <div class="phone">
+      <div class="appbar">
+        <span class="menu">☰</span>
+        <span class="title">Validation achats</span>
+        <span class="bell">🔔</span>
+      </div>
+      <div class="body" style="position:relative;">
+        <div class="drawer-mock">
+          <div class="item">Tableau de bord</div>
+          <div class="item">Échantillons</div>
+          <div class="item">Analyse organoleptique</div>
+          <div class="item">Analyse labo</div>
+          <div class="item new">Validation achats</div>
+          <div class="item">Achats confirmés</div>
+          <div class="item">Utilisateurs</div>
+        </div>
+      </div>
+    </div>
+    <div class="tradeoffs">
+      <span class="good">+ Frontière nette</span> entre "à valider" et "confirmé"<br>
+      <span class="good">+ Symétrie</span> avec analyse organoleptique / labo<br>
+      <span class="bad">– Un menu déjà chargé devient plus long</span>
+    </div>
+  </div>
+
+  <!-- OPTION D: Inline on organoleptic page -->
+  <div class="card" onclick="select(this,'d')">
+    <div class="tag">Option D</div>
+    <h3>Bannière sur la page Analyse Organoleptique</h3>
+    <p class="desc">Puisque le CEO a déjà approuvé l'échantillon depuis cette page, la proposition d'achat finale revient au même endroit : une bannière orange apparaît sur la carte de l'échantillon dès que le collecteur soumet sa proposition. Continuité narrative.</p>
+    <div class="phone">
+      <div class="appbar">
+        <span class="menu">☰</span>
+        <span class="title">Analyse organoleptique</span>
+        <span class="bell">🔔<span class="dot"></span></span>
+      </div>
+      <div class="body" style="overflow:auto;">
+        <div class="search-zone">
+          <div class="search">Réf, fournisseur, gouvernorat…</div>
+        </div>
+        <div class="filter-row">
+          <span class="chip active">Tous</span>
+          <span class="chip">En attente</span>
+          <span class="chip">Approuvés</span>
+        </div>
+        <div class="sample-card">
+          <div class="ref">B-1287 · Sfax</div>
+          <div class="meta">Ali Trabelsi · Chemlali · 12 T</div>
+          <div class="banner" style="margin:10px 0 0;">
+            <div class="ico">!</div>
+            <div class="txt"><strong>Proposition d'achat reçue</strong><br><span style="color:#666;font-size:10px;">8 200 DT/T · arrivée 23 mai</span></div>
+            <div class="cta">Décider</div>
+          </div>
+        </div>
+        <div class="sample-card">
+          <div class="ref">B-1284 · Médenine</div>
+          <div class="meta">Mounir Saïd · Chetoui · 8 T</div>
+          <span class="pill pill-confirmed">Approuvé</span>
+        </div>
+      </div>
+    </div>
+    <div class="tradeoffs">
+      <span class="good">+ Continuité</span> — le CEO décide au même endroit où il avait approuvé<br>
+      <span class="good">+ Zéro nouvelle page</span><br>
+      <span class="bad">– Mélange "évaluation sensorielle" et "validation commerciale"</span>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function select(el, choice) {
+  document.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  if (window.recordChoice) window.recordChoice(choice, el.querySelector('h3').textContent);
+}
+</script>
+</body>
+</html>

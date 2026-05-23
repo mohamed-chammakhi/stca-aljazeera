@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import 'services/evaluation_service.dart';
+
 // ─────────────────────────────────────────────────────────────────────────────
 // PAGE — FormulaireEvaluationPage
 // Formulaire de dégustation conforme aux normes COI
@@ -33,7 +35,7 @@ class FormulaireEvaluationPage extends StatefulWidget {
   });
 
   @override
-  _FormulaireEvaluationPageState createState() =>
+  State<FormulaireEvaluationPage> createState() =>
       _FormulaireEvaluationPageState();
 }
 
@@ -47,11 +49,15 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
 
   // ── Soumis → verrouille tout ──────────────────────────────────────────────
   late bool _estSoumis;
+  final EvaluationService _service = EvaluationService();
+  String? _evaluationId;
+  bool _saving = false;
 
   @override
   void initState() {
     super.initState();
     _estSoumis = widget.readOnly;
+    _loadExistingEvaluation();
   }
 
   // ── TYPE de fruité (Vert / Mûr) ──────────────────────────────────────────
@@ -156,6 +162,82 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
     if (val <= 3.0) return 'Délicat';
     if (val <= 6.0) return 'Moyen';
     return 'Robuste';
+  }
+
+  Future<void> _loadExistingEvaluation() async {
+    try {
+      final evaluation = await _service.fetchEvaluation(widget.echantillonId);
+      if (evaluation == null || !mounted) return;
+      setState(() => _applyEvaluation(evaluation));
+    } catch (_) {
+      // Keep the existing mock/default form usable when the backend is offline.
+    }
+  }
+
+  void _applyEvaluation(Map<String, dynamic> data) {
+    _evaluationId = data['id'] as String?;
+    _fruite = _numValue(data['fruite']);
+    _fruiteVert = data['fruite_vert'] as bool? ?? true;
+    _amer = _numValue(data['amertume']);
+    _piquant = _numValue(data['piquant']);
+    _chome = _numValue(data['chome']);
+    _moisi = _numValue(data['moisi']);
+    _vinaigre = _numValue(data['vinaigre']);
+    _rance = _numValue(data['rance']);
+    _gele = _numValue(data['gele']);
+    _autresDefaut = _numValue(data['autres_defaut']);
+    _autresDefautNomController.text =
+        data['autres_defaut_nom']?.toString() ?? '';
+    _notesController.text = data['commentaire']?.toString() ?? '';
+    _estSoumis = widget.readOnly || data['statut'] == 'soumis';
+  }
+
+  double _numValue(dynamic value) {
+    if (value == null) return 0.0;
+    if (value is num) return value.toDouble();
+    return double.tryParse(value.toString()) ?? 0.0;
+  }
+
+  Map<String, dynamic> _evaluationPayload() => {
+    'echantillon': widget.echantillonId,
+    'statut': 'en_cours',
+    'classification': _classificationCode(_classification['label'] as String),
+    'fruite': _fruite,
+    'fruite_vert': _fruiteVert,
+    'amertume': _amer,
+    'piquant': _piquant,
+    'chome': _chome,
+    'moisi': _moisi,
+    'vinaigre': _vinaigre,
+    'rance': _rance,
+    'gele': _gele,
+    'autres_defaut': _autresDefaut,
+    'autres_defaut_nom': _autresDefautNomController.text.trim(),
+    'commentaire': _notesController.text.trim(),
+  };
+
+  String _classificationCode(String label) {
+    switch (label) {
+      case 'Extra Vierge':
+        return 'extra_vierge';
+      case 'Vierge':
+        return 'vierge';
+      case 'Vierge Ordinaire':
+        return 'vierge_ordinaire';
+      case 'Lampante':
+        return 'lampante';
+      default:
+        return '';
+    }
+  }
+
+  Future<Map<String, dynamic>> _saveDraft() async {
+    final payload = _evaluationPayload();
+    final saved = _evaluationId == null
+        ? await _service.createEvaluation(payload)
+        : await _service.updateEvaluation(_evaluationId!, payload);
+    _evaluationId = saved['id'] as String?;
+    return saved;
   }
 
   Color _sliderColor(double val) {
@@ -585,7 +667,7 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
               SizedBox(
                 width: double.infinity,
                 child: OutlinedButton.icon(
-                  onPressed: _enregistrerBrouillon,
+                  onPressed: _saving ? null : _enregistrerBrouillon,
                   icon: const Icon(Icons.save_outlined, size: 18),
                   label: const Text('Enregistrer le brouillon'),
                   style: OutlinedButton.styleFrom(
@@ -605,7 +687,7 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
-                  onPressed: _confirmerSoumission,
+                  onPressed: _saving ? null : _confirmerSoumission,
                   icon: const Icon(Icons.lock_outline, size: 18),
                   label: const Text(
                     'Soumettre & Verrouiller',
@@ -733,12 +815,12 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
                 ),
                 decoration: BoxDecoration(
                   color: value > 0
-                      ? color.withValues(alpha:0.1)
+                      ? color.withValues(alpha: 0.1)
                       : Colors.grey.shade100,
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
                     color: value > 0
-                        ? color.withValues(alpha:0.4)
+                        ? color.withValues(alpha: 0.4)
                         : Colors.grey.shade200,
                   ),
                 ),
@@ -761,7 +843,7 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: color.withValues(alpha:0.1),
+                    color: color.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
@@ -800,12 +882,12 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
                   height: 34,
                   decoration: BoxDecoration(
                     color: value > 0 && !_estSoumis
-                        ? color.withValues(alpha:0.1)
+                        ? color.withValues(alpha: 0.1)
                         : Colors.grey.shade100,
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
                       color: value > 0 && !_estSoumis
-                          ? color.withValues(alpha:0.4)
+                          ? color.withValues(alpha: 0.4)
                           : Colors.grey.shade200,
                     ),
                   ),
@@ -832,7 +914,7 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
                             : color,
                         inactiveTrackColor: Colors.grey.shade200,
                         thumbColor: _estSoumis ? Colors.grey.shade400 : color,
-                        overlayColor: color.withValues(alpha:0.15),
+                        overlayColor: color.withValues(alpha: 0.15),
                         trackHeight: 5.0,
                         thumbShape: const RoundSliderThumbShape(
                           enabledThumbRadius: 9,
@@ -896,12 +978,12 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
                   height: 34,
                   decoration: BoxDecoration(
                     color: value < 10.0 && !_estSoumis
-                        ? color.withValues(alpha:0.1)
+                        ? color.withValues(alpha: 0.1)
                         : Colors.grey.shade100,
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
                       color: value < 10.0 && !_estSoumis
-                          ? color.withValues(alpha:0.4)
+                          ? color.withValues(alpha: 0.4)
                           : Colors.grey.shade200,
                     ),
                   ),
@@ -1014,9 +1096,9 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withValues(alpha:0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withValues(alpha:0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Text(
         '$label: ${value.toStringAsFixed(1)}',
@@ -1107,20 +1189,47 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
   // ─────────────────────────────────────────────────────────────────────────
   // ACTION — Enregistrer brouillon
   // ─────────────────────────────────────────────────────────────────────────
-  void _enregistrerBrouillon() {
-    // TODO: POST /api/evaluations/brouillon
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text(
-          'Brouillon enregistré',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+  Future<void> _enregistrerBrouillon() async {
+    setState(() => _saving = true);
+    try {
+      await _saveDraft();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text(
+            'Brouillon enregistré',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+          ),
+          backgroundColor: oliveGreen,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          margin: const EdgeInsets.all(20),
         ),
-        backgroundColor: oliveGreen,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        margin: const EdgeInsets.all(20),
-      ),
-    );
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            _service.messageFor(error),
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          backgroundColor: Colors.red.shade700,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          margin: const EdgeInsets.all(20),
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
   }
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -1129,7 +1238,7 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
   void _confirmerSoumission() {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: Row(
           children: [
             Icon(Icons.lock_outline, color: green, size: 22),
@@ -1165,35 +1274,63 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: const Text('Annuler'),
           ),
           ElevatedButton.icon(
-            onPressed: () {
-              // Close the confirm dialog
-              Navigator.pop(context);
-              setState(() => _estSoumis = true);
-              // TODO: POST /api/evaluations/soumettre
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: const Text(
-                    'Évaluation soumise et verrouillée ✅',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
+            onPressed: () async {
+              Navigator.pop(dialogContext);
+              setState(() => _saving = true);
+              try {
+                final draft = await _saveDraft();
+                final evaluationId = _evaluationId ?? draft['id'] as String?;
+                if (evaluationId == null) {
+                  throw StateError('Evaluation introuvable.');
+                }
+                await _service.soumettre(evaluationId);
+                if (!mounted) return;
+                setState(() => _estSoumis = true);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: const Text(
+                      'Évaluation soumise et verrouillée',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
+                    backgroundColor: green,
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    margin: const EdgeInsets.all(20),
                   ),
-                  backgroundColor: green,
-                  behavior: SnackBarBehavior.floating,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                );
+                final classif = _classification['label'] as String;
+                Navigator.pop(context, classif);
+              } catch (error) {
+                if (!mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      _service.messageFor(error),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    backgroundColor: Colors.red.shade700,
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    margin: const EdgeInsets.all(20),
                   ),
-                  margin: const EdgeInsets.all(20),
-                ),
-              );
-              // Return the classification label to the calling page
-              final classif = _classification['label'] as String;
-              Navigator.pop(context, classif);
+                );
+              } finally {
+                if (mounted) setState(() => _saving = false);
+              }
             },
             icon: const Icon(Icons.lock_outline, size: 16),
             label: const Text('Soumettre'),

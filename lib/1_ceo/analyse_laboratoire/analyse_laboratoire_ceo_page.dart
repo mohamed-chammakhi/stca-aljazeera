@@ -13,6 +13,7 @@ import '../utilisateurs/models/echantillon_ceo_view.dart';
 import '../echantillons/echantillons_ceo_page.dart';
 import '../analyse_organoleptique/analyse_organoleptique_ceo_page.dart';
 import '../achats_confirmes/achats_confirmes_ceo_page.dart';
+import '../validation_achats/validation_achats_ceo_page.dart';
 import '../profil_ceo_page.dart';
 import '../../main.dart';
 import '../utilisateurs/models/mock_data_patch.dart';
@@ -168,6 +169,7 @@ class _AnalyseLaboratoireCeoPageState extends State<AnalyseLaboratoireCeoPage> w
         onAnalyseOrganoleptique: () =>
             goToPage(const AnalyseOrganoleptiqueCeoPage()),
         onAnalyseLaboratoire: () => goToPage(const AnalyseLaboratoireCeoPage()),
+        onValidationAchats: () => goToPage(const ValidationAchatsCeoPage()),
         onAchatsConfirmes: () => goToPage(const AchatsConfirmesCeoPage()),
         onTableauDeBord: () => Navigator.pop(context),
         onProfil: () => goToPage(const ProfilceoPage()),

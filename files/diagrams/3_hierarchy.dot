@@ -1,0 +1,20 @@
+// Role hierarchy (org-chart style) showing supervision relationships
+// Render: dot -Tpng 3_hierarchy.dot -o 3_hierarchy.png
+digraph hierarchy {
+  graph [charset="UTF-8", rankdir=TB, dpi=150, bgcolor="white", pad=0.4,
+         nodesep=0.6, ranksep=1.0, fontname="Arial"];
+  node [shape=box, style="filled,rounded", fontname="Arial", fontsize=12,
+        fillcolor="#DCE9E2", fontcolor="#1A2E1F"];
+  edge [color="#1A2E1F", penwidth=1.3, arrowhead=none];
+
+  admin      [label="Administrator", fillcolor="#38835A", fontcolor="white"];
+  supervisor [label="Panel Evaluation Supervisor"];
+  collector  [label="Collector"];
+  lab        [label="Laboratory Technician"];
+  panel      [label="Tasting Panel Member"];
+
+  admin -> collector;
+  admin -> supervisor;
+  admin -> lab;
+  supervisor -> panel;
+}

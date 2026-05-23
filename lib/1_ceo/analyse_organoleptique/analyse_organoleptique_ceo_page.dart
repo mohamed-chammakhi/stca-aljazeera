@@ -15,6 +15,7 @@ import '../widgets/shared_evaluation_form_sheet.dart';
 import '../echantillons/echantillons_ceo_page.dart';
 import '../analyse_laboratoire/analyse_laboratoire_ceo_page.dart';
 import '../achats_confirmes/achats_confirmes_ceo_page.dart';
+import '../validation_achats/validation_achats_ceo_page.dart';
 import '../profil_ceo_page.dart';
 import '../../main.dart';
 import '../utilisateurs/models/mock_data_patch.dart';
@@ -433,6 +434,7 @@ class _AnalyseOrganoleptiqueCeoPageState
         onAnalyseOrganoleptique: () =>
             goToPage(const AnalyseOrganoleptiqueCeoPage()),
         onAnalyseLaboratoire: () => goToPage(const AnalyseLaboratoireCeoPage()),
+        onValidationAchats: () => goToPage(const ValidationAchatsCeoPage()),
         onAchatsConfirmes: () => goToPage(const AchatsConfirmesCeoPage()),
         onTableauDeBord: () => Navigator.pop(context),
         onProfil: () => goToPage(const ProfilceoPage()),

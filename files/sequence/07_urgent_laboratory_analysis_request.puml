@@ -1,0 +1,49 @@
+@startuml
+title Diagramme de sequence - Demande urgente d'analyse laboratoire
+
+actor "Degustateur / Chef de Panel" as Taster
+boundary "Interface Analyses Laboratoire" as UI
+control "Controleur Analyse Laboratoire" as Controller
+entity "Modele Echantillon" as Sample
+entity "Modele Notification" as Notification
+database "Base de donnees" as DB
+
+Taster -> UI : Demander la page des analyses laboratoire
+UI -> Controller : Charger les analyses liees aux echantillons
+Controller -> Sample : Recuperer les echantillons et analyses
+Sample -> DB : Lire les donnees d'analyse
+DB --> Sample : Retourner les analyses
+Sample --> Controller : Liste des analyses
+Controller --> UI : Envoyer la liste
+UI --> Taster : Afficher les analyses disponibles
+
+Taster -> UI : Selectionner un echantillon
+UI --> Taster : Afficher les details de l'analyse
+
+Taster -> UI : Demander une analyse urgente
+UI -> Controller : Envoyer la demande urgente
+Controller -> Sample : Verifier l'etat de l'echantillon
+Sample -> DB : Lire l'etat et les demandes existantes
+DB --> Sample : Retourner les informations
+
+alt Demande urgente deja envoyee
+    Sample --> Controller : Demande deja existante
+    Controller --> UI : Refuser la duplication
+    UI --> Taster : Afficher un message d'information
+else Echantillon non eligible
+    Sample --> Controller : Demande impossible
+    Controller --> UI : Refuser la demande
+    UI --> Taster : Afficher un message d'erreur
+else Demande autorisee
+    Controller -> Notification : Creer une notification urgente
+    Notification -> DB : Enregistrer la notification ANALYSE_URGENTE
+    DB --> Notification : Confirmation
+    Notification --> Controller : Notification creee
+    Controller -> Sample : Marquer la demande urgente
+    Sample -> DB : Mettre a jour l'echantillon
+    DB --> Sample : Confirmation
+    Controller --> UI : Confirmer l'envoi
+    UI --> Taster : Afficher un message de succes
+end
+
+@enduml

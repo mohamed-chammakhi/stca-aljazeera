@@ -14,14 +14,15 @@ class CeoNotificationCard extends StatelessWidget {
   const CeoNotificationCard({super.key, required this.notification, required this.onTap});
 
   static const _typeConfig = {
-    'NOUVEL_ECHANTILLON':   (Icons.science_outlined,      Color(0xFF3A6EA5), Color(0xFFE8F1FB)),
-    'ECHANTILLON_MODIFIE':  (Icons.edit_outlined,         Color(0xFFD07B2F), Color(0xFFFEF3E8)),
-    'ECHANTILLON_SUPPRIME': (Icons.delete_outline,        Color(0xFFB71C1C), Color(0xFFFFEBEE)),
-    'ECHANTILLON_RECU':     (Icons.check_circle_outline,  Color(0xFF38835A), Color(0xFFE6F4ED)),
-    'PREMIERE_EVALUATION':  (Icons.star_border_outlined,  Color(0xFF7B1FA2), Color(0xFFF3E5F5)),
-    'TOUTES_EVALUATIONS':   (Icons.group_outlined,        Color(0xFF38835A), Color(0xFFE6F4ED)),
-    'ANALYSE_SOUMISE':      (Icons.biotech_outlined,      Color(0xFF0277BD), Color(0xFFE1F5FE)),
-    'ACHAT_CONFIRME':       (Icons.handshake_outlined,    Color(0xFF38835A), Color(0xFFE6F4ED)),
+    'NOUVEL_ECHANTILLON':       (Icons.science_outlined,         Color(0xFF3A6EA5), Color(0xFFE8F1FB)),
+    'ECHANTILLON_MODIFIE':      (Icons.edit_outlined,            Color(0xFFD07B2F), Color(0xFFFEF3E8)),
+    'ECHANTILLON_SUPPRIME':     (Icons.delete_outline,           Color(0xFFB71C1C), Color(0xFFFFEBEE)),
+    'ECHANTILLON_RECU':         (Icons.check_circle_outline,     Color(0xFF38835A), Color(0xFFE6F4ED)),
+    'PREMIERE_EVALUATION':      (Icons.star_border_outlined,     Color(0xFF7B1FA2), Color(0xFFF3E5F5)),
+    'TOUTES_EVALUATIONS':       (Icons.group_outlined,           Color(0xFF38835A), Color(0xFFE6F4ED)),
+    'ANALYSE_SOUMISE':          (Icons.biotech_outlined,         Color(0xFF0277BD), Color(0xFFE1F5FE)),
+    'ACHAT_CONFIRME':           (Icons.handshake_outlined,       Color(0xFF38835A), Color(0xFFE6F4ED)),
+    'proposition_achat_attente':(Icons.pending_actions_outlined, Color(0xFFD07B2F), Color(0xFFFEF3E8)),
   };
 
   @override

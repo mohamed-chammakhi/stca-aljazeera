@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI in the Sample Evaluation Workflow — Al Jazeera STCA</title>
+  <style>
+    :root {
+      --green: #38835A;
+      --dark:  #1A2E1F;
+      --soft:  #F5F1E8;
+      --line:  #DCE9E2;
+      --bg:    #FFFFFF;
+      --muted: #5A6B5E;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      font-family: Georgia, "Times New Roman", serif;
+      color: var(--dark);
+      background: var(--bg);
+      line-height: 1.65;
+      font-size: 16px;
+    }
+    .page {
+      max-width: 880px;
+      margin: 0 auto;
+      padding: 56px 48px 80px 48px;
+    }
+    header.cover {
+      border-left: 4px solid var(--green);
+      padding: 8px 0 8px 20px;
+      margin-bottom: 48px;
+    }
+    .eyebrow {
+      font-family: "Helvetica Neue", Arial, sans-serif;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      font-size: 12px;
+      color: var(--green);
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    h1 {
+      font-size: 28px;
+      line-height: 1.25;
+      margin: 0 0 12px 0;
+      color: var(--dark);
+    }
+    .lede {
+      color: var(--muted);
+      font-style: italic;
+      margin: 0;
+    }
+    h2 {
+      font-family: "Helvetica Neue", Arial, sans-serif;
+      font-size: 18px;
+      margin: 48px 0 14px 0;
+      color: var(--green);
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 6px;
+      letter-spacing: 0.01em;
+    }
+    h3 {
+      font-family: "Helvetica Neue", Arial, sans-serif;
+      font-size: 15px;
+      margin: 28px 0 10px 0;
+      color: var(--dark);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    p { margin: 0 0 14px 0; }
+    ul { margin: 0 0 16px 0; padding-left: 22px; }
+    ul li { margin-bottom: 6px; }
+    code {
+      font-family: "Consolas", "Menlo", monospace;
+      background: var(--soft);
+      padding: 1px 6px;
+      border-radius: 3px;
+      font-size: 0.9em;
+      color: var(--dark);
+    }
+    .callout {
+      background: var(--soft);
+      border-left: 3px solid var(--green);
+      padding: 14px 18px;
+      margin: 18px 0 20px 0;
+      font-size: 15px;
+      color: var(--dark);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 14px 0 20px 0;
+      font-family: "Helvetica Neue", Arial, sans-serif;
+      font-size: 14px;
+    }
+    th, td {
+      text-align: left;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+    }
+    th {
+      background: var(--soft);
+      color: var(--dark);
+      font-weight: 700;
+      letter-spacing: 0.03em;
+    }
+    .pipeline {
+      border: 1px solid var(--line);
+      padding: 18px 20px;
+      border-radius: 4px;
+      margin: 16px 0 20px 0;
+      background: #FAFCFB;
+    }
+    .pipeline ol { margin: 0; padding-left: 22px; }
+    .pipeline li { margin-bottom: 8px; }
+    footer {
+      margin-top: 72px;
+      padding-top: 18px;
+      border-top: 1px solid var(--line);
+      font-size: 13px;
+      color: var(--muted);
+      font-family: "Helvetica Neue", Arial, sans-serif;
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+<header class="cover">
+  <div class="eyebrow">Final Year Project — Chapter</div>
+  <h1>Artificial Intelligence in the Sample Evaluation Workflow<br>
+      OCR for the Collector and the Laboratory</h1>
+  <p class="lede">Two on-premise OCR pipelines that accelerate data entry while
+     keeping every image and every model inside the company network.</p>
+</header>
+
+<section>
+  <h2>1. Context and Constraints</h2>
+  <p>The Al Jazeera STCA sample evaluation system handles two situations in
+     which an operator must transcribe information from a physical artifact
+     into the application:</p>
+  <ul>
+    <li>A collector in the field photographs a small plastic bottle on which
+        three things are written with a marker — the quantity, the cistern
+        number, and the supplier or "huilerie" name.</li>
+    <li>A laboratory technician at the company photographs a printed report
+        that contains the chemical analysis values of an olive oil sample.</li>
+  </ul>
+  <p>Both situations are good candidates for OCR-assisted data entry. The
+     company, however, imposes a hard rule: no image and no extracted text
+     may leave the company premises. This rules out every cloud-based OCR
+     service (Google Vision, AWS Textract, Azure Document Intelligence,
+     Gemini, Claude, GPT). Every model must run locally on the company's
+     own server.</p>
+
+  <div class="callout">
+    <strong>Design stance.</strong> Both pipelines are built around a
+    human-in-the-loop philosophy: the AI accelerates data entry by
+    pre-filling fields; the user remains responsible for confirming every
+    saved value. The AI is presented as an assistant, never as an
+    authority — a position that fits both the technical reality of OCR
+    accuracy and the financial weight of the downstream decisions.
+  </div>
+</section>
+
+<section>
+  <h2>2. OCR for the Collector — Reading Handwritten Bottle Labels</h2>
+
+  <h3>2.1 Nature of the Problem</h3>
+  <p>The collector writes by hand on small plastic bottles with a marker.
+     The three values that need to be extracted are short and follow no
+     fixed template:</p>
+  <ul>
+    <li><strong>Quantité</strong> — a number, optionally with a decimal,
+        followed by the unit T (e.g. <code>8T</code>, <code>10.5T</code>).</li>
+    <li><strong>Citerne</strong> — an arbitrary letter-and-digit code
+        (e.g. <code>c2</code>, <code>aa11</code>, <code>p1</code>).</li>
+    <li><strong>Fournisseur / Huilerie</strong> — a personal or business
+        name (e.g. <code>issa rached</code>).</li>
+  </ul>
+  <p>The technical difficulty is high: curved and shiny plastic surface,
+     glare, variable lighting in the field, freehand cursive marker, and
+     the fact that the cistern and quantity codes are arbitrary strings
+     and therefore not in any dictionary.</p>
+
+  <h3>2.2 Technique</h3>
+  <p>The recognition stage uses a <strong>CRNN + CTC</strong> model
+     (Convolutional Recurrent Neural Network with Connectionist Temporal
+     Classification). This family of models recognizes text character by
+     character with no built-in language model, which is exactly the
+     property we need: handwritten codes must be read literally and
+     <em>not</em> "corrected" into dictionary words.</p>
+  <p>A language-biased decoder, such as the transformer head used in TrOCR,
+     was evaluated and rejected for this pipeline. On ambiguous strokes it
+     tends to convert a code like <code>aa11</code> into a French-looking
+     word, which corrupts the cistern field and ultimately the sample
+     traceability.</p>
+
+  <h3>2.3 Tool</h3>
+  <p>The implementation uses <strong>EasyOCR</strong> (Apache 2.0 license),
+     which combines a CRAFT text detector with a CRNN + CTC recognizer and
+     supports French and English in a single model. EasyOCR runs entirely
+     offline once its model files have been downloaded the first time. It
+     accepts a character allowlist, which we use to lock down the
+     recognition of structured fields.</p>
+
+  <h3>2.4 Post-processing pipeline</h3>
+  <div class="pipeline">
+    <ol>
+      <li>The collector takes or selects a photo from the Flutter
+          application; the image is uploaded to the backend.</li>
+      <li>EasyOCR returns every text region detected on the photo, with
+          a recognition confidence for each one.</li>
+      <li>A classification step assigns each detected string to one of the
+          three target fields using its shape: a number ending in T is the
+          quantity, a short alphanumeric token is the cistern, and the
+          longest mostly-alphabetic string is the supplier name.</li>
+      <li>The supplier name is matched against the existing Fournisseur
+          list using case-insensitive edit-distance similarity. If a close
+          match is found, the existing supplier is reused; otherwise a new
+          supplier is created with a clean auto-generated code of the form
+          <code>F-NNNN</code>.</li>
+      <li>The application pre-fills the registration form. Fields with low
+          OCR confidence are visually marked so the collector double-checks
+          them before saving.</li>
+    </ol>
+  </div>
+</section>
+
+<section>
+  <h2>3. OCR for the Laboratory — Reading Printed Analysis Reports</h2>
+
+  <h3>3.1 Nature of the Problem</h3>
+  <p>The laboratory technician works with printed reports. Each report
+     contains a small set of numeric values that drive a purchase decision:
+     <code>acidité</code>, <code>indice de peroxyde</code>, <code>K232</code>,
+     <code>K270</code>, <code>ΔK</code>, <code>humidité</code> and
+     <code>impuretés</code>. The accuracy requirement is much stricter than
+     for the collector: a wrong value here may corrupt a purchase decision
+     of significant financial value.</p>
+
+  <h3>3.2 Technique</h3>
+  <p>The pipeline uses <strong>deterministic OCR plus label-based numeric
+     extraction</strong>. The OCR engine produces the raw text exactly as
+     it appears on the page; a post-processing step then locates each
+     chemical label (with French and abbreviated synonyms) and captures
+     the first decimal number that follows it. Every extracted value is
+     finally checked against an expected physical range.</p>
+  <p>A generative vision-language model (such as a locally hosted Qwen-VL
+     or Llama-Vision) was evaluated and rejected for this pipeline. A
+     generative model can produce a confident but incorrect numeric value
+     when the image is ambiguous (a phenomenon known as hallucination).
+     For a chemical value that feeds a purchase decision, this risk is
+     unacceptable. A deterministic OCR + validation pipeline is auditable:
+     either the value is read from the document or it is flagged as
+     missing for the technician to confirm.</p>
+
+  <h3>3.3 Tool</h3>
+  <p>The implementation uses <strong>PaddleOCR</strong> (Apache 2.0
+     license), which provides a detection + recognition pipeline tuned
+     for printed documents and supports a French language mode. PaddleOCR
+     runs entirely offline once its model files have been downloaded for
+     the first time.</p>
+
+  <h3>3.4 Post-processing pipeline</h3>
+  <div class="pipeline">
+    <ol>
+      <li>The technician takes or selects a photo of the report; the image
+          is uploaded to the backend.</li>
+      <li>PaddleOCR returns every recognized text line.</li>
+      <li>For each of the seven chemical fields, the system searches for
+          its label (and known abbreviated forms) and extracts the first
+          decimal number that follows the label.</li>
+      <li>Each value is validated against a plausible physical range. Any
+          value out of range, or any field that was not found at all, is
+          attached to a <code>_warnings</code> list returned to the
+          application.</li>
+      <li>The Flutter form is pre-filled. Fields flagged in the warnings
+          are highlighted in orange so the technician can confirm or edit
+          them manually before submitting the analysis.</li>
+    </ol>
+  </div>
+</section>
+
+<section>
+  <h2>4. Shared Architecture</h2>
+  <p>Both pipelines share the same architectural pattern: a Flutter
+     client captures the image, a Django REST endpoint receives it, the
+     appropriate offline OCR engine processes it on the on-premise server,
+     and a structured response feeds an editable form that the user
+     confirms.</p>
+
+  <table>
+    <thead>
+      <tr><th>Step</th><th>Collector pipeline</th><th>Laboratory pipeline</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Capture</td>
+        <td>Flutter — camera or gallery (<code>image_picker</code>)</td>
+        <td>Flutter — camera or gallery (<code>image_picker</code>)</td>
+      </tr>
+      <tr>
+        <td>Upload</td>
+        <td>Multipart POST to <code>/api/echantillons/ocr/</code></td>
+        <td>Multipart POST to <code>/api/analyses/ocr/</code></td>
+      </tr>
+      <tr>
+        <td>Recognition</td>
+        <td>EasyOCR (CRNN + CTC, French + English)</td>
+        <td>PaddleOCR (printed-document pipeline, French)</td>
+      </tr>
+      <tr>
+        <td>Parsing</td>
+        <td>Pattern classification + fuzzy supplier match</td>
+        <td>Label-based regex + numeric range validation</td>
+      </tr>
+      <tr>
+        <td>Pre-fill</td>
+        <td>Registration form with confidence highlighting</td>
+        <td>Analysis form with warning highlighting</td>
+      </tr>
+      <tr>
+        <td>Confirmation</td>
+        <td>Collector verifies and saves</td>
+        <td>Technician verifies and submits</td>
+      </tr>
+      <tr>
+        <td>Storage</td>
+        <td>Photo kept with the sample (visual proof, taster reference)</td>
+        <td>Photo kept with the analysis (auditable evidence)</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>The taster (panel member) sees the stored bottle photo when consulting
+     the sample on the gestion-échantillons page, which gives a visual
+     reference to distinguish bottles that arrive together at the company.</p>
+</section>
+
+<section>
+  <h2>5. Technical Stack</h2>
+  <p>The full set of components used by the AI layer:</p>
+  <table>
+    <thead>
+      <tr><th>Layer</th><th>Component</th><th>Version</th><th>Role</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Backend runtime</td><td>Python / Django</td><td>3.12 / 5.2</td><td>REST endpoints, file storage</td></tr>
+      <tr><td>Bottle OCR</td><td>EasyOCR</td><td>1.7.2</td><td>Handwritten field recognition</td></tr>
+      <tr><td>Bottle OCR — runtime</td><td>PyTorch + torchvision</td><td>2.2.2 / 0.17.2</td><td>Neural inference for EasyOCR</td></tr>
+      <tr><td>Lab OCR</td><td>PaddleOCR</td><td>2.7.3</td><td>Printed-report recognition</td></tr>
+      <tr><td>Lab OCR — runtime</td><td>PaddlePaddle</td><td>2.6.2</td><td>Inference engine for PaddleOCR</td></tr>
+      <tr><td>Numerical core</td><td>NumPy</td><td>1.26.4</td><td>ABI-compatible with PaddlePaddle 2.6</td></tr>
+      <tr><td>Image handling</td><td>Pillow, OpenCV (headless)</td><td>10.x / 4.10</td><td>Decoding and preprocessing</td></tr>
+      <tr><td>Frontend client</td><td>Flutter</td><td>3.11+</td><td>Capture, upload, form display</td></tr>
+      <tr><td>Capture</td><td>image_picker</td><td>latest stable</td><td>Camera and gallery access</td></tr>
+      <tr><td>Display</td><td>cached_network_image</td><td>3.3.x</td><td>Bottle photo rendering for tasters</td></tr>
+    </tbody>
+  </table>
+  <p>Every dependency above is open-source under a permissive license
+     (Apache 2.0 or MIT). The complete set of versions is pinned in the
+     project's <code>requirements.txt</code> because the two recognition
+     stacks have transitive constraints on NumPy that cannot be satisfied
+     by the latest version of every package; the chosen combination is
+     the only one that builds cleanly on Windows and on Linux servers.</p>
+</section>
+
+<section>
+  <h2>6. Justification of the Design Choices</h2>
+  <p>The choices presented above are the result of explicit trade-offs.
+     The most important ones, summarized for the defense:</p>
+  <ul>
+    <li><strong>Two engines instead of one.</strong> EasyOCR and PaddleOCR
+        target different problem classes — handwritten arbitrary codes
+        versus printed structured documents. Forcing one engine to do both
+        would weaken both. Using each engine for the situation it is best
+        at gives stronger results overall.</li>
+    <li><strong>No generative AI.</strong> Generative vision-language
+        models are powerful but they can produce confident yet wrong
+        outputs. For the laboratory pipeline, where a wrong number drives
+        a wrong purchase, this risk is not acceptable. For the collector
+        pipeline, a language-model-biased recognizer would "correct"
+        handwritten codes into real words. In both cases a deterministic,
+        character-level approach is more honest.</li>
+    <li><strong>No cloud.</strong> Every model and every image stays on
+        the company's own server. This satisfies the company's
+        data-residency rule absolutely, with no exception and no fallback
+        path to a cloud service.</li>
+    <li><strong>Human-in-the-loop is a feature, not a workaround.</strong>
+        OCR on real-world inputs is never perfect. The system explicitly
+        marks its own uncertainty (confidence scores for handwritten
+        fields, range warnings for chemical values) so the user can focus
+        their verification effort on the values that need it. This makes
+        the system safer and more transparent than one that silently
+        commits whatever the model produced.</li>
+  </ul>
+</section>
+
+<footer>
+  Al Jazeera STCA — Olive Oil Sample Evaluation System — Final Year Project, 2026.
+</footer>
+
+</div>
+</body>
+</html>

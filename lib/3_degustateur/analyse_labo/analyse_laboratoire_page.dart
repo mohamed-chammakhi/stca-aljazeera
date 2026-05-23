@@ -55,6 +55,7 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage>
 
   // ── STATE ────────────────────────────────────────────────────────────────────
   List<AnalyseLabo> _analyses = [];
+  final Set<String> _urgentSent = {};
 
   @override
   void initState() {
@@ -153,6 +154,95 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage>
           _dateDebut = null;
           _dateFin = null;
         }),
+      ),
+    );
+  }
+
+  void _confirmSendUrgent(AnalyseLabo a) {
+    showDialog(
+      context: context,
+      builder: (_) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
+              decoration: const BoxDecoration(
+                color: Color(0xFFC62828),
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(16),
+                  topRight: Radius.circular(16),
+                ),
+              ),
+              child: Row(children: [
+                const Icon(
+                  Icons.notifications_active,
+                  color: Colors.white,
+                  size: 20,
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  'Notifier le laboratoire',
+                  style: GoogleFonts.domine(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                  ),
+                ),
+              ]),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 18, 20, 8),
+              child: Text(
+                'Envoyer une demande urgente au technicien laboratoire pour prioriser l\'analyse chimique de ${a.echantillonNom} ?',
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: Color(0xFF1A2E1F),
+                  height: 1.4,
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 4, 12, 16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text(
+                      'Annuler',
+                      style: TextStyle(color: Color(0xFF6B8E7A)),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      _service.sendUrgentAnalyseLabo(
+                        a.echantillonId,
+                        a.echantillonNom,
+                      );
+                      setState(() => _urgentSent.add(a.id));
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFC62828),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: const Text(
+                      'Notifier',
+                      style: TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -395,7 +485,11 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage>
                       itemCount: filtres.length,
                       itemBuilder: (context, index) {
                         final a = filtres[index];
-                        return AnalyseCard(analyse: a);
+                        return AnalyseCard(
+                          analyse: a,
+                          isUrgentLabo: _urgentSent.contains(a.id),
+                          onUrgentLabo: () => _confirmSendUrgent(a),
+                        );
                       },
                     ),
                   ),

@@ -8,6 +8,7 @@ import '../echantillons/echantillons_ceo_page.dart';
 import '../analyse_organoleptique/analyse_organoleptique_ceo_page.dart';
 import '../analyse_laboratoire/analyse_laboratoire_ceo_page.dart';
 import '../achats_confirmes/achats_confirmes_ceo_page.dart';
+import '../validation_achats/validation_achats_ceo_page.dart';
 import '../utilisateurs/widgets/utilisateurs_ceo_page.dart';
 import '../notifications/models/notification_ceo.dart';
 import '../notifications/services/notification_ceo_service.dart';
@@ -119,11 +120,16 @@ class _HomePageCeoState extends State<HomePageCeo> with TickerProviderStateMixin
   }
 
   void _handleNotifNavigation(NotificationCeo n) {
+    if (n.type == 'proposition_achat_attente') {
+      _goTo(const ValidationAchatsCeoPage());
+      return;
+    }
     switch (n.section) {
-      case 'EVALUATIONS': _goTo(const AnalyseOrganoleptiqueCeoPage()); break;
-      case 'ANALYSES':    _goTo(const AnalyseLaboratoireCeoPage());    break;
-      case 'ACHATS':      _goTo(const AchatsConfirmesCeoPage());        break;
-      default:            _goTo(const EchantillonsCeoPage());           break;
+      case 'EVALUATIONS':        _goTo(const AnalyseOrganoleptiqueCeoPage()); break;
+      case 'ANALYSES':           _goTo(const AnalyseLaboratoireCeoPage());    break;
+      case 'ACHATS_VALIDATION':  _goTo(const ValidationAchatsCeoPage());      break;
+      case 'ACHATS':             _goTo(const AchatsConfirmesCeoPage());       break;
+      default:                   _goTo(const EchantillonsCeoPage());          break;
     }
   }
 
@@ -188,6 +194,7 @@ class _HomePageCeoState extends State<HomePageCeo> with TickerProviderStateMixin
         onEchantillons:         () => _goTo(const EchantillonsCeoPage()),
         onAnalyseOrganoleptique: () => _goTo(const AnalyseOrganoleptiqueCeoPage()),
         onAnalyseLaboratoire:   () => _goTo(const AnalyseLaboratoireCeoPage()),
+        onValidationAchats:     () => _goTo(const ValidationAchatsCeoPage()),
         onAchatsConfirmes:      () => _goTo(const AchatsConfirmesCeoPage()),
         onTableauDeBord:        () => Navigator.pop(context),
         onProfil:               () => _goTo(const ProfilceoPage()),

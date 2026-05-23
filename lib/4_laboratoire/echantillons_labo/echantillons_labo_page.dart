@@ -7,6 +7,7 @@ import 'widgets/dialogs/analyse_dialog.dart';
 import 'widgets/dialogs/formulaire_analyse_labo_dialog.dart';
 import '../analyse_labo.dart';
 import '../labo_drawer.dart';
+import '../notifications/notifications_labo_page.dart';
 import '../profil_labo_page.dart';
 import '../widgets/labo_nav_mixin.dart';
 import '../../main.dart';
@@ -22,7 +23,8 @@ class EchantillonsLaboPage extends StatefulWidget {
   State<EchantillonsLaboPage> createState() => _EchantillonsLaboPageState();
 }
 
-class _EchantillonsLaboPageState extends State<EchantillonsLaboPage> with LaboNavMixin {
+class _EchantillonsLaboPageState extends State<EchantillonsLaboPage>
+    with LaboNavMixin {
   final _service = LaboService();
   final TextEditingController _searchCtrl = TextEditingController();
   String _recherche = '';
@@ -32,9 +34,12 @@ class _EchantillonsLaboPageState extends State<EchantillonsLaboPage> with LaboNa
   @override
   void initState() {
     super.initState();
-    _service.fetchEchantillons().then((list) {
-      if (mounted) setState(() => _echantillons = list);
-    });
+    _loadEchantillons();
+  }
+
+  Future<void> _loadEchantillons() async {
+    final list = await _service.fetchEchantillons();
+    if (mounted) setState(() => _echantillons = list);
   }
 
   // ── Filter logic ───────────────────────────────────────────────────────────
@@ -60,9 +65,8 @@ class _EchantillonsLaboPageState extends State<EchantillonsLaboPage> with LaboNa
     showAnalyseChoiceSheet(
       context,
       echantillon: e,
-      onSave: (analyse) {
-        setState(() => e.analyse = analyse);
-        _showSnack('Analyse soumise pour ${e.referenceBouteille}');
+      onSave: (analyse, {photoBytes, photoName}) {
+        _saveAnalyse(e, analyse, photoBytes: photoBytes, photoName: photoName);
       },
     );
   }
@@ -72,11 +76,34 @@ class _EchantillonsLaboPageState extends State<EchantillonsLaboPage> with LaboNa
       context,
       echantillon: e,
       existing: e.analyse,
-      onSave: (analyse) {
-        setState(() => e.analyse = analyse);
-        _showSnack('Analyse modifiée');
+      onSave: (analyse, {photoBytes, photoName}) {
+        _saveAnalyse(e, analyse, photoBytes: photoBytes, photoName: photoName);
       },
     );
+  }
+
+  Future<void> _saveAnalyse(
+    EchantillonLabo e,
+    AnalyseLabo analyse, {
+    List<int>? photoBytes,
+    String? photoName,
+  }) async {
+    try {
+      final saved = await _service.saveAnalyse(
+        e.id,
+        analyse,
+        photoBytes: photoBytes,
+        photoName: photoName,
+      );
+      if (!mounted) return;
+      setState(() => e.analyse = saved);
+      final msg = saved.statut == StatutAnalyse.soumis
+          ? 'Analyse soumise pour ${e.referenceBouteille}'
+          : 'Brouillon d\'analyse enregistre';
+      _showSnack(msg);
+    } catch (error) {
+      if (mounted) _showSnack(_service.messageFor(error), isError: true);
+    }
   }
 
   void _onSupprimerAnalyse(EchantillonLabo e) {
@@ -94,16 +121,12 @@ class _EchantillonsLaboPageState extends State<EchantillonsLaboPage> with LaboNa
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text(
-              'Annuler',
-              style: TextStyle(color: kGreen),
-            ),
+            child: const Text('Annuler', style: TextStyle(color: kGreen)),
           ),
           TextButton(
             onPressed: () {
               Navigator.pop(context);
-              setState(() => e.analyse = null);
-              _showSnack('Analyse supprimée');
+              _deleteAnalyse(e);
             },
             child: Text(
               'Supprimer',
@@ -119,7 +142,18 @@ class _EchantillonsLaboPageState extends State<EchantillonsLaboPage> with LaboNa
     );
   }
 
-  void _showSnack(String msg) {
+  Future<void> _deleteAnalyse(EchantillonLabo e) async {
+    try {
+      await _service.deleteAnalyse(e.id);
+      if (!mounted) return;
+      setState(() => e.analyse = null);
+      _showSnack('Analyse supprimee');
+    } catch (error) {
+      if (mounted) _showSnack(_service.messageFor(error), isError: true);
+    }
+  }
+
+  void _showSnack(String msg, {bool isError = false}) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
@@ -129,7 +163,7 @@ class _EchantillonsLaboPageState extends State<EchantillonsLaboPage> with LaboNa
             fontWeight: FontWeight.w600,
           ),
         ),
-        backgroundColor: kGreen,
+        backgroundColor: isError ? Colors.red.shade600 : kGreen,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         margin: const EdgeInsets.all(20),
@@ -162,6 +196,7 @@ class _EchantillonsLaboPageState extends State<EchantillonsLaboPage> with LaboNa
       backgroundColor: kBg,
       drawer: LaboDrawer(
         onEchantillons: () => goToPage(const EchantillonsLaboPage()),
+        onNotifications: () => goToPage(const NotificationsLaboPage()),
         onProfil: () => goToPage(const ProfilLaboPage()),
         onDeconnexion: () => goToPage(LoginPage()),
       ),
@@ -179,6 +214,15 @@ class _EchantillonsLaboPageState extends State<EchantillonsLaboPage> with LaboNa
           ),
         ),
         iconTheme: const IconThemeData(color: kDark),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.notifications_outlined, color: kDark),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const NotificationsLaboPage()),
+            ),
+          ),
+        ],
       ),
       body: Column(
         children: [
@@ -349,6 +393,9 @@ class _EchantillonsLaboPageState extends State<EchantillonsLaboPage> with LaboNa
                         itemCount: items.length,
                         itemBuilder: (_, i) {
                           final e = items[i];
+                          final canEdit =
+                              e.analyse != null &&
+                              e.analyse!.statut != StatutAnalyse.soumis;
                           return EchantillonLaboCard(
                             echantillon: e,
                             onAjouterAnalyse: e.analyse == null
@@ -357,10 +404,10 @@ class _EchantillonsLaboPageState extends State<EchantillonsLaboPage> with LaboNa
                             onVoirAnalyse: e.analyse != null
                                 ? () => _showAnalyseReadOnly(e)
                                 : null,
-                            onModifierAnalyse: e.analyse != null
+                            onModifierAnalyse: canEdit
                                 ? () => _onModifierAnalyse(e)
                                 : null,
-                            onSupprimerAnalyse: e.analyse != null
+                            onSupprimerAnalyse: canEdit
                                 ? () => _onSupprimerAnalyse(e)
                                 : null,
                           );
@@ -429,10 +476,9 @@ class _StatutChip extends StatelessWidget {
           boxShadow: selected
               ? [
                   BoxShadow(
-                    color: (isTous
-                            ? const Color(0xFF757575)
-                            : inactiveTextColor)
-                        .withValues(alpha: 0.22),
+                    color:
+                        (isTous ? const Color(0xFF757575) : inactiveTextColor)
+                            .withValues(alpha: 0.22),
                     blurRadius: 6,
                     offset: const Offset(0, 2),
                   ),

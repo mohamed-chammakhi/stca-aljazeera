@@ -8,6 +8,17 @@ class AnalyseLaboService {
     return _mockAnalyses();
   }
 
+  Future<void> sendUrgentAnalyseLabo(
+    String echantillonId,
+    String echantillonNom,
+  ) async {
+    // TODO: replace with: await _api.post('/api/notifications/', {
+    //   'type': 'ANALYSE_URGENTE',
+    //   'echantillon': echantillonId,
+    //   'section': 'ANALYSES',
+    // });
+  }
+
   // TODO: remove when backend is ready
   List<AnalyseLabo> _mockAnalyses() => [
     AnalyseLabo(

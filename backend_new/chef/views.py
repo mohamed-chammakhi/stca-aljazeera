@@ -1,71 +1,184 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-from django.db.models import Count, Q
+from django.db.models import Q
 from django.utils import timezone
-from datetime import timedelta
 from echantillons.models import Echantillon
 from evaluations.models import EvaluationOrganoleptique
 from sessions_degustation.models import SessionDegustation
+from users.models import User
+from users.permissions import IsChefPanel
+
+
+EVALUATION_SCORE_FIELDS = [
+    ('fruite', 'Fruite'),
+    ('amertume', 'Amertume'),
+    ('piquant', 'Piquant'),
+    ('chome', 'Chome'),
+    ('moisi', 'Moisi'),
+    ('vinaigre', 'Vinaigre'),
+    ('rance', 'Rance'),
+    ('gele', 'Gele'),
+    ('autres_defaut', 'Autres defauts'),
+]
+
+
+def _decimal_to_float(value):
+    return float(value) if value is not None else None
+
+
+def _user_full_name(user):
+    if not user:
+        return 'Inconnu'
+    return f"{user.prenom} {user.nom}".strip()
+
+
+def _iso_or_none(value):
+    return value.isoformat() if value else None
 
 
 class ChefEvaluationsView(APIView):
-    """All evaluations grouped by sample, with divergence flag if >=3 submitted and any score deviates >1.5 from panel avg."""
-    permission_classes = [IsAuthenticated]
+    """Chef-only overview of submitted panel evaluations grouped by sample."""
+    permission_classes = [IsChefPanel]
 
     def get(self, request):
         date_debut = request.query_params.get('date_debut')
         date_fin = request.query_params.get('date_fin')
         search = request.query_params.get('search', '')
 
-        qs = EvaluationOrganoleptique.objects.select_related('echantillon', 'degustateur')
+        qs = EvaluationOrganoleptique.objects.select_related(
+            'echantillon', 'echantillon__fournisseur', 'degustateur'
+        ).filter(statut=EvaluationOrganoleptique.Statut.SOUMIS)
         if date_debut:
-            qs = qs.filter(soumis_le__date__gte=date_debut)
+            qs = qs.filter(echantillon__date_arrivee_echantillon__date__gte=date_debut)
         if date_fin:
-            qs = qs.filter(soumis_le__date__lte=date_fin)
+            qs = qs.filter(echantillon__date_arrivee_echantillon__date__lte=date_fin)
         if search:
             qs = qs.filter(
                 Q(echantillon__numero__icontains=search) |
-                Q(echantillon__variete__icontains=search)
+                Q(echantillon__reference_bouteille__icontains=search) |
+                Q(echantillon__variete__icontains=search) |
+                Q(echantillon__fournisseur__nom__icontains=search) |
+                Q(echantillon__fournisseur__code_fournisseur__icontains=search)
             )
+        qs = qs.order_by('-echantillon__date_arrivee_echantillon', 'degustateur__nom')
 
+        active_panel_members = list(
+            User.objects.filter(
+                role__in=[User.Role.DEGUSTATEUR, User.Role.CHEF_PANEL],
+                is_active=True,
+            ).order_by('nom', 'prenom')
+        )
         grouped = {}
         for ev in qs:
+            sample = ev.echantillon
             eid = str(ev.echantillon_id)
             if eid not in grouped:
                 grouped[eid] = {
                     'echantillon_id': eid,
-                    'echantillon_numero': ev.echantillon.numero,
-                    'variete': ev.echantillon.variete,
+                    'sample_id': eid,
+                    'echantillon_numero': sample.numero,
+                    'numero': sample.numero,
+                    'reference_bouteille': sample.reference_bouteille,
+                    'gouvernorat': sample.gouvernorat,
+                    'delegation': sample.delegation,
+                    'variete': sample.variete,
+                    'date_ajout': _iso_or_none(sample.date_ajout),
+                    'recu_physiquement': sample.recu_physiquement,
+                    'date_reception_physique': _iso_or_none(sample.date_arrivee_echantillon),
+                    'fournisseur_nom': sample.fournisseur.nom if sample.fournisseur else None,
                     'evaluations': [],
+                    '_submitted_by_user': {},
                     'divergence': False,
+                    'divergence_details': [],
                 }
-            grouped[eid]['evaluations'].append({
+            scores = [
+                {
+                    'key': field,
+                    'attribut': label,
+                    'score': _decimal_to_float(getattr(ev, field)),
+                }
+                for field, label in EVALUATION_SCORE_FIELDS
+                if getattr(ev, field) is not None
+            ]
+            payload = {
                 'id': str(ev.id),
-                'degustateur': f"{ev.degustateur.prenom} {ev.degustateur.nom}" if ev.degustateur else '',
-                'fruite': float(ev.fruite) if ev.fruite is not None else None,
-                'amertume': float(ev.amertume) if ev.amertume is not None else None,
-                'piquant': float(ev.piquant) if ev.piquant is not None else None,
+                'degustateur_id': str(ev.degustateur_id) if ev.degustateur_id else None,
+                'degustateur': _user_full_name(ev.degustateur),
+                'degustateur_nom': _user_full_name(ev.degustateur),
+                'taster_name': _user_full_name(ev.degustateur),
+                'fruite': _decimal_to_float(ev.fruite),
+                'amertume': _decimal_to_float(ev.amertume),
+                'piquant': _decimal_to_float(ev.piquant),
+                'chome': _decimal_to_float(ev.chome),
+                'moisi': _decimal_to_float(ev.moisi),
+                'vinaigre': _decimal_to_float(ev.vinaigre),
+                'rance': _decimal_to_float(ev.rance),
+                'gele': _decimal_to_float(ev.gele),
+                'autres_defaut': _decimal_to_float(ev.autres_defaut),
+                'scores': scores,
                 'classification': ev.classification,
                 'statut': ev.statut,
-            })
+                'date_eval': _iso_or_none(ev.soumis_le),
+                'soumis_le': _iso_or_none(ev.soumis_le),
+                'commentaire': ev.commentaire,
+            }
+            grouped[eid]['evaluations'].append(payload)
+            if ev.degustateur_id:
+                grouped[eid]['_submitted_by_user'][str(ev.degustateur_id)] = payload
 
         for group in grouped.values():
             submitted = [e for e in group['evaluations'] if e['statut'] == 'soumis']
+            group['submitted_count'] = len(submitted)
+            group['total_count'] = len(active_panel_members)
+            group['is_complete'] = bool(active_panel_members) and len(submitted) >= len(active_panel_members)
+
             if len(submitted) >= 3:
-                for attr in ('fruite', 'amertume', 'piquant'):
-                    vals = [e[attr] for e in submitted if e[attr] is not None]
+                for attr, label in EVALUATION_SCORE_FIELDS:
+                    vals = [
+                        (e, e[attr])
+                        for e in submitted
+                        if e.get(attr) is not None
+                    ]
                     if len(vals) >= 3:
-                        avg = sum(vals) / len(vals)
-                        if any(abs(v - avg) > 1.5 for v in vals):
+                        avg = sum(score for _, score in vals) / len(vals)
+                        divergent = [
+                            {
+                                'key': attr,
+                                'attribut': label,
+                                'degustateur_id': e['degustateur_id'],
+                                'degustateur': e['degustateur'],
+                                'score': score,
+                                'panel_average': round(avg, 2),
+                                'ecart': round(abs(score - avg), 2),
+                            }
+                            for e, score in vals
+                            if abs(score - avg) > 1.5
+                        ]
+                        if divergent:
                             group['divergence'] = True
-                            break
+                            group['divergence_details'].extend(divergent)
+
+            submitted_by_user = group.pop('_submitted_by_user')
+            for member in active_panel_members:
+                if str(member.id) not in submitted_by_user:
+                    group['evaluations'].append({
+                        'id': None,
+                        'degustateur_id': str(member.id),
+                        'degustateur': _user_full_name(member),
+                        'degustateur_nom': _user_full_name(member),
+                        'taster_name': _user_full_name(member),
+                        'statut': 'en_attente',
+                        'classification': None,
+                        'scores': [],
+                        'date_eval': None,
+                        'soumis_le': None,
+                    })
 
         return Response(list(grouped.values()))
 
 
 class ChefDashboardPipelineView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsChefPanel]
 
     def get(self, request):
         return Response({
@@ -77,7 +190,7 @@ class ChefDashboardPipelineView(APIView):
 
 
 class ChefDashboardUrgentesView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsChefPanel]
 
     def get(self, request):
         now = timezone.now()
@@ -89,10 +202,16 @@ class ChefDashboardUrgentesView(APIView):
         result = []
         for e in echantillons:
             days = (now - e.date_arrivee_echantillon).days if e.date_arrivee_echantillon else 0
+            collecteur_nom = _user_full_name(e.collecteur)
+            fournisseur_nom = e.fournisseur.nom if e.fournisseur else ''
             result.append({
                 'id': str(e.id),
                 'numero': e.numero,
+                'reference': f"{e.variete} - {e.numero}".strip(' -'),
                 'variete': e.variete,
+                'collecteur_nom': collecteur_nom,
+                'fournisseur_nom': fournisseur_nom,
+                'jours_en_attente': days,
                 'days_waiting': days,
                 'badge': 'red' if days >= 2 else ('amber' if days == 1 else 'normal'),
             })
@@ -100,7 +219,7 @@ class ChefDashboardUrgentesView(APIView):
 
 
 class ChefDashboardSessionsEnAttenteView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsChefPanel]
 
     def get(self, request):
         sessions = SessionDegustation.objects.filter(
@@ -113,17 +232,21 @@ class ChefDashboardSessionsEnAttenteView(APIView):
             'heure': s.heure.isoformat() if s.heure else None,
             'lieu': s.lieu,
             'cree_par': f"{s.cree_par.prenom} {s.cree_par.nom}" if s.cree_par else '',
+            'propose_par': _user_full_name(s.cree_par),
         } for s in sessions])
 
 
 class ChefDashboardDelaiView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsChefPanel]
 
     def get(self, request):
         date_debut = request.query_params.get('date_debut')
         date_fin = request.query_params.get('date_fin')
 
-        qs = EvaluationOrganoleptique.objects.filter(statut='soumis').select_related('degustateur', 'echantillon').order_by('soumis_le')
+        qs = EvaluationOrganoleptique.objects.filter(
+            statut='soumis',
+            soumis_le__isnull=False,
+        ).select_related('degustateur', 'echantillon').order_by('soumis_le')
         if date_debut:
             qs = qs.filter(soumis_le__date__gte=date_debut)
         if date_fin:
@@ -135,7 +258,7 @@ class ChefDashboardDelaiView(APIView):
         for ev in qs:
             if not ev.echantillon.date_arrivee_echantillon:
                 continue
-            delay = (ev.soumis_le - ev.echantillon.date_arrivee_echantillon).days
+            delay = (ev.soumis_le - ev.echantillon.date_arrivee_echantillon).total_seconds() / 86400
             all_delays.append(delay)
             uid = str(ev.degustateur_id) if ev.degustateur_id else 'inconnu'
             if uid not in per_member:
@@ -156,13 +279,16 @@ class ChefDashboardDelaiView(APIView):
 
 
 class ChefDashboardAlignementView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsChefPanel]
 
     def get(self, request):
         date_debut = request.query_params.get('date_debut')
         date_fin = request.query_params.get('date_fin')
 
-        qs = EvaluationOrganoleptique.objects.filter(statut='soumis').select_related('degustateur').order_by('soumis_le')
+        qs = EvaluationOrganoleptique.objects.filter(
+            statut='soumis',
+            soumis_le__isnull=False,
+        ).select_related('degustateur').order_by('soumis_le')
         if date_debut:
             qs = qs.filter(soumis_le__date__gte=date_debut)
         if date_fin:
@@ -178,21 +304,26 @@ class ChefDashboardAlignementView(APIView):
 
         member_data = {}
         for evals in by_sample.values():
-            if len(evals) < 2:
+            if len(evals) < 3:
                 continue
-            for attr in ('fruite', 'amertume', 'piquant'):
-                attr_scores = [float(getattr(e, attr) or 0) for e in evals]
-                if not any(attr_scores):
+            for attr, _ in EVALUATION_SCORE_FIELDS:
+                values = [
+                    (evaluation, getattr(evaluation, attr))
+                    for evaluation in evals
+                    if getattr(evaluation, attr) is not None
+                ]
+                if len(values) < 3:
                     continue
+                attr_scores = [float(score) for _, score in values]
                 avg = sum(attr_scores) / len(attr_scores)
-                for ev in evals:
+                for ev, raw_score in values:
                     uid = str(ev.degustateur_id) if ev.degustateur_id else 'inconnu'
                     if uid not in member_data:
                         member_data[uid] = {
                             'nom': f"{ev.degustateur.prenom} {ev.degustateur.nom}" if ev.degustateur else 'Inconnu',
                             'divergent': 0, 'total': 0,
                         }
-                    score = float(getattr(ev, attr) or 0)
+                    score = float(raw_score)
                     member_data[uid]['divergent'] += 1 if abs(score - avg) > 1.5 else 0
                     member_data[uid]['total'] += 1
 
@@ -205,13 +336,16 @@ class ChefDashboardAlignementView(APIView):
 
 
 class ChefDashboardClassificationsView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsChefPanel]
 
     def get(self, request):
         date_debut = request.query_params.get('date_debut')
         date_fin = request.query_params.get('date_fin')
 
-        qs = EvaluationOrganoleptique.objects.filter(statut='soumis').order_by('soumis_le')
+        qs = EvaluationOrganoleptique.objects.filter(
+            statut='soumis',
+            soumis_le__isnull=False,
+        ).order_by('soumis_le')
         if date_debut:
             qs = qs.filter(soumis_le__date__gte=date_debut)
         if date_fin:
@@ -233,7 +367,7 @@ class ChefDashboardClassificationsView(APIView):
 
 
 class ChefDashboardPresenceView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsChefPanel]
 
     def get(self, request):
         date_debut = request.query_params.get('date_debut')
@@ -248,8 +382,13 @@ class ChefDashboardPresenceView(APIView):
         if date_fin:
             qs = qs.filter(date__lte=date_fin)
 
-        present = qs.filter(statut='terminee').count()
-        manquee = qs.filter(statut='planifiee', date__lt=today).count()
+        present = qs.filter(presences_confirmees=request.user).count()
+        manquee = (
+            qs.filter(date__lt=today)
+            .exclude(statut='refusee')
+            .exclude(presences_confirmees=request.user)
+            .count()
+        )
 
         prochaine = SessionDegustation.objects.filter(
             Q(participants=request.user) | Q(cree_par=request.user),
@@ -270,7 +409,7 @@ class ChefDashboardPresenceView(APIView):
 
 
 class ChefDashboardUrgentesCeoView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsChefPanel]
 
     def get(self, request):
         echantillons = Echantillon.objects.filter(
@@ -281,6 +420,8 @@ class ChefDashboardUrgentesCeoView(APIView):
         return Response([{
             'id': str(e.id),
             'numero': e.numero,
+            'reference': f"{e.variete} - {e.numero}".strip(' -'),
+            'reference_bouteille': e.reference_bouteille,
             'variete': e.variete,
             'collecteur_nom': f"{e.collecteur.prenom} {e.collecteur.nom}" if e.collecteur else '',
             'fournisseur_nom': e.fournisseur.nom if e.fournisseur else '',
@@ -288,7 +429,7 @@ class ChefDashboardUrgentesCeoView(APIView):
 
 
 class ChefDashboardActiviteView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsChefPanel]
 
     def get(self, request):
         offset = int(request.query_params.get('offset', 0))
@@ -298,7 +439,9 @@ class ChefDashboardActiviteView(APIView):
         cap = offset + limit + 500
 
         evals = EvaluationOrganoleptique.objects.filter(
-            degustateur=request.user
+            degustateur=request.user,
+            statut='soumis',
+            soumis_le__isnull=False,
         ).select_related('echantillon')
         if date_debut:
             evals = evals.filter(soumis_le__date__gte=date_debut)
@@ -307,9 +450,12 @@ class ChefDashboardActiviteView(APIView):
         evals = evals[:cap]
 
         activities = [{
+            'id': str(ev.id),
             'type': 'evaluation',
             'date': ev.soumis_le.isoformat(),
-            'description': f"Évaluation — {ev.echantillon.numero} ({ev.statut})",
+            'horodatage': ev.soumis_le.isoformat(),
+            'description': f"Evaluation - {ev.echantillon.numero} ({ev.statut})",
+            'action': f"Evaluation soumise - {ev.echantillon.numero}",
         } for ev in evals]
 
         sessions = SessionDegustation.objects.filter(cree_par=request.user)
@@ -320,9 +466,12 @@ class ChefDashboardActiviteView(APIView):
         sessions = sessions[:cap]
         for s in sessions:
             activities.append({
+                'id': str(s.id),
                 'type': 'session',
                 'date': s.date_creation.isoformat(),
-                'description': f"Session créée — {s.titre}",
+                'horodatage': s.date_creation.isoformat(),
+                'description': f"Session creee - {s.titre}",
+                'action': f"Session creee - {s.titre}",
             })
 
         activities.sort(key=lambda x: x['date'], reverse=True)

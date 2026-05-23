@@ -1,0 +1,38 @@
+@startuml
+title Sequence Diagram "Collector Confirms Purchase Information"
+
+actor "Collector" as C
+boundary "Collector Samples Interface" as I
+control "Collector Sample Service" as S
+control "Django Echantillon API" as API
+entity "Echantillon Model" as M
+
+group Confirm Purchase Information
+    C -> I : 1. Open collector samples page
+    I -> S : 2. Request collector samples
+    S -> API : 3. Fetch collector samples
+    API -> M : 4. Retrieve collector samples
+    M --> API : 5. Return samples
+    API --> S : 6. Return samples
+    S --> I : 7. Return samples
+    I --> C : 8. Display samples with negotiation status
+
+    C -> I : 9. Select confirm purchase
+    I --> C : 10. Display purchase confirmation form
+    C -> I : 11. Enter final price, truck information, and stock delivery planning
+    I -> I : 12. Validate required fields
+
+    alt If data is invalid
+        I --> C : 12.1 Display validation error
+    else If data is valid
+        I -> S : 13. Send purchase confirmation data
+        S -> API : 14. Submit purchase confirmation
+        API -> M : 15. Update purchase information
+        M --> API : 16. Confirm update
+        API --> S : 17. Return updated sample
+        S --> I : 18. Return confirmation result
+        I --> C : 19. Display confirmation message
+    end
+end
+
+@enduml

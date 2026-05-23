@@ -1,0 +1,33 @@
+<h2>"Confirmer un Achat" — quelle direction ?</h2>
+<p class="subtitle">Le use case décrit un workflow CEO de validation qui n'existe pas vraiment dans l'app. Trois directions possibles :</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Réécrire le use case → "Consultation des Achats Confirmés"</h3>
+      <p><strong>Aucun code.</strong> On change la description pour matcher l'app réelle : le CEO consulte les achats déjà confirmés, voit le statut "En transit / Stock arrivé". Honnête, défendable devant le jury. La décision finale d'achat reste chez le collecteur après négociation.</p>
+      <p style="color:#888;font-size:13px;margin-top:8px"><em>Risque : le rapport perd un use case "validation administrateur" qui sonne bien.</em></p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Construire le workflow CEO de validation</h3>
+      <p><strong>Travail réel.</strong> Nouvelle page CEO "Propositions d'achat en attente" avec boutons Confirmer / Refuser. Ajout d'un état intermédiaire <code>proposition_envoyee</code> avant <code>achat_confirme</code>. Backend + Flutter + modèle d'échantillon à modifier.</p>
+      <p style="color:#888;font-size:13px;margin-top:8px"><em>Sprint 4 minimum. Renforce la logique métier ("le CEO valide les achats").</em></p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Hybride — viser le minimum crédible</h3>
+      <p><strong>Petit ajout ciblé.</strong> Garder le wording "Confirmer un Achat" dans le rapport, mais le scope est : le CEO voit la proposition (price/truck/scellage/date) dans la page existante et peut juste <em>marquer</em> "vu / approuvé" sans bloquer le workflow. Minimal côté code, garde la narration jury-friendly.</p>
+      <p style="color:#888;font-size:13px;margin-top:8px"><em>Compromis. Moins propre architecturalement mais réaliste pour un PFE.</em></p>
+    </div>
+  </div>
+</div>
+
+<p class="subtitle" style="margin-top:24px">Clique pour choisir, puis dis-moi pourquoi dans le terminal.</p>

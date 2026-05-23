@@ -1,0 +1,79 @@
+@startuml
+title Sequence Diagram "Administrator Organoleptic Evaluation Decision"
+
+autonumber
+
+skinparam backgroundColor #FFFFFF
+skinparam sequenceArrowThickness 1.5
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+
+skinparam actor {
+    BorderColor #1A2E1F
+    BackgroundColor #DCE9E2
+    FontStyle bold
+}
+skinparam boundary {
+    BorderColor #38835A
+    BackgroundColor #F5FBF7
+}
+skinparam control {
+    BorderColor #D07B2F
+    BackgroundColor #FEF3E8
+}
+skinparam entity {
+    BorderColor #3A6EA5
+    BackgroundColor #E8F1FB
+}
+skinparam sequence {
+    ArrowColor #38835A
+    LifeLineBorderColor #38835A
+    GroupBorderColor #616161
+    GroupBackgroundColor #F8F8F8
+    GroupHeaderFontStyle bold
+}
+
+actor "Administrator" as A
+boundary "Organoleptic Analysis Interface" as I
+control "Administrator Sample Service" as S
+control "Django Echantillon API" as API
+entity "Echantillon Model" as ME
+entity "Evaluation Model" as MV
+
+group Organoleptic Evaluation Decision
+    A -> I : Open organoleptic analysis page
+    I -> S : Request samples with evaluations
+    S -> API : Fetch organoleptic evaluation data
+    API -> ME : Retrieve samples
+    API -> MV : Retrieve associated evaluations
+    ME --> API : Return samples
+    MV --> API : Return evaluations
+    API --> S : Return samples with evaluations
+    S --> I : Return results
+    I --> A : Display organoleptic evaluations
+
+    A -> I : Choose approve or refuse
+
+    alt If sample is approved
+        A -> I : Enter negotiation budget and desired stock delivery date
+        I -> S : Send approval decision
+        S -> API : Submit approval request
+        API -> ME : Update sample status to "En négociation"
+        ME --> API : Confirm update
+        API --> S : Return updated sample
+        S --> I : Return approval result
+        I --> A : Display approval confirmation
+    else If sample is refused
+        A -> I : Enter refusal reason
+        I -> S : Send refusal decision
+        S -> API : Submit refusal request
+        API -> ME : Update sample status to refused
+        ME --> API : Confirm update
+        API --> S : Return updated sample
+        S --> I : Return refusal result
+        I --> A : Display refusal confirmation
+    end
+end
+
+@enduml

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:project3/core/services/profile_service.dart';
 import 'labo_drawer.dart';
 import '../main.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'echantillons_labo/echantillons_labo_page.dart';
 import '../core/theme/app_colors.dart';
 import 'widgets/labo_nav_mixin.dart';
+import 'notifications/notifications_labo_page.dart';
 
 class ProfilLaboPage extends StatefulWidget {
   const ProfilLaboPage({super.key});
@@ -14,22 +16,24 @@ class ProfilLaboPage extends StatefulWidget {
 }
 
 class _ProfilLaboPageState extends State<ProfilLaboPage> with LaboNavMixin {
-  // ── Controllers ───────────────────────────────────────────────────────────
+  // â”€â”€ Controllers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   late TextEditingController _nomController;
   late TextEditingController _prenomController;
   late TextEditingController _emailController;
   late TextEditingController _numeroController;
 
-  // ── Per-field editing booleans ────────────────────────────────────────────
+  // â”€â”€ Per-field editing booleans â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   bool _editingNom = false;
   bool _editingPrenom = false;
   bool _editingEmail = false;
   bool _editingNumero = false;
+  bool _profileLoading = false;
+  bool _profileSaving = false;
 
-  // ── Displayed header values ───────────────────────────────────────────────
+  // â”€â”€ Displayed header values â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   String _displayedFullName = '';
 
-  // ── FocusNodes ────────────────────────────────────────────────────────────
+  // â”€â”€ FocusNodes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   final FocusNode _nomFocus = FocusNode();
   final FocusNode _prenomFocus = FocusNode();
   final FocusNode _emailFocus = FocusNode();
@@ -42,6 +46,7 @@ class _ProfilLaboPageState extends State<ProfilLaboPage> with LaboNavMixin {
     _prenomController = TextEditingController(text: '');
     _emailController = TextEditingController(text: '');
     _numeroController = TextEditingController(text: '');
+    _loadProfile();
   }
 
   @override
@@ -57,66 +62,154 @@ class _ProfilLaboPageState extends State<ProfilLaboPage> with LaboNavMixin {
     super.dispose();
   }
 
-  // ── Toggle edit/save ─────────────────────────────────────────────────────
-  void _toggleEdit(String fieldKey) {
+  // â”€â”€ Toggle edit/save â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  Future<void> _loadProfile() async {
+    setState(() => _profileLoading = true);
+    try {
+      final profile = await profileService.currentProfile();
+      if (!mounted) return;
+      setState(() {
+        _nomController.text = profile.nom;
+        _prenomController.text = profile.prenom;
+        _emailController.text = profile.email;
+        _numeroController.text = profile.telephone ?? '';
+        _displayedFullName = profile.nomComplet;
+      });
+    } catch (error) {
+      if (!mounted) return;
+      _showError(profileService.messageFor(error));
+    } finally {
+      if (mounted) setState(() => _profileLoading = false);
+    }
+  }
+
+  Future<bool> _saveProfile(String successMessage) async {
+    if (_profileSaving) return false;
+    setState(() => _profileSaving = true);
+    try {
+      final profile = await profileService.updateCurrentProfile(
+        nom: _nomController.text.trim(),
+        prenom: _prenomController.text.trim(),
+        email: _emailController.text.trim(),
+        telephone: _numeroController.text.trim(),
+      );
+      if (!mounted) return false;
+      setState(() {
+        _nomController.text = profile.nom;
+        _prenomController.text = profile.prenom;
+        _emailController.text = profile.email;
+        _numeroController.text = profile.telephone ?? '';
+        _displayedFullName = profile.nomComplet;
+      });
+      _showSuccess(successMessage);
+      return true;
+    } catch (error) {
+      if (!mounted) return false;
+      _showError(profileService.messageFor(error));
+      return false;
+    } finally {
+      if (mounted) setState(() => _profileSaving = false);
+    }
+  }
+
+  void _focusField(String fieldKey) {
+    FocusNode? focusNode;
+    switch (fieldKey) {
+      case 'prenom':
+        focusNode = _prenomFocus;
+        break;
+      case 'nom':
+        focusNode = _nomFocus;
+        break;
+      case 'email':
+        focusNode = _emailFocus;
+        break;
+      case 'numero':
+        focusNode = _numeroFocus;
+        break;
+    }
+    if (focusNode != null) {
+      Future.delayed(const Duration(milliseconds: 50), focusNode.requestFocus);
+    }
+  }
+
+  Future<void> _toggleEdit(String fieldKey) async {
+    if (_profileLoading || _profileSaving) return;
+    var enteringEdit = false;
+    var successMessage = '';
+
     setState(() {
       switch (fieldKey) {
         case 'prenom':
           _editingPrenom = !_editingPrenom;
           if (_editingPrenom) {
-            Future.delayed(
-              const Duration(milliseconds: 50),
-              () => _prenomFocus.requestFocus(),
-            );
+            enteringEdit = true;
           } else {
             _displayedFullName =
                 '${_prenomController.text} ${_nomController.text}'.trim();
-            _showSuccess('Prénom mis à jour');
+            successMessage = 'Prénom mis à jour';
           }
           break;
 
         case 'nom':
           _editingNom = !_editingNom;
           if (_editingNom) {
-            Future.delayed(
-              const Duration(milliseconds: 50),
-              () => _nomFocus.requestFocus(),
-            );
+            enteringEdit = true;
           } else {
             _displayedFullName =
                 '${_prenomController.text} ${_nomController.text}'.trim();
-            _showSuccess('Nom mis à jour');
+            successMessage = 'Nom mis à jour';
           }
           break;
 
         case 'email':
           _editingEmail = !_editingEmail;
           if (_editingEmail) {
-            Future.delayed(
-              const Duration(milliseconds: 50),
-              () => _emailFocus.requestFocus(),
-            );
+            enteringEdit = true;
           } else {
-            _showSuccess('Email mis à jour');
+            successMessage = 'Email mis à jour';
           }
           break;
 
         case 'numero':
           _editingNumero = !_editingNumero;
           if (_editingNumero) {
-            Future.delayed(
-              const Duration(milliseconds: 50),
-              () => _numeroFocus.requestFocus(),
-            );
+            enteringEdit = true;
           } else {
-            _showSuccess('Numéro mis à jour');
+            successMessage = 'Numéro mis à jour';
           }
           break;
       }
     });
+
+    if (enteringEdit) {
+      _focusField(fieldKey);
+      return;
+    }
+
+    final saved = await _saveProfile(successMessage);
+    if (!saved && mounted) {
+      setState(() {
+        switch (fieldKey) {
+          case 'prenom':
+            _editingPrenom = true;
+            break;
+          case 'nom':
+            _editingNom = true;
+            break;
+          case 'email':
+            _editingEmail = true;
+            break;
+          case 'numero':
+            _editingNumero = true;
+            break;
+        }
+      });
+      _focusField(fieldKey);
+    }
   }
 
-  // ── Profile picture bottom sheet ──────────────────────────────────────────
+  // â”€â”€ Profile picture bottom sheet â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   void _onChangeProfilePicture() {
     showModalBottomSheet(
       context: context,
@@ -151,7 +244,7 @@ class _ProfilLaboPageState extends State<ProfilLaboPage> with LaboNavMixin {
               label: 'Choisir depuis la galerie',
               onTap: () {
                 Navigator.pop(context);
-                _showSuccess('Galerie — disponible avec image_picker');
+                _showSuccess('Galerie - disponible avec image_picker');
               },
             ),
             const SizedBox(height: 4),
@@ -160,7 +253,7 @@ class _ProfilLaboPageState extends State<ProfilLaboPage> with LaboNavMixin {
               label: 'Prendre une photo',
               onTap: () {
                 Navigator.pop(context);
-                _showSuccess('Caméra — disponible avec image_picker');
+                _showSuccess('Caméra - disponible avec image_picker');
               },
             ),
             const SizedBox(height: 4),
@@ -180,13 +273,15 @@ class _ProfilLaboPageState extends State<ProfilLaboPage> with LaboNavMixin {
     );
   }
 
-  // ── Build ─────────────────────────────────────────────────────────────────
+  // â”€â”€ Build â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
       drawer: LaboDrawer(
         onEchantillons: () => goToPage(const EchantillonsLaboPage()),
+        onNotifications: () => goToPage(const NotificationsLaboPage()),
+
         onProfil: () => goToPage(const ProfilLaboPage()),
         onDeconnexion: goToLogin,
       ),
@@ -210,9 +305,9 @@ class _ProfilLaboPageState extends State<ProfilLaboPage> with LaboNavMixin {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // ══════════════════════════════════════════════════════════════
+            // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
             // AVATAR + pen icon
-            // ══════════════════════════════════════════════════════════════
+            // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
             Stack(
               clipBehavior: Clip.none,
               children: [
@@ -274,9 +369,9 @@ class _ProfilLaboPageState extends State<ProfilLaboPage> with LaboNavMixin {
 
             const SizedBox(height: 30),
 
-            // ══════════════════════════════════════════════════════════════
+            // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
             // INFO CARD
-            // ══════════════════════════════════════════════════════════════
+            // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
@@ -371,9 +466,9 @@ class _ProfilLaboPageState extends State<ProfilLaboPage> with LaboNavMixin {
     );
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // HELPERS
-  // ─────────────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildField({
     required String label,
     required TextEditingController controller,
@@ -416,7 +511,11 @@ class _ProfilLaboPageState extends State<ProfilLaboPage> with LaboNavMixin {
                   size: 15,
                 ),
               ),
-              onPressed: () => _toggleEdit(fieldKey),
+              onPressed: _profileLoading || _profileSaving
+                  ? null
+                  : () {
+                      _toggleEdit(fieldKey);
+                    },
             ),
             filled: true,
             fillColor: isEditing ? Colors.white : Colors.grey.shade50,
@@ -444,9 +543,9 @@ class _ProfilLaboPageState extends State<ProfilLaboPage> with LaboNavMixin {
     );
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // HELPER — _sectionTitle
-  // ─────────────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // HELPER â€” _sectionTitle
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _sectionTitle(String title) {
     return Text(
       title,
@@ -500,6 +599,24 @@ class _ProfilLaboPageState extends State<ProfilLaboPage> with LaboNavMixin {
           ),
         ),
         backgroundColor: kGreen,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        margin: const EdgeInsets.all(20),
+      ),
+    );
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          message,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        backgroundColor: Colors.red.shade600,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         margin: const EdgeInsets.all(20),

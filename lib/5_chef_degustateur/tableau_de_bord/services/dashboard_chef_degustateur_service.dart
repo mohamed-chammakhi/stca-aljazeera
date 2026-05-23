@@ -1,220 +1,146 @@
+// lib/5_chef_degustateur/tableau_de_bord/services/dashboard_chef_degustateur_service.dart
+// TODO: switch all methods back to real API when backend is ready
+
 import '../models/dashboard_chef_degustateur.dart';
-import '../../../core/api_client.dart';
 
 class DashboardChefDegustateurService {
-  // ── Private helpers ────────────────────────────────────────────────────────
-
-  /// Formats an ISO 8601 datetime string to French short format: "24 Avr · 10h32".
-  String _formatDate(String isoDate) {
-    try {
-      final dt = DateTime.parse(isoDate).toLocal();
-      const months = [
-        'Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin',
-        'Juil', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc',
-      ];
-      final day = dt.day.toString().padLeft(2, '0');
-      final month = months[dt.month - 1];
-      final hour = dt.hour.toString().padLeft(2, '0');
-      final minute = dt.minute.toString().padLeft(2, '0');
-      return '$day $month · ${hour}h$minute';
-    } catch (_) {
-      return isoDate;
-    }
-  }
-
-  /// Formats a [DateTime] to ISO date string "YYYY-MM-DD".
-  String _fmtDate(DateTime d) =>
-      '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
-
-  /// Builds a URL path with optional date range query parameters.
-  String _pathWithDates(
-    String basePath, {
-    DateTime? dateDebut,
-    DateTime? dateFin,
-    Map<String, String>? extra,
-  }) {
-    final params = <String, String>{
-      if (extra != null) ...extra,
-      if (dateDebut != null) 'date_debut': _fmtDate(dateDebut),
-      if (dateFin != null) 'date_fin': _fmtDate(dateFin),
-    };
-    return Uri(
-      path: basePath,
-      queryParameters: params.isEmpty ? null : params,
-    ).toString();
-  }
-
-  // ── Pipeline ───────────────────────────────────────────────────────────────
-
-  /// Backend: GET /api/chef/dashboard/pipeline/
-  /// Returns: {receptionne, en_attente_eval, en_cours, soumis}
   Future<PipelineChefData> fetchPipeline() async {
-    final raw = await apiClient.get('/api/chef/dashboard/pipeline/');
-    return PipelineChefData.fromJson(raw);
-  }
-
-  // ── Urgentes (time-based) ──────────────────────────────────────────────────
-
-  /// Backend: GET /api/chef/dashboard/urgentes/
-  /// Returns: [{id, numero, variete, days_waiting, badge}, ...]
-  /// Translation: reference = '$variete · $numero', jours_en_attente = days_waiting.
-  Future<List<EvaluationUrgenteChef>> fetchUrgentes() async {
-    final items = await apiClient.getList('/api/chef/dashboard/urgentes/');
-    return items.map((e) {
-      final api = e as Map<String, dynamic>;
-      return EvaluationUrgenteChef.fromJson({
-        'id':              api['id'],
-        'reference':       '${api['variete'] ?? ''} · ${api['numero'] ?? ''}',
-        'collecteur_nom':  '',
-        'fournisseur_nom': '',
-        'jours_en_attente': api['days_waiting'] ?? 0,
-      });
-    }).toList();
-  }
-
-  // ── Sessions en attente ────────────────────────────────────────────────────
-
-  /// Backend: GET /api/chef/dashboard/sessions-en-attente/
-  /// Returns: [{id, titre, date, heure, lieu, cree_par}, ...]
-  /// Translation: propose_par = cree_par.
-  Future<List<SessionEnAttente>> fetchSessionsEnAttente() async {
-    final items = await apiClient.getList('/api/chef/dashboard/sessions-en-attente/');
-    return items.map((e) {
-      final api = e as Map<String, dynamic>;
-      return SessionEnAttente.fromJson({
-        'id':          api['id'],
-        'titre':       api['titre'] ?? '',
-        'date':        api['date'] ?? '',
-        'heure':       api['heure'] ?? '',
-        'lieu':        api['lieu'] ?? '',
-        'propose_par': api['cree_par'] ?? '',
-      });
-    }).toList();
-  }
-
-  // ── Délai de soumission ────────────────────────────────────────────────────
-
-  /// Backend: GET /api/chef/dashboard/delai/?date_debut=...&date_fin=...
-  /// Returns: {membres: [{nom, delai_moyen, panel_moyen}], panel_moyen}
-  Future<DelaiPanelData> fetchDelai({DateTime? dateDebut, DateTime? dateFin}) async {
-    final path = _pathWithDates(
-      '/api/chef/dashboard/delai/',
-      dateDebut: dateDebut,
-      dateFin: dateFin,
+    return const PipelineChefData(
+      receptionne: 12,
+      enAttenteEval: 5,
+      enCours: 3,
+      soumis: 4,
     );
-    final raw = await apiClient.get(path);
-    return DelaiPanelData.fromJson(raw);
   }
 
-  // ── Alignement du panel ────────────────────────────────────────────────────
+  Future<List<EvaluationUrgenteChef>> fetchUrgentes() async {
+    return [
+      EvaluationUrgenteChef(
+        id: 'aaa00000-0000-0000-0000-000000000001',
+        reference: 'Chemlali · 2026/0001',
+        collecteurNom: 'Ahmed Dridi',
+        fournisseurNom: 'Domaine Bel-Air',
+        joursEnAttente: 14,
+      ),
+      EvaluationUrgenteChef(
+        id: 'aaa00000-0000-0000-0000-000000000004',
+        reference: 'Oueslati · 2026/0004',
+        collecteurNom: 'Nour Messaoud',
+        fournisseurNom: 'Green Valley',
+        joursEnAttente: 8,
+      ),
+      EvaluationUrgenteChef(
+        id: 'aaa00000-0000-0000-0000-000000000005',
+        reference: 'Chemlali · 2026/0005',
+        collecteurNom: 'Ahmed Dridi',
+        fournisseurNom: 'Domaine Bel-Air',
+        joursEnAttente: 6,
+      ),
+    ];
+  }
 
-  /// Backend: GET /api/chef/dashboard/alignement/?date_debut=...&date_fin=...
-  /// Returns: {membres: [{nom, divergence_pct}]}
+  Future<List<SessionEnAttente>> fetchSessionsEnAttente() async {
+    return [
+      SessionEnAttente(
+        id: 'SES-005',
+        titre: 'Session Oueslati - Lot C',
+        date: '28/04/2026',
+        heure: '09:00',
+        lieu: 'Salle de dégustation A',
+        proposePar: 'Lobna E.',
+      ),
+      SessionEnAttente(
+        id: 'SES-006',
+        titre: 'Session Rkhami - Sfax',
+        date: '02/05/2026',
+        heure: '11:00',
+        lieu: 'Laboratoire 1',
+        proposePar: 'Ichrak C.',
+      ),
+    ];
+  }
+
+  Future<DelaiPanelData> fetchDelai({DateTime? dateDebut, DateTime? dateFin}) async {
+    return DelaiPanelData(
+      panelMoyen: 3.1,
+      membres: [
+        DelaiMembre(nom: 'Ichrak C.',  delaiMoyen: 2.1, panelMoyen: 3.1),
+        DelaiMembre(nom: 'Lobna E.',   delaiMoyen: 3.5, panelMoyen: 3.1),
+        DelaiMembre(nom: 'Maha O.',    delaiMoyen: 2.8, panelMoyen: 3.1),
+        DelaiMembre(nom: 'Nayrouz F.', delaiMoyen: 3.9, panelMoyen: 3.1),
+        DelaiMembre(nom: 'Yosra S.',   delaiMoyen: 2.5, panelMoyen: 3.1),
+      ],
+    );
+  }
+
   Future<AlignementPanelData> fetchAlignement({
     DateTime? dateDebut,
     DateTime? dateFin,
   }) async {
-    final path = _pathWithDates(
-      '/api/chef/dashboard/alignement/',
-      dateDebut: dateDebut,
-      dateFin: dateFin,
+    return AlignementPanelData(
+      membres: [
+        AlignementMembre(nom: 'Ichrak C.',  divergencePct: 5.2),
+        AlignementMembre(nom: 'Lobna E.',   divergencePct: 12.8),
+        AlignementMembre(nom: 'Maha O.',    divergencePct: 8.1),
+        AlignementMembre(nom: 'Nayrouz F.', divergencePct: 18.4),
+        AlignementMembre(nom: 'Yosra S.',   divergencePct: 6.7),
+      ],
     );
-    final raw = await apiClient.get(path);
-    return AlignementPanelData.fromJson(raw);
   }
 
-  // ── Classifications ────────────────────────────────────────────────────────
-
-  /// Backend: GET /api/chef/dashboard/classifications/?date_debut=...&date_fin=...
-  /// Returns: [{label, extra_vierge, vierge, lampante}] — matches model directly.
   Future<List<ClassificationPoint>> fetchClassifications({
     DateTime? dateDebut,
     DateTime? dateFin,
   }) async {
-    final path = _pathWithDates(
-      '/api/chef/dashboard/classifications/',
-      dateDebut: dateDebut,
-      dateFin: dateFin,
-    );
-    final items = await apiClient.getList(path);
-    return items
-        .map((e) => ClassificationPoint.fromJson(e as Map<String, dynamic>))
-        .toList();
+    return [
+      const ClassificationPoint(label: 'Jan', extraVierge: 5, vierge: 3, lampante: 2),
+      const ClassificationPoint(label: 'Fév', extraVierge: 4, vierge: 4, lampante: 2),
+      const ClassificationPoint(label: 'Mar', extraVierge: 7, vierge: 2, lampante: 1),
+      const ClassificationPoint(label: 'Avr', extraVierge: 6, vierge: 3, lampante: 1),
+    ];
   }
 
-  // ── Urgentes CEO ───────────────────────────────────────────────────────────
-
-  /// Backend: GET /api/chef/dashboard/urgentes-ceo/
-  /// Returns: [{id, numero, variete, collecteur_nom, fournisseur_nom}, ...]
-  /// Translation: reference = '$variete · $numero'.
   Future<List<EvaluationUrgenteCeoChef>> fetchUrgentesCeo() async {
-    final items = await apiClient.getList('/api/chef/dashboard/urgentes-ceo/');
-    return items.map((e) {
-      final api = e as Map<String, dynamic>;
-      return EvaluationUrgenteCeoChef.fromJson({
-        'id':              api['id'],
-        'reference':       '${api['variete'] ?? ''} · ${api['numero'] ?? ''}',
-        'collecteur_nom':  api['collecteur_nom'] ?? '',
-        'fournisseur_nom': api['fournisseur_nom'] ?? '',
-      });
-    }).toList();
+    return [
+      EvaluationUrgenteCeoChef(
+        id: 'aaa00000-0000-0000-0000-000000000002',
+        reference: 'Chemlali · 2026/0002',
+        collecteurNom: 'Ahmed Dridi',
+        fournisseurNom: 'SF-17',
+      ),
+    ];
   }
 
-  // ── Présence ───────────────────────────────────────────────────────────────
-
-  /// Backend: GET /api/chef/dashboard/presence/?date_debut=...&date_fin=...
-  /// Returns: {present, manquee, prochaine_titre, prochaine_date, prochaine_lieu, prochaine_countdown}
-  /// — matches PresenceChefData.fromJson directly.
   Future<PresenceChefData> fetchPresence({
     DateTime? dateDebut,
     DateTime? dateFin,
   }) async {
-    final path = _pathWithDates(
-      '/api/chef/dashboard/presence/',
-      dateDebut: dateDebut,
-      dateFin: dateFin,
+    return const PresenceChefData(
+      present: 9,
+      manquee: 1,
+      prochaineTitre: 'Session Oueslati - Lot C',
+      prochaineDate: '18/05/2026',
+      prochaineLieu: 'Salle de dégustation B',
+      prochaineCountdown: 'Dans 11 jours',
     );
-    final raw = await apiClient.get(path);
-    return PresenceChefData.fromJson(raw);
   }
 
-  // ── Activité (paginated) ───────────────────────────────────────────────────
-
-  /// Backend: GET /api/chef/dashboard/activite/?offset=<n>&limit=<n>&date_debut=...&date_fin=...
-  /// Returns: {count, results: [{type, date, description}]}
-  /// Translation:
-  ///   id         = (offset + index).toString()
-  ///   action     = item['description']
-  ///   horodatage = _formatDate(item['date'])
-  ///   type       = item['type']
   Future<({List<ActiviteItemChef> items, int total})> fetchActivite({
     DateTime? dateDebut,
     DateTime? dateFin,
     int offset = 0,
     int pageSize = 5,
   }) async {
-    final path = _pathWithDates(
-      '/api/chef/dashboard/activite/',
-      dateDebut: dateDebut,
-      dateFin: dateFin,
-      extra: {
-        'offset': offset.toString(),
-        'limit':  pageSize.toString(),
-      },
-    );
-    final raw = await apiClient.get(path);
-    final results = (raw['results'] as List? ?? []);
-    final total = (raw['count'] as int?) ?? results.length;
-    final items = results.asMap().entries.map((entry) {
-      final index = entry.key;
-      final api = entry.value as Map<String, dynamic>;
-      return ActiviteItemChef(
-        id:          (offset + index).toString(),
-        action:      (api['description'] as String?) ?? '',
-        horodatage:  _formatDate((api['date'] as String?) ?? ''),
-        type:        (api['type'] as String?) ?? '',
-      );
-    }).toList();
-    return (items: items, total: total);
+    const all = [
+      ActiviteItemChef(id: '0', action: 'Session approuvée — Session Chemlali Lot A',   horodatage: '05 Mai · 10h00', type: 'session_approuvee'),
+      ActiviteItemChef(id: '1', action: 'Divergence détectée — OUESLATI-C2 (Nayrouz)', horodatage: '04 Mai · 15h30', type: 'divergence'),
+      ActiviteItemChef(id: '2', action: 'Session refusée — Session Rkhami (modifiée)',   horodatage: '03 Mai · 09h10', type: 'session_refusee'),
+      ActiviteItemChef(id: '3', action: 'Classification validée — CHETOUI-C3',          horodatage: '01 Mai · 11h45', type: 'evaluation'),
+      ActiviteItemChef(id: '4', action: 'Session approuvée — Session Zalmati',          horodatage: '28 Avr · 08h30', type: 'session_approuvee'),
+      ActiviteItemChef(id: '5', action: 'Divergence signalée — ZARAZI-C1 (Lobna)',      horodatage: '25 Avr · 14h00', type: 'divergence'),
+      ActiviteItemChef(id: '6', action: 'Classification validée — CHEMLALI-C1',         horodatage: '22 Avr · 10h20', type: 'evaluation'),
+    ];
+    final paged = all.skip(offset).take(pageSize).toList();
+    return (items: paged, total: all.length);
   }
 }

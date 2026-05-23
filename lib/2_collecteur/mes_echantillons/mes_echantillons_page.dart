@@ -147,10 +147,12 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
       context,
       echantillon: e,
       prochainNumero: _prochainNumero,
-      onSaveMultiple: (_) {
-        setState(() {});
+      onSaveMultiple: (_, {photoBytes, photoName}) {
+        _saveEchantillon(
+          e,
+          successMessage: '"${e.referenceBouteille}" modifie',
+        );
         _rebuildMap();
-        _showSuccess('"${e.referenceBouteille}" modifié');
       },
     );
   }
@@ -166,15 +168,23 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Annuler', style: TextStyle(color: Colors.grey.shade600)),
+            child: Text(
+              'Annuler',
+              style: TextStyle(color: Colors.grey.shade600),
+            ),
           ),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(context);
-              setState(() => _echantillons.remove(e));
-              _service.deleteEchantillon(e.id);
-              _rebuildMap();
-              _showSuccess('"${e.referenceBouteille}" supprimé');
+              try {
+                await _service.deleteEchantillon(e.id);
+                if (!mounted) return;
+                setState(() => _echantillons.remove(e));
+                _rebuildMap();
+                _showSuccess('"${e.referenceBouteille}" supprime');
+              } catch (error) {
+                if (mounted) _showError(_service.messageFor(error));
+              }
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red.shade400,
@@ -192,17 +202,24 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
     showConfirmerAchatDialog(
       context: context,
       echantillon: e,
-      onConfirm: (prix, camion, livraison, scellage) {
-        setState(() {
-          e.statut = StatutCollecteur.achatConfirme;
-          e.achatConfirme = true;
-          e.prixFinal = prix;
-          if (camion != null) e.camionLivraison = camion;
-          if (livraison != null) e.livraison = livraison;
-          if (scellage != null) e.scellage = scellage;
-        });
-        _service.updateEchantillon(e);
-        _showPropositionEnvoyeeDialog(e.referenceBouteille);
+      onConfirm: (prix, camion, livraison, scellage) async {
+        try {
+          final saved = await _service.confirmerAchat(
+            e.id,
+            prixFinal: prix,
+            camionLivraison: camion,
+          );
+          if (!mounted) return;
+          setState(() {
+            final index = _echantillons.indexWhere((item) => item.id == e.id);
+            if (livraison != null) saved.livraison = livraison;
+            if (scellage != null) saved.scellage = scellage;
+            if (index != -1) _echantillons[index] = saved;
+          });
+          _showPropositionEnvoyeeDialog(saved.referenceBouteille);
+        } catch (error) {
+          if (mounted) _showError(_service.messageFor(error));
+        }
       },
     );
   }
@@ -397,7 +414,7 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
                             Navigator.pop(ctx);
                             if (!active) {
                               setState(() => e.dateArriveeEchantillon = null);
-                              _service.updateEchantillon(e);
+                              _saveEchantillon(e);
                               return;
                             }
                             final dt = mode == ModePlanificationUI.dateExacte
@@ -405,9 +422,10 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
                                 : periodeDebut;
                             if (dt == null) return;
                             setState(() => e.dateArriveeEchantillon = dt);
-                            _service.updateEchantillon(e);
-                            _showSuccess(
-                              'Arrivée planifiée pour "${e.referenceBouteille}"',
+                            _saveEchantillon(
+                              e,
+                              successMessage:
+                                  'Arrivee planifiee pour "${e.referenceBouteille}"',
                             );
                           },
                           style: ElevatedButton.styleFrom(
@@ -452,10 +470,31 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
           if (livraison != null) e.livraison = livraison;
           if (scellage != null) e.scellage = scellage;
         });
-        _service.updateEchantillon(e);
-        _showSuccess('Livraison mise à jour pour "${e.referenceBouteille}"');
+        _saveEchantillon(
+          e,
+          successMessage:
+              'Livraison mise a jour pour "${e.referenceBouteille}"',
+        );
       },
     );
+  }
+
+  Future<void> _saveEchantillon(
+    EchantillonCollecteur e, {
+    String? successMessage,
+  }) async {
+    try {
+      final saved = await _service.updateEchantillon(e);
+      if (!mounted) return;
+      setState(() {
+        final index = _echantillons.indexWhere((item) => item.id == e.id);
+        if (index != -1) _echantillons[index] = saved;
+      });
+      _rebuildMap();
+      if (successMessage != null) _showSuccess(successMessage);
+    } catch (error) {
+      if (mounted) _showError(_service.messageFor(error));
+    }
   }
 
   void _showSuccess(String msg) => ScaffoldMessenger.of(context).showSnackBar(
@@ -468,6 +507,22 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
         ),
       ),
       backgroundColor: colGreen,
+      behavior: SnackBarBehavior.floating,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      margin: const EdgeInsets.all(20),
+    ),
+  );
+
+  void _showError(String msg) => ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Text(
+        msg,
+        style: const TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+      backgroundColor: Colors.red.shade600,
       behavior: SnackBarBehavior.floating,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       margin: const EdgeInsets.all(20),
@@ -620,22 +675,39 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
           showFormulaireDialog(
             context,
             prochainNumero: _prochainNumero,
-            onSaveMultiple: (nouveaux) async {
-              final created = <EchantillonCollecteur>[];
-              for (final s in nouveaux) {
-                created.add(await _service.createEchantillon(s));
-              }
-              if (!mounted) return;
-              setState(() {
-                for (final s in created) {
-                  _echantillons.insert(0, s);
+            onSaveMultiple: (nouveaux, {photoBytes, photoName}) async {
+              try {
+                final created = <EchantillonCollecteur>[];
+                for (var i = 0; i < nouveaux.length; i++) {
+                  final s = nouveaux[i];
+                  // The collector photographs one bottle — attach that photo
+                  // to the first sample so it is stored on the server.
+                  if (i == 0 && photoBytes != null) {
+                    created.add(
+                      await _service.createEchantillonWithImage(
+                        s,
+                        imageBytes: photoBytes,
+                        filename: photoName ?? 'bouteille.jpg',
+                      ),
+                    );
+                  } else {
+                    created.add(await _service.createEchantillon(s));
+                  }
                 }
-              });
-              _rebuildMap();
-              final label = created.length == 1
-                  ? '"${created.first.referenceBouteille}" ajouté'
-                  : '${created.length} échantillons ajoutés';
-              _showSuccess(label);
+                if (!mounted) return;
+                setState(() {
+                  for (final s in created) {
+                    _echantillons.insert(0, s);
+                  }
+                });
+                _rebuildMap();
+                final label = created.length == 1
+                    ? '"${created.first.referenceBouteille}" ajoute'
+                    : '${created.length} echantillons ajoutes';
+                _showSuccess(label);
+              } catch (error) {
+                if (mounted) _showError(_service.messageFor(error));
+              }
             },
           );
         },
@@ -723,12 +795,13 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
                       const SizedBox(width: 7),
                       _StatutChip(
                         label: 'Enregistré',
-                        activeBg: const Color(0xFF3A6EA5).withValues(alpha: 0.12),
+                        activeBg: const Color(
+                          0xFF3A6EA5,
+                        ).withValues(alpha: 0.12),
                         activeFg: const Color(0xFF3A6EA5),
                         inactiveBg: const Color(0xFFF0F0F0),
                         inactiveFg: const Color(0xFF9E9E9E),
-                        selected:
-                            _filtreStatut == StatutCollecteur.receptionne,
+                        selected: _filtreStatut == StatutCollecteur.receptionne,
                         onTap: () => setState(
                           () => _filtreStatut = StatutCollecteur.receptionne,
                         ),
@@ -736,29 +809,31 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
                       const SizedBox(width: 7),
                       _StatutChip(
                         label: 'Négociation',
-                        activeBg: const Color(0xFFD07B2F).withValues(alpha: 0.12),
+                        activeBg: const Color(
+                          0xFFD07B2F,
+                        ).withValues(alpha: 0.12),
                         activeFg: const Color(0xFFD07B2F),
                         inactiveBg: const Color(0xFFF0F0F0),
                         inactiveFg: const Color(0xFF9E9E9E),
                         selected:
                             _filtreStatut == StatutCollecteur.enNegociation,
                         onTap: () => setState(
-                          () =>
-                              _filtreStatut = StatutCollecteur.enNegociation,
+                          () => _filtreStatut = StatutCollecteur.enNegociation,
                         ),
                       ),
                       const SizedBox(width: 7),
                       _StatutChip(
                         label: 'Achat conclu',
-                        activeBg: const Color(0xFF38835A).withValues(alpha: 0.12),
+                        activeBg: const Color(
+                          0xFF38835A,
+                        ).withValues(alpha: 0.12),
                         activeFg: const Color(0xFF38835A),
                         inactiveBg: const Color(0xFFF0F0F0),
                         inactiveFg: const Color(0xFF9E9E9E),
                         selected:
                             _filtreStatut == StatutCollecteur.achatConfirme,
                         onTap: () => setState(
-                          () =>
-                              _filtreStatut = StatutCollecteur.achatConfirme,
+                          () => _filtreStatut = StatutCollecteur.achatConfirme,
                         ),
                       ),
                     ],

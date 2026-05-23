@@ -1,0 +1,43 @@
+@startuml
+title Sequence Diagram "Organoleptic Evaluation Decision"
+
+actor "Administrator" as A
+boundary "Organoleptic Analysis Interface" as I
+control "Administrator Sample Service" as S
+control "Django Echantillon API" as API
+entity "Echantillon and Evaluation Models" as M
+
+group Organoleptic Evaluation Decision
+    A -> I : 1. Open organoleptic analysis page
+    I -> S : 2. Request samples with evaluations
+    S -> API : 3. Fetch organoleptic evaluation data
+    API -> M : 4. Retrieve samples and evaluations
+    M --> API : 5. Return samples with evaluations
+    API --> S : 6. Return evaluation data
+    S --> I : 7. Return results
+    I --> A : 8. Display organoleptic evaluations
+
+    A -> I : 9. Choose approve or refuse
+
+    alt If sample is approved
+        A -> I : 10. Enter negotiation budget and desired stock delivery date
+        I -> S : 11. Send approval decision
+        S -> API : 12. Submit approval request
+        API -> M : 13. Update sample to in negotiation
+        M --> API : 14. Confirm update
+        API --> S : 15. Return updated sample
+        S --> I : 16. Return approval result
+        I --> A : 17. Display approval confirmation
+    else If sample is refused
+        A -> I : 10. Enter refusal reason
+        I -> S : 11. Send refusal decision
+        S -> API : 12. Submit refusal request
+        API -> M : 13. Update sample to refused
+        M --> API : 14. Confirm update
+        API --> S : 15. Return updated sample
+        S --> I : 16. Return refusal result
+        I --> A : 17. Display refusal confirmation
+    end
+end
+
+@enduml

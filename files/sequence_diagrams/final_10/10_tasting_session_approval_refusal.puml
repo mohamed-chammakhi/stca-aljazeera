@@ -1,0 +1,41 @@
+@startuml
+title Sequence Diagram "Tasting Session Approval or Refusal"
+
+actor "Panel Evaluation Supervisor" as P
+boundary "Tasting Session Interface" as I
+control "Session Service" as S
+control "Django Session API" as API
+entity "Tasting Session Model" as M
+
+group Tasting Session Approval or Refusal
+    P -> I : 1. Open tasting session page
+    I -> S : 2. Request tasting sessions
+    S -> API : 3. Fetch sessions
+    API -> M : 4. Retrieve sessions
+    M --> API : 5. Return sessions
+    API --> S : 6. Return session list
+    S --> I : 7. Return sessions
+    I --> P : 8. Display sessions with validation status
+
+    P -> I : 9. Select a pending session decision
+
+    alt If session is approved
+        I -> S : 10. Send approval decision
+        S -> API : 11. Submit approval request
+        API -> M : 12. Update session to planned
+        M --> API : 13. Confirm update
+        API --> S : 14. Return updated session
+        S --> I : 15. Return approval result
+        I --> P : 16. Display approval confirmation
+    else If session is refused
+        I -> S : 10. Send refusal decision
+        S -> API : 11. Submit refusal request
+        API -> M : 12. Refuse session
+        M --> API : 13. Confirm update
+        API --> S : 14. Return refusal result
+        S --> I : 15. Return refusal result
+        I --> P : 16. Display refusal confirmation
+    end
+end
+
+@enduml

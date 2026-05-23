@@ -17,6 +17,17 @@ class EvaluationSerializer(serializers.ModelSerializer):
             'commentaire',
             'soumis_le', 'date_modification',
         ]
+        read_only_fields = [
+            'id', 'degustateur', 'degustateur_nom',
+            'soumis_le', 'date_modification',
+        ]
+
+    def validate_echantillon(self, value):
+        if not value.recu_physiquement:
+            raise serializers.ValidationError(
+                'L echantillon doit etre recu physiquement avant evaluation.'
+            )
+        return value
 
     def get_degustateur_nom(self, obj):
         if obj.degustateur:

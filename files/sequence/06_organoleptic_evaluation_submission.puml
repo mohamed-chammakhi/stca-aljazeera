@@ -1,0 +1,62 @@
+@startuml
+title Diagramme de sequence - Soumission d'une evaluation organoleptique
+
+actor "Degustateur / Chef de Panel" as Taster
+boundary "Interface Evaluation" as UI
+control "Controleur Evaluation" as Controller
+entity "Modele Evaluation" as Evaluation
+entity "Modele Echantillon" as Sample
+database "Base de donnees" as DB
+
+Taster -> UI : Demander la page d'evaluation
+UI -> Controller : Charger les echantillons a evaluer
+Controller -> Sample : Recuperer les echantillons recus physiquement
+Sample -> DB : Lire les echantillons disponibles
+DB --> Sample : Retourner la liste
+Sample --> Controller : Liste des echantillons
+Controller --> UI : Envoyer la liste
+UI --> Taster : Afficher les echantillons a evaluer
+
+Taster -> UI : Selectionner un echantillon
+UI -> Controller : Charger le formulaire d'evaluation
+Controller -> Evaluation : Verifier l'evaluation existante
+Evaluation -> DB : Rechercher une evaluation du degustateur
+DB --> Evaluation : Resultat de recherche
+Evaluation --> Controller : Evaluation existante ou nouveau formulaire
+Controller --> UI : Afficher le formulaire
+
+Taster -> UI : Remplir les criteres organoleptiques
+Taster -> UI : Enregistrer brouillon ou soumettre
+UI -> UI : Verifier les champs obligatoires
+
+alt Donnees invalides
+    UI --> Taster : Afficher un message d'erreur
+else Enregistrer brouillon
+    UI -> Controller : Envoyer le brouillon
+    Controller -> Evaluation : Enregistrer l'evaluation en brouillon
+    Evaluation -> DB : Sauvegarder les donnees
+    DB --> Evaluation : Confirmation
+    Evaluation --> Controller : Brouillon enregistre
+    Controller --> UI : Confirmer l'enregistrement
+    UI --> Taster : Afficher un message de succes
+else Soumettre l'evaluation
+    UI -> Controller : Envoyer l'evaluation finale
+    Controller -> Evaluation : Verifier que l'evaluation n'est pas deja soumise
+    Evaluation -> DB : Lire l'etat de l'evaluation
+    DB --> Evaluation : Etat actuel
+
+    alt Evaluation deja soumise
+        Evaluation --> Controller : Modification interdite
+        Controller --> UI : Refuser la soumission
+        UI --> Taster : Afficher un message d'erreur
+    else Evaluation non soumise
+        Controller -> Evaluation : Soumettre l'evaluation
+        Evaluation -> DB : Enregistrer et marquer comme soumise
+        DB --> Evaluation : Confirmation
+        Evaluation --> Controller : Evaluation soumise
+        Controller --> UI : Confirmer la soumission
+        UI --> Taster : Afficher un message de succes
+    end
+end
+
+@enduml

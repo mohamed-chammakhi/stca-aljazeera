@@ -1,0 +1,63 @@
+@startuml
+title Sequence Diagram "Confirm Physical Reception of a Sample"
+
+autonumber
+
+skinparam backgroundColor #FFFFFF
+skinparam sequenceArrowThickness 1.5
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+
+skinparam actor {
+    BorderColor #1A2E1F
+    BackgroundColor #DCE9E2
+    FontStyle bold
+}
+skinparam boundary {
+    BorderColor #38835A
+    BackgroundColor #F5FBF7
+}
+skinparam control {
+    BorderColor #D07B2F
+    BackgroundColor #FEF3E8
+}
+skinparam entity {
+    BorderColor #3A6EA5
+    BackgroundColor #E8F1FB
+}
+skinparam sequence {
+    ArrowColor #38835A
+    LifeLineBorderColor #38835A
+    GroupBorderColor #616161
+    GroupBackgroundColor #F8F8F8
+    GroupHeaderFontStyle bold
+}
+
+actor "Panel Member / Supervisor" as P
+boundary "Sample Management Interface" as I
+control "Panel Sample Service" as S
+control "Django Echantillon API" as API
+entity "Echantillon Model" as M
+
+group Confirm Physical Reception
+    P -> I : Open sample management page
+    I -> S : Request olive oil samples
+    S -> API : Fetch samples
+    API -> M : Retrieve samples
+    M --> API : Return samples
+    API --> S : Return sample list
+    S --> I : Return samples
+    I --> P : Display samples
+
+    P -> I : Confirm physical reception of a sample
+    I -> S : Send reception confirmation
+    S -> API : Submit reception update
+    API -> M : Set sample as physically received
+    M --> API : Confirm update
+    API --> S : Return updated sample
+    S --> I : Return update result
+    I --> P : Display confirmation message
+end
+
+@enduml

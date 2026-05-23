@@ -66,5 +66,9 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>Cette application utilise l'appareil photo pour scanner les étiquettes des bouteilles et les rapports d'analyse.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Cette application accède à la galerie pour importer des photos d'étiquettes ou de rapports.</string>
 </dict>
 </plist>

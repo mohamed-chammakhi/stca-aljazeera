@@ -9,6 +9,9 @@ from .views import (
 urlpatterns = [
     path('', NotificationListView.as_view(), name='notification-list'),
     path('unread-count/', NotificationUnreadCountView.as_view(), name='notification-unread-count'),
+    path('non-lus/', NotificationUnreadCountView.as_view(), name='notification-non-lus'),
     path('read-all/', NotificationMarkAllReadView.as_view(), name='notification-read-all'),
+    path('lire-tout/', NotificationMarkAllReadView.as_view(), name='notification-lire-tout'),
+    path('<uuid:pk>/lire/', NotificationMarkReadView.as_view(), name='notification-lire'),
     path('<uuid:pk>/', NotificationMarkReadView.as_view(), name='notification-detail'),
 ]

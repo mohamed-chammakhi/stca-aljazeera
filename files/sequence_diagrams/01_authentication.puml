@@ -1,0 +1,83 @@
+@startuml
+
+title Sequence Diagram 01 - Authentication
+
+' Project: Al Jazeera STCA olive oil sample evaluation and stock acquisition
+' Feature 1: Authentication
+' User story: As a User, I can authenticate with my matricule and password
+'             to access my role-specific interface.
+' This file is PlantUML-ready: paste it into https://www.plantuml.com/plantuml/
+
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam sequenceMessageAlign center
+skinparam sequenceArrowThickness 1.2
+skinparam ParticipantPadding 24
+skinparam BoxPadding 12
+skinparam responseMessageBelowArrow true
+
+actor "User" as User
+boundary "Flutter LoginPage" as LoginPage
+control "ApiClient" as ApiClient
+database "FlutterSecureStorage" as SecureStorage
+control "Django Auth API" as AuthApi
+entity "User Model" as UserModel
+control "Django Users API" as UsersApi
+
+User -> LoginPage : 1. Open application
+LoginPage --> User : 2. Display login form
+
+User -> LoginPage : 3. Enter matricule and password
+User -> LoginPage : 4. Press "Log In"
+
+LoginPage -> LoginPage : 5. Validate required fields
+
+alt Invalid form data
+    LoginPage --> User : 6. Display validation error
+else Valid form data
+    LoginPage -> ApiClient : 7. login(matricule, password)
+    ApiClient -> AuthApi : 8. POST /api/auth/login/\n{matricule, password}
+
+    AuthApi -> UserModel : 9. Find active user by matricule
+    UserModel --> AuthApi : 10. User account or null
+
+    alt User not found, inactive, or password invalid
+        AuthApi --> ApiClient : 11. 401 Unauthorized\n{detail}
+        ApiClient --> LoginPage : 12. Throw ApiException(401)
+        LoginPage --> User : 13. Display login error
+    else Credentials valid
+        AuthApi -> AuthApi : 14. Generate JWT access and refresh tokens\nwith role, nom, prenom
+        AuthApi --> ApiClient : 15. 200 OK\n{access, refresh}
+
+        ApiClient -> SecureStorage : 16. Store access_token
+        ApiClient -> SecureStorage : 17. Store refresh_token
+        SecureStorage --> ApiClient : 18. Tokens saved
+
+        ApiClient --> LoginPage : 19. Login success
+
+        LoginPage -> ApiClient : 20. get('/api/users/me/')
+        ApiClient -> SecureStorage : 21. Read access_token
+        SecureStorage --> ApiClient : 22. access_token
+        ApiClient -> UsersApi : 23. GET /api/users/me/\nAuthorization: Bearer access_token
+        UsersApi -> UserModel : 24. Load current user profile and role
+        UserModel --> UsersApi : 25. Profile data
+        UsersApi --> ApiClient : 26. 200 OK\n{id, matricule, role, nom, prenom}
+        ApiClient --> LoginPage : 27. Current user profile
+
+        alt Role = direction
+            LoginPage --> User : 28. Redirect to Direction interface
+        else Role = collecteur
+            LoginPage --> User : 28. Redirect to Collector interface
+        else Role = degustateur
+            LoginPage --> User : 28. Redirect to Panel Member interface
+        else Role = laboratoire
+            LoginPage --> User : 28. Redirect to Laboratory Technician interface
+        else Role = chef_panel
+            LoginPage --> User : 28. Redirect to Panel Evaluation Supervisor interface
+        else Unknown role
+            LoginPage --> User : 28. Display access configuration error
+        end
+    end
+end
+
+@enduml

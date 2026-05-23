@@ -8,7 +8,7 @@ import '../../../../core/models/enums.dart' show StatutCollecteurX;
 import 'echantillon_mock_data.dart';
 
 class EchantillonCollecteurService {
-  static const bool useMock = false;
+  bool _usingMockData = false;
   // ── Field mapping: Django API → Flutter fromJson ───────────────────────────
   //
   // The Django API returns field names that differ from what fromJson() expects.
@@ -51,7 +51,8 @@ class EchantillonCollecteurService {
   /// Converts the Django API response map to the intermediate map that
   /// `EchantillonCollecteur.fromJson()` expects.
   Map<String, dynamic> _toFlutterMap(Map<String, dynamic> api) {
-    final statutCollecteur = api['statut_collecteur'] as String? ?? 'receptionne';
+    final statutCollecteur =
+        api['statut_collecteur'] as String? ?? 'receptionne';
     return {
       'id': api['id'],
       'numero': api['numero'],
@@ -70,20 +71,17 @@ class EchantillonCollecteurService {
       'recu_physiquement': api['recu_physiquement'] ?? false,
       // date_arrivee_echantillon from API = actual physical reception date.
       'date_reception_echantillon': api['date_arrivee_echantillon'],
-      'budget_negociation': api['budget_negociation'] != null
-          ? api['budget_negociation'].toString()
-          : null,
+      'budget_negociation': api['budget_negociation']?.toString(),
       'date_stock_souhaitee_debut': null,
       'date_stock_souhaitee_fin': null,
-      'prix_final': api['prix_final'] != null
-          ? api['prix_final'].toString()
-          : null,
+      'prix_final': api['prix_final']?.toString(),
       'camion_livraison': api['camion_reserve'],
       'remarques': api['remarques'],
       'date_ajout': api['date_ajout'],
       'image_url': api['image_url'],
       'collecteur_id': api['collecteur'] ?? '',
       'collecteur_nom': api['collecteur_nom'] ?? '',
+      'statut_collecteur': _mapStatut(statutCollecteur),
       'statut': _mapStatut(statutCollecteur),
     };
   }
@@ -92,12 +90,15 @@ class EchantillonCollecteurService {
   /// POST/PATCH requests.
   Map<String, dynamic> _toDjangoMap(EchantillonCollecteur e) {
     final json = e.toJson();
+    final nom = e.fournisseurNom?.trim() ?? '';
     return {
-      'numero': e.numero,
       'gouvernorat': json['gouvernorat'],
       'delegation': json['delegation'],
       'cite': json['cite'],
       'code_fournisseur': e.codeFournisseur,
+      // Only sent when present so legacy edits don't accidentally override
+      // the supplier match with an empty string.
+      if (nom.isNotEmpty) 'fournisseur_nom': nom,
       'reference_bouteille': json['reference_bouteille'],
       'scellage': json['scellage'],
       'quantite_estimee': json['quantite_estimee'],
@@ -122,51 +123,108 @@ class EchantillonCollecteurService {
     String? statut,
     String? search,
   }) async {
-    if (useMock) {
-      await Future.delayed(const Duration(milliseconds: 300));
+    try {
+      final params = <String, String>{};
+      if (statut != null && statut.isNotEmpty) params['statut'] = statut;
+      if (search != null && search.isNotEmpty) params['search'] = search;
+
+      final uri = Uri(
+        path: '/api/echantillons/',
+        queryParameters: params.isEmpty ? null : params,
+      );
+      final items = await apiClient.getList(uri.toString());
+      _usingMockData = false;
+      return items
+          .map(
+            (e) => EchantillonCollecteur.fromJson(
+              _toFlutterMap(e as Map<String, dynamic>),
+            ),
+          )
+          .toList();
+    } catch (_) {
+      _usingMockData = true;
       final all = mockEchantillons();
       return all.where((e) {
-        if (statut != null && statut.isNotEmpty && e.statut.toJson != statut) return false;
+        if (statut != null && statut.isNotEmpty && e.statut.toJson != statut) {
+          return false;
+        }
         if (search != null && search.isNotEmpty) {
           final q = search.toLowerCase();
           if (!e.numero.toLowerCase().contains(q) &&
-              !(e.variete?.toLowerCase().contains(q) ?? false)) { return false; }
+              !e.referenceBouteille.toLowerCase().contains(q) &&
+              !e.codeFournisseur.toLowerCase().contains(q) &&
+              !(e.variete?.toLowerCase().contains(q) ?? false)) {
+            return false;
+          }
         }
         return true;
       }).toList();
     }
-
-    final params = <String, String>{};
-    if (statut != null && statut.isNotEmpty) params['statut'] = statut;
-    if (search != null && search.isNotEmpty) params['search'] = search;
-
-    final uri = Uri(
-      path: '/api/echantillons/',
-      queryParameters: params.isEmpty ? null : params,
-    );
-    final items = await apiClient.getList(uri.toString());
-    return items
-        .map((e) => EchantillonCollecteur.fromJson(
-              _toFlutterMap(e as Map<String, dynamic>),
-            ))
-        .toList();
   }
 
   /// Creates a new echantillon and returns the saved record from the server.
   Future<EchantillonCollecteur> createEchantillon(
-      EchantillonCollecteur e) async {
-    if (useMock) {
+    EchantillonCollecteur e,
+  ) async {
+    if (_usingMockData) {
       await Future.delayed(const Duration(milliseconds: 300));
       return e;
     }
-    final response = await apiClient.post('/api/echantillons/', _toDjangoMap(e));
+    final response = await apiClient.post(
+      '/api/echantillons/',
+      _toDjangoMap(e),
+    );
+    return EchantillonCollecteur.fromJson(_toFlutterMap(response));
+  }
+
+  /// Sends a bottle photo to the offline OCR endpoint and returns the
+  /// best-guess pre-fill values. The recognition runs entirely on the
+  /// on-premise server — the image never leaves the company.
+  ///
+  /// Returned keys: reference, variete, quantite, fournisseur_nom,
+  /// gouvernorat, _confidence. OCR is only an assistant: every value is
+  /// editable and the collector confirms before saving.
+  Future<Map<String, dynamic>> ocrFromImage(
+    List<int> imageBytes,
+    String filename,
+  ) async {
+    return apiClient.postMultipart(
+      '/api/echantillons/ocr/',
+      bytes: imageBytes,
+      filename: filename,
+    );
+  }
+
+  /// Creates a new echantillon AND uploads its bottle photo in one request.
+  /// The photo is stored on the on-premise server and shown to tasters later.
+  Future<EchantillonCollecteur> createEchantillonWithImage(
+    EchantillonCollecteur e, {
+    required List<int> imageBytes,
+    required String filename,
+  }) async {
+    if (_usingMockData) {
+      await Future.delayed(const Duration(milliseconds: 300));
+      return e;
+    }
+    final dj = _toDjangoMap(e);
+    final fields = <String, String>{};
+    dj.forEach((k, v) {
+      if (v != null && v.toString().isNotEmpty) fields[k] = v.toString();
+    });
+    final response = await apiClient.postMultipart(
+      '/api/echantillons/',
+      bytes: imageBytes,
+      filename: filename,
+      fields: fields,
+    );
     return EchantillonCollecteur.fromJson(_toFlutterMap(response));
   }
 
   /// Updates an existing echantillon via PATCH and returns the updated record.
   Future<EchantillonCollecteur> updateEchantillon(
-      EchantillonCollecteur e) async {
-    if (useMock) {
+    EchantillonCollecteur e,
+  ) async {
+    if (_usingMockData) {
       await Future.delayed(const Duration(milliseconds: 300));
       return e;
     }
@@ -179,7 +237,7 @@ class EchantillonCollecteurService {
 
   /// Deletes an echantillon by ID.
   Future<void> deleteEchantillon(String id) async {
-    if (useMock) {
+    if (_usingMockData) {
       await Future.delayed(const Duration(milliseconds: 300));
       return;
     }
@@ -195,19 +253,23 @@ class EchantillonCollecteurService {
     String? prixFinal,
     String? camionLivraison,
   }) async {
-    if (useMock) {
+    if (_usingMockData) {
       await Future.delayed(const Duration(milliseconds: 300));
       final all = mockEchantillons();
       return all.firstWhere((e) => e.id == id, orElse: () => all.first);
     }
-    final body = <String, dynamic>{
-      if (prixFinal != null) 'prix_final': prixFinal,
-      if (camionLivraison != null) 'camion_reserve': camionLivraison,
-    };
+    final body = <String, dynamic>{};
+    if (prixFinal != null) body['prix_final'] = prixFinal;
+    if (camionLivraison != null) body['camion_reserve'] = camionLivraison;
     final response = await apiClient.patch(
-      '/api/echantillons/$id/confirmer_achat/',
+      '/api/echantillons/$id/confirmer-achat/',
       body,
     );
     return EchantillonCollecteur.fromJson(_toFlutterMap(response));
+  }
+
+  String messageFor(Object error) {
+    if (error is ApiException) return error.message;
+    return 'Impossible de joindre le serveur. Les donnees de demonstration restent affichees.';
   }
 }

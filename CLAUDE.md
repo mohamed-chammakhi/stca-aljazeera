@@ -119,6 +119,7 @@ AppBar(
 | `5_chef_degustateur/` | [`files/role_chef_degustateur.md`](files/role_chef_degustateur.md) |
 | Services / models / auth / offline sync | [`files/backend.md`](files/backend.md) |
 | Backend sprint order & API reference | [`files/backend_sprint_plan.md`](files/backend_sprint_plan.md) |
+| Product backlog & sprint planning (report) | [`files/product_backlog.md`](files/product_backlog.md) |
 
 ## Backend Development Order
 

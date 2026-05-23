@@ -3,13 +3,14 @@
 // PURPOSE : Core data model for a laboratory analysis report
 // ═════════════════════════════════════════════════════════════════════════════
 
-import '../core/models/enums.dart' show StatutLabo;
+import '../core/models/enums.dart' show StatutLabo, StatutLaboX;
 
 /// Alias kept for callers within this module.
 /// All new code should use StatutLabo from core/models/enums.dart directly.
 typedef StatutAnalyse = StatutLabo;
 
 class AnalyseLabo {
+  String? id;
   String echantillonId;
   String echantillonRef;
 
@@ -40,6 +41,7 @@ class AnalyseLabo {
   String? imageRapportUrl; // photo of scanned paper report (optional)
 
   AnalyseLabo({
+    this.id,
     required this.echantillonId,
     required this.echantillonRef,
     this.aciditeLibre,
@@ -83,52 +85,76 @@ class AnalyseLabo {
       k270 != null &&
       k232 != null;
 
+  static double? _double(dynamic value) {
+    if (value is num) return value.toDouble();
+    if (value is String) return double.tryParse(value);
+    return null;
+  }
+
+  static StatutAnalyse _statutFromJson(dynamic value) {
+    final raw = value as String? ?? 'en_attente';
+    switch (raw) {
+      case 'enAttente':
+        return StatutAnalyse.enAttente;
+      case 'enCours':
+        return StatutAnalyse.enCours;
+      default:
+        try {
+          return StatutLaboX.fromJson(raw);
+        } catch (_) {
+          return StatutAnalyse.enAttente;
+        }
+    }
+  }
+
   factory AnalyseLabo.fromJson(Map<String, dynamic> json) => AnalyseLabo(
-    echantillonId:     json['echantillon_id']     as String,
-    echantillonRef:    json['echantillon_ref']     as String,
-    aciditeLibre:      (json['acidite_libre']      as num?)?.toDouble(),
-    indicePeroxyde:    (json['indice_peroxyde']    as num?)?.toDouble(),
-    k232:              (json['k232']               as num?)?.toDouble(),
-    k270:              (json['k270']               as num?)?.toDouble(),
-    deltaK:            (json['delta_k']            as num?)?.toDouble(),
-    humidite:          (json['humidite']           as num?)?.toDouble(),
-    impuretes:         (json['impuretes']          as num?)?.toDouble(),
-    polyphenolsTotaux: (json['polyphenols_totaux'] as num?)?.toDouble(),
-    tocopherols:       (json['tocopherols']        as num?)?.toDouble(),
-    acideOleique:      (json['acide_oleique']      as num?)?.toDouble(),
-    acideLinoleique:   (json['acide_linoleique']   as num?)?.toDouble(),
-    acidePalmitique:   (json['acide_palmitique']   as num?)?.toDouble(),
-    classification:    json['classification']      as String?,
-    statut: StatutLabo.values.firstWhere(
-      (s) => s.name == (json['statut'] as String? ?? 'enAttente'),
-      orElse: () => StatutLabo.enAttente,
-    ),
-    dateAnalyse:      json['date_analyse']       as String?,
-    technicienId:     json['technicien_id']      as String?,
-    notes:            json['notes']              as String?,
-    imageRapportUrl:  json['image_rapport_url']  as String?,
+    id: json['id'] as String?,
+    echantillonId:
+        (json['echantillon_id'] ?? json['echantillon'] ?? '') as String,
+    echantillonRef: (json['echantillon_ref'] ?? '') as String,
+    aciditeLibre: _double(json['acidite_libre'] ?? json['acidite']),
+    indicePeroxyde: _double(json['indice_peroxyde']),
+    k232: _double(json['k232']),
+    k270: _double(json['k270']),
+    deltaK: _double(json['delta_k']),
+    humidite: _double(json['humidite']),
+    impuretes: _double(json['impuretes']),
+    polyphenolsTotaux: _double(json['polyphenols_totaux']),
+    tocopherols: _double(json['tocopherols']),
+    acideOleique: _double(json['acide_oleique']),
+    acideLinoleique: _double(json['acide_linoleique']),
+    acidePalmitique: _double(json['acide_palmitique']),
+    classification: json['classification'] as String?,
+    statut: _statutFromJson(json['statut']),
+    dateAnalyse: json['date_analyse'] as String?,
+    technicienId: json['technicien_id'] as String?,
+    notes: json['notes'] as String?,
+    imageRapportUrl: (json['image_rapport_url'] ?? json['photo']) as String?,
   );
 
   Map<String, dynamic> toJson() => {
-    'echantillon_id':     echantillonId,
-    'echantillon_ref':    echantillonRef,
-    'acidite_libre':      aciditeLibre,
-    'indice_peroxyde':    indicePeroxyde,
-    'k232':               k232,
-    'k270':               k270,
-    'delta_k':            deltaK,
-    'humidite':           humidite,
-    'impuretes':          impuretes,
+    'id': id,
+    'echantillon': echantillonId,
+    'echantillon_id': echantillonId,
+    'echantillon_ref': echantillonRef,
+    'acidite': aciditeLibre,
+    'acidite_libre': aciditeLibre,
+    'indice_peroxyde': indicePeroxyde,
+    'k232': k232,
+    'k270': k270,
+    'delta_k': deltaK,
+    'humidite': humidite,
+    'impuretes': impuretes,
     'polyphenols_totaux': polyphenolsTotaux,
-    'tocopherols':        tocopherols,
-    'acide_oleique':      acideOleique,
-    'acide_linoleique':   acideLinoleique,
-    'acide_palmitique':   acidePalmitique,
-    'classification':     classification,
-    'statut':             statut.name,
-    'date_analyse':       dateAnalyse,
-    'technicien_id':      technicienId,
-    'notes':              notes,
-    'image_rapport_url':  imageRapportUrl,
+    'tocopherols': tocopherols,
+    'acide_oleique': acideOleique,
+    'acide_linoleique': acideLinoleique,
+    'acide_palmitique': acidePalmitique,
+    'classification': classification,
+    'statut': statut.toJson,
+    'date_analyse': dateAnalyse,
+    'technicien_id': technicienId,
+    'notes': notes,
+    'image_rapport_url': imageRapportUrl,
   };
 }

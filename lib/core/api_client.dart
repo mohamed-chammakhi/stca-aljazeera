@@ -43,8 +43,8 @@ class ApiClient {
   // Constructor — if no baseUrl or storage is provided, use the defaults from config.dart.
   // This makes the class easy to test by injecting a fake storage or a test server URL.
   ApiClient({String? baseUrl, FlutterSecureStorage? storage})
-      : baseUrl = baseUrl ?? kApiBaseUrl,
-        _storage = storage ?? const FlutterSecureStorage();
+    : baseUrl = baseUrl ?? kApiBaseUrl,
+      _storage = storage ?? const FlutterSecureStorage();
 
   // ── Token management ──────────────────────────────────────────────────────
   //
@@ -61,7 +61,10 @@ class ApiClient {
   // ─────────────────────────────────────────────────────────────────────────
 
   // Called right after login — saves both tokens to the encrypted safe.
-  Future<void> saveTokens({required String access, required String refresh}) async {
+  Future<void> saveTokens({
+    required String access,
+    required String refresh,
+  }) async {
     await _storage.write(key: _tokenKey, value: access);
     await _storage.write(key: _refreshKey, value: refresh);
   }
@@ -110,12 +113,15 @@ class ApiClient {
   // and retry the original request. The user never notices anything happened.
   // ─────────────────────────────────────────────────────────────────────────
 
+  // TODO: add token refresh logic
   // Asks the server for a new access token using the refresh token.
   // Returns true if it worked, false if the refresh token is also expired
   // (in that case the user must log in again).
   Future<bool> _refreshAccessToken() async {
     final refresh = await refreshToken;
-    if (refresh == null) return false; // not logged in at all — nothing to refresh
+    if (refresh == null) {
+      return false; // not logged in at all — nothing to refresh
+    }
 
     // Send the refresh token to the server's dedicated refresh endpoint.
     final response = await http.post(
@@ -167,8 +173,11 @@ class ApiClient {
       // Try to extract the human-readable error message from the response body.
       // Django REST Framework usually sends: { "detail": "Not found." }
       final body = response.body.isNotEmpty ? jsonDecode(response.body) : {};
-      final detail = body is Map ? (body['detail'] ?? body.toString()) : body.toString();
-      throw ApiException(response.statusCode, detail.toString());
+      final detail = body is Map
+          ? (body['detail'] ?? body.toString())
+          : body.toString();
+      final code = body is Map ? body['code']?.toString() : null;
+      throw ApiException(response.statusCode, detail.toString(), code: code);
     }
   }
 
@@ -213,7 +222,10 @@ class ApiClient {
 
   // POST — send new data to the server to create a new record.
   // Example: apiClient.post('/api/samples/', sampleData) → returns the saved sample (with its new ID).
-  Future<Map<String, dynamic>> post(String path, Map<String, dynamic> body) async {
+  Future<Map<String, dynamic>> post(
+    String path,
+    Map<String, dynamic> body,
+  ) async {
     final headers = await _headers();
     final response = await _send(
       // jsonEncode converts the Dart Map into a JSON string that the server understands.
@@ -223,10 +235,48 @@ class ApiClient {
     return jsonDecode(response.body) as Map<String, dynamic>;
   }
 
+  // POST (multipart) — upload a file plus optional text fields.
+  //
+  // Used by the offline OCR endpoint (a bottle photo is sent, recognised
+  // text comes back) and by sample creation when a bottle photo is attached.
+  // Handles the same automatic token-refresh-and-retry as the other methods.
+  Future<Map<String, dynamic>> postMultipart(
+    String path, {
+    required List<int> bytes,
+    required String filename,
+    String fileField = 'image',
+    Map<String, String>? fields,
+  }) async {
+    Future<http.Response> build() async {
+      final token = await accessToken;
+      final request = http.MultipartRequest('POST', _uri(path));
+      if (token != null) {
+        request.headers['Authorization'] = 'Bearer $token';
+      }
+      if (fields != null) request.fields.addAll(fields);
+      request.files.add(
+        http.MultipartFile.fromBytes(fileField, bytes, filename: filename),
+      );
+      final streamed = await request.send();
+      return http.Response.fromStream(streamed);
+    }
+
+    var response = await build();
+    if (response.statusCode == 401) {
+      final refreshed = await _refreshAccessToken();
+      if (refreshed) response = await build();
+    }
+    _assertSuccess(response);
+    return jsonDecode(response.body) as Map<String, dynamic>;
+  }
+
   // PUT — replace an entire existing record on the server.
   // You must send all fields, even the ones that did not change.
   // Example: apiClient.put('/api/samples/abc-123/', fullSampleData)
-  Future<Map<String, dynamic>> put(String path, Map<String, dynamic> body) async {
+  Future<Map<String, dynamic>> put(
+    String path,
+    Map<String, dynamic> body,
+  ) async {
     final headers = await _headers();
     final response = await _send(
       () => http.put(_uri(path), headers: headers, body: jsonEncode(body)),
@@ -238,7 +288,10 @@ class ApiClient {
   // PATCH — update only the fields you provide, leaving everything else unchanged.
   // More efficient than PUT when you only need to change one or two fields.
   // Example: apiClient.patch('/api/samples/abc-123/', {'statut': 'en_negociation'})
-  Future<Map<String, dynamic>> patch(String path, Map<String, dynamic> body) async {
+  Future<Map<String, dynamic>> patch(
+    String path,
+    Map<String, dynamic> body,
+  ) async {
     final headers = await _headers();
     final response = await _send(
       () => http.patch(_uri(path), headers: headers, body: jsonEncode(body)),
@@ -251,7 +304,9 @@ class ApiClient {
   // Example: apiClient.delete('/api/samples/abc-123/')
   Future<void> delete(String path) async {
     final headers = await _headers();
-    final response = await _send(() => http.delete(_uri(path), headers: headers));
+    final response = await _send(
+      () => http.delete(_uri(path), headers: headers),
+    );
     _assertSuccess(response);
   }
 
@@ -279,6 +334,23 @@ class ApiClient {
     );
     return data;
   }
+
+  // LOGOUT — asks Django to blacklist the refresh token, then clears local storage.
+  Future<void> logout() async {
+    final refresh = await refreshToken;
+    try {
+      if (refresh != null) {
+        final headers = await _headers();
+        await http.post(
+          _uri('/api/auth/logout/'),
+          headers: headers,
+          body: jsonEncode({'refresh': refresh}),
+        );
+      }
+    } finally {
+      await clearTokens();
+    }
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -297,10 +369,11 @@ class ApiClient {
 class ApiException implements Exception {
   final int statusCode; // the HTTP status code (e.g. 404, 500)
   final String message; // human-readable error message from the server
-  ApiException(this.statusCode, this.message);
+  final String? code; // optional machine-readable error code from Django
+  ApiException(this.statusCode, this.message, {this.code});
 
   @override
-  String toString() => 'ApiException($statusCode): $message';
+  String toString() => 'ApiException($statusCode, $code): $message';
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
