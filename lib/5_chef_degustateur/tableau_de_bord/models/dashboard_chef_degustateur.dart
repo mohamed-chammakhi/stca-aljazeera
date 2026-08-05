@@ -174,7 +174,7 @@ class SessionEnAttente {
     id: json['id'] as String,
     titre: json['titre'] as String,
     date: json['date'] as String,
-    heure: json['heure'] as String,
+    heure: json['heure'] as String? ?? '',
     lieu: json['lieu'] as String,
     proposePar: json['propose_par'] as String,
   );

@@ -7,6 +7,15 @@ from evaluations.models import EvaluationOrganoleptique
 from sessions_degustation.models import SessionDegustation
 from users.models import User
 from users.permissions import IsChefDegustation
+from core.dashboard_calculations import (
+    evaluation_delays,
+    monthly_classification_distribution,
+    pipeline_counts,
+    presence_summary,
+    rounded_average,
+    sessions_for_user,
+    urgent_evaluations_payload,
+)
 
 
 EVALUATION_SCORE_FIELDS = [
@@ -181,11 +190,12 @@ class ChefDashboardPipelineView(APIView):
     permission_classes = [IsChefDegustation]
 
     def get(self, request):
+        counts = pipeline_counts()
         return Response({
-            'receptionne': Echantillon.objects.filter(statut_collecteur='receptionne', recu_physiquement=False).count(),
-            'en_attente_eval': Echantillon.objects.filter(recu_physiquement=True, statut_degustateur='non_evaluee').count(),
-            'en_cours': Echantillon.objects.filter(statut_degustateur='en_cours').count(),
-            'soumis': Echantillon.objects.filter(statut_degustateur='soumis').count(),
+            'receptionne': counts['receptionne'],
+            'en_attente_eval': counts['non_evaluee'],
+            'en_cours': counts['en_cours'],
+            'soumis': counts['soumise'],
         })
 
 
@@ -197,25 +207,10 @@ class ChefDashboardUrgentesView(APIView):
         echantillons = Echantillon.objects.filter(
             recu_physiquement=True,
             statut_degustateur__in=['non_evaluee', 'en_cours']
-        ).order_by('date_arrivee_echantillon')[:20]
-
-        result = []
-        for e in echantillons:
-            days = (now - e.date_arrivee_echantillon).days if e.date_arrivee_echantillon else 0
-            collecteur_nom = _user_full_name(e.collecteur)
-            fournisseur_nom = e.fournisseur.nom if e.fournisseur else ''
-            result.append({
-                'id': str(e.id),
-                'numero': e.numero,
-                'reference': f"{e.variete} - {e.numero}".strip(' -'),
-                'variete': e.variete,
-                'collecteur_nom': collecteur_nom,
-                'fournisseur_nom': fournisseur_nom,
-                'jours_en_attente': days,
-                'days_waiting': days,
-                'badge': 'red' if days >= 2 else ('amber' if days == 1 else 'normal'),
-            })
-        return Response(result)
+        ).select_related('collecteur', 'fournisseur').order_by(
+            'date_arrivee_echantillon'
+        )[:20]
+        return Response(urgent_evaluations_payload(echantillons, now))
 
 
 class ChefDashboardSessionsEnAttenteView(APIView):
@@ -254,12 +249,8 @@ class ChefDashboardDelaiView(APIView):
         qs = qs[:1000]
 
         per_member = {}
-        all_delays = []
-        for ev in qs:
-            if not ev.echantillon.date_arrivee_echantillon:
-                continue
-            delay = (ev.soumis_le - ev.echantillon.date_arrivee_echantillon).total_seconds() / 86400
-            all_delays.append(delay)
+        delays = evaluation_delays(qs)
+        for ev, delay in delays:
             uid = str(ev.degustateur_id) if ev.degustateur_id else 'inconnu'
             if uid not in per_member:
                 per_member[uid] = {
@@ -268,10 +259,10 @@ class ChefDashboardDelaiView(APIView):
                 }
             per_member[uid]['delays'].append(delay)
 
-        panel_moyen = round(sum(all_delays) / len(all_delays), 1) if all_delays else 0
+        panel_moyen = rounded_average([delay for _, delay in delays])
         membres = [{
             'nom': v['nom'],
-            'delai_moyen': round(sum(v['delays']) / len(v['delays']), 1),
+            'delai_moyen': rounded_average(v['delays']),
             'panel_moyen': panel_moyen,
         } for v in per_member.values()]
 
@@ -352,18 +343,7 @@ class ChefDashboardClassificationsView(APIView):
             qs = qs.filter(soumis_le__date__lte=date_fin)
         qs = qs[:1000]
 
-        from collections import defaultdict
-        monthly = defaultdict(lambda: {'extra_vierge': 0, 'vierge': 0, 'lampante': 0})
-        for ev in qs:
-            label = ev.soumis_le.strftime('%b %Y')
-            if ev.classification == 'extra_vierge':
-                monthly[label]['extra_vierge'] += 1
-            elif ev.classification in ('vierge', 'vierge_ordinaire'):
-                monthly[label]['vierge'] += 1
-            elif ev.classification == 'lampante':
-                monthly[label]['lampante'] += 1
-
-        return Response([{'label': k, **v} for k, v in sorted(monthly.items())])
+        return Response(monthly_classification_distribution(qs))
 
 
 class ChefDashboardPresenceView(APIView):
@@ -374,38 +354,13 @@ class ChefDashboardPresenceView(APIView):
         date_fin = request.query_params.get('date_fin')
         today = timezone.now().date()
 
-        qs = SessionDegustation.objects.filter(
-            Q(participants=request.user) | Q(cree_par=request.user)
-        ).distinct()
+        qs = sessions_for_user(request.user)
         if date_debut:
             qs = qs.filter(date__gte=date_debut)
         if date_fin:
             qs = qs.filter(date__lte=date_fin)
 
-        present = qs.filter(presences_confirmees=request.user).count()
-        manquee = (
-            qs.filter(date__lt=today)
-            .exclude(statut='refusee')
-            .exclude(presences_confirmees=request.user)
-            .count()
-        )
-
-        prochaine = SessionDegustation.objects.filter(
-            Q(participants=request.user) | Q(cree_par=request.user),
-            date__gte=today,
-            statut='planifiee'
-        ).distinct().order_by('date').first()
-
-        countdown = f"{(prochaine.date - today).days}j" if prochaine else None
-
-        return Response({
-            'present': present,
-            'manquee': manquee,
-            'prochaine_titre': prochaine.titre if prochaine else None,
-            'prochaine_date': prochaine.date.isoformat() if prochaine else None,
-            'prochaine_lieu': prochaine.lieu if prochaine else None,
-            'prochaine_countdown': countdown,
-        })
+        return Response(presence_summary(qs, request.user, today))
 
 
 class ChefDashboardUrgentesCeoView(APIView):

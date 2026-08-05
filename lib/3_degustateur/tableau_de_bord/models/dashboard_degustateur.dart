@@ -197,7 +197,11 @@ class DelaiSummary {
     panelMoyen: (json['panel_moyen'] as num).toDouble(),
     nbEvals: json['nb_evals'] as int,
     points: (json['points'] as List)
-        .map((e) => DelaiPoint.fromJson(e))
+        .map((e) => DelaiPoint.fromJson({
+          ...e as Map<String, dynamic>,
+          'mon_delai': e['mon_delai'] ?? e['delai'],
+          'panel_moyen': e['panel_moyen'] ?? json['panel_moyen'],
+        }))
         .toList(),
   );
 
@@ -223,9 +227,9 @@ class ActiviteItem {
   });
 
   factory ActiviteItem.fromJson(Map<String, dynamic> json) => ActiviteItem(
-    id: json['id'] as String,
-    action: json['action'] as String,
-    horodatage: json['horodatage'] as String,
+    id: json['id'] as String? ?? '${json['type']}-${json['date']}',
+    action: json['action'] as String? ?? json['description'] as String,
+    horodatage: json['horodatage'] as String? ?? json['date'] as String,
     type: json['type'] as String,
   );
 

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:fl_chart/fl_chart.dart';
 
+import '../../../core/services/resultat_service.dart';
+import '../../../core/widgets/bandeau_demonstration.dart';
 import '../models/dashboard_chef_degustateur.dart';
 import '../services/dashboard_chef_degustateur_service.dart';
 import '../../gestion_echantillons/widgets/search_filter_bar.dart';
@@ -58,6 +60,8 @@ class _HomeBodyState extends State<HomeBody> {
   List<ActiviteItemChef> _activite = [];
   int _activiteTotal = 0;
   bool _activiteLoading = false;
+  final Set<String> _sectionsDemonstration = {};
+  Object? _erreurChargement;
 
   DateTime? _presDateDebut;
   DateTime? _presDateFin;
@@ -79,106 +83,157 @@ class _HomeBodyState extends State<HomeBody> {
   }
 
   Future<void> _loadAll() async {
-    final pipeline = await _service.fetchPipeline();
-    final urgentes = await _service.fetchUrgentes();
-    final urgentesCeo = await _service.fetchUrgentesCeo();
-    final sessions = await _service.fetchSessionsEnAttente();
-    final presence = await _service.fetchPresence(
-      dateDebut: _presDateDebut,
-      dateFin: _presDateFin,
-    );
-    final delai = await _service.fetchDelai(
-      dateDebut: _delaiDateDebut,
-      dateFin: _delaiDateFin,
-    );
-    final alignement = await _service.fetchAlignement(
-      dateDebut: _alignDateDebut,
-      dateFin: _alignDateFin,
-    );
-    final classifications = await _service.fetchClassifications(
-      dateDebut: _classDateDebut,
-      dateFin: _classDateFin,
-    );
-    final act = await _service.fetchActivite(
-      dateDebut: _actDateDebut,
-      dateFin: _actDateFin,
-      offset: 0,
-    );
-    if (!mounted) return;
-    setState(() {
-      _pipeline = pipeline;
-      _urgentes = urgentes;
-      _urgentesCeo = urgentesCeo;
-      _sessions = sessions;
-      _presence = presence;
-      _delai = delai;
-      _alignement = alignement;
-      _classifications = classifications;
-      _activite = act.items;
-      _activiteTotal = act.total;
-    });
+    try {
+      final pipeline = await _service.fetchPipeline();
+      final urgentes = await _service.fetchUrgentes();
+      final urgentesCeo = await _service.fetchUrgentesCeo();
+      final sessions = await _service.fetchSessionsEnAttente();
+      final presence = await _service.fetchPresence(
+        dateDebut: _presDateDebut,
+        dateFin: _presDateFin,
+      );
+      final delai = await _service.fetchDelai(
+        dateDebut: _delaiDateDebut,
+        dateFin: _delaiDateFin,
+      );
+      final alignement = await _service.fetchAlignement(
+        dateDebut: _alignDateDebut,
+        dateFin: _alignDateFin,
+      );
+      final classifications = await _service.fetchClassifications(
+        dateDebut: _classDateDebut,
+        dateFin: _classDateFin,
+      );
+      final activite = await _service.fetchActivite(
+        dateDebut: _actDateDebut,
+        dateFin: _actDateFin,
+        offset: 0,
+      );
+      if (!mounted) return;
+      setState(() {
+        _memoriserOrigine('pipeline', pipeline);
+        _memoriserOrigine('urgentes', urgentes);
+        _memoriserOrigine('urgentes_ceo', urgentesCeo);
+        _memoriserOrigine('sessions', sessions);
+        _memoriserOrigine('presence', presence);
+        _memoriserOrigine('delai', delai);
+        _memoriserOrigine('alignement', alignement);
+        _memoriserOrigine('classifications', classifications);
+        _memoriserOrigine('activite', activite);
+        _pipeline = pipeline.donnees;
+        _urgentes = urgentes.donnees;
+        _urgentesCeo = urgentesCeo.donnees;
+        _sessions = sessions.donnees;
+        _presence = presence.donnees;
+        _delai = delai.donnees;
+        _alignement = alignement.donnees;
+        _classifications = classifications.donnees;
+        _activite = activite.donnees.items;
+        _activiteTotal = activite.donnees.total;
+        _erreurChargement = null;
+      });
+    } catch (erreur) {
+      if (mounted) setState(() => _erreurChargement = erreur);
+    }
   }
 
   Future<void> _reloadPresence() async {
-    final data = await _service.fetchPresence(
-      dateDebut: _presDateDebut,
-      dateFin: _presDateFin,
+    await _recharger(
+      'presence',
+      _service.fetchPresence(dateDebut: _presDateDebut, dateFin: _presDateFin),
+      (data) => _presence = data,
     );
-    if (mounted) setState(() => _presence = data);
   }
 
   Future<void> _reloadDelai() async {
-    final data = await _service.fetchDelai(
-      dateDebut: _delaiDateDebut,
-      dateFin: _delaiDateFin,
+    await _recharger(
+      'delai',
+      _service.fetchDelai(dateDebut: _delaiDateDebut, dateFin: _delaiDateFin),
+      (data) => _delai = data,
     );
-    if (mounted) setState(() => _delai = data);
   }
 
   Future<void> _reloadAlignement() async {
-    final data = await _service.fetchAlignement(
-      dateDebut: _alignDateDebut,
-      dateFin: _alignDateFin,
+    await _recharger(
+      'alignement',
+      _service.fetchAlignement(dateDebut: _alignDateDebut, dateFin: _alignDateFin),
+      (data) => _alignement = data,
     );
-    if (mounted) setState(() => _alignement = data);
   }
 
   Future<void> _reloadClassifications() async {
-    final data = await _service.fetchClassifications(
-      dateDebut: _classDateDebut,
-      dateFin: _classDateFin,
+    await _recharger(
+      'classifications',
+      _service.fetchClassifications(dateDebut: _classDateDebut, dateFin: _classDateFin),
+      (data) => _classifications = data,
     );
-    if (mounted) setState(() => _classifications = data);
   }
 
   Future<void> _reloadActivite() async {
-    final data = await _service.fetchActivite(
-      dateDebut: _actDateDebut,
-      dateFin: _actDateFin,
-      offset: 0,
-    );
-    if (mounted) {
-      setState(() {
+    await _recharger(
+      'activite',
+      _service.fetchActivite(
+        dateDebut: _actDateDebut,
+        dateFin: _actDateFin,
+        offset: 0,
+      ),
+      (data) {
         _activite = data.items;
         _activiteTotal = data.total;
-      });
-    }
+      },
+    );
   }
 
   Future<void> _loadMoreActivite() async {
     if (_activiteLoading || _activite.length >= _activiteTotal) return;
     setState(() => _activiteLoading = true);
-    final data = await _service.fetchActivite(
-      dateDebut: _actDateDebut,
-      dateFin: _actDateFin,
-      offset: _activite.length,
-    );
-    if (mounted) {
+    try {
+      final resultat = await _service.fetchActivite(
+        dateDebut: _actDateDebut,
+        dateFin: _actDateFin,
+        offset: _activite.length,
+      );
+      if (!mounted) return;
       setState(() {
-        _activite.addAll(data.items);
-        _activiteTotal = data.total;
+        _memoriserOrigine('activite', resultat);
+        _activite.addAll(resultat.donnees.items);
+        _activiteTotal = resultat.donnees.total;
         _activiteLoading = false;
+        _erreurChargement = null;
       });
+    } catch (erreur) {
+      if (mounted) {
+        setState(() {
+          _activiteLoading = false;
+          _erreurChargement = erreur;
+        });
+      }
+    }
+  }
+
+  Future<void> _recharger<T>(
+    String section,
+    Future<Resultat<T>> chargement,
+    void Function(T donnees) appliquer,
+  ) async {
+    try {
+      final resultat = await chargement;
+      if (!mounted) return;
+      setState(() {
+        _memoriserOrigine(section, resultat);
+        appliquer(resultat.donnees);
+        _erreurChargement = null;
+      });
+    } catch (erreur) {
+      if (mounted) setState(() => _erreurChargement = erreur);
+    }
+  }
+
+  void _memoriserOrigine<T>(String section, Resultat<T> resultat) {
+    if (resultat.estDemonstration) {
+      _sectionsDemonstration.add(section);
+    } else {
+      _sectionsDemonstration.remove(section);
     }
   }
 
@@ -376,9 +431,13 @@ class _HomeBodyState extends State<HomeBody> {
   // ── Build ─────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        ListView(
+    return VueResultatService(
+      estDemonstration: _sectionsDemonstration.isNotEmpty,
+      erreur: _erreurChargement,
+      onReessayer: _loadAll,
+      child: Stack(
+        children: [
+          ListView(
           padding: const EdgeInsets.fromLTRB(14, 14, 14, 52),
           children: [
             PipelineSection(pipeline: _pipeline),
@@ -523,8 +582,9 @@ class _HomeBodyState extends State<HomeBody> {
             ),
           ],
         ),
-        if (_showClearConfirm) _buildClearConfirmDialog(),
-      ],
+          if (_showClearConfirm) _buildClearConfirmDialog(),
+        ],
+      ),
     );
   }
 

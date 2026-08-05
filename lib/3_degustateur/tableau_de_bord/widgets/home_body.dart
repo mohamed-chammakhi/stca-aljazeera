@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 
+import '../../../core/services/resultat_service.dart';
+import '../../../core/widgets/bandeau_demonstration.dart';
 import '../models/dashboard_degustateur.dart';
 import '../services/dashboard_degustateur_service.dart';
 import '../../../../core/widgets/search_filter_bar.dart';
@@ -51,6 +53,10 @@ class _HomeBodyState extends State<HomeBody> {
   List<ActiviteItem> _activite = [];
   int _activiteTotal = 0;
   bool _activiteLoading = false;
+  final Set<String> _sectionsDemonstration = {
+    'urgentes_ceo',
+  };
+  Object? _erreurChargement;
 
   DateTime? _classDateDebut;
   DateTime? _classDateFin;
@@ -69,100 +75,167 @@ class _HomeBodyState extends State<HomeBody> {
   }
 
   Future<void> _loadAll() async {
-    final fUrgentes = _service.fetchUrgentes();
-    final fUrgentesCeo = _service.fetchUrgentesCeo();
-    final fPipeline = _service.fetchPipeline();
-    final fCls = _service.fetchClassifications(
-      dateDebut: _classDateDebut,
-      dateFin: _classDateFin,
-    );
-    final fPresence = _service.fetchPresence(
-      dateDebut: _presDateDebut,
-      dateFin: _presDateFin,
-    );
-    final fDelai = _service.fetchDelai(
-      dateDebut: _delaiDateDebut,
-      dateFin: _delaiDateFin,
-    );
-    final fAct = _service.fetchActivite(
-      dateDebut: _actDateDebut,
-      dateFin: _actDateFin,
-      offset: 0,
-    );
-    final results = await Future.wait([
-      fUrgentes,
-      fUrgentesCeo,
-      fPipeline,
-      fCls,
-      fPresence,
-      fDelai,
-    ]);
-    final act = await fAct;
-    if (!mounted) return;
-    setState(() {
-      _urgentes = results[0] as List<EvaluationUrgente>;
-      _urgentesCeo = results[1] as List<EvaluationUrgenteCeo>;
-      _pipeline = results[2] as PipelineData;
-      _classifications = results[3] as List<ClassificationPoint>;
-      _presence = results[4] as PresenceData;
-      _delai = results[5] as DelaiSummary;
-      _activite = act.items;
-      _activiteTotal = act.total;
-    });
+    try {
+      final fUrgentes = _service.fetchUrgentes();
+      final fUrgentesCeo = _service.fetchUrgentesCeo();
+      final fPipeline = _service.fetchPipeline();
+      final fCls = _service.fetchClassifications(
+        dateDebut: _classDateDebut,
+        dateFin: _classDateFin,
+      );
+      final fPresence = _service.fetchPresence(
+        dateDebut: _presDateDebut,
+        dateFin: _presDateFin,
+      );
+      final fDelai = _service.fetchDelai(
+        dateDebut: _delaiDateDebut,
+        dateFin: _delaiDateFin,
+      );
+      final fAct = _service.fetchActivite(
+        dateDebut: _actDateDebut,
+        dateFin: _actDateFin,
+        offset: 0,
+      );
+      final results = await Future.wait([
+        fUrgentes,
+        fUrgentesCeo,
+        fPipeline,
+        fCls,
+        fPresence,
+        fDelai,
+      ]);
+      final activite = await fAct;
+      final urgentes = results[0] as Resultat<List<EvaluationUrgente>>;
+      final pipeline = results[2] as Resultat<PipelineData>;
+      final classifications =
+          results[3] as Resultat<List<ClassificationPoint>>;
+      final presence = results[4] as Resultat<PresenceData>;
+      final delai = results[5] as Resultat<DelaiSummary>;
+      if (!mounted) return;
+      setState(() {
+        _memoriserOrigine('urgentes', urgentes);
+        _memoriserOrigine('pipeline', pipeline);
+        _memoriserOrigine('classifications', classifications);
+        _memoriserOrigine('presence', presence);
+        _memoriserOrigine('delai', delai);
+        _memoriserOrigine('activite', activite);
+        _urgentes = urgentes.donnees;
+        _urgentesCeo = results[1] as List<EvaluationUrgenteCeo>;
+        _pipeline = pipeline.donnees;
+        _classifications = classifications.donnees;
+        _presence = presence.donnees;
+        _delai = delai.donnees;
+        _activite = activite.donnees.items;
+        _activiteTotal = activite.donnees.total;
+        _erreurChargement = null;
+      });
+    } catch (erreur) {
+      if (mounted) setState(() => _erreurChargement = erreur);
+    }
   }
 
   Future<void> _reloadClassifications() async {
-    final data = await _service.fetchClassifications(
-      dateDebut: _classDateDebut,
-      dateFin: _classDateFin,
-    );
-    if (mounted) setState(() => _classifications = data);
+    try {
+      final resultat = await _service.fetchClassifications(
+        dateDebut: _classDateDebut,
+        dateFin: _classDateFin,
+      );
+      if (!mounted) return;
+      setState(() {
+        _memoriserOrigine('classifications', resultat);
+        _classifications = resultat.donnees;
+        _erreurChargement = null;
+      });
+    } catch (erreur) {
+      if (mounted) setState(() => _erreurChargement = erreur);
+    }
   }
 
   Future<void> _reloadPresence() async {
-    final data = await _service.fetchPresence(
-      dateDebut: _presDateDebut,
-      dateFin: _presDateFin,
-    );
-    if (mounted) setState(() => _presence = data);
+    try {
+      final resultat = await _service.fetchPresence(
+        dateDebut: _presDateDebut,
+        dateFin: _presDateFin,
+      );
+      if (!mounted) return;
+      setState(() {
+        _memoriserOrigine('presence', resultat);
+        _presence = resultat.donnees;
+        _erreurChargement = null;
+      });
+    } catch (erreur) {
+      if (mounted) setState(() => _erreurChargement = erreur);
+    }
   }
 
   Future<void> _reloadDelai() async {
-    final data = await _service.fetchDelai(
-      dateDebut: _delaiDateDebut,
-      dateFin: _delaiDateFin,
-    );
-    if (mounted) setState(() => _delai = data);
+    try {
+      final resultat = await _service.fetchDelai(
+        dateDebut: _delaiDateDebut,
+        dateFin: _delaiDateFin,
+      );
+      if (!mounted) return;
+      setState(() {
+        _memoriserOrigine('delai', resultat);
+        _delai = resultat.donnees;
+        _erreurChargement = null;
+      });
+    } catch (erreur) {
+      if (mounted) setState(() => _erreurChargement = erreur);
+    }
   }
 
   Future<void> _reloadActivite() async {
-    final data = await _service.fetchActivite(
-      dateDebut: _actDateDebut,
-      dateFin: _actDateFin,
-      offset: 0,
-    );
-    if (mounted) {
+    try {
+      final resultat = await _service.fetchActivite(
+        dateDebut: _actDateDebut,
+        dateFin: _actDateFin,
+        offset: 0,
+      );
+      if (!mounted) return;
       setState(() {
-        _activite = data.items;
-        _activiteTotal = data.total;
+        _memoriserOrigine('activite', resultat);
+        _activite = resultat.donnees.items;
+        _activiteTotal = resultat.donnees.total;
+        _erreurChargement = null;
       });
+    } catch (erreur) {
+      if (mounted) setState(() => _erreurChargement = erreur);
     }
   }
 
   Future<void> _loadMoreActivite() async {
     if (_activiteLoading || _activite.length >= _activiteTotal) return;
     setState(() => _activiteLoading = true);
-    final data = await _service.fetchActivite(
-      dateDebut: _actDateDebut,
-      dateFin: _actDateFin,
-      offset: _activite.length,
-    );
-    if (mounted) {
+    try {
+      final resultat = await _service.fetchActivite(
+        dateDebut: _actDateDebut,
+        dateFin: _actDateFin,
+        offset: _activite.length,
+      );
+      if (!mounted) return;
       setState(() {
-        _activite.addAll(data.items);
-        _activiteTotal = data.total;
+        _memoriserOrigine('activite', resultat);
+        _activite.addAll(resultat.donnees.items);
+        _activiteTotal = resultat.donnees.total;
         _activiteLoading = false;
+        _erreurChargement = null;
       });
+    } catch (erreur) {
+      if (mounted) {
+        setState(() {
+          _activiteLoading = false;
+          _erreurChargement = erreur;
+        });
+      }
+    }
+  }
+
+  void _memoriserOrigine<T>(String section, Resultat<T> resultat) {
+    if (resultat.estDemonstration) {
+      _sectionsDemonstration.add(section);
+    } else {
+      _sectionsDemonstration.remove(section);
     }
   }
 
@@ -403,9 +476,13 @@ class _HomeBodyState extends State<HomeBody> {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        ListView(
+    return VueResultatService(
+      estDemonstration: _sectionsDemonstration.isNotEmpty,
+      erreur: _erreurChargement,
+      onReessayer: _loadAll,
+      child: Stack(
+        children: [
+          ListView(
           padding: const EdgeInsets.fromLTRB(14, 14, 14, 52),
           children: [
             HomePipelineSection(pipeline: _pipeline),
@@ -443,8 +520,9 @@ class _HomeBodyState extends State<HomeBody> {
             _buildActivite(),
           ],
         ),
-        if (_showClearConfirm) _buildClearConfirmDialog(),
-      ],
+          if (_showClearConfirm) _buildClearConfirmDialog(),
+        ],
+      ),
     );
   }
 
