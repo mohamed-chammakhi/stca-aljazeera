@@ -9,7 +9,7 @@ Rien ici n'est validé ni implémenté — c'est un carnet d'idées organisé, �
 |--------|---------|--------|
 | Collecteur | [`01_collecteur.md`](01_collecteur.md) | 🟡 en cours de collecte |
 | CEO / Directeur | [`02_ceo.md`](02_ceo.md) | 🟡 en cours de collecte |
-| Dégustateur | `03_degustateur.md` | ⬜ à créer |
+| Dégustateur | [`03_degustateur.md`](03_degustateur.md) | 🟡 en cours de collecte |
 | Chef Dégustateur | [`04_chef_degustateur.md`](04_chef_degustateur.md) | 🟡 en cours de collecte |
 | Laboratoire | [`05_laboratoire.md`](05_laboratoire.md) | 🟡 en cours de collecte |
 
@@ -48,6 +48,7 @@ entre fichiers restent lisibles :
 |---------|---------|
 | `D…` | Collecteur |
 | `C…` | CEO |
+| `T…` | Dégustateur |
 | `CD…` | Chef dégustateur |
 | `L…` | Laboratoire |
 | `W…` | Transverse — version web |
