@@ -3,8 +3,8 @@ from .views import SessionListCreateView, SessionDetailView, SessionApprouverVie
 
 # /api/sessions/                           → list all sessions or create a new one
 # /api/sessions/<uuid>/                    → get, edit, or delete one specific session
-# /api/sessions/<uuid>/approuver/          → chef_panel approves a session
-# /api/sessions/<uuid>/refuser/            → chef_panel refuses a session
+# /api/sessions/<uuid>/approuver/          → chef_degustation approves a session
+# /api/sessions/<uuid>/refuser/            → chef_degustation refuses a session
 # /api/sessions/<uuid>/confirmer_presence/ → participant confirms their attendance
 urlpatterns = [
     path('', SessionListCreateView.as_view(), name='session-list'),

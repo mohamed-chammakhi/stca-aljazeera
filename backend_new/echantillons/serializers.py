@@ -18,10 +18,11 @@ class EchantillonSerializer(serializers.ModelSerializer):
             'fournisseur', 'fournisseur_nom', 'code_fournisseur',
             'collecteur', 'collecteur_nom',
             'gouvernorat', 'delegation', 'cite',
-            'variete', 'scellage', 'quantite_estimee', 'image_url',
+            'variete', 'num_citerne', 'quantite_estimee', 'image_url',
             'statut_collecteur', 'statut_degustateur', 'statut_labo', 'statut_ceo',
             'recu_physiquement', 'date_arrivee_echantillon',
-            'budget_negociation', 'quantite_cible_t', 'camion_reserve',
+            'budget_negociation', 'budget_negociation_max', 'nb_renegociations',
+            'quantite_cible_t', 'camion_reserve',
             'note_interne', 'raison_refus',
             'prix_final',
             'stock_arrive', 'date_livraison_stock', 'date_livraison_stock_fin',
@@ -29,7 +30,13 @@ class EchantillonSerializer(serializers.ModelSerializer):
             'edit_history',
             'date_ajout', 'updated_at',
         ]
-        read_only_fields = ['id', 'numero', 'collecteur', 'edit_history', 'date_ajout', 'updated_at']
+        # nb_renegociations n'est jamais pose par le client : seule l'action
+        # renvoyer-en-negociation l'incremente, ce qui garantit qu'il compte
+        # bien des tours reels et pas ce que l'app veut afficher.
+        read_only_fields = [
+            'id', 'numero', 'collecteur', 'edit_history',
+            'nb_renegociations', 'date_ajout', 'updated_at',
+        ]
 
     def to_representation(self, instance):
         data = super().to_representation(instance)

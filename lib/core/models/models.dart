@@ -15,5 +15,4 @@ export 'planification_arrivage.dart';
 export 'planification_livraison.dart';
 export 'evaluation_organoleptique.dart';
 export 'session_degustation.dart';
-export 'analyse_labo.dart';
 export 'message.dart';

@@ -5,14 +5,15 @@
 //             own card in the list (same pattern as formulaire_collecteur_dialog)
 //           — shared fields: collecteur, fournisseur, gouvernorat, délégation,
 //             date d'arrivée, statut (read-only), photo, action buttons
-//           — per-bouteille fields: référence, variété, scellage, quantité
+//           — per-bouteille fields: référence, variété, numCiterne, quantité
 // ─────────────────────────────────────────────────────────────────────────────
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/models/echantillon.dart';
+import '../../../../core/models/echantillon_historique.dart';
 import '../../../../core/models/enums.dart';
-import '../date_input_field.dart';
+import '../../../../core/widgets/date_input_field.dart';
 // TODO(core): move GeoService to lib/core/services/ — cross-module import from 2_collecteur
 import '../../../../2_collecteur/carte_geo/services/geo_service.dart';
 import '../../../widgets/chef_colors.dart';
@@ -34,34 +35,34 @@ const Color _sectionDate = Color(0xFF5C6BC0); // muted indigo
 class _BouteilleRow {
   final TextEditingController refCtrl;
   final TextEditingController varieteCtrl;
-  final TextEditingController scellageCtrl;
+  final TextEditingController numCiterneCtrl;
   final TextEditingController qteCtrl;
 
   _BouteilleRow({
     required this.refCtrl,
     required this.varieteCtrl,
-    required this.scellageCtrl,
+    required this.numCiterneCtrl,
     required this.qteCtrl,
   });
 
   factory _BouteilleRow.empty() => _BouteilleRow(
     refCtrl: TextEditingController(),
     varieteCtrl: TextEditingController(),
-    scellageCtrl: TextEditingController(),
+    numCiterneCtrl: TextEditingController(),
     qteCtrl: TextEditingController(),
   );
 
   factory _BouteilleRow.fromSample(Echantillon e) => _BouteilleRow(
     refCtrl: TextEditingController(text: e.referenceBouteille),
     varieteCtrl: TextEditingController(text: e.variete ?? ''),
-    scellageCtrl: TextEditingController(text: e.scellage ?? ''),
+    numCiterneCtrl: TextEditingController(text: e.numCiterne ?? ''),
     qteCtrl: TextEditingController(text: e.quantiteEstimee ?? ''),
   );
 
   void dispose() {
     refCtrl.dispose();
     varieteCtrl.dispose();
-    scellageCtrl.dispose();
+    numCiterneCtrl.dispose();
     qteCtrl.dispose();
   }
 }
@@ -211,14 +212,17 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
 
     if (_isModification) {
       final e = widget.echantillon!;
+      // Captured before the form writes: the trail needs the values as they
+      // stood, and they are about to be overwritten.
+      final avant = e.capturerAvantModification();
       final b = _bouteilles.first;
       e.referenceBouteille = b.refCtrl.text.trim();
       e.variete = b.varieteCtrl.text.trim().isEmpty
           ? null
           : b.varieteCtrl.text.trim();
-      e.scellage = b.scellageCtrl.text.trim().isEmpty
+      e.numCiterne = b.numCiterneCtrl.text.trim().isEmpty
           ? null
-          : b.scellageCtrl.text.trim();
+          : b.numCiterneCtrl.text.trim();
       e.quantiteEstimee = b.qteCtrl.text.trim().isEmpty
           ? null
           : b.qteCtrl.text.trim();
@@ -228,6 +232,8 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
           ? null
           : _remarquesCtrl.text.trim();
       // codeFournisseur, dateAjout, collecteurNom are API-assigned — not mutated
+      // No-op until the sample is physically received.
+      e.enregistrerModifications(avant, auteurRole: 'Chef dégustateur');
       widget.onSaveMultiple([e]);
     } else {
       final now = DateTime.now();
@@ -246,9 +252,9 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
           variete: b.varieteCtrl.text.trim().isEmpty
               ? null
               : b.varieteCtrl.text.trim(),
-          scellage: b.scellageCtrl.text.trim().isEmpty
+          numCiterne: b.numCiterneCtrl.text.trim().isEmpty
               ? null
-              : b.scellageCtrl.text.trim(),
+              : b.numCiterneCtrl.text.trim(),
           gouvernorat: gouvernorat,
           delegation: _delegation,
           remarques: _remarquesCtrl.text.trim().isEmpty
@@ -464,10 +470,7 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
                           controller: _remarquesCtrl,
                           maxLines: 3,
                           minLines: 2,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            color: chefDark,
-                          ),
+                          style: const TextStyle(fontSize: 14, color: chefDark),
                           decoration: InputDecoration(
                             hintText: 'Notes, observations particulières...',
                             hintStyle: TextStyle(
@@ -479,13 +482,15 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
                             contentPadding: const EdgeInsets.all(12),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),
-                              borderSide:
-                                  BorderSide(color: Colors.grey.shade200),
+                              borderSide: BorderSide(
+                                color: Colors.grey.shade200,
+                              ),
                             ),
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),
-                              borderSide:
-                                  BorderSide(color: Colors.grey.shade200),
+                              borderSide: BorderSide(
+                                color: Colors.grey.shade200,
+                              ),
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),
@@ -723,7 +728,7 @@ class _BouteillesSection extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// BOUTEILLE CARD — ref, variété, scellage, quantité fields for one bottle
+// BOUTEILLE CARD — ref, variété, numCiterne, quantité fields for one bottle
 // ─────────────────────────────────────────────────────────────────────────────
 class _BouteilleCard extends StatelessWidget {
   final _BouteilleRow row;
@@ -830,7 +835,7 @@ class _BouteilleCard extends StatelessWidget {
           ),
           const SizedBox(height: 8),
 
-          // Variété + Scellage (side by side)
+          // Variété + numCiterne (side by side)
           Row(
             children: [
               Expanded(
@@ -852,10 +857,10 @@ class _BouteilleCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _InlineLabel(label: 'Scellage'),
+                    _InlineLabel(label: 'N° citerne'),
                     const SizedBox(height: 5),
                     TextField(
-                      controller: row.scellageCtrl,
+                      controller: row.numCiterneCtrl,
                       style: const TextStyle(fontSize: 13, color: chefDark),
                       decoration: _fieldDec('Ex: Z1'),
                     ),

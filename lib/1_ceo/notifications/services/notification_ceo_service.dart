@@ -1,6 +1,6 @@
+import '../../../core/api_client.dart';
 import '../models/notification_ceo.dart';
 
-// TODO: switch back to real API when backend is ready
 class NotificationCeoService {
   static final List<NotificationCeo> _mock = [
     NotificationCeo(
@@ -116,21 +116,41 @@ class NotificationCeoService {
   ];
 
   Future<List<NotificationCeo>> fetchNotifications() async {
-    return List.of(_mock);
+    try {
+      final data = await apiClient.getList('/api/notifications/');
+      return data
+          .map((e) => NotificationCeo.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } catch (_) {
+      return List.of(_mock);
+    }
   }
 
   Future<void> markAsRead(String id) async {
-    final idx = _mock.indexWhere((n) => n.id == id);
-    if (idx != -1) _mock[idx] = _mock[idx].copyWith(isRead: true);
+    try {
+      await apiClient.patch('/api/notifications/$id/lire/', {});
+    } catch (_) {
+      final idx = _mock.indexWhere((n) => n.id == id);
+      if (idx != -1) _mock[idx] = _mock[idx].copyWith(isRead: true);
+    }
   }
 
   Future<void> markAllAsRead() async {
-    for (var i = 0; i < _mock.length; i++) {
-      _mock[i] = _mock[i].copyWith(isRead: true);
+    try {
+      await apiClient.post('/api/notifications/lire-tout/', {});
+    } catch (_) {
+      for (var i = 0; i < _mock.length; i++) {
+        _mock[i] = _mock[i].copyWith(isRead: true);
+      }
     }
   }
 
   Future<int> fetchUnreadCount() async {
-    return _mock.where((n) => !n.isRead).length;
+    try {
+      final data = await apiClient.get('/api/notifications/unread-count/');
+      return data['count'] as int;
+    } catch (_) {
+      return _mock.where((n) => !n.isRead).length;
+    }
   }
 }

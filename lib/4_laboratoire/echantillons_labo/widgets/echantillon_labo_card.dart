@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import '../models/echantillon_labo.dart';
 import '../../analyse_labo.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/grille_details.dart';
 
 Color _accentColor(StatutAnalyse s) {
   switch (s) {
@@ -306,22 +307,20 @@ class _DetailPanel extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Wrap(
-                spacing: 90,
-                runSpacing: 10,
-                children: [
-                  _DetailItem('N° échantillon', e.ref),
-                  _DetailItem('Réf. bouteille', e.referenceBouteille),
-                  _DetailItem('Gouvernorat', e.gouvernorat),
-                  _DetailItem('Fournisseur', e.codeFournisseur),
-                  _DetailItem('Collecteur', e.collecteurNom),
-                  _DetailItem('Date arrivée', e.dateArrivee),
+              GrilleDetails(
+                items: [
+                  DetailItem('N° échantillon', e.ref),
+                  DetailItem('Réf. bouteille', e.referenceBouteille),
+                  DetailItem('Gouvernorat', e.gouvernorat),
+                  DetailItem('Fournisseur', e.codeFournisseur),
+                  DetailItem('Collecteur', e.collecteurNom),
+                  DetailItem('Date arrivée', e.dateArrivee),
                   if (e.variete != null && e.variete!.isNotEmpty)
-                    _DetailItem('Variété', e.variete!),
-                  if (e.numeroLot != null) _DetailItem('N° lot', e.numeroLot!),
+                    DetailItem('Variété', e.variete!),
+                  if (e.numeroLot != null) DetailItem('N° lot', e.numeroLot!),
                   if (e.origineCampagne != null)
-                    _DetailItem('Campagne', e.origineCampagne!),
-                  _DetailItem(
+                    DetailItem('Campagne', e.origineCampagne!),
+                  DetailItem(
                     'Priorité',
                     e.priorite == PrioriteLabo.urgente ? 'Urgente' : 'Normale',
                   ),
@@ -338,33 +337,3 @@ class _DetailPanel extends StatelessWidget {
 // ─────────────────────────────────────────────────────────────────────────────
 // DETAIL ITEM
 // ─────────────────────────────────────────────────────────────────────────────
-class _DetailItem extends StatelessWidget {
-  final String label;
-  final String value;
-  const _DetailItem(this.label, this.value);
-
-  @override
-  Widget build(BuildContext context) => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text(
-        label,
-        style: const TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w600,
-          color: Color(0xFFAAAAAA),
-          letterSpacing: 0.3,
-        ),
-      ),
-      const SizedBox(height: 2),
-      Text(
-        value,
-        style: const TextStyle(
-          fontSize: 13,
-          fontWeight: FontWeight.w600,
-          color: kDark,
-        ),
-      ),
-    ],
-  );
-}

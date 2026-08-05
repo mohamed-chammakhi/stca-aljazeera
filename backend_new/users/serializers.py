@@ -20,6 +20,45 @@ class UserSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'date_creation', 'last_login']
 
 
+class PanelMemberSerializer(serializers.ModelSerializer):
+    role = serializers.CharField(source='get_role_display', read_only=True)
+    membre_depuis = serializers.SerializerMethodField()
+    est_en_ligne = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = [
+            'id',
+            'nom',
+            'prenom',
+            'role',
+            'membre_depuis',
+            'est_en_ligne',
+        ]
+        read_only_fields = fields
+
+    def get_membre_depuis(self, obj):
+        month_names = [
+            'Jan',
+            'Fev',
+            'Mar',
+            'Avr',
+            'Mai',
+            'Juin',
+            'Juil',
+            'Aout',
+            'Sep',
+            'Oct',
+            'Nov',
+            'Dec',
+        ]
+        created = obj.date_creation
+        return f'{month_names[created.month - 1]} {created.year}'
+
+    def get_est_en_ligne(self, obj):
+        return obj.is_active
+
+
 class UserAdminUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = User

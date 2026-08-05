@@ -23,6 +23,10 @@ import '../profil_ceo_page.dart';
 import '../../main.dart';
 import 'widgets/proposition_section.dart';
 import 'widgets/decision_dialog.dart';
+import 'widgets/refus_dialog.dart';
+import '../../core/widgets/grille_details.dart';
+import '../../core/widgets/marqueur_renegocie.dart';
+import '../echantillons/services/echantillon_ceo_service.dart';
 
 class ValidationAchatsCeoPage extends StatefulWidget {
   const ValidationAchatsCeoPage({super.key});
@@ -49,6 +53,49 @@ class _ValidationAchatsCeoPageState extends State<ValidationAchatsCeoPage>
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
 
+  final _service = EchantillonCeoService();
+
+  /// Propositions en attente de décision — statut « en négociation ».
+  List<EchantillonCeoView> _enAttente = List.of(mockPropositionsEnAttente);
+
+  /// Propositions déjà tranchées — achat confirmé ou refusé.
+  List<EchantillonCeoView> _decidees = List.of(mockPropositionsDecidees);
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPropositions();
+  }
+
+  /// Les données viennent de l'API, comme sur les trois autres écrans de la
+  /// direction. Les listes mock ne servent que de repli hors ligne : sans ce
+  /// chargement, l'écran affichait des propositions codées en dur et le
+  /// directeur ne voyait jamais les vraies.
+  Future<void> _loadPropositions() async {
+    try {
+      final data = await _service.fetchCeoViews();
+      if (!mounted) return;
+      setState(() {
+        _enAttente = data
+            .where((e) => e.statut == StatutCeo.enNegociation)
+            .toList();
+        _decidees = data
+            .where(
+              (e) =>
+                  e.statut == StatutCeo.achatConfirme ||
+                  e.statut == StatutCeo.refuse,
+            )
+            .toList();
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _enAttente = List.of(mockPropositionsEnAttente);
+        _decidees = List.of(mockPropositionsDecidees);
+      });
+    }
+  }
+
   @override
   void dispose() {
     _searchController.dispose();
@@ -58,14 +105,11 @@ class _ValidationAchatsCeoPageState extends State<ValidationAchatsCeoPage>
   List<EchantillonCeoView> get _source {
     switch (_activeFilter) {
       case 'a_valider':
-        return mockPropositionsEnAttente;
+        return _enAttente;
       case 'decidees':
-        return mockPropositionsDecidees;
+        return _decidees;
       default:
-        return [
-          ...mockPropositionsEnAttente,
-          ...mockPropositionsDecidees,
-        ];
+        return [..._enAttente, ..._decidees];
     }
   }
 
@@ -120,16 +164,33 @@ class _ValidationAchatsCeoPageState extends State<ValidationAchatsCeoPage>
     );
   }
 
-  void _confirmer(EchantillonCeoView e) {
-    final target = mockEchantillons.firstWhere(
-      (x) => x.id == e.id,
-      orElse: () => e,
+  Future<void> _confirmer(EchantillonCeoView e) async {
+    final confirme = await showDialog<bool>(
+      context: context,
+      builder: (_) => ConfirmerAchatDialog(
+        referenceBouteille: e.referenceBouteille,
+        budgetNegociation: e.budgetNegociation,
+        quantite: e.quantiteCibleT ?? e.quantiteEstimee,
+      ),
     );
-    setState(() {
-      target.statut = StatutCeo.achatConfirme;
-      target.stockArrive = false;
-      _expanded.remove(e.id);
-    });
+    if (confirme != true) return;
+    if (!mounted) return;
+
+    // La décision part au serveur avant d'être affichée. Sans cet appel, elle
+    // ne vivait qu'en mémoire : elle disparaissait au redémarrage et aucun
+    // autre rôle ne la voyait.
+    try {
+      await _service.confirmerAchat(e.id);
+    } catch (error) {
+      if (!mounted) return;
+      _erreur('Confirmation non enregistrée — ${e.referenceBouteille}.');
+      return;
+    }
+
+    if (!mounted) return;
+    setState(() => _expanded.remove(e.id));
+    await _loadPropositions();
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         backgroundColor: kGreen,
@@ -142,27 +203,79 @@ class _ValidationAchatsCeoPageState extends State<ValidationAchatsCeoPage>
     );
   }
 
-  Future<void> _refuser(EchantillonCeoView e) async {
-    final raison = await showDialog<String>(
-      context: context,
-      builder: (_) => RefusDecisionDialog(referenceBouteille: e.referenceBouteille),
-    );
-    if (raison == null) return;
-    if (!mounted) return;
-    final target = mockEchantillons.firstWhere(
-      (x) => x.id == e.id,
-      orElse: () => e,
-    );
-    setState(() {
-      target.statut = StatutCeo.refuse;
-      target.raisonRefus = raison.isEmpty ? 'Non précisée' : raison;
-      _expanded.remove(e.id);
-    });
+  /// Message d'échec — la décision n'est pas partie, il ne faut pas laisser
+  /// croire le contraire.
+  void _erreur(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         backgroundColor: const Color(0xFFB71C1C),
+        content: Text(message, style: const TextStyle(fontSize: 13)),
+        duration: const Duration(seconds: 3),
+      ),
+    );
+  }
+
+  /// Refus en deux temps : la direction choisit d'abord la nature du refus,
+  /// puis confirme. Un refus définitif est irréversible, un renvoi en
+  /// négociation engage une contre-proposition — les deux méritent une relecture
+  /// avant départ.
+  Future<void> _refuser(EchantillonCeoView e) async {
+    final decision = await showDialog<DecisionRefus>(
+      context: context,
+      builder: (_) => RefusDecisionDialog(
+        referenceBouteille: e.referenceBouteille,
+        nbRenegociations: e.nbRenegociations,
+        quantiteActuelle: e.quantiteCibleT,
+      ),
+    );
+    if (decision == null || !mounted) return;
+
+    final confirme = await showDialog<bool>(
+      context: context,
+      builder: (_) => ConfirmerRefusDialog(
+        referenceBouteille: e.referenceBouteille,
+        decision: decision,
+        nbRenegociations: e.nbRenegociations,
+      ),
+    );
+    if (confirme != true || !mounted) return;
+
+    try {
+      if (decision.definitif) {
+        await _service.refuserAchat(e.id, decision.raison);
+      } else {
+        await _service.renvoyerEnNegociation(
+          e.id,
+          raisonRefus: decision.raison,
+          contrePrix: decision.contrePrix ?? '',
+          contrePrixMax: decision.contrePrixMax,
+          quantiteCibleT: decision.quantiteCibleT,
+          dateLivraisonStock: decision.dateLivraison,
+          dateLivraisonStockFin: decision.dateLivraisonFin,
+        );
+      }
+    } catch (error) {
+      if (!mounted) return;
+      _erreur(
+        decision.definitif
+            ? 'Refus non enregistré — ${e.referenceBouteille}.'
+            : 'Renvoi en négociation non enregistré — ${e.referenceBouteille}.',
+      );
+      return;
+    }
+
+    if (!mounted) return;
+    setState(() => _expanded.remove(e.id));
+    await _loadPropositions();
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        backgroundColor:
+            decision.definitif ? const Color(0xFFB71C1C) : _orangeActive,
         content: Text(
-          'Proposition refusée — ${e.referenceBouteille}.',
+          decision.definitif
+              ? 'Proposition refusée — ${e.referenceBouteille}.'
+              : 'Renvoyée en négociation — ${e.referenceBouteille}.',
           style: const TextStyle(fontSize: 13),
         ),
         duration: const Duration(seconds: 2),
@@ -388,11 +501,13 @@ class _ValidationAchatsCeoPageState extends State<ValidationAchatsCeoPage>
                                 label: 'Qté : ${e.quantiteCibleT}T',
                                 color: kOlive,
                               ),
-                            if (e.budgetNegociation != null)
-                              CardBadge(
-                                label: e.budgetNegociation!,
-                                color: accent,
-                              ),
+                            // Sans plafond au nombre de tours, ce compteur est
+                            // le seul signal qu'un dossier s'enlise.
+                            if (e.nbRenegociations > 0)
+                              MarqueurRenegocie(nombre: e.nbRenegociations),
+                            // The price is not repeated here: it already has a
+                            // line in the proposal details just below, and the
+                            // header only needs what tells two cards apart.
                           ],
                         ),
                         detailItems: [

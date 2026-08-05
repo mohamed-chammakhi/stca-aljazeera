@@ -7,7 +7,7 @@ from rest_framework.views import APIView
 
 from echantillons.models import Echantillon
 from users.models import User
-from users.permissions import IsDegustateurOrChef
+from users.permissions import IsDegustateurOrChef, IsDirection
 
 from .models import EvaluationOrganoleptique
 from .serializers import EvaluationSerializer
@@ -15,12 +15,19 @@ from .serializers import EvaluationSerializer
 
 class EvaluationListCreateView(generics.ListCreateAPIView):
     serializer_class = EvaluationSerializer
-    permission_classes = [IsDegustateurOrChef]
+    permission_classes = [IsDegustateurOrChef | IsDirection]
+
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            return [IsDegustateurOrChef()]
+        return super().get_permissions()
 
     def get_queryset(self):
         qs = EvaluationOrganoleptique.objects.select_related(
             'echantillon', 'degustateur', 'session'
-        ).filter(degustateur=self.request.user)
+        )
+        if self.request.user.role != User.Role.DIRECTION:
+            qs = qs.filter(degustateur=self.request.user)
         echantillon_id = self.request.query_params.get('echantillon')
         if echantillon_id:
             qs = qs.filter(echantillon_id=echantillon_id)
@@ -83,7 +90,7 @@ class EvaluationSoumettreView(APIView):
             )
             active_taster_count = User.objects.filter(
                 is_active=True,
-                role__in=[User.Role.DEGUSTATEUR, User.Role.CHEF_PANEL],
+                role__in=[User.Role.DEGUSTATEUR, User.Role.CHEF_DEGUSTATION],
             ).count()
             submitted_count = EvaluationOrganoleptique.objects.filter(
                 echantillon=echantillon,

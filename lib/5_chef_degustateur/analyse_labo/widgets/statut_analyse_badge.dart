@@ -5,7 +5,7 @@
 // ═════════════════════════════════════════════════════════════════════════════
 
 import 'package:flutter/material.dart';
-import '../models/analyse_labo.dart';
+import '../../../core/analyses/ligne_analyse_labo.dart';
 import '../../widgets/chef_colors.dart';
 
 class StatutAnalyseBadge extends StatelessWidget {

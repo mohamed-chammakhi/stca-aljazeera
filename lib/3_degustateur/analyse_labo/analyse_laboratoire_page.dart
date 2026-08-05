@@ -5,8 +5,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'models/analyse_labo.dart';
-import 'services/analyse_labo_service.dart';
+import '../../../core/analyses/ligne_analyse_labo.dart';
+import '../../../core/analyses/ligne_analyse_labo_service.dart';
 import 'widgets/analyse_card.dart';
 import '../../../core/widgets/search_filter_bar.dart';
 import '../../../core/widgets/statut_chip.dart';
@@ -26,12 +26,12 @@ class AnalyseLaboratoirePage extends StatefulWidget {
   const AnalyseLaboratoirePage({super.key});
 
   @override
-  _AnalyseLaboratoirePageState createState() => _AnalyseLaboratoirePageState();
+  State<AnalyseLaboratoirePage> createState() => _AnalyseLaboratoirePageState();
 }
 
 class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage>
     with DegustateurNavMixin {
-  final _service = AnalyseLaboService();
+  final _service = LigneAnalyseLaboService();
 
   // ── STATE ────────────────────────────────────────────────────────────────────
   final TextEditingController _searchController = TextEditingController();
@@ -54,7 +54,7 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage>
       .label;
 
   // ── STATE ────────────────────────────────────────────────────────────────────
-  List<AnalyseLabo> _analyses = [];
+  List<LigneAnalyseLabo> _analyses = [];
   final Set<String> _urgentSent = {};
 
   @override
@@ -80,7 +80,7 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage>
     }
   }
 
-  String? _dateFieldFor(AnalyseLabo a) {
+  String? _dateFieldFor(LigneAnalyseLabo a) {
     switch (_dateType) {
       case 'enregistrement':
         return a.dateEnregistrement;
@@ -91,7 +91,7 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage>
     }
   }
 
-  List<AnalyseLabo> get _filtres {
+  List<LigneAnalyseLabo> get _filtres {
     return _analyses.where((a) {
       final matchRecherche =
           _recherche.isEmpty ||
@@ -158,7 +158,7 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage>
     );
   }
 
-  void _confirmSendUrgent(AnalyseLabo a) {
+  void _confirmSendUrgent(LigneAnalyseLabo a) {
     showDialog(
       context: context,
       builder: (_) => Dialog(
@@ -176,22 +176,24 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage>
                   topRight: Radius.circular(16),
                 ),
               ),
-              child: Row(children: [
-                const Icon(
-                  Icons.notifications_active,
-                  color: Colors.white,
-                  size: 20,
-                ),
-                const SizedBox(width: 10),
-                Text(
-                  'Notifier le laboratoire',
-                  style: GoogleFonts.domine(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.notifications_active,
                     color: Colors.white,
+                    size: 20,
                   ),
-                ),
-              ]),
+                  const SizedBox(width: 10),
+                  Text(
+                    'Notifier le laboratoire',
+                    style: GoogleFonts.domine(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 18, 20, 8),
@@ -270,7 +272,8 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage>
             goToPage(const EvaluationEchantillonsPage()),
         onGestionEchantillons: () => goToPage(const GestionEchantillonsPage()),
         onAnalyseLaboratoire: () => goToPage(const AnalyseLaboratoirePage()),
-        onSessionsDegustationPage: () => goToPage(const SessionsDegustationPage()),
+        onSessionsDegustationPage: () =>
+            goToPage(const SessionsDegustationPage()),
         onMembredupanel: () => goToPage(const MembresPanelPage()),
         onProfil: () => goToPage(const ProfilePage()),
         onDeconnexion: goToLogin,

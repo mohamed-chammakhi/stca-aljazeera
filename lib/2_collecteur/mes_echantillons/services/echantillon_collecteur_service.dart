@@ -61,7 +61,7 @@ class EchantillonCollecteurService {
       'cite': api['cite'],
       'code_fournisseur': api['code_fournisseur'] ?? '',
       'reference_bouteille': api['reference_bouteille'] ?? '',
-      'scellage': api['scellage'],
+      'num_citerne': api['num_citerne'],
       'quantite_estimee': api['quantite_estimee'],
       'variete': api['variete'],
       'achat_confirme': statutCollecteur == 'achat_confirme',
@@ -100,7 +100,7 @@ class EchantillonCollecteurService {
       // the supplier match with an empty string.
       if (nom.isNotEmpty) 'fournisseur_nom': nom,
       'reference_bouteille': json['reference_bouteille'],
-      'scellage': json['scellage'],
+      'num_citerne': json['num_citerne'],
       'quantite_estimee': json['quantite_estimee'],
       'variete': json['variete'],
       'budget_negociation': json['budget_negociation'],
@@ -177,9 +177,9 @@ class EchantillonCollecteurService {
     return EchantillonCollecteur.fromJson(_toFlutterMap(response));
   }
 
-  /// Sends a bottle photo to the offline OCR endpoint and returns the
+  /// Sends a bottle photo to the backend OCR endpoint and returns the
   /// best-guess pre-fill values. The recognition runs entirely on the
-  /// on-premise server — the image never leaves the company.
+  /// on-premise server: the image never leaves the company.
   ///
   /// Returned keys: reference, variete, quantite, fournisseur_nom,
   /// gouvernorat, _confidence. OCR is only an assistant: every value is

@@ -57,6 +57,9 @@ backend_new/venv/
 __pycache__/
 .env
 backend_new/.env
+backend_new/.env.ocr-archive
 
 # Archives
 *.zip
+# Bases SQLite locales — la vraie base est PostgreSQL (voir backend_new/.env)
+*.sqlite3

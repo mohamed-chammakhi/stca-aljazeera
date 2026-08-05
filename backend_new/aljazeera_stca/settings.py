@@ -182,7 +182,7 @@ SPECTACULAR_SETTINGS = {
     'TITLE': 'Al Jazeera STCA — API',
     'DESCRIPTION': (
         'Backend API for the olive oil sample evaluation and stock acquisition system. '
-        'Roles: direction, collecteur, degustateur, laboratoire, chef_panel, responsable_financier.'
+        'Roles: direction, collecteur, degustateur, laboratoire, chef_degustation, responsable_financier.'
     ),
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,

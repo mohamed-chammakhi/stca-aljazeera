@@ -22,14 +22,14 @@ class IsLaboratoire(BasePermission):
         return request.user.is_authenticated and request.user.role == User.Role.LABORATOIRE
 
 
-class IsChefPanel(BasePermission):
+class IsChefDegustation(BasePermission):
     def has_permission(self, request, view):
-        return request.user.is_authenticated and request.user.role == User.Role.CHEF_PANEL
+        return request.user.is_authenticated and request.user.role == User.Role.CHEF_DEGUSTATION
 
 
 class IsDegustateurOrChef(BasePermission):
-    """Taster or Head Taster — both can evaluate and manage sessions."""
+    """Taster or Chef de Dégustation — both can evaluate and manage sessions."""
     def has_permission(self, request, view):
         return request.user.is_authenticated and request.user.role in (
-            User.Role.DEGUSTATEUR, User.Role.CHEF_PANEL
+            User.Role.DEGUSTATEUR, User.Role.CHEF_DEGUSTATION
         )

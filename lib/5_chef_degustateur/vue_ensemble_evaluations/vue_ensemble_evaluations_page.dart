@@ -1,11 +1,13 @@
 // ═════════════════════════════════════════════════════════════════════════════
 // FILE : vue_ensemble_evaluations/vue_ensemble_evaluations_page.dart
-// PURPOSE : Chef de Panel — all tasters' submitted evaluations per sample,
+// PURPOSE : Chef de Dégustation — all tasters' submitted evaluations per sample,
 //           read-only overview. "Voir" opens the shared CEO evaluation form sheet.
 // ═════════════════════════════════════════════════════════════════════════════
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+
+import '../../core/models/enums.dart';
 
 import '../profil.dart';
 import '../tableau_de_bord/widgets/app_drawer.dart';
@@ -21,8 +23,15 @@ import '../sessions_degustation/sessions_degustation_page.dart';
 import '../../../1_ceo/widgets/shared_evaluation_form_sheet.dart';
 // TODO(core): create a shared EchantillonView model in lib/core/models/ — cross-module import from 1_ceo
 import '../../../1_ceo/utilisateurs/models/echantillon_ceo_view.dart';
+// TODO(core): move these card widgets to lib/core/widgets/ — cross-module import from 1_ceo
+import '../../../1_ceo/widgets/base_sample_card.dart';
+import '../../../1_ceo/analyse_organoleptique/widgets/panel_section.dart';
+import '../../../1_ceo/analyse_organoleptique/widgets/panel_widgets.dart'
+    show RecuPhysiqueIndicator;
 import '../../../main.dart';
 import '../widgets/chef_colors.dart';
+import '../../../core/api_client.dart';
+import '../../core/widgets/grille_details.dart';
 
 const Color _olive = Color(0xFF6B8143);
 
@@ -188,6 +197,28 @@ class _VueEnsembleEvaluationsPageState
   DateTime? _dateDebut;
   DateTime? _dateFin;
   final Set<String> _expandedPanel = {};
+  List<_SampleEvalGroup> _groups = List.of(_mockGroups);
+
+  @override
+  void initState() {
+    super.initState();
+    _loadGroups();
+  }
+
+  Future<void> _loadGroups() async {
+    try {
+      final data = await apiClient.getList('/api/chef/evaluations/');
+      if (mounted) {
+        setState(
+          () => _groups = data
+              .map((e) => _groupFromApi(e as Map<String, dynamic>))
+              .toList(),
+        );
+      }
+    } catch (_) {
+      if (mounted) setState(() => _groups = List.of(_mockGroups));
+    }
+  }
 
   bool get _dateFilterActive => _dateDebut != null || _dateFin != null;
 
@@ -215,11 +246,12 @@ class _VueEnsembleEvaluationsPageState
   }
 
   List<_SampleEvalGroup> get _filtered {
-    var list = _mockGroups;
+    var list = _groups;
     if (_dateFilterActive) {
       list = list.where((g) {
-        if (!g.recuPhysiquement || g.dateReceptionPhysique == null)
+        if (!g.recuPhysiquement || g.dateReceptionPhysique == null) {
           return false;
+        }
         final d = _parseDate(g.dateReceptionPhysique!);
         if (d == null) return false;
         final day = DateTime(d.year, d.month, d.day);
@@ -229,8 +261,9 @@ class _VueEnsembleEvaluationsPageState
         final fin = _dateFin != null
             ? DateTime(_dateFin!.year, _dateFin!.month, _dateFin!.day)
             : null;
-        if (debut != null && fin != null)
+        if (debut != null && fin != null) {
           return !day.isBefore(debut) && !day.isAfter(fin);
+        }
         if (debut != null) return !day.isBefore(debut);
         if (fin != null) return !day.isAfter(fin);
         return true;
@@ -249,6 +282,99 @@ class _VueEnsembleEvaluationsPageState
           .toList();
     }
     return list;
+  }
+
+  _SampleEvalGroup _groupFromApi(Map<String, dynamic> json) {
+    return _SampleEvalGroup(
+      sampleId: json['sample_id'] as String? ?? json['echantillon_id'] as String,
+      referenceBouteille:
+          json['reference_bouteille'] as String? ?? json['numero'] as String? ?? '',
+      gouvernorat: json['gouvernorat'] as String? ?? '',
+      variete: json['variete'] as String? ?? '',
+      dateAjout: _formatDate(json['date_ajout']),
+      recuPhysiquement: json['recu_physiquement'] as bool? ?? false,
+      dateReceptionPhysique: _formatDate(json['date_reception_physique']),
+      evaluations: ((json['evaluations'] as List<dynamic>?) ?? const [])
+          .map((e) => _tasterEvalFromApi(e as Map<String, dynamic>))
+          .toList(),
+    );
+  }
+
+  _TasterEval _tasterEvalFromApi(Map<String, dynamic> json) {
+    final submitted = json['statut'] == 'soumis';
+    return _TasterEval(
+      tasterName:
+          json['taster_name'] as String? ?? json['degustateur_nom'] as String? ?? '',
+      statut: submitted ? 'Soumis' : 'En attente',
+      dateEval: _formatDate(json['soumis_le'] ?? json['date_eval']),
+      classification: _classificationLabel(json['classification'] as String?),
+      scores: _scoresFromApi(json),
+    );
+  }
+
+  List<_EvalEntry> _scoresFromApi(Map<String, dynamic> json) {
+    final rawScores = json['scores'] as List<dynamic>?;
+    if (rawScores != null && rawScores.isNotEmpty) {
+      return rawScores
+          .whereType<Map<String, dynamic>>()
+          .where((score) => score['score'] != null)
+          .map(
+            (score) => _EvalEntry(
+              _scoreLabel(score['key'] as String?, score['attribut'] as String?),
+              _double(score['score']),
+            ),
+          )
+          .toList();
+    }
+
+    return [
+      if (json['fruite'] != null) _EvalEntry(_attrs[0], _double(json['fruite'])),
+      if (json['amertume'] != null) _EvalEntry(_attrs[1], _double(json['amertume'])),
+      if (json['piquant'] != null) _EvalEntry(_attrs[2], _double(json['piquant'])),
+    ];
+  }
+
+  String _scoreLabel(String? key, String? fallback) {
+    switch (key) {
+      case 'fruite':
+        return _attrs[0];
+      case 'amertume':
+        return _attrs[1];
+      case 'piquant':
+        return _attrs[2];
+      default:
+        return fallback ?? '';
+    }
+  }
+
+  String? _classificationLabel(String? value) {
+    switch (value) {
+      case 'extra_vierge':
+        return 'Extra Vierge';
+      case 'vierge':
+        return 'Vierge';
+      case 'vierge_ordinaire':
+        return 'Vierge Ordinaire';
+      case 'lampante':
+        return 'Lampante';
+      default:
+        return value;
+    }
+  }
+
+  double _double(dynamic value) {
+    if (value is num) return value.toDouble();
+    if (value is String) return double.tryParse(value) ?? 0.0;
+    return 0.0;
+  }
+
+  String _formatDate(dynamic value) {
+    if (value == null) return '';
+    final parsed = DateTime.tryParse(value.toString());
+    if (parsed == null) return value.toString();
+    final day = parsed.day.toString().padLeft(2, '0');
+    final month = parsed.month.toString().padLeft(2, '0');
+    return '$day/$month/${parsed.year}';
   }
 
   Future<void> _showDateFilter() async {
@@ -271,11 +397,34 @@ class _VueEnsembleEvaluationsPageState
     );
   }
 
-  // ── "Voir" handler — builds EvaluationOrganoleptique and opens CEO sheet ──
-  void _onViewEval(_TasterEval eval, _SampleEvalGroup group) {
-    if (eval.statut != 'Soumis' || eval.classification == null) return;
+  /// Traduit un groupe du chef vers le modele que la carte partagee attend.
+  ///
+  /// Seules les evaluations soumises sont converties : la liste du panel
+  /// n'affiche que du travail rendu, et le compteur « 3 / 4 » du badge dit deja
+  /// combien manquent.
+  EchantillonCeoView _vueDepuisGroupe(_SampleEvalGroup g) {
+    return EchantillonCeoView(
+      id: g.sampleId,
+      referenceBouteille: g.referenceBouteille,
+      codeFournisseur: '',
+      gouvernorat: g.gouvernorat,
+      variete: g.variete,
+      dateAjout: g.dateAjout,
+      recuPhysiquement: g.recuPhysiquement,
+      statut: StatutCeo.selectionne,
+      totalTasteurs: g.total,
+      evaluations: g.evaluations
+          .where((e) => e.statut == 'Soumis' && e.classification != null)
+          .map((e) => _evaluationDepuis(e, g))
+          .toList(),
+    );
+  }
 
-    final ev = EvaluationOrganoleptique(
+  EvaluationOrganoleptique _evaluationDepuis(
+    _TasterEval eval,
+    _SampleEvalGroup group,
+  ) {
+    return EvaluationOrganoleptique(
       id: '${group.sampleId}_${eval.tasterName}',
       echantillonId: group.sampleId,
       tasteurId: eval.tasterName,
@@ -285,22 +434,18 @@ class _VueEnsembleEvaluationsPageState
           : DateTime.now().toIso8601String(),
       classification: _classificationFromStr(eval.classification!),
       fruite: _scoreFor(eval.scores, 'Fruité'),
-      fruiteVert: false,
+      typeFruite: TypeFruite.vert,
       amertume: _scoreFor(eval.scores, 'Amer'),
       piquant: _scoreFor(eval.scores, 'Piquant'),
-      chome: null,
-      moisi: null,
-      vinaigre: null,
-      gele: null,
-      rance: null,
-      autresDefaut: null,
-      autresDefautNom: null,
-      commentaire: null,
     );
+  }
 
+  // ── "Voir" handler — builds EvaluationOrganoleptique and opens CEO sheet ──
+  void _onViewEval(_TasterEval eval, _SampleEvalGroup group) {
+    if (eval.statut != 'Soumis' || eval.classification == null) return;
     showEvaluationFormSheet(
       context,
-      evaluation: ev,
+      evaluation: _evaluationDepuis(eval, group),
       sampleRef: group.referenceBouteille,
     );
   }
@@ -517,15 +662,54 @@ class _VueEnsembleEvaluationsPageState
                     itemCount: groups.length,
                     itemBuilder: (_, i) {
                       final g = groups[i];
-                      return _EvalSampleCard(
-                        group: g,
-                        isPanelExpanded: _expandedPanel.contains(g.sampleId),
-                        onPanelToggle: () => setState(() {
-                          _expandedPanel.contains(g.sampleId)
-                              ? _expandedPanel.remove(g.sampleId)
-                              : _expandedPanel.add(g.sampleId);
-                        }),
-                        onViewEval: (eval) => _onViewEval(eval, g),
+                      // Meme carte que l'ecran Analyse organoleptique de la
+                      // direction : le chef consulte les memes donnees, il n'y
+                      // a aucune raison que les deux ecrans se ressemblent de
+                      // loin plutot que d'etre identiques.
+                      final vue = _vueDepuisGroupe(g);
+                      return BaseSampleCard(
+                        referenceBouteille: g.referenceBouteille,
+                        id: g.sampleId,
+                        tintColor: Colors.white,
+                        accentColor: g.isComplete ? chefGreen : _olive,
+                        badge: CardBadgeRow(
+                          badges: [
+                            CardBadge(
+                              label: '${g.submitted} / ${g.total}',
+                              color: g.isComplete ? chefGreen : _olive,
+                            ),
+                            RecuPhysiqueIndicator(
+                              recuPhysiquement: g.recuPhysiquement,
+                            ),
+                          ],
+                        ),
+                        detailItems: [
+                          DetailItem('N° échantillon', g.sampleId),
+                          DetailItem('Réf. bouteille', g.referenceBouteille),
+                          DetailItem('Gouvernorat', g.gouvernorat),
+                          DetailItem('Variété', g.variete),
+                          DetailItem('Date ajout', g.dateAjout),
+                          DetailItem(
+                            'Évaluations',
+                            '${g.submitted} / ${g.total} soumises',
+                          ),
+                        ],
+                        bottomSection: PanelSection(
+                          echantillon: vue,
+                          isExpanded: _expandedPanel.contains(g.sampleId),
+                          onToggle: () => setState(() {
+                            _expandedPanel.contains(g.sampleId)
+                                ? _expandedPanel.remove(g.sampleId)
+                                : _expandedPanel.add(g.sampleId);
+                          }),
+                          // Le chef consulte, il ne decide pas de l'achat.
+                          showDecisions: false,
+                          onViewForm: (ev) => showEvaluationFormSheet(
+                            context,
+                            evaluation: ev,
+                            sampleRef: g.referenceBouteille,
+                          ),
+                        ),
                       );
                     },
                   ),
@@ -533,585 +717,5 @@ class _VueEnsembleEvaluationsPageState
         ],
       ),
     );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// SAMPLE EVAL CARD
-// ─────────────────────────────────────────────────────────────────────────────
-class _EvalSampleCard extends StatefulWidget {
-  final _SampleEvalGroup group;
-  final bool isPanelExpanded;
-  final VoidCallback onPanelToggle;
-  final void Function(_TasterEval) onViewEval;
-
-  const _EvalSampleCard({
-    required this.group,
-    required this.isPanelExpanded,
-    required this.onPanelToggle,
-    required this.onViewEval,
-  });
-
-  @override
-  State<_EvalSampleCard> createState() => _EvalSampleCardState();
-}
-
-class _EvalSampleCardState extends State<_EvalSampleCard> {
-  bool _detailExpanded = false;
-
-  bool _detectOutlier() {
-    final submitted = widget.group.evaluations
-        .where((e) => e.scores.isNotEmpty)
-        .toList();
-    if (submitted.length < 3) return false;
-    for (int a = 0; a < _attrs.length; a++) {
-      final vals = submitted.map((e) {
-        final entry = e.scores.where((s) => s.attribut == _attrs[a]);
-        return entry.isEmpty ? 0.0 : entry.first.score;
-      }).toList();
-      final avg = vals.fold(0.0, (s, v) => s + v) / vals.length;
-      for (final v in vals) {
-        if ((v - avg).abs() > 1.5) return true;
-      }
-    }
-    return false;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final g = widget.group;
-    final accentColor = g.isComplete ? chefGreen : const Color(0xFFD07B2F);
-    final hasOutlier = _detectOutlier();
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.grey.shade200),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.07),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
-          ),
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 4,
-            offset: const Offset(0, 1),
-          ),
-        ],
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Column(
-        children: [
-          // ── Header ─────────────────────────────────────────────────────
-          GestureDetector(
-            onTap: () => setState(() => _detailExpanded = !_detailExpanded),
-            behavior: HitTestBehavior.opaque,
-            child: IntrinsicHeight(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Container(width: 4, color: accentColor),
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(13, 10, 10, 10),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  g.referenceBouteille,
-                                  style: const TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w700,
-                                    color: chefDark,
-                                    letterSpacing: -0.2,
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  '${g.sampleId} · ${g.gouvernorat} · ${g.variete}',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w500,
-                                    color: Colors.grey.shade500,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          // Divergence badge
-                          if (hasOutlier)
-                            Container(
-                              margin: const EdgeInsets.only(right: 8),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 7,
-                                vertical: 3,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.orange.shade100,
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    Icons.warning_amber_rounded,
-                                    size: 10,
-                                    color: Colors.orange.shade700,
-                                  ),
-                                  const SizedBox(width: 3),
-                                  Text(
-                                    'Divergence',
-                                    style: TextStyle(
-                                      fontSize: 9,
-                                      fontWeight: FontWeight.w700,
-                                      color: Colors.orange.shade700,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          // Réception physique icon
-                          Container(
-                            margin: const EdgeInsets.only(right: 8),
-                            width: 26,
-                            height: 26,
-                            decoration: BoxDecoration(
-                              color: g.recuPhysiquement
-                                  ? chefGreen.withValues(alpha: 0.1)
-                                  : Colors.grey.shade100,
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: g.recuPhysiquement
-                                    ? chefGreen.withValues(alpha: 0.4)
-                                    : Colors.grey.shade300,
-                              ),
-                            ),
-                            child: Icon(
-                              g.recuPhysiquement
-                                  ? Icons.check_circle
-                                  : Icons.check_circle_outline,
-                              size: 14,
-                              color: g.recuPhysiquement
-                                  ? chefGreen
-                                  : Colors.grey.shade400,
-                            ),
-                          ),
-                          // Submission count badge
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 9,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: accentColor.withValues(alpha: 0.12),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: accentColor.withValues(alpha: 0.3),
-                              ),
-                            ),
-                            child: Text(
-                              '${g.submitted} / ${g.total}',
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w700,
-                                color: accentColor,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          AnimatedRotation(
-                            turns: _detailExpanded ? 0.5 : 0.0,
-                            duration: const Duration(milliseconds: 200),
-                            child: Icon(
-                              Icons.keyboard_arrow_down,
-                              size: 20,
-                              color: Colors.grey.shade400,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          // ── Expandable sample details ─────────────────────────────────
-          AnimatedCrossFade(
-            firstChild: const SizedBox.shrink(),
-            secondChild: Container(
-              margin: const EdgeInsets.fromLTRB(12, 8, 12, 10),
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: Colors.grey.shade100),
-              ),
-              child: Wrap(
-                spacing: 60,
-                runSpacing: 10,
-                children: [
-                  _DetailCell('N° échantillon', g.sampleId),
-                  _DetailCell('Réf. bouteille', g.referenceBouteille),
-                  _DetailCell('Gouvernorat', g.gouvernorat),
-                  _DetailCell('Variété', g.variete),
-                  _DetailCell(
-                    'Évaluations',
-                    '${g.submitted} / ${g.total} soumises',
-                  ),
-                  _ReceptionDetailCell(
-                    recu: g.recuPhysiquement,
-                    dateReception: g.dateReceptionPhysique,
-                  ),
-                ],
-              ),
-            ),
-            crossFadeState: _detailExpanded
-                ? CrossFadeState.showSecond
-                : CrossFadeState.showFirst,
-            duration: const Duration(milliseconds: 200),
-          ),
-
-          // ── Panel section ─────────────────────────────────────────────
-          Divider(color: Colors.grey.shade100, height: 1),
-          _EvalPanelSection(
-            group: g,
-            isExpanded: widget.isPanelExpanded,
-            onToggle: widget.onPanelToggle,
-            onViewEval: widget.onViewEval,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// DETAIL CELL
-// ─────────────────────────────────────────────────────────────────────────────
-class _DetailCell extends StatelessWidget {
-  final String label;
-  final String value;
-  const _DetailCell(this.label, this.value);
-
-  @override
-  Widget build(BuildContext context) => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text(
-        label,
-        style: const TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w600,
-          color: Color(0xFFAAAAAA),
-          letterSpacing: 0.3,
-        ),
-      ),
-      const SizedBox(height: 2),
-      Text(
-        value,
-        style: const TextStyle(
-          fontSize: 13,
-          fontWeight: FontWeight.w600,
-          color: chefDark,
-        ),
-      ),
-    ],
-  );
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// RECEPTION DETAIL CELL
-// ─────────────────────────────────────────────────────────────────────────────
-class _ReceptionDetailCell extends StatelessWidget {
-  final bool recu;
-  final String? dateReception;
-  const _ReceptionDetailCell({required this.recu, this.dateReception});
-
-  @override
-  Widget build(BuildContext context) {
-    final color = recu ? chefGreen : Colors.grey.shade400;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Réception physique',
-          style: TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.w600,
-            color: Color(0xFFAAAAAA),
-            letterSpacing: 0.3,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 18,
-              height: 18,
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-                border: Border.all(color: color.withValues(alpha: 0.35)),
-              ),
-              child: Icon(
-                recu ? Icons.check_circle : Icons.check_circle_outline,
-                size: 11,
-                color: color,
-              ),
-            ),
-            const SizedBox(width: 6),
-            Text(
-              recu
-                  ? (dateReception != null ? 'Oui — $dateReception' : 'Oui')
-                  : 'Non',
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: recu ? chefDark : Colors.grey.shade400,
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// EVAL PANEL SECTION — chevron only, no classification badge
-// ─────────────────────────────────────────────────────────────────────────────
-class _EvalPanelSection extends StatelessWidget {
-  final _SampleEvalGroup group;
-  final bool isExpanded;
-  final VoidCallback onToggle;
-  final void Function(_TasterEval) onViewEval;
-
-  const _EvalPanelSection({
-    required this.group,
-    required this.isExpanded,
-    required this.onToggle,
-    required this.onViewEval,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        GestureDetector(
-          onTap: onToggle,
-          behavior: HitTestBehavior.opaque,
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(14, 11, 14, 10),
-            child: Row(
-              children: [
-                const Spacer(),
-                AnimatedRotation(
-                  turns: isExpanded ? 0.5 : 0.0,
-                  duration: const Duration(milliseconds: 180),
-                  child: const Icon(
-                    Icons.keyboard_arrow_down,
-                    size: 18,
-                    color: _olive,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        AnimatedCrossFade(
-          firstChild: const SizedBox.shrink(),
-          secondChild: _EvalTasterList(group: group, onViewEval: onViewEval),
-          crossFadeState: isExpanded
-              ? CrossFadeState.showSecond
-              : CrossFadeState.showFirst,
-          duration: const Duration(milliseconds: 200),
-        ),
-      ],
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// EVAL TASTER LIST
-// ─────────────────────────────────────────────────────────────────────────────
-class _EvalTasterList extends StatelessWidget {
-  final _SampleEvalGroup group;
-  final void Function(_TasterEval) onViewEval;
-  const _EvalTasterList({required this.group, required this.onViewEval});
-
-  @override
-  Widget build(BuildContext context) {
-    if (group.evaluations.isEmpty) {
-      return Container(
-        margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-        decoration: BoxDecoration(
-          color: const Color(0xFFF2EFE7),
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: Colors.grey.shade100),
-        ),
-        child: Center(
-          child: Text(
-            'Aucune évaluation soumise',
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey.shade400,
-              fontStyle: FontStyle.italic,
-            ),
-          ),
-        ),
-      );
-    }
-
-    return Container(
-      margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF2EFE7),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.grey.shade100),
-      ),
-      child: Column(
-        children: group.evaluations.map((eval) {
-          final submitted = eval.statut == 'Soumis';
-          final classColor = submitted && eval.classification != null
-              ? _classColorForStr(eval.classification!)
-              : Colors.grey.shade400;
-
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 6),
-            child: Row(
-              children: [
-                // Avatar
-                Container(
-                  width: 28,
-                  height: 28,
-                  decoration: BoxDecoration(
-                    color: classColor.withValues(alpha: 0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Center(
-                    child: Text(
-                      eval.tasterName.isNotEmpty
-                          ? eval.tasterName[0].toUpperCase()
-                          : '?',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                        color: classColor,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                // Name
-                Expanded(
-                  child: Text(
-                    eval.tasterName,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: chefDark,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                // Badge or pending
-                if (submitted && eval.classification != null)
-                  _ClassBadge(eval.classification!)
-                else
-                  Text(
-                    'En attente',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey.shade400,
-                      fontStyle: FontStyle.italic,
-                    ),
-                  ),
-                // Voir button — only for submitted evals
-                if (submitted) ...[
-                  const SizedBox(width: 6),
-                  GestureDetector(
-                    onTap: () => onViewEval(eval),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: chefGreen.withValues(alpha: 0.07),
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(
-                          color: chefGreen.withValues(alpha: 0.2),
-                        ),
-                      ),
-                      child: const Text(
-                        'Formulaire',
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                          color: chefGreen,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          );
-        }).toList(),
-      ),
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// CLASS BADGE
-// ─────────────────────────────────────────────────────────────────────────────
-class _ClassBadge extends StatelessWidget {
-  final String classification;
-  const _ClassBadge(this.classification);
-
-  @override
-  Widget build(BuildContext context) {
-    final color = _classColorForStr(classification);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withValues(alpha: 0.3)),
-      ),
-      child: Text(
-        classification,
-        style: TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w700,
-          color: color,
-        ),
-      ),
-    );
-  }
-}
-
-Color _classColorForStr(String c) {
-  switch (c) {
-    case 'Extra Vierge':
-      return chefGreen;
-    case 'Vierge':
-      return const Color(0xFFD07B2F);
-    default:
-      return const Color(0xFFD32F2F);
   }
 }

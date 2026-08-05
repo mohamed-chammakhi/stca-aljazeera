@@ -3,7 +3,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'models/echantillon_labo.dart';
 import 'services/labo_service.dart';
 import 'widgets/echantillon_labo_card.dart';
-import 'widgets/dialogs/analyse_dialog.dart';
 import 'widgets/dialogs/formulaire_analyse_labo_dialog.dart';
 import '../analyse_labo.dart';
 import '../labo_drawer.dart';
@@ -62,23 +61,21 @@ class _EchantillonsLaboPageState extends State<EchantillonsLaboPage>
 
   // ── Actions ────────────────────────────────────────────────────────────────
   void _onAjouterAnalyse(EchantillonLabo e) {
-    showAnalyseChoiceSheet(
+    showFormulaireAnalyseLaboDialog(
       context,
-      echantillon: e,
-      onSave: (analyse, {photoBytes, photoName}) {
-        _saveAnalyse(e, analyse, photoBytes: photoBytes, photoName: photoName);
-      },
+      echantillonRef: e.referenceBouteille,
+      echantillonId: e.id,
+      onSave: (analyse) => _saveAnalyse(e, analyse),
     );
   }
 
   void _onModifierAnalyse(EchantillonLabo e) {
-    showAnalyseChoiceSheet(
+    showFormulaireAnalyseLaboDialog(
       context,
-      echantillon: e,
-      existing: e.analyse,
-      onSave: (analyse, {photoBytes, photoName}) {
-        _saveAnalyse(e, analyse, photoBytes: photoBytes, photoName: photoName);
-      },
+      echantillonRef: e.referenceBouteille,
+      echantillonId: e.id,
+      analyse: e.analyse,
+      onSave: (analyse) => _saveAnalyse(e, analyse),
     );
   }
 

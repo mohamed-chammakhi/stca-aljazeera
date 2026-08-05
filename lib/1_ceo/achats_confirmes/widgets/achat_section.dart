@@ -7,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:project3/core/theme/app_colors.dart';
 import '../../utilisateurs/models/echantillon_ceo_view.dart';
 import '../../widgets/sample_card_echantillon.dart';
+import '../../../core/widgets/grille_details.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ACHAT SECTION
@@ -111,10 +112,8 @@ class AchatDetails extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-          Wrap(
-            spacing: 20,
-            runSpacing: 10,
-            children: [
+          GrilleDetails(
+            items: [
               if (e.quantiteCibleT != null)
                 DetailItem('Quantité achetée', '${e.quantiteCibleT} T'),
               if (e.budgetNegociation != null)

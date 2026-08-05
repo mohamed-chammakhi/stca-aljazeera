@@ -20,7 +20,7 @@ class GestionEchantillonsService {
       'delegation': api['delegation'],
       'cite': api['cite'],
       'reference_bouteille': api['reference_bouteille'] ?? '',
-      'scellage': api['scellage'],
+      'num_citerne': api['num_citerne'],
       'variete': api['variete'],
       'quantite_estimee': api['quantite_estimee'],
       'image_url': api['image_url'],

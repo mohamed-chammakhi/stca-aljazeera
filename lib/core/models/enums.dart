@@ -10,7 +10,7 @@ enum RoleUtilisateur {
   collecteur,
   degustateur,
   laboratoire,
-  chefPanel,
+  chefDegustation,
 }
 
 extension RoleUtilisateurX on RoleUtilisateur {
@@ -20,7 +20,7 @@ extension RoleUtilisateurX on RoleUtilisateur {
       case RoleUtilisateur.collecteur:          return 'collecteur';
       case RoleUtilisateur.degustateur:         return 'degustateur';
       case RoleUtilisateur.laboratoire:         return 'laboratoire';
-      case RoleUtilisateur.chefPanel:           return 'chef_panel';
+      case RoleUtilisateur.chefDegustation:     return 'chef_degustation';
     }
   }
 
@@ -30,7 +30,7 @@ extension RoleUtilisateurX on RoleUtilisateur {
       case RoleUtilisateur.collecteur:          return 'Collecteur';
       case RoleUtilisateur.degustateur:         return 'Dégustateur';
       case RoleUtilisateur.laboratoire:         return 'Technicien Labo';
-      case RoleUtilisateur.chefPanel:           return 'Chef de Panel';
+      case RoleUtilisateur.chefDegustation:     return 'Chef de Dégustation';
     }
   }
 
@@ -40,7 +40,7 @@ extension RoleUtilisateurX on RoleUtilisateur {
       case 'collecteur':            return RoleUtilisateur.collecteur;
       case 'degustateur':           return RoleUtilisateur.degustateur;
       case 'laboratoire':           return RoleUtilisateur.laboratoire;
-      case 'chef_panel':            return RoleUtilisateur.chefPanel;
+      case 'chef_degustation':      return RoleUtilisateur.chefDegustation;
       default: throw ArgumentError('Unknown role: $s');
     }
   }
@@ -211,6 +211,141 @@ extension ClassificationHuileX on ClassificationHuile {
       case 'vierge_ordinaire': return ClassificationHuile.viergeOrdinaire;
       case 'lampante':         return ClassificationHuile.lampante;
       default: throw ArgumentError('Unknown classification: $s');
+    }
+  }
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// TYPE DE FRUITÉ — PR-48 §5 et §8
+// Remplace l'ancien booléen `fruiteVert` : le §8 distingue « vert-mûre » de
+// « mûre » pour séparer Extra B d'Extra B−.
+// ═════════════════════════════════════════════════════════════════════════════
+enum TypeFruite { vert, vertMur, mur }
+
+extension TypeFruiteX on TypeFruite {
+  String get toJson {
+    switch (this) {
+      case TypeFruite.vert:    return 'vert';
+      case TypeFruite.vertMur: return 'vert_mur';
+      case TypeFruite.mur:     return 'mur';
+    }
+  }
+
+  String get label {
+    switch (this) {
+      case TypeFruite.vert:    return 'Vert';
+      case TypeFruite.vertMur: return 'Vert-mûr';
+      case TypeFruite.mur:     return 'Mûr';
+    }
+  }
+
+  String get emoji {
+    switch (this) {
+      case TypeFruite.vert:    return '🌿';
+      case TypeFruite.vertMur: return '🫒';
+      case TypeFruite.mur:     return '🟤';
+    }
+  }
+
+  static TypeFruite fromJson(String? s) {
+    switch (s) {
+      case 'vert_mur': return TypeFruite.vertMur;
+      case 'mur':      return TypeFruite.mur;
+      default:         return TypeFruite.vert;
+    }
+  }
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// CLASSE INTERNE — PR-48 §8, plus « Extra déséquilibrée » (§6 et §9)
+// Classification maison, distincte de la catégorie réglementaire COI
+// (`ClassificationHuile`). Elle ne s'applique qu'aux huiles extra vierges.
+// ═════════════════════════════════════════════════════════════════════════════
+enum ClasseInterne {
+  extraAPlus,
+  extraA,
+  extraBPlus,
+  extraB,
+  extraBMoins,
+  extraC,
+  extraDesequilibre,
+}
+
+extension ClasseInterneX on ClasseInterne {
+  String get toJson {
+    switch (this) {
+      case ClasseInterne.extraAPlus:        return 'extra_a_plus';
+      case ClasseInterne.extraA:             return 'extra_a';
+      case ClasseInterne.extraBPlus:         return 'extra_b_plus';
+      case ClasseInterne.extraB:             return 'extra_b';
+      case ClasseInterne.extraBMoins:        return 'extra_b_moins';
+      case ClasseInterne.extraC:             return 'extra_c';
+      case ClasseInterne.extraDesequilibre:  return 'extra_desequilibre';
+    }
+  }
+
+  String get label {
+    switch (this) {
+      case ClasseInterne.extraAPlus:        return 'Extra A+';
+      case ClasseInterne.extraA:             return 'Extra A';
+      case ClasseInterne.extraBPlus:         return 'Extra B+';
+      case ClasseInterne.extraB:             return 'Extra B';
+      case ClasseInterne.extraBMoins:        return 'Extra B−';
+      case ClasseInterne.extraC:             return 'Extra C';
+      case ClasseInterne.extraDesequilibre:  return 'Extra déséquilibrée';
+    }
+  }
+
+  /// Dégradé du vert de marque vers le gris, du profil le plus expressif au plus plat.
+  /// « Extra déséquilibrée » sort du dégradé : ce n'est pas un rang, c'est un écart.
+  int get colorValue {
+    switch (this) {
+      case ClasseInterne.extraAPlus:        return 0xFF38835A;
+      case ClasseInterne.extraA:             return 0xFF4E9A6B;
+      case ClasseInterne.extraBPlus:         return 0xFF6B8143;
+      case ClasseInterne.extraB:             return 0xFF8A9A5B;
+      case ClasseInterne.extraBMoins:        return 0xFFA8A878;
+      case ClasseInterne.extraC:             return 0xFF9E9E9E;
+      case ClasseInterne.extraDesequilibre:  return 0xFFE64A19;
+    }
+  }
+
+  /// Description sensorielle du PR-48 §8, affichée sous la classe.
+  String get description {
+    switch (this) {
+      case ClasseInterne.extraAPlus:
+        return 'Très expressive et équilibrée, fortement valorisable. Fruité vert '
+            'intense, amertume maîtrisée, piquant présent.';
+      case ClasseInterne.extraA:
+        return 'Équilibrée et agréable, fruité vert marqué, intensité moyenne en '
+            'amertume et en piquant.';
+      case ClasseInterne.extraBPlus:
+        return 'Équilibrée, fruité vert moyen, amertume et piquant modérés. '
+            'Conforme, moins expressive que les classes supérieures.';
+      case ClasseInterne.extraB:
+        return 'Conforme, fruité moyen ou vert-mûre, expression sensorielle limitée.';
+      case ClasseInterne.extraBMoins:
+        return 'Conforme, à dominante mûre, faible expression aromatique. '
+            'Peut être destinée au coupage.';
+      case ClasseInterne.extraC:
+        return 'Profil plat et peu aromatique, faible structure sensorielle. '
+            'Plus sensible à l\'évolution au cours du stockage. Sans défaut.';
+      case ClasseInterne.extraDesequilibre:
+        return 'Amertume ou piquant très élevé par rapport au fruité. Conforme COI '
+            'mais déséquilibrée (§9).';
+    }
+  }
+
+  static ClasseInterne? fromJson(String? s) {
+    switch (s) {
+      case 'extra_a_plus':        return ClasseInterne.extraAPlus;
+      case 'extra_a':             return ClasseInterne.extraA;
+      case 'extra_b_plus':        return ClasseInterne.extraBPlus;
+      case 'extra_b':             return ClasseInterne.extraB;
+      case 'extra_b_moins':       return ClasseInterne.extraBMoins;
+      case 'extra_c':             return ClasseInterne.extraC;
+      case 'extra_desequilibre':  return ClasseInterne.extraDesequilibre;
+      default:                    return null;
     }
   }
 }

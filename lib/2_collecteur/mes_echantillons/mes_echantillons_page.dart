@@ -147,7 +147,7 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
       context,
       echantillon: e,
       prochainNumero: _prochainNumero,
-      onSaveMultiple: (_, {photoBytes, photoName}) {
+      onSaveMultiple: (_, {photos}) {
         _saveEchantillon(
           e,
           successMessage: '"${e.referenceBouteille}" modifie',
@@ -202,7 +202,7 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
     showConfirmerAchatDialog(
       context: context,
       echantillon: e,
-      onConfirm: (prix, camion, livraison, scellage) async {
+      onConfirm: (prix, camion, livraison, numCiterne) async {
         try {
           final saved = await _service.confirmerAchat(
             e.id,
@@ -213,7 +213,7 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
           setState(() {
             final index = _echantillons.indexWhere((item) => item.id == e.id);
             if (livraison != null) saved.livraison = livraison;
-            if (scellage != null) saved.scellage = scellage;
+            if (numCiterne != null) saved.numCiterne = numCiterne;
             if (index != -1) _echantillons[index] = saved;
           });
           _showPropositionEnvoyeeDialog(saved.referenceBouteille);
@@ -463,12 +463,12 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
     showConfirmerAchatDialog(
       context: context,
       echantillon: e,
-      onConfirm: (prix, camion, livraison, scellage) {
+      onConfirm: (prix, camion, livraison, numCiterne) {
         setState(() {
           e.prixFinal = prix;
           if (camion != null) e.camionLivraison = camion;
           if (livraison != null) e.livraison = livraison;
-          if (scellage != null) e.scellage = scellage;
+          if (numCiterne != null) e.numCiterne = numCiterne;
         });
         _saveEchantillon(
           e,
@@ -675,19 +675,21 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
           showFormulaireDialog(
             context,
             prochainNumero: _prochainNumero,
-            onSaveMultiple: (nouveaux, {photoBytes, photoName}) async {
+            onSaveMultiple: (nouveaux, {photos}) async {
               try {
                 final created = <EchantillonCollecteur>[];
                 for (var i = 0; i < nouveaux.length; i++) {
                   final s = nouveaux[i];
-                  // The collector photographs one bottle — attach that photo
-                  // to the first sample so it is stored on the server.
-                  if (i == 0 && photoBytes != null) {
+                  final photo = photos != null && i < photos.length
+                      ? photos[i]
+                      : null;
+                  // Attach each OCR label photo to the matching bottle sample.
+                  if (photo != null) {
                     created.add(
                       await _service.createEchantillonWithImage(
                         s,
-                        imageBytes: photoBytes,
-                        filename: photoName ?? 'bouteille.jpg',
+                        imageBytes: photo.bytes,
+                        filename: photo.filename,
                       ),
                     );
                   } else {

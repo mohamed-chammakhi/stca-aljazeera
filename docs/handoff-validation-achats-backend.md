@@ -22,7 +22,7 @@ These two files are the source of truth for shape, field names and status transi
 - Three new entries (IDs `2026/0012`, `2026/0013`, `2026/0014`) with `statut: StatutCeo.enNegociation` and the full proposal payload already filled in:
   - `budgetNegociation` — agreed price string, e.g. `'8.20 TND/L'`
   - `camionReserve` — truck identifier, e.g. `'204 TN 5621'`
-  - `scellage` — optional sealing code, e.g. `'SC-9821'` (one entry has `null` to exercise the optional path)
+  - `num_citerne` — optional tank number, e.g. `'CT-9821'` (one entry has `null` to exercise the optional path)
   - `quantiteCibleT` — bulk quantity in tons as string
   - `dateLivraisonStock` and optional `dateLivraisonStockFin` — date or date range
   - `collecteurNom` — collector who submitted the proposal

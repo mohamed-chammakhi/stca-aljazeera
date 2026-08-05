@@ -1,0 +1,292 @@
+<link href="https://fonts.googleapis.com/css2?family=Domine:wght@400;600;700&family=Alegreya:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+  .r2{ --green:#38835A; --dark:#1A2E1F; --orange:#D07B2F; --creme:#FEF3E8;
+       --rouge:#B71C1C; --rougeclair:#FFEBEE; --gris:#9C9B9B; --creme2:#F9F6EF;
+       --domine:'Domine',Georgia,serif; --alegreya:'Alegreya',Georgia,serif; }
+  .r2 * { box-sizing:border-box; }
+
+  .dlg{
+    width:330px; flex:0 0 330px; background:#fff; border-radius:16px;
+    border:1px solid #E8E8E8; overflow:hidden; font-family:var(--alegreya);
+    color:var(--dark); box-shadow:0 16px 40px -18px rgba(26,46,31,.4);
+  }
+  .dlg-h{ padding:16px 18px 13px; display:flex; gap:11px; align-items:center; border-bottom:1px solid #F1F1F1; }
+  .dlg-h .ico{ width:36px; height:36px; flex:0 0 36px; border-radius:50%;
+               display:flex; align-items:center; justify-content:center; font-size:16px; }
+  .dlg-h h4{ margin:0; font-family:var(--domine); font-size:15px; font-weight:700; }
+  .dlg-h span{ font-size:11.5px; color:#6B8E7A; }
+  .dlg-b{ padding:16px 18px 8px; }
+  .dlg-f{ padding:12px 18px 16px; background:var(--creme2); border-top:1px solid #F1F1F1;
+          display:flex; gap:14px; }
+  .dlg-f > *{ flex:1; text-align:center; }
+
+  .lg{ font-size:11.5px; font-weight:700; color:#5D6B62; letter-spacing:.2px; display:block; margin-bottom:6px; }
+  .in{
+    border:1.4px solid #E2E6E3; border-radius:10px; padding:9px 11px;
+    font-size:13.5px; background:#fff; display:flex; align-items:center; gap:8px;
+  }
+  .in .ph{ color:#B9C0BB; }
+  .in .u{ margin-left:auto; font-size:11.5px; color:var(--gris); font-weight:600; }
+  .paire{ display:flex; gap:9px; align-items:center; }
+  .paire .in{ flex:1; }
+  .paire .tiret{ color:var(--gris); font-size:12px; font-weight:600; }
+  .bloc{ margin-bottom:14px; }
+
+  .opt{
+    display:flex; gap:9px; align-items:flex-start; padding:12px;
+    border:1.5px solid #E2E6E3; border-radius:11px; margin-bottom:10px;
+  }
+  .opt.on{ border-color:var(--orange); background:rgba(208,123,47,.05); }
+  .opt.on.def{ border-color:var(--rouge); background:rgba(183,28,28,.04); }
+  .radio{ width:16px; height:16px; flex:0 0 16px; margin-top:2px; border-radius:50%;
+          border:1.8px solid #C3CBC6; background:#fff; }
+  .opt.on .radio{ border-color:var(--orange); border-width:5px; }
+  .opt.on.def .radio{ border-color:var(--rouge); border-width:5px; }
+  .opt h5{ margin:0 0 2px; font-size:13.5px; font-weight:700; font-family:var(--domine); }
+  .opt.on h5{ color:var(--orange); }
+  .opt.on.def h5{ color:var(--rouge); }
+  .opt p{ margin:0; font-size:11.5px; color:#6B7A70; line-height:1.4; }
+  .opt .corps{ flex:1; }
+
+  .avert{
+    margin-top:9px; padding:9px 10px; border-radius:8px; background:var(--rougeclair);
+    border:1px solid rgba(183,28,28,.22); display:flex; gap:7px; align-items:flex-start;
+  }
+  .avert .ic{ font-size:12px; line-height:1.35; }
+  .avert p{ margin:0; font-size:11.5px; color:var(--rouge); font-weight:600; line-height:1.4; }
+
+  .btn{ padding:10px 0; border-radius:10px; font-size:13.5px; font-weight:700; }
+  .btn.ghost{ background:#fff; border:1.4px solid #DDE3DF; color:#6B7A70; }
+  .btn.go{ background:var(--orange); color:#fff; }
+  .btn.danger{ background:var(--rouge); color:#fff; }
+  .btn.vert{ background:var(--green); color:#fff; }
+
+  .recap{ background:var(--creme2); border-radius:10px; padding:11px 12px; margin-bottom:12px; }
+  .recap .l{ display:flex; justify-content:space-between; font-size:12.5px; padding:3px 0; }
+  .recap .l b{ font-weight:700; }
+  .recap .l span{ color:#6B7A70; }
+
+  .segm{ display:flex; gap:6px; margin-bottom:8px; }
+  .segm div{ flex:1; text-align:center; padding:7px 4px; border-radius:8px;
+             font-size:11.5px; font-weight:600; border:1.4px solid #E2E6E3; color:#7B877F; }
+  .segm div.on{ border-color:var(--green); background:rgba(56,131,90,.08); color:var(--green); }
+
+  .stack{ display:flex; gap:30px; flex-wrap:wrap; align-items:flex-start; }
+  .cap{ font-size:10px; letter-spacing:.11em; text-transform:uppercase; color:#8B968F; font-weight:700; margin:0 0 9px; }
+  .num{ display:inline-block; width:19px; height:19px; border-radius:50%; background:var(--dark);
+        color:#fff; font-size:11px; font-weight:700; text-align:center; line-height:19px; margin-right:6px; }
+  .note{ font-size:12.5px; color:#6B7A70; line-height:1.55; max-width:340px; margin:11px 0 0; }
+  .neuf{ display:inline-block; font-size:9.5px; font-weight:700; letter-spacing:.05em;
+         background:#E7F1EC; color:#2E6B4A; padding:2px 6px; border-radius:5px; margin-left:6px; }
+</style>
+
+<div class="r2">
+
+<h2>Refus scindé — le parcours complet</h2>
+<p class="subtitle">Trois écrans qui s'enchaînent, plus l'ajout de la quantité dans la négociation.</p>
+
+<div class="stack">
+
+  <!-- ÉTAPE 1 -->
+  <div>
+    <p class="cap"><span class="num">1</span> Clic sur « Refuser »</p>
+    <div class="dlg">
+      <div class="dlg-h">
+        <div class="ico" style="background:rgba(208,123,47,.12);color:var(--orange)">⊘</div>
+        <div><h4>Refuser</h4><span>CHEMLALI-K7</span></div>
+      </div>
+      <div class="dlg-b">
+
+        <div class="opt on">
+          <span class="radio"></span>
+          <div class="corps">
+            <h5>Renvoyer en négociation</h5>
+            <p>Le prix ne convient pas, mais le stock reste intéressant.</p>
+
+            <div style="margin-top:11px">
+              <div class="bloc">
+                <span class="lg">Intervalle de prix</span>
+                <div class="paire">
+                  <div class="in">7.00 <span class="u">TND/L</span></div>
+                  <span class="tiret">à</span>
+                  <div class="in">7.40 <span class="u">TND/L</span></div>
+                </div>
+              </div>
+
+              <div class="bloc">
+                <span class="lg">Quantité souhaitée</span>
+                <div class="in">28 <span class="u">T</span></div>
+              </div>
+
+              <div class="bloc" style="margin-bottom:4px">
+                <span class="lg">Date de livraison souhaitée</span>
+                <div class="segm">
+                  <div class="on">Date exacte</div>
+                  <div>Période</div>
+                </div>
+                <div class="in">24/05/2026</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="opt def">
+          <span class="radio"></span>
+          <div class="corps">
+            <h5>Refus définitif</h5>
+            <p>Ce stock ne vous intéresse pas.</p>
+            <div class="avert">
+              <span class="ic">⚠</span>
+              <p>Le refus est définitif — l'échantillon sort du parcours d'achat et rien ne permet de revenir en arrière.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="bloc" style="margin-top:4px">
+          <span class="lg">Raison</span>
+          <div class="in"><span class="ph">Expliquer la décision au collecteur…</span></div>
+        </div>
+
+      </div>
+      <div class="dlg-f">
+        <span class="btn ghost">Annuler</span>
+        <span class="btn go">Valider</span>
+      </div>
+    </div>
+    <p class="note">
+      Les champs de la renégociation n'apparaissent que si l'option est cochée.
+      Si le directeur choisit « Refus définitif », ils disparaissent et l'avertissement
+      rouge prend leur place.
+    </p>
+  </div>
+
+  <!-- ÉTAPE 2 -->
+  <div>
+    <p class="cap"><span class="num">2</span> Confirmation avant envoi</p>
+
+    <div class="dlg" style="margin-bottom:20px">
+      <div class="dlg-h">
+        <div class="ico" style="background:rgba(208,123,47,.12);color:var(--orange)">↺</div>
+        <div><h4>Renvoyer en négociation ?</h4><span>CHEMLALI-K7</span></div>
+      </div>
+      <div class="dlg-b">
+        <div class="recap">
+          <div class="l"><span>Prix proposé</span><b>7.00 – 7.40 TND/L</b></div>
+          <div class="l"><span>Quantité</span><b>28 T</b></div>
+          <div class="l"><span>Livraison souhaitée</span><b>24/05/2026</b></div>
+          <div class="l"><span>Tour de négociation</span><b>3ᵉ</b></div>
+        </div>
+        <p style="font-size:12.5px;color:#6B7A70;line-height:1.5;margin:0">
+          Le collecteur sera notifié et pourra répondre. L'échantillon reste en négociation.
+        </p>
+      </div>
+      <div class="dlg-f">
+        <span class="btn ghost">Retour</span>
+        <span class="btn go">Envoyer</span>
+      </div>
+    </div>
+
+    <div class="dlg">
+      <div class="dlg-h">
+        <div class="ico" style="background:var(--rougeclair);color:var(--rouge)">⚠</div>
+        <div><h4>Refus définitif ?</h4><span>CHEMLALI-K7</span></div>
+      </div>
+      <div class="dlg-b">
+        <div class="avert" style="margin-top:0;margin-bottom:12px">
+          <span class="ic">⚠</span>
+          <p>Cette action est irréversible. L'échantillon sortira du parcours d'achat et ne pourra plus être renégocié.</p>
+        </div>
+        <div class="recap">
+          <div class="l"><span>Raison</span><b>Prix trop élevé</b></div>
+        </div>
+      </div>
+      <div class="dlg-f">
+        <span class="btn ghost">Retour</span>
+        <span class="btn danger">Refuser définitivement</span>
+      </div>
+    </div>
+
+    <p class="note">
+      Deux confirmations différentes selon le choix. Celle du refus définitif est rouge
+      et son bouton dit exactement ce qu'il fait, pas juste « Confirmer ».
+    </p>
+  </div>
+
+  <!-- ÉTAPE 3 -->
+  <div>
+    <p class="cap"><span class="num">3</span> La négociation, avec la quantité ajoutée</p>
+    <div class="dlg">
+      <div class="dlg-h">
+        <div class="ico" style="background:rgba(56,131,90,.12);color:var(--green)">✓</div>
+        <div><h4>Approuver pour négociation</h4><span>CHEMLALI-K7</span></div>
+      </div>
+      <div class="dlg-b">
+        <div class="bloc">
+          <span class="lg">Budget proposé *</span>
+          <div class="in">9.50 <span class="u">TND/L</span></div>
+        </div>
+        <div class="bloc">
+          <span class="lg">Quantité souhaitée <span class="neuf">NOUVEAU</span></span>
+          <div class="in">28 <span class="u">T</span></div>
+        </div>
+        <div class="bloc">
+          <span class="lg">Date souhaitée de livraison du stock</span>
+          <div class="segm">
+            <div class="on">Date exacte</div>
+            <div>Période</div>
+          </div>
+          <div class="in">24/05/2026</div>
+        </div>
+        <div class="bloc">
+          <span class="lg">Note interne (optionnelle)</span>
+          <div class="in"><span class="ph">Remarques pour votre équipe…</span></div>
+        </div>
+      </div>
+      <div class="dlg-f">
+        <span class="btn ghost">Annuler</span>
+        <span class="btn vert">Approuver</span>
+      </div>
+    </div>
+    <p class="note">
+      Écran « Analyse organoleptique » du directeur. Il avait déjà le budget, la date et
+      la note — la <strong>quantité en tonnes</strong> manquait. Le champ existe pourtant
+      déjà en base (<code>quantite_cible_t</code>), il n'était simplement pas saisissable ici.
+    </p>
+  </div>
+
+</div>
+
+<h3 style="margin-top:30px">Un point à trancher</h3>
+<p class="subtitle" style="max-width:660px">
+  Vos notes disent, pour l'intervalle de prix : « pas deux sélecteurs côte à côte,
+  trop lourd ». Mais cette phrase visait les <strong>calendriers</strong>. Ici il s'agit de
+  deux petits champs numériques, bien plus légers qu'un calendrier. J'ai donc proposé
+  « 7.00 à 7.40 ». Confirmez ou corrigez.
+</p>
+
+<div class="options">
+  <div class="option" data-choice="deux" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Deux champs « de … à … » — comme sur la maquette</h3>
+      <p>Le second est facultatif : rempli seul, le premier vaut prix fixe. Simple à saisir, et la valeur reste calculable pour le tableau de bord.</p>
+    </div>
+  </div>
+  <div class="option" data-choice="un" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Un seul champ avec masque « 7.00 / 7.40 »</h3>
+      <p>Un champ unique où le séparateur s'insère tout seul, comme vous l'imaginiez pour les dates. Plus proche de votre note d'origine, mais plus long à faire et plus délicat à saisir au doigt.</p>
+    </div>
+  </div>
+  <div class="option" data-choice="autre" onclick="toggleSelect(this)">
+    <div class="letter">✎</div>
+    <div class="content">
+      <h3>Autre chose</h3>
+      <p>Dites-moi dans le terminal — y compris si un détail de la maquette ne va pas.</p>
+    </div>
+  </div>
+</div>
+
+</div>

@@ -42,7 +42,7 @@ Widget _destinationForRole(RoleUtilisateur role) {
     RoleUtilisateur.collecteur => const MesEchantillonsPage(),
     RoleUtilisateur.degustateur => const HomePage(),
     RoleUtilisateur.laboratoire => const EchantillonsLaboPage(),
-    RoleUtilisateur.chefPanel => const chef.HomePage(),
+    RoleUtilisateur.chefDegustation => const chef.HomePage(),
   };
 }
 
@@ -64,7 +64,15 @@ class _AuthGateState extends State<AuthGate> {
 
   Future<void> _restoreSession() async {
     try {
-      final user = await authService.currentUser();
+      final token = await apiClient.accessToken;
+      if (token == null || token.isEmpty) {
+        if (mounted) setState(() => _checkingSession = false);
+        return;
+      }
+
+      final user = await authService.currentUser().timeout(
+        const Duration(seconds: 8),
+      );
       if (!mounted) return;
       Navigator.pushReplacement(
         context,
@@ -461,7 +469,7 @@ class _LoginPageState extends State<LoginPage> {
                     alignment: WrapAlignment.center,
                     children: [
                       _debugBtn(
-                        'Chef de panel',
+                        'Direction',
                         () => _goTo(const HomePageCeo()),
                       ),
                       _debugBtn('Dégustateur', () => _goTo(const HomePage())),
@@ -475,7 +483,7 @@ class _LoginPageState extends State<LoginPage> {
                         () => _goTo(const EchantillonsLaboPage()),
                       ),
                       _debugBtn(
-                        'Chef de degus',
+                        'Chef de Dégustation',
                         () => _goTo(const chef.HomePage()),
                       ),
                     ],

@@ -12,3 +12,6 @@
 -see how smooth it goes and if it can go any smoother 
 -any cloud solution anything else 
 -if an evaluation has been submitted the taster can not delete the sample and he can only edit one thing which is  he can only add the sample's bottle picture 
+-messagerie between direction (CEO) and chef de degustation
+-messagerie between direction (CEO) and each collecteur (one conversation per collecteur)
+-configure phone push notifications so the user is alerted whenever a message is received (or any other event worth notifying)

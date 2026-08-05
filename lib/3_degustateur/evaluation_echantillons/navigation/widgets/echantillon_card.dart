@@ -7,7 +7,8 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import 'package:flutter/material.dart';
-import '../models/echantillon.dart';
+import '../../../../core/models/echantillon_evaluation.dart';
+import '../../../../core/widgets/grille_details.dart';
 
 const Color _green = Color(0xFF38835A);
 const Color _dark = Color(0xFF1A2E1F);
@@ -273,26 +274,24 @@ class _DetailPanel extends StatelessWidget {
             borderRadius: BorderRadius.circular(10),
             border: Border.all(color: Colors.grey.shade100),
           ),
-          child: Wrap(
-            spacing: 24,
-            runSpacing: 10,
-            children: [
-              _DetailItem('N° échantillon', e.id),
-              _DetailItem('Réf. bouteille', e.ref.isNotEmpty ? e.ref : '—'),
-              _DetailItem('Fournisseur', e.fournisseur),
-              _DetailItem('Variété', e.variete),
+          child: GrilleDetails(
+            items: [
+              DetailItem('N° échantillon', e.id),
+              DetailItem('Réf. bouteille', e.ref.isNotEmpty ? e.ref : '—'),
+              DetailItem('Fournisseur', e.fournisseur),
+              DetailItem('Variété', e.variete),
               if (e.gouvernorat != null)
-                _DetailItem(
+                DetailItem(
                   'Gouvernorat',
                   '${e.gouvernorat}${e.delegation != null ? " — ${e.delegation}" : ""}',
                 ),
               if (e.quantite != null && e.quantite!.isNotEmpty)
-                _DetailItem('Quantité', '${e.quantite} T'),
-              _DetailItem('Date arrivée', e.date),
+                DetailItem('Quantité', '${e.quantite} T'),
+              DetailItem('Date arrivée', e.date),
               if (e.collecteur != null && e.collecteur!.isNotEmpty)
-                _DetailItem('Collecteur', e.collecteur!),
+                DetailItem('Collecteur', e.collecteur!),
               if (isSoumis && e.classification != null)
-                _DetailItem('Classification', e.classification!),
+                DetailItem('Classification', e.classification!),
             ],
           ),
         ),
@@ -398,33 +397,3 @@ class _PillButton extends StatelessWidget {
 // ─────────────────────────────────────────────────────────────────────────────
 // DETAIL ITEM — label (grey) above value (dark bold)
 // ─────────────────────────────────────────────────────────────────────────────
-class _DetailItem extends StatelessWidget {
-  final String label;
-  final String value;
-  const _DetailItem(this.label, this.value);
-
-  @override
-  Widget build(BuildContext context) => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text(
-        label,
-        style: const TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w600,
-          color: Color(0xFF9C9B9B),
-          letterSpacing: 0.3,
-        ),
-      ),
-      const SizedBox(height: 2),
-      Text(
-        value,
-        style: const TextStyle(
-          fontSize: 13,
-          fontWeight: FontWeight.w600,
-          color: _dark,
-        ),
-      ),
-    ],
-  );
-}

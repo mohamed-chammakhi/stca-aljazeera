@@ -1,0 +1,368 @@
+<link href="https://fonts.googleapis.com/css2?family=Domine:wght@400;600;700&family=Alegreya:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+  .pr48 {
+    --headerBg:#DCE9E2; --green:#38835A; --dark:#1A2E1F; --olive:#6B8143;
+    --orange:#F57C00; --grey:#9E9E9E; --line:rgba(0,0,0,.06);
+    --domine:'Domine',Georgia,serif;
+    --alegreya:'Alegreya',Georgia,serif;
+  }
+  .pr48 * { box-sizing:border-box; }
+
+  /* ── phone frame ─────────────────────────────────────────── */
+  .phone{
+    width:330px; flex:0 0 330px; background:#fff; border-radius:26px;
+    border:1px solid rgba(0,0,0,.14); overflow:hidden;
+    box-shadow:0 18px 44px -18px rgba(26,46,31,.42);
+    font-family:var(--alegreya); color:var(--dark);
+  }
+  .phone-bar{
+    background:var(--headerBg); padding:14px 16px 12px;
+    display:flex; align-items:flex-start; gap:10px;
+  }
+  .phone-bar .back{ font-size:19px; line-height:1; color:var(--dark); margin-top:2px; }
+  .phone-bar .t1{ font-family:var(--domine); font-weight:700; font-size:15px; }
+  .phone-bar .t2{ font-size:11px; color:#6b7a70; margin-top:1px; }
+  .phone-body{ padding:14px; background:#fff; }
+
+  /* ── section card ─────────────────────────────────────────── */
+  .sec{ border:1px solid var(--line); border-radius:14px; padding:13px; margin-bottom:12px; }
+  .sec-title{
+    font-family:var(--domine); font-size:12.5px; font-weight:700;
+    letter-spacing:.01em; margin:0 0 11px;
+  }
+
+  /* ── fruité type chips ────────────────────────────────────── */
+  .chips{ display:flex; gap:6px; }
+  .chip{
+    flex:1; text-align:center; padding:8px 4px; border-radius:9px;
+    font-size:11.5px; font-weight:600; border:1.5px solid #e2e6e3;
+    color:#7b877f; background:#fafbfa; white-space:nowrap;
+  }
+  .chip.on{ border-color:var(--green); background:rgba(56,131,90,.09); color:var(--green); }
+  .chip.on.olive{ border-color:var(--olive); background:rgba(107,129,67,.11); color:var(--olive); }
+
+  /* ── slider ───────────────────────────────────────────────── */
+  .sl{ margin-top:14px; }
+  .sl:first-child{ margin-top:0; }
+  .sl-top{ display:flex; align-items:baseline; justify-content:space-between; margin-bottom:6px; }
+  .sl-name{ font-size:12.5px; font-weight:600; }
+  .sl-right{ display:flex; align-items:center; gap:7px; }
+  .sl-val{ font-family:var(--domine); font-size:14px; font-weight:700; }
+  .sl-tag{
+    font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:.06em;
+    padding:2px 6px; border-radius:5px;
+  }
+  .sl-track{ position:relative; height:5px; border-radius:3px; background:#eceeed; }
+  .sl-fill{ position:absolute; inset:0 auto 0 0; border-radius:3px; }
+  .sl-knob{
+    position:absolute; top:50%; width:15px; height:15px; border-radius:50%;
+    transform:translate(-50%,-50%); border:2.5px solid #fff;
+    box-shadow:0 1px 4px rgba(0,0,0,.28);
+  }
+  .sl-scale{
+    display:flex; justify-content:space-between; margin-top:5px;
+    font-size:9px; color:#a3aca6; font-variant-numeric:tabular-nums;
+  }
+
+  /* ── scale banner ─────────────────────────────────────────── */
+  .scale-note{
+    font-size:10px; color:#6b7a70; background:#f5f8f6; border-radius:7px;
+    padding:5px 8px; margin-bottom:11px; letter-spacing:.01em;
+  }
+
+  /* ── classification card ──────────────────────────────────── */
+  .cc{ border:1px solid var(--line); border-radius:14px; overflow:hidden; }
+  .cc-row{ padding:12px 13px; }
+  .cc-row + .cc-row{ border-top:1px solid var(--line); }
+  .cc-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:7px; }
+  .cc-label{
+    font-size:9.5px; font-weight:700; letter-spacing:.11em;
+    text-transform:uppercase; color:#8b968f;
+  }
+  .cc-meta{ font-size:9.5px; color:#9aa39d; font-variant-numeric:tabular-nums; }
+  .cc-name{ display:flex; align-items:center; gap:8px; }
+  .cc-dot{ width:9px; height:9px; border-radius:50%; flex:0 0 9px; }
+  .cc-value{ font-family:var(--domine); font-size:17px; font-weight:700; line-height:1.1; }
+  .cc-why{ font-size:11px; color:#6b7a70; margin-top:5px; line-height:1.45; }
+  .cc-check{
+    display:flex; gap:7px; align-items:flex-start; margin-top:10px;
+    padding-top:9px; border-top:1px dashed rgba(0,0,0,.09);
+    font-size:10.5px; color:#5d6b62; line-height:1.4;
+  }
+  .cc-box{
+    width:13px; height:13px; flex:0 0 13px; margin-top:1px;
+    border:1.5px solid #b3bdb6; border-radius:3px; background:#fff;
+  }
+  .cc-btn{
+    display:block; width:100%; margin-top:10px; padding:9px;
+    border:1.5px solid var(--orange); border-radius:9px; background:#fff;
+    color:var(--orange); font-family:var(--alegreya); font-size:12px; font-weight:700;
+    text-align:center;
+  }
+  .cc-row.off{ background:#fafbfa; }
+  .cc-row.off .cc-value{ color:#a8b0aa; }
+
+  /* ── states panel ─────────────────────────────────────────── */
+  .states{ flex:1; min-width:300px; }
+  .state-block{ margin-bottom:20px; }
+  .state-head{
+    font-family:var(--domine); font-size:13px; font-weight:700; margin:0 0 3px;
+  }
+  .state-sub{ font-size:12px; color:#6b7a70; margin:0 0 9px; line-height:1.45; }
+  .state-card{
+    border:1px solid var(--line); border-radius:13px; background:#fff;
+    font-family:var(--alegreya); color:var(--dark); max-width:360px;
+  }
+
+  .stack{ display:flex; gap:34px; flex-wrap:wrap; align-items:flex-start; }
+  .cap{
+    font-size:10px; letter-spacing:.11em; text-transform:uppercase;
+    color:#8b968f; font-weight:700; margin:0 0 9px;
+  }
+</style>
+
+<div class="pr48">
+
+<h2>Le formulaire de dégustation, version PR-48</h2>
+<p class="subtitle">Même charte que l'application. Ce qui change est signalé en vert dans le texte sous chaque bloc.</p>
+
+<div class="stack">
+
+  <!-- ───────────────── PHONE ───────────────── -->
+  <div>
+    <p class="cap">Écran du dégustateur</p>
+    <div class="phone">
+      <div class="phone-bar">
+        <span class="back">←</span>
+        <div>
+          <div class="t1">Fiche d'Évaluation</div>
+          <div class="t2">ECH-2026-042</div>
+        </div>
+      </div>
+
+      <div class="phone-body">
+
+        <!-- fruité type -->
+        <div class="sec">
+          <p class="sec-title">Type de fruité</p>
+          <div class="chips">
+            <div class="chip on">🌿 Vert</div>
+            <div class="chip">🫒 Vert-mûr</div>
+            <div class="chip">🟤 Mûr</div>
+          </div>
+        </div>
+
+        <!-- positive attributes -->
+        <div class="sec">
+          <p class="sec-title">Attributs positifs</p>
+          <div class="scale-note">Échelle 0 à 5 — pas de 0,5</div>
+
+          <div class="sl">
+            <div class="sl-top">
+              <span class="sl-name">Fruité</span>
+              <span class="sl-right">
+                <span class="sl-tag" style="background:rgba(56,131,90,.12);color:#38835A">Robuste</span>
+                <span class="sl-val" style="color:#38835A">4.0</span>
+              </span>
+            </div>
+            <div class="sl-track">
+              <div class="sl-fill" style="width:80%;background:#38835A"></div>
+              <div class="sl-knob" style="left:80%;background:#38835A"></div>
+            </div>
+            <div class="sl-scale"><span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></div>
+          </div>
+
+          <div class="sl">
+            <div class="sl-top">
+              <span class="sl-name">Amertume</span>
+              <span class="sl-right">
+                <span class="sl-tag" style="background:rgba(56,131,90,.12);color:#38835A">Moyen</span>
+                <span class="sl-val" style="color:#6B8143">3.0</span>
+              </span>
+            </div>
+            <div class="sl-track">
+              <div class="sl-fill" style="width:60%;background:#6B8143"></div>
+              <div class="sl-knob" style="left:60%;background:#6B8143"></div>
+            </div>
+            <div class="sl-scale"><span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></div>
+          </div>
+
+          <div class="sl">
+            <div class="sl-top">
+              <span class="sl-name">Piquant</span>
+              <span class="sl-right">
+                <span class="sl-tag" style="background:rgba(56,131,90,.12);color:#38835A">Robuste</span>
+                <span class="sl-val" style="color:#38835A">3.5</span>
+              </span>
+            </div>
+            <div class="sl-track">
+              <div class="sl-fill" style="width:70%;background:#38835A"></div>
+              <div class="sl-knob" style="left:70%;background:#38835A"></div>
+            </div>
+            <div class="sl-scale"><span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></div>
+          </div>
+        </div>
+
+        <!-- defects -->
+        <div class="sec">
+          <p class="sec-title">Défauts</p>
+          <div class="scale-note">Échelle 0 à 10 — inchangée</div>
+
+          <div class="sl">
+            <div class="sl-top">
+              <span class="sl-name">Moisi / Humide / Terreux</span>
+              <span class="sl-right"><span class="sl-val" style="color:#38835A">0.0</span></span>
+            </div>
+            <div class="sl-track">
+              <div class="sl-fill" style="width:0;background:#38835A"></div>
+              <div class="sl-knob" style="left:0;background:#38835A"></div>
+            </div>
+            <div class="sl-scale">
+              <span>0</span><span>2</span><span>4</span><span>6</span><span>8</span><span>10</span>
+            </div>
+          </div>
+
+          <div class="sl">
+            <div class="sl-top">
+              <span class="sl-name">Rance</span>
+              <span class="sl-right"><span class="sl-val" style="color:#38835A">0.0</span></span>
+            </div>
+            <div class="sl-track">
+              <div class="sl-fill" style="width:0;background:#38835A"></div>
+              <div class="sl-knob" style="left:0;background:#38835A"></div>
+            </div>
+            <div class="sl-scale">
+              <span>0</span><span>2</span><span>4</span><span>6</span><span>8</span><span>10</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- classification -->
+        <div class="cc">
+          <div class="cc-row">
+            <div class="cc-head">
+              <span class="cc-label">Catégorie COI</span>
+              <span class="cc-meta">Méd. défauts 0.0</span>
+            </div>
+            <div class="cc-name">
+              <span class="cc-dot" style="background:#38835A"></span>
+              <span class="cc-value" style="color:#38835A">Extra Vierge</span>
+            </div>
+            <p class="cc-why">Médiane des défauts = 0.0 et fruité &gt; 0.0</p>
+          </div>
+
+          <div class="cc-row">
+            <div class="cc-head">
+              <span class="cc-label">Classe interne</span>
+              <span class="cc-meta">PR-48</span>
+            </div>
+            <div class="cc-name">
+              <span class="cc-dot" style="background:#4E9A6B"></span>
+              <span class="cc-value" style="color:#4E9A6B">Extra A</span>
+            </div>
+            <p class="cc-why">Fruité 4.0 vert · Amertume 3.0 · Piquant 3.5</p>
+            <div class="cc-check">
+              <span class="cc-box"></span>
+              <span>Profil non harmonieux — un attribut domine les autres (§9)</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ───────────────── STATES ───────────────── -->
+  <div class="states">
+    <p class="cap">Les trois états du bloc « classe interne »</p>
+
+    <div class="state-block">
+      <h3 class="state-head">1 · La grille répond</h3>
+      <p class="state-sub">Les quatre critères du PR-48 sont remplis. La classe est automatique, non modifiable. La case d'harmonie n'apparaît que sur Extra A+ et Extra A.</p>
+      <div class="state-card">
+        <div class="cc-row">
+          <div class="cc-head"><span class="cc-label">Classe interne</span><span class="cc-meta">PR-48</span></div>
+          <div class="cc-name">
+            <span class="cc-dot" style="background:#38835A"></span>
+            <span class="cc-value" style="color:#38835A">Extra A+</span>
+          </div>
+          <p class="cc-why">Fruité 5.0 vert · Amertume 3.5 · Piquant 4.0</p>
+          <div class="cc-check">
+            <span class="cc-box"></span>
+            <span>Profil non harmonieux — un attribut domine les autres (§9)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="state-block">
+      <h3 class="state-head">2 · Hors grille</h3>
+      <p class="state-sub">Aucune ligne du tableau §8 ne correspond. Le motif exact est affiché, et le dégustateur choisit lui-même. Même écran si la case d'harmonie est cochée.</p>
+      <div class="state-card">
+        <div class="cc-row">
+          <div class="cc-head"><span class="cc-label">Classe interne</span><span class="cc-meta">PR-48</span></div>
+          <div class="cc-name">
+            <span class="cc-dot" style="background:#F57C00"></span>
+            <span class="cc-value" style="color:#F57C00">Hors grille</span>
+          </div>
+          <p class="cc-why">Fruité 4.7 : au-dessus d'Extra A (&lt; 4.5), en dessous d'Extra A+ (≥ 5)</p>
+          <div class="cc-btn">Choisir la classe</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="state-block">
+      <h3 class="state-head">3 · Non applicable</h3>
+      <p class="state-sub">L'huile n'est pas extra vierge au sens COI. Le §6 interdit toute classe interne. Bloc grisé, rien n'est enregistré.</p>
+      <div class="state-card">
+        <div class="cc-row off">
+          <div class="cc-head"><span class="cc-label">Classe interne</span><span class="cc-meta">PR-48</span></div>
+          <div class="cc-name">
+            <span class="cc-dot" style="background:#cfd6d1"></span>
+            <span class="cc-value">Non applicable</span>
+          </div>
+          <p class="cc-why">Réservée aux huiles extra vierges — un défaut a été perçu (§6)</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="state-block">
+      <h3 class="state-head">Le sélecteur manuel</h3>
+      <p class="state-sub">Ouvert par « Choisir la classe ». Extra A+ et Extra A sont retirées de la liste quand la case d'harmonie est cochée, puisque le §9 les interdit.</p>
+      <div class="state-card" style="padding:11px 13px">
+        <div style="display:flex;flex-wrap:wrap;gap:6px">
+          <span class="chip" style="flex:0 0 auto;padding:7px 12px">Extra A+</span>
+          <span class="chip" style="flex:0 0 auto;padding:7px 12px">Extra A</span>
+          <span class="chip on" style="flex:0 0 auto;padding:7px 12px">Extra B+</span>
+          <span class="chip" style="flex:0 0 auto;padding:7px 12px">Extra B</span>
+          <span class="chip" style="flex:0 0 auto;padding:7px 12px">Extra B−</span>
+          <span class="chip" style="flex:0 0 auto;padding:7px 12px">Extra C</span>
+          <span class="chip" style="flex:0 0 auto;padding:7px 12px;border-color:#E64A19;color:#E64A19;background:#fdf1ec">Extra déséquilibrée</span>
+        </div>
+        <p class="cc-why" style="margin-top:9px">Une fois choisie, la classe porte la mention « Choisie manuellement · Ichrak C. · 03/08/2026 ».</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<h3 style="margin-top:26px">Ce qui change, en une ligne chacun</h3>
+<div class="options">
+  <div class="option" data-choice="ok" onclick="toggleSelect(this)">
+    <div class="letter">✓</div>
+    <div class="content">
+      <h3>Ça me va, code-le</h3>
+      <p>Sliders positifs sur 0–5, défauts inchangés sur 0–10, trois boutons de fruité, carte à deux niveaux, case d'harmonie sur les deux classes hautes, choix manuel hors grille.</p>
+    </div>
+  </div>
+  <div class="option" data-choice="change" onclick="toggleSelect(this)">
+    <div class="letter">✎</div>
+    <div class="content">
+      <h3>Je veux changer quelque chose</h3>
+      <p>Dites-moi quoi dans le terminal.</p>
+    </div>
+  </div>
+</div>
+
+</div>

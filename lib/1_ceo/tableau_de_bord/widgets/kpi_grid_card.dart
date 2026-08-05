@@ -2,10 +2,22 @@ import 'package:flutter/material.dart';
 
 const Color _dark = Color(0xFF1A2E1F);
 
-/// Top KPI banner — investissements saison + prix moyen/L.
-/// Data is hardcoded here until the Django API endpoint is wired.
 class KpiGridCard extends StatelessWidget {
-  const KpiGridCard({super.key});
+  final double totalInvestment;
+  final int confirmedPurchases;
+  final int submittedAnalyses;
+
+  const KpiGridCard({
+    super.key,
+    required this.totalInvestment,
+    required this.confirmedPurchases,
+    required this.submittedAnalyses,
+  });
+
+  String _money(double value) {
+    final rounded = value.round().toString();
+    return rounded.replaceAllMapped(RegExp(r'\B(?=(\d{3})+(?!\d))'), (_) => ' ');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -17,14 +29,28 @@ class KpiGridCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Expanded(child: _kpiCell('INVESTISSEMENTS SAISON', '284 500', 'TND', '+12% vs saison précédente')),
+          Expanded(
+            child: _kpiCell(
+              'INVESTISSEMENTS SAISON',
+              _money(totalInvestment),
+              'TND',
+              '$confirmedPurchases achats confirmes',
+            ),
+          ),
           Container(
             width: 1,
             height: 52,
             color: Colors.white.withValues(alpha: 0.12),
             margin: const EdgeInsets.symmetric(horizontal: 18),
           ),
-          Expanded(child: _kpiCell('PRIX MOYEN PAR LITRE', '8.4', 'TND/L', 'Moyenne de la saison 2025/2026')),
+          Expanded(
+            child: _kpiCell(
+              'ANALYSES SOUMISES',
+              '$submittedAnalyses',
+              'rapports',
+              'Resultats laboratoire disponibles',
+            ),
+          ),
         ],
       ),
     );
@@ -53,7 +79,7 @@ class KpiGridCard extends StatelessWidget {
                   fontSize: 22,
                   fontWeight: FontWeight.w800,
                   color: Colors.white,
-                  letterSpacing: -0.5,
+                  letterSpacing: 0,
                 ),
               ),
               TextSpan(

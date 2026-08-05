@@ -6,7 +6,7 @@ from echantillons.models import Echantillon
 from evaluations.models import EvaluationOrganoleptique
 from sessions_degustation.models import SessionDegustation
 from users.models import User
-from users.permissions import IsChefPanel
+from users.permissions import IsChefDegustation
 
 
 EVALUATION_SCORE_FIELDS = [
@@ -38,7 +38,7 @@ def _iso_or_none(value):
 
 class ChefEvaluationsView(APIView):
     """Chef-only overview of submitted panel evaluations grouped by sample."""
-    permission_classes = [IsChefPanel]
+    permission_classes = [IsChefDegustation]
 
     def get(self, request):
         date_debut = request.query_params.get('date_debut')
@@ -64,7 +64,7 @@ class ChefEvaluationsView(APIView):
 
         active_panel_members = list(
             User.objects.filter(
-                role__in=[User.Role.DEGUSTATEUR, User.Role.CHEF_PANEL],
+                role__in=[User.Role.DEGUSTATEUR, User.Role.CHEF_DEGUSTATION],
                 is_active=True,
             ).order_by('nom', 'prenom')
         )
@@ -178,7 +178,7 @@ class ChefEvaluationsView(APIView):
 
 
 class ChefDashboardPipelineView(APIView):
-    permission_classes = [IsChefPanel]
+    permission_classes = [IsChefDegustation]
 
     def get(self, request):
         return Response({
@@ -190,7 +190,7 @@ class ChefDashboardPipelineView(APIView):
 
 
 class ChefDashboardUrgentesView(APIView):
-    permission_classes = [IsChefPanel]
+    permission_classes = [IsChefDegustation]
 
     def get(self, request):
         now = timezone.now()
@@ -219,7 +219,7 @@ class ChefDashboardUrgentesView(APIView):
 
 
 class ChefDashboardSessionsEnAttenteView(APIView):
-    permission_classes = [IsChefPanel]
+    permission_classes = [IsChefDegustation]
 
     def get(self, request):
         sessions = SessionDegustation.objects.filter(
@@ -237,7 +237,7 @@ class ChefDashboardSessionsEnAttenteView(APIView):
 
 
 class ChefDashboardDelaiView(APIView):
-    permission_classes = [IsChefPanel]
+    permission_classes = [IsChefDegustation]
 
     def get(self, request):
         date_debut = request.query_params.get('date_debut')
@@ -279,7 +279,7 @@ class ChefDashboardDelaiView(APIView):
 
 
 class ChefDashboardAlignementView(APIView):
-    permission_classes = [IsChefPanel]
+    permission_classes = [IsChefDegustation]
 
     def get(self, request):
         date_debut = request.query_params.get('date_debut')
@@ -336,7 +336,7 @@ class ChefDashboardAlignementView(APIView):
 
 
 class ChefDashboardClassificationsView(APIView):
-    permission_classes = [IsChefPanel]
+    permission_classes = [IsChefDegustation]
 
     def get(self, request):
         date_debut = request.query_params.get('date_debut')
@@ -367,7 +367,7 @@ class ChefDashboardClassificationsView(APIView):
 
 
 class ChefDashboardPresenceView(APIView):
-    permission_classes = [IsChefPanel]
+    permission_classes = [IsChefDegustation]
 
     def get(self, request):
         date_debut = request.query_params.get('date_debut')
@@ -409,7 +409,7 @@ class ChefDashboardPresenceView(APIView):
 
 
 class ChefDashboardUrgentesCeoView(APIView):
-    permission_classes = [IsChefPanel]
+    permission_classes = [IsChefDegustation]
 
     def get(self, request):
         echantillons = Echantillon.objects.filter(
@@ -429,7 +429,7 @@ class ChefDashboardUrgentesCeoView(APIView):
 
 
 class ChefDashboardActiviteView(APIView):
-    permission_classes = [IsChefPanel]
+    permission_classes = [IsChefDegustation]
 
     def get(self, request):
         offset = int(request.query_params.get('offset', 0))

@@ -25,7 +25,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='evaluationorganoleptique',
             name='fruite_vert',
-            field=models.DecimalField(blank=True, decimal_places=1, max_digits=4, null=True),
+            field=models.BooleanField(default=True),
         ),
         migrations.AddField(
             model_name='evaluationorganoleptique',

@@ -12,14 +12,21 @@ class ApprovalDialog extends StatefulWidget {
   final String reference;
   final bool isEdit;
   final String? initialBudget;
+  final String? initialQuantite;
   final String? initialNote;
-  final void Function(String budget, String? dateSouhaitee, String? note) onApprove;
+  final void Function(
+    String budget,
+    String? quantiteCibleT,
+    String? dateSouhaitee,
+    String? note,
+  ) onApprove;
 
   const ApprovalDialog({
     super.key,
     required this.reference,
     required this.isEdit,
     this.initialBudget,
+    this.initialQuantite,
     this.initialNote,
     required this.onApprove,
   });
@@ -30,6 +37,7 @@ class ApprovalDialog extends StatefulWidget {
 
 class _ApprovalDialogState extends State<ApprovalDialog> {
   late final TextEditingController _budgetCtrl;
+  late final TextEditingController _quantiteCtrl;
   late final TextEditingController _noteCtrl;
   ModePlanificationUI _dateMode = ModePlanificationUI.dateExacte;
   DateTime? _dateExacte;
@@ -40,12 +48,14 @@ class _ApprovalDialogState extends State<ApprovalDialog> {
   void initState() {
     super.initState();
     _budgetCtrl = TextEditingController(text: widget.initialBudget ?? '');
+    _quantiteCtrl = TextEditingController(text: widget.initialQuantite ?? '');
     _noteCtrl = TextEditingController(text: widget.initialNote ?? '');
   }
 
   @override
   void dispose() {
     _budgetCtrl.dispose();
+    _quantiteCtrl.dispose();
     _noteCtrl.dispose();
     super.dispose();
   }
@@ -121,6 +131,20 @@ class _ApprovalDialogState extends State<ApprovalDialog> {
                       style: const TextStyle(fontSize: 14),
                     ),
                     const SizedBox(height: 16),
+                    // La quantite existait deja en base (quantite_cible_t) et
+                    // l'API l'acceptait ; elle n'etait simplement pas saisissable
+                    // ici, si bien que la direction negociait un prix sans dire
+                    // sur combien de tonnes.
+                    _label('Quantité souhaitée'),
+                    const SizedBox(height: 6),
+                    TextField(
+                      controller: _quantiteCtrl,
+                      decoration: _deco('ex: 28', Icons.scale_outlined)
+                          .copyWith(suffixText: 'T'),
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      style: const TextStyle(fontSize: 14),
+                    ),
+                    const SizedBox(height: 16),
                     _label('Date souhaitée de livraison du stock'),
                     const SizedBox(height: 8),
                     DateLivraisonSection(
@@ -182,8 +206,11 @@ class _ApprovalDialogState extends State<ApprovalDialog> {
                         final budget = _budgetCtrl.text.trim();
                         if (budget.isEmpty) return;
                         final note = _noteCtrl.text.trim().isEmpty ? null : _noteCtrl.text.trim();
+                        final quantite = _quantiteCtrl.text.trim().isEmpty
+                            ? null
+                            : _quantiteCtrl.text.trim();
                         Navigator.pop(context);
-                        widget.onApprove(budget, _buildDateSouhaitee(), note);
+                        widget.onApprove(budget, quantite, _buildDateSouhaitee(), note);
                       },
                       child: Text(
                         widget.isEdit ? 'Modifier' : 'Approuver',

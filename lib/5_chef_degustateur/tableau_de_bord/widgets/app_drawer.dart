@@ -79,7 +79,7 @@ class AppDrawer extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        'Chef de Panel',
+                        'Chef de Dégustation',
                         style: GoogleFonts.domine(
                           fontSize: 18,
                           fontWeight: FontWeight.w700,

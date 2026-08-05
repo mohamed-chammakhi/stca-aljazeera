@@ -9,6 +9,21 @@ class EvaluationOrganoleptique(models.Model):
         EN_COURS = 'en_cours', 'En cours'
         SOUMIS   = 'soumis',   'Soumis'
 
+    class TypeFruite(models.TextChoices):
+        VERT     = 'vert',     'Vert'
+        VERT_MUR = 'vert_mur', 'Vert-mûr'
+        MUR      = 'mur',      'Mûr'
+
+    class ClasseInterne(models.TextChoices):
+        """Classes internes PR-48 §8, plus « Extra déséquilibrée » (§6 et §9)."""
+        EXTRA_A_PLUS       = 'extra_a_plus',       'Extra A+'
+        EXTRA_A            = 'extra_a',            'Extra A'
+        EXTRA_B_PLUS       = 'extra_b_plus',       'Extra B+'
+        EXTRA_B            = 'extra_b',            'Extra B'
+        EXTRA_B_MOINS      = 'extra_b_moins',      'Extra B−'
+        EXTRA_C            = 'extra_c',            'Extra C'
+        EXTRA_DESEQUILIBRE = 'extra_desequilibre', 'Extra déséquilibrée'
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
     echantillon = models.ForeignKey(
@@ -34,16 +49,34 @@ class EvaluationOrganoleptique(models.Model):
         max_length=20, choices=Statut.choices, default=Statut.EN_COURS
     )
 
-    # Quality classification result of this evaluation
+    # Niveau 1 — catégorie réglementaire COI
     classification = models.CharField(max_length=20, blank=True)
 
-    # Positive attributes (score 0–10)
+    # Niveau 2 — classe interne PR-48, applicable aux seules huiles extra vierges (§6)
+    classe_interne = models.CharField(
+        max_length=20, choices=ClasseInterne.choices, blank=True
+    )
+    # Vrai quand aucune ligne de la grille §8 ne correspondait et que le
+    # dégustateur a choisi la classe lui-même.
+    classe_interne_manuelle = models.BooleanField(default=False)
+    # Motif « hors grille » figé au moment du choix (traçabilité §14).
+    classe_interne_motif = models.CharField(max_length=200, blank=True)
+    # Horodatage du choix manuel. Champ dédié : date_modification est en auto_now
+    # et bougerait à chaque enregistrement.
+    classe_interne_choisie_le = models.DateTimeField(null=True, blank=True)
+    # Critère « profil harmonieux » (§8) / « priorité à l'équilibre » (§9).
+    # Le PR-48 ne le chiffre pas — c'est le dégustateur qui juge.
+    profil_non_harmonieux = models.BooleanField(default=False)
+
+    # Positive attributes (score 0–5 — échelle PR-48)
     fruite      = models.DecimalField(max_digits=4, decimal_places=1, null=True, blank=True)
-    fruite_vert = models.BooleanField(default=True)  # True = green/immature fruit, False = ripe
+    type_fruite = models.CharField(
+        max_length=10, choices=TypeFruite.choices, default=TypeFruite.VERT
+    )
     amertume    = models.DecimalField(max_digits=4, decimal_places=1, null=True, blank=True)
     piquant     = models.DecimalField(max_digits=4, decimal_places=1, null=True, blank=True)
 
-    # Defect attributes (score 0–10)
+    # Defect attributes (score 0–10 — échelle COI, hors périmètre du PR-48)
     chome          = models.DecimalField(max_digits=4, decimal_places=1, null=True, blank=True)
     moisi          = models.DecimalField(max_digits=4, decimal_places=1, null=True, blank=True)
     vinaigre       = models.DecimalField(max_digits=4, decimal_places=1, null=True, blank=True)

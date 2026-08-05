@@ -85,6 +85,10 @@ class EchantillonCollecteur {
   String? cite;
 
   // Supplier
+  // The link to the reference entry. Without it the sample reaches the database
+  // with no supplier at all, and the CEO dashboard — which aggregates purchases
+  // per supplier — has nothing to count it under.
+  String? fournisseurId;
   String codeFournisseur;
   // Transient write-only supplier name (OCR-read or user-typed). NOT loaded
   // from the API; only sent on create so the backend can match by name and
@@ -93,7 +97,7 @@ class EchantillonCollecteur {
 
   // Bottle
   String referenceBouteille;
-  String? scellage;
+  String? numCiterne;
   String? quantiteEstimee;
   String? variete;
 
@@ -135,10 +139,11 @@ class EchantillonCollecteur {
     required this.gouvernorat,
     this.delegation,
     this.cite,
+    this.fournisseurId,
     required this.codeFournisseur,
     this.fournisseurNom,
     required this.referenceBouteille,
-    this.scellage,
+    this.numCiterne,
     this.quantiteEstimee,
     this.variete,
     required this.achatConfirme,
@@ -182,9 +187,10 @@ class EchantillonCollecteur {
         gouvernorat: json['gouvernorat'] as String,
         delegation: json['delegation'] as String?,
         cite: json['cite'] as String?,
+        fournisseurId: json['fournisseur']?.toString(),
         codeFournisseur: json['code_fournisseur'] as String? ?? '',
         referenceBouteille: json['reference_bouteille'] as String? ?? '',
-        scellage: json['scellage'] as String?,
+        numCiterne: json['num_citerne'] as String?,
         quantiteEstimee: json['quantite_estimee'] as String?,
         variete: json['variete'] as String?,
         achatConfirme:
@@ -210,11 +216,14 @@ class EchantillonCollecteur {
       );
 
   Map<String, dynamic> toJson() => {
+    // Sent as the FK Django expects. Null is accepted by the API, but a null
+    // here is exactly the sample the dashboard cannot attribute to anyone.
+    'fournisseur': fournisseurId,
     'gouvernorat': gouvernorat,
     'delegation': delegation ?? '',
     'cite': cite ?? '',
     'reference_bouteille': referenceBouteille,
-    'scellage': scellage ?? '',
+    'num_citerne': numCiterne ?? '',
     'quantite_estimee': quantiteEstimee ?? '',
     'variete': variete ?? '',
     'statut_collecteur': statut.toJson,
@@ -233,7 +242,11 @@ class EchantillonCollecteur {
           .map((e) => EchantillonCollecteur.fromJson(e as Map<String, dynamic>))
           .toList();
 
-  bool get canModify => statut == StatutCollecteur.receptionne;
+  // Once the bottle is physically at the company the collector loses every
+  // write right on it — no edit, no delete. Corrections then go through the
+  // head taster or the taster, who edit with the change kept on record.
+  bool get canModify =>
+      statut == StatutCollecteur.receptionne && !recuPhysiquement;
   bool get canDelete =>
       statut == StatutCollecteur.receptionne && !recuPhysiquement;
   bool get canConfirm => statut == StatutCollecteur.enNegociation;

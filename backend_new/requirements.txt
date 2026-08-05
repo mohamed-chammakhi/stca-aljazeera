@@ -7,27 +7,3 @@ drf-spectacular>=0.27,<0.29
 python-decouple>=3.8,<4.0
 psycopg2-binary>=2.9,<3.0
 Pillow>=10.4,<12.0
-
-# ── Offline OCR (on-premise, no cloud) ───────────────────────────────────────
-# Bottle photos  → EasyOCR (core/ocr_service.extract_echantillon_from_image)
-# Lab reports    → PaddleOCR (core/ocr_service.extract_analyse_from_image)
-#
-# These 5 versions are PINNED INTENTIONALLY — they are the only combo that
-# works together on Windows. Do NOT bump them casually:
-#   - torch 2.2.x is the last numpy-1.x-ABI build (paddle 2.6 needs numpy 1.x)
-#   - torch 2.12 / numpy 2.x  → breaks paddle 2.6 with ABI error
-#   - paddleocr/paddlepaddle 3.x → PIR-op crash on Windows for the v5 models
-#
-# First run downloads each model once (online, ~80 MB total); offline forever
-# after that. Install all into backend_new/venv only.
-numpy==1.26.4
-torch==2.2.2
-torchvision==0.17.2
-easyocr==1.7.2
-paddleocr==2.7.3
-paddlepaddle==2.6.2
-# Transitive pins — newer releases declare numpy>=2 and would force a
-# numpy upgrade that breaks paddlepaddle 2.6's ABI. Last numpy-1.x friendly.
-opencv-python-headless==4.10.0.84
-tifffile==2024.8.30
-

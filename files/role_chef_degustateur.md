@@ -1,4 +1,4 @@
-# role_chef_degustateur.md — Chef de Panel (`5_chef_degustateur/`)
+# role_chef_degustateur.md — Chef de Dégustation (`5_chef_degustateur/`)
 
 Senior taster who also manages the tasting panel. Submits their own individual evaluation like a regular taster, AND oversees all other tasters' evaluations, manages sessions, and tracks panel performance.
 
@@ -140,7 +140,7 @@ Bell icon in the dashboard AppBar shows live unread count badge (orange). Naviga
 | `ANALYSE_URGENTE` | Taster or chef sends urgent lab request | ANALYSES |
 | `NOUVELLE_SESSION` | A panel member proposes a new session | SESSIONS |
 
-Note: `EVALUATION_SOUMISE` and `TOUTES_EVALUATIONS` are exclusive to the chef de panel role.
+Note: `EVALUATION_SOUMISE` and `TOUTES_EVALUATIONS` are exclusive to the chef de dégustation role.
 
 ### Deep-link navigation
 

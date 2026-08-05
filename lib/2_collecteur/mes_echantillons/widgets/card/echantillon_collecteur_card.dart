@@ -21,6 +21,7 @@
 import 'package:flutter/material.dart';
 import '../../models/echantillon_collecteur.dart';
 import '../../../widgets/col_colors.dart';
+import '../../../../core/widgets/grille_details.dart';
 
 String? _dateStockStr(EchantillonCollecteur e) {
   final d = e.dateStockSouhaiteeDebut;
@@ -414,23 +415,21 @@ class _DetailPanel extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // ── Attribute grid ───────────────────────────────────────────
-              Wrap(
-                spacing: 90,
-                runSpacing: 10,
-                children: [
-                  _DetailItem('N° échantillon', e.numero),
-                  _DetailItem('Réf. bouteille', e.referenceBouteille),
-                  _DetailItem('Fournisseur', e.codeFournisseur),
+              GrilleDetails(
+                items: [
+                  DetailItem('N° échantillon', e.numero),
+                  DetailItem('Réf. bouteille', e.referenceBouteille),
+                  DetailItem('Fournisseur', e.codeFournisseur),
                   if (e.variete != null && e.variete!.isNotEmpty)
-                    _DetailItem('Variété', e.variete!),
-                  _DetailItem(
+                    DetailItem('Variété', e.variete!),
+                  DetailItem(
                     'Localisation',
                     e.delegation != null
                         ? '${e.gouvernorat} — ${e.delegation}'
                         : e.gouvernorat,
                   ),
-                  if (e.scellage != null && e.scellage!.isNotEmpty)
-                    _DetailItem('Scellage', e.scellage!),
+                  if (e.numCiterne != null && e.numCiterne!.isNotEmpty)
+                    DetailItem('N° citerne', e.numCiterne!),
                 ],
               ),
 
@@ -570,26 +569,18 @@ class _NegociationDetails extends StatelessWidget {
         borderRadius: BorderRadius.circular(10),
         border: Border.all(color: Colors.grey.shade100),
       ),
-      child: Wrap(
-        spacing: 20,
-        runSpacing: 10,
-        children: [
+      child: GrilleDetails(
+        items: [
           if (isNego) ...[
             if (e.budgetNegociation != null)
-              _ReceiptLine(
-                label: 'Budget proposé',
-                value: e.budgetNegociation!,
-              ),
+              DetailItem('Budget proposé', e.budgetNegociation!),
             if (_dateStockStr(e) != null)
-              _ReceiptLine(
-                label: 'Date souhaitée',
-                value: _dateStockStr(e)!,
-              ),
+              DetailItem('Date souhaitée', _dateStockStr(e)!),
           ] else ...[
             if (e.prixFinal != null)
-              _ReceiptLine(label: 'Prix final', value: e.prixFinal!),
+              DetailItem('Prix final', e.prixFinal!),
             if (e.camionLivraison != null)
-              _ReceiptLine(label: 'Camion', value: e.camionLivraison!),
+              DetailItem('Camion', e.camionLivraison!),
           ],
         ],
       ),
@@ -601,7 +592,7 @@ class _NegociationDetails extends StatelessWidget {
 // SAMPLE DELIVERY LINE  (bottle arriving at company — gray text, no colored boxes)
 //
 // States:
-//   ① recuPhysiquement + date   → "— Échantillon réceptionné le dd/mm/yyyy —"
+//   â‘  recuPhysiquement + date   → "— Échantillon réceptionné le dd/mm/yyyy —"
 //   ② recuPhysiquement, no date → "— Échantillon réceptionné —"
 //   ③ dateArriveeEchantillon    → "— Arrivée prévue le dd/mm/yyyy —"  [Modifier]
 //   ④ nothing set               → "— Arrivée non planifiée —"          [Planifier]
@@ -678,7 +669,7 @@ class _SampleDeliveryLine extends StatelessWidget {
 // STOCK DELIVERY LINE  (bulk stock delivery — dark gray, stacked layout)
 //
 // States (achatConfirme only):
-//   ① livraison complete → date on its own line, "Modifier" below right
+//   â‘  livraison complete → date on its own line, "Modifier" below right
 //   ② no livraison       → "non programmée" text, "Planifier" below right
 // ─────────────────────────────────────────────────────────────────────────────
 const Color _deliveryDarkGray = Color(0xFF3D3D3D);
@@ -748,65 +739,7 @@ class _StockDeliveryLine extends StatelessWidget {
 // ─────────────────────────────────────────────────────────────────────────────
 // RECEIPT LINE  (label : value)
 // ─────────────────────────────────────────────────────────────────────────────
-class _ReceiptLine extends StatelessWidget {
-  final String label;
-  final String value;
-  const _ReceiptLine({required this.label, required this.value});
-
-  @override
-  Widget build(BuildContext context) => Row(
-    mainAxisSize: MainAxisSize.min,
-    children: [
-      Text(
-        '$label : ',
-        style: const TextStyle(
-          fontSize: 12,
-          color: _grayText,
-          fontWeight: FontWeight.w500,
-        ),
-      ),
-      Text(
-        value,
-        style: const TextStyle(
-          fontSize: 12,
-          color: colDark,
-          fontWeight: FontWeight.w700,
-        ),
-      ),
-    ],
-  );
-}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // DETAIL ITEM
 // ─────────────────────────────────────────────────────────────────────────────
-class _DetailItem extends StatelessWidget {
-  final String label;
-  final String value;
-  const _DetailItem(this.label, this.value);
-
-  @override
-  Widget build(BuildContext context) => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text(
-        label,
-        style: const TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w600,
-          color: _grayText,
-          letterSpacing: 0.3,
-        ),
-      ),
-      const SizedBox(height: 2),
-      Text(
-        value,
-        style: const TextStyle(
-          fontSize: 13,
-          fontWeight: FontWeight.w600,
-          color: colDark,
-        ),
-      ),
-    ],
-  );
-}

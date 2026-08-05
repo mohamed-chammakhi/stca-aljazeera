@@ -5,14 +5,19 @@
 //             own card in the list (same pattern as formulaire_collecteur_dialog)
 //           — shared fields: collecteur, fournisseur, gouvernorat, délégation,
 //             date d'arrivée, statut (read-only), photo, action buttons
-//           — per-bouteille fields: référence, variété, scellage, quantité
+//           — per-bouteille fields: référence, variété, numCiterne, quantité
 // ─────────────────────────────────────────────────────────────────────────────
+
+import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../../../core/models/echantillon.dart';
+import '../../../../core/models/echantillon_historique.dart';
 import '../../../../core/models/enums.dart';
-import '../date_input_field.dart';
+import '../../../../core/widgets/date_input_field.dart';
 import '../../../../2_collecteur/carte_geo/services/geo_service.dart';
 
 const Color _green = Color(0xFF38835A);
@@ -35,34 +40,36 @@ const Color _sectionDate = Color(0xFF5C6BC0); // muted indigo
 class _BouteilleRow {
   final TextEditingController refCtrl;
   final TextEditingController varieteCtrl;
-  final TextEditingController scellageCtrl;
+  final TextEditingController numCiterneCtrl;
   final TextEditingController qteCtrl;
+  Uint8List? photoBytes;
+  String? photoName;
 
   _BouteilleRow({
     required this.refCtrl,
     required this.varieteCtrl,
-    required this.scellageCtrl,
+    required this.numCiterneCtrl,
     required this.qteCtrl,
   });
 
   factory _BouteilleRow.empty() => _BouteilleRow(
     refCtrl: TextEditingController(),
     varieteCtrl: TextEditingController(),
-    scellageCtrl: TextEditingController(),
+    numCiterneCtrl: TextEditingController(),
     qteCtrl: TextEditingController(),
   );
 
   factory _BouteilleRow.fromSample(Echantillon e) => _BouteilleRow(
     refCtrl: TextEditingController(text: e.referenceBouteille),
     varieteCtrl: TextEditingController(text: e.variete ?? ''),
-    scellageCtrl: TextEditingController(text: e.scellage ?? ''),
+    numCiterneCtrl: TextEditingController(text: e.numCiterne ?? ''),
     qteCtrl: TextEditingController(text: e.quantiteEstimee ?? ''),
   );
 
   void dispose() {
     refCtrl.dispose();
     varieteCtrl.dispose();
-    scellageCtrl.dispose();
+    numCiterneCtrl.dispose();
     qteCtrl.dispose();
   }
 }
@@ -122,6 +129,10 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
   // ── Per-bouteille rows ────────────────────────────────────────────────────
   final List<_BouteilleRow> _bouteilles = [];
 
+  final ImagePicker _picker = ImagePicker();
+  Uint8List? _photoBytes;
+  String? _photoName;
+
   bool get _isModification => widget.echantillon != null;
   int get _bottleCount => _bouteilles.length;
 
@@ -177,6 +188,166 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
     });
   }
 
+  Future<void> _importEtiquetteImage() => _pickPhoto(ImageSource.gallery);
+
+  _BouteilleRow _targetRowForPhoto() {
+    if (_isModification) return _bouteilles.first;
+    if (_bouteilles.length == 1 &&
+        _isRowEmpty(_bouteilles.first) &&
+        _bouteilles.first.photoBytes == null) {
+      return _bouteilles.first;
+    }
+    final row = _BouteilleRow.empty();
+    _bouteilles.add(row);
+    return row;
+  }
+
+  bool _isRowEmpty(_BouteilleRow b) =>
+      b.refCtrl.text.trim().isEmpty &&
+      b.varieteCtrl.text.trim().isEmpty &&
+      b.numCiterneCtrl.text.trim().isEmpty &&
+      b.qteCtrl.text.trim().isEmpty;
+
+  Future<void> _pickPhoto(ImageSource source) async {
+    final XFile? file = await _picker.pickImage(
+      source: source,
+      maxWidth: 2000,
+      imageQuality: 90,
+    );
+    if (file == null) return;
+    final bytes = await file.readAsBytes();
+    if (!mounted) return;
+    setState(() {
+      final row = _targetRowForPhoto();
+      row.photoBytes = bytes;
+      row.photoName = file.name;
+      _photoBytes = bytes;
+      _photoName = file.name;
+    });
+  }
+
+  void _removePhoto() => setState(() {
+    _photoBytes = null;
+    _photoName = null;
+  });
+
+  void _choosePhotoSource() {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (_) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.photo_camera_outlined, color: _green),
+              title: const Text('Prendre une photo'),
+              onTap: () {
+                Navigator.pop(context);
+                _pickPhoto(ImageSource.camera);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library_outlined, color: _green),
+              title: const Text('Choisir depuis la galerie'),
+              onTap: () {
+                Navigator.pop(context);
+                _pickPhoto(ImageSource.gallery);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPhotoZone() {
+    if (_photoBytes == null) {
+      return InkWell(
+        onTap: _importEtiquetteImage,
+        borderRadius: BorderRadius.circular(10),
+        child: Container(
+          width: double.infinity,
+          height: 64,
+          decoration: BoxDecoration(
+            color: _green.withValues(alpha: 0.05),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: _green.withValues(alpha: 0.25)),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.photo_library_outlined,
+                color: _green.withValues(alpha: 0.55),
+                size: 22,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                "Importer une etiquette",
+                style: TextStyle(
+                  fontSize: 12,
+                  color: _green.withValues(alpha: 0.55),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(10),
+          child: Image.memory(
+            _photoBytes!,
+            width: double.infinity,
+            height: 150,
+            fit: BoxFit.cover,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                _photoName ?? 'photo.jpg',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+              ),
+            ),
+            TextButton.icon(
+              onPressed: _choosePhotoSource,
+              icon: const Icon(Icons.refresh, size: 16, color: _green),
+              label: const Text(
+                'Relancer',
+                style: TextStyle(fontSize: 12, color: _green),
+              ),
+            ),
+            TextButton.icon(
+              onPressed: _removePhoto,
+              icon: Icon(
+                Icons.delete_outline,
+                size: 16,
+                color: Colors.red.shade400,
+              ),
+              label: Text(
+                'Retirer',
+                style: TextStyle(fontSize: 12, color: Colors.red.shade400),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
   bool get _isValid {
     if (_bouteilles.isEmpty) return false;
     return _bouteilles.every((b) => b.refCtrl.text.trim().isNotEmpty);
@@ -212,14 +383,17 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
 
     if (_isModification) {
       final e = widget.echantillon!;
+      // Captured before the form writes: the trail needs the values as they
+      // stood, and they are about to be overwritten.
+      final avant = e.capturerAvantModification();
       final b = _bouteilles.first;
       e.referenceBouteille = b.refCtrl.text.trim();
       e.variete = b.varieteCtrl.text.trim().isEmpty
           ? null
           : b.varieteCtrl.text.trim();
-      e.scellage = b.scellageCtrl.text.trim().isEmpty
+      e.numCiterne = b.numCiterneCtrl.text.trim().isEmpty
           ? null
-          : b.scellageCtrl.text.trim();
+          : b.numCiterneCtrl.text.trim();
       e.quantiteEstimee = b.qteCtrl.text.trim().isEmpty
           ? null
           : b.qteCtrl.text.trim();
@@ -229,6 +403,8 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
           ? null
           : _remarquesCtrl.text.trim();
       // codeFournisseur, dateAjout, collecteurNom are API-assigned — not mutated
+      // No-op until the sample is physically received.
+      e.enregistrerModifications(avant, auteurRole: 'Dégustateur');
       widget.onSaveMultiple([e]);
     } else {
       final now = DateTime.now();
@@ -247,9 +423,9 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
           variete: b.varieteCtrl.text.trim().isEmpty
               ? null
               : b.varieteCtrl.text.trim(),
-          scellage: b.scellageCtrl.text.trim().isEmpty
+          numCiterne: b.numCiterneCtrl.text.trim().isEmpty
               ? null
-              : b.scellageCtrl.text.trim(),
+              : b.numCiterneCtrl.text.trim(),
           gouvernorat: gouvernorat,
           delegation: _delegation,
           remarques: _remarquesCtrl.text.trim().isEmpty
@@ -401,39 +577,10 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
                     ),
 
                     const SizedBox(height: 16),
-                    // ── SHARED: PHOTO (placeholder) ───────────────────────
+                    // ── SHARED: PHOTO (optionnelle) ────────────────────────
                     _FieldLabel(label: 'Photo'),
                     const SizedBox(height: 10),
-                    Container(
-                      width: double.infinity,
-                      height: 64,
-                      decoration: BoxDecoration(
-                        color: _green.withValues(alpha: 0.05),
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(
-                          color: _green.withValues(alpha: 0.25),
-                          style: BorderStyle.solid,
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.add_photo_alternate_outlined,
-                            color: _green.withValues(alpha: 0.55),
-                            size: 22,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Ajouter une photo ',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: _green.withValues(alpha: 0.55),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                    _buildPhotoZone(),
 
                     const SizedBox(height: 12),
 
@@ -723,7 +870,7 @@ class _BouteillesSection extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// BOUTEILLE CARD — ref, variété, scellage, quantité fields for one bottle
+// BOUTEILLE CARD — ref, variété, numCiterne, quantité fields for one bottle
 // ─────────────────────────────────────────────────────────────────────────────
 class _BouteilleCard extends StatelessWidget {
   final _BouteilleRow row;
@@ -830,7 +977,7 @@ class _BouteilleCard extends StatelessWidget {
           ),
           const SizedBox(height: 8),
 
-          // Variété + Scellage (side by side)
+          // Variété + numCiterne (side by side)
           Row(
             children: [
               Expanded(
@@ -852,10 +999,10 @@ class _BouteilleCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _InlineLabel(label: 'Scellage'),
+                    _InlineLabel(label: 'N° citerne'),
                     const SizedBox(height: 5),
                     TextField(
-                      controller: row.scellageCtrl,
+                      controller: row.numCiterneCtrl,
                       style: const TextStyle(fontSize: 13, color: _dark),
                       decoration: _fieldDec('Ex: Z1'),
                     ),
@@ -1028,7 +1175,9 @@ class _DropdownField extends StatelessWidget {
           child: Opacity(
             opacity: onChanged == null ? 0.5 : 1.0,
             child: DropdownButtonFormField<String>(
-              initialValue: (value != null && items.contains(value)) ? value : null,
+              initialValue: (value != null && items.contains(value))
+                  ? value
+                  : null,
               isExpanded: true,
               decoration: InputDecoration(
                 filled: true,

@@ -6,7 +6,7 @@ class IsRole(BasePermission):
     Reusable role-based permission. Usage in any view:
 
         permission_classes = [IsAuthenticated, IsRole('direction')]
-        permission_classes = [IsAuthenticated, IsRole('degustateur', 'chef_panel')]
+        permission_classes = [IsAuthenticated, IsRole('degustateur', 'chef_degustation')]
     """
 
     def __init__(self, *roles):
@@ -43,15 +43,15 @@ class IsLaboratoire(BasePermission):
         return request.user.is_authenticated and request.user.role == 'laboratoire'
 
 
-class IsChefPanel(BasePermission):
+class IsChefDegustation(BasePermission):
     def has_permission(self, request, view):
-        return request.user.is_authenticated and request.user.role == 'chef_panel'
+        return request.user.is_authenticated and request.user.role == 'chef_degustation'
 
 
-class IsDegustateurOrChefPanel(BasePermission):
-    """Taster pages accessible to both degustateur and chef_panel."""
+class IsDegustateurOrChefDegustation(BasePermission):
+    """Taster pages accessible to both degustateur and chef_degustation."""
     def has_permission(self, request, view):
-        return request.user.is_authenticated and request.user.role in ('degustateur', 'chef_panel')
+        return request.user.is_authenticated and request.user.role in ('degustateur', 'chef_degustation')
 
 
 class IsDirectionOrReadOnly(BasePermission):

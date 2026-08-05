@@ -28,7 +28,7 @@ Future<void> showConfirmerAchatDialog({
     String prix,
     String? camion,
     PlanificationLivraison? livraison,
-    String? scellage,
+    String? numCiterne,
   )
   onConfirm,
 }) async {
@@ -46,7 +46,7 @@ class _ConfirmerAchatDialog extends StatefulWidget {
     String prix,
     String? camion,
     PlanificationLivraison? livraison,
-    String? scellage,
+    String? numCiterne,
   )
   onConfirm;
 
@@ -61,7 +61,7 @@ class _ConfirmerAchatDialog extends StatefulWidget {
 
 class _ConfirmerAchatDialogState extends State<_ConfirmerAchatDialog> {
   late final TextEditingController _prixCtrl;
-  late final TextEditingController _scellageCtrl;
+  late final TextEditingController _numCiterneCtrl;
   late final TextEditingController _camionCtrl;
 
   ModePlanificationUI _mode = ModePlanificationUI.dateExacte;
@@ -74,7 +74,7 @@ class _ConfirmerAchatDialogState extends State<_ConfirmerAchatDialog> {
     super.initState();
     final e = widget.echantillon;
     _prixCtrl = TextEditingController(text: e.prixFinal ?? '');
-    _scellageCtrl = TextEditingController(text: e.scellage ?? '');
+    _numCiterneCtrl = TextEditingController(text: e.numCiterne ?? '');
     _camionCtrl = TextEditingController(text: e.camionLivraison ?? '');
     // Pre-fill delivery date if already set
     if (e.livraison?.dateExacte != null) {
@@ -85,7 +85,7 @@ class _ConfirmerAchatDialogState extends State<_ConfirmerAchatDialog> {
   @override
   void dispose() {
     _prixCtrl.dispose();
-    _scellageCtrl.dispose();
+    _numCiterneCtrl.dispose();
     _camionCtrl.dispose();
     super.dispose();
   }
@@ -132,7 +132,11 @@ class _ConfirmerAchatDialogState extends State<_ConfirmerAchatDialog> {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.handshake_outlined, color: colDark, size: 20),
+                  const Icon(
+                    Icons.handshake_outlined,
+                    color: colDark,
+                    size: 20,
+                  ),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Column(
@@ -168,8 +172,7 @@ class _ConfirmerAchatDialogState extends State<_ConfirmerAchatDialog> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Direction offer reminder
-                    if (e.budgetNegociation != null ||
-                        _dateStockStr(e) != null)
+                    if (e.budgetNegociation != null || _dateStockStr(e) != null)
                       Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 12,
@@ -233,11 +236,11 @@ class _ConfirmerAchatDialogState extends State<_ConfirmerAchatDialog> {
                     ),
                     const SizedBox(height: 14),
 
-                    // Scellage
-                    const _DialogLabel('Scellage'),
+                    // Numero de citerne
+                    const _DialogLabel('N° citerne'),
                     const SizedBox(height: 6),
                     TextField(
-                      controller: _scellageCtrl,
+                      controller: _numCiterneCtrl,
                       decoration: _inputDeco('ex: Z1', Icons.verified_outlined),
                       style: const TextStyle(fontSize: 14),
                     ),
@@ -321,9 +324,9 @@ class _ConfirmerAchatDialogState extends State<_ConfirmerAchatDialog> {
                               ? null
                               : _camionCtrl.text.trim(),
                           _buildLivraison(),
-                          _scellageCtrl.text.trim().isEmpty
+                          _numCiterneCtrl.text.trim().isEmpty
                               ? null
-                              : _scellageCtrl.text.trim(),
+                              : _numCiterneCtrl.text.trim(),
                         );
                       },
                       style: ElevatedButton.styleFrom(

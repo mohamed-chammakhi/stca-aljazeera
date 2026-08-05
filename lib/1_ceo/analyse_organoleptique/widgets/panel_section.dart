@@ -18,10 +18,19 @@ class PanelSection extends StatelessWidget {
   final bool isExpanded;
   final VoidCallback onToggle;
   final void Function(EvaluationOrganoleptique) onViewForm;
-  final VoidCallback onApprouver;
-  final VoidCallback onRefuser;
+
+  /// Boutons Approuver / Refuser / Urgent.
+  ///
+  /// Faux pour la vue d'ensemble du chef dégustateur : il consulte le travail
+  /// du panel, il ne décide pas de l'achat. Le reste de la section — en-tête,
+  /// chevron, liste des dégustateurs — est identique, pour que les deux écrans
+  /// se ressemblent exactement.
+  final bool showDecisions;
+
+  final VoidCallback? onApprouver;
+  final VoidCallback? onRefuser;
   final bool isUrgent;
-  final VoidCallback onUrgent;
+  final VoidCallback? onUrgent;
 
   const PanelSection({
     super.key,
@@ -29,10 +38,11 @@ class PanelSection extends StatelessWidget {
     required this.isExpanded,
     required this.onToggle,
     required this.onViewForm,
-    required this.onApprouver,
-    required this.onRefuser,
-    required this.isUrgent,
-    required this.onUrgent,
+    this.showDecisions = true,
+    this.onApprouver,
+    this.onRefuser,
+    this.isUrgent = false,
+    this.onUrgent,
   });
 
   @override
@@ -54,12 +64,13 @@ class PanelSection extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(14, 11, 14, 10),
             child: Row(
               children: [
+                if (showDecisions) ...[
                 DecisionButton(
                   label: 'Approuver',
                   active: approved,
                   dimmed: refused,
                   activeColor: kGreen,
-                  onTap: onApprouver,
+                  onTap: onApprouver ?? () {},
                 ),
                 const SizedBox(width: 6),
                 DecisionButton(
@@ -67,11 +78,23 @@ class PanelSection extends StatelessWidget {
                   active: refused,
                   dimmed: approved,
                   activeColor: Colors.red.shade500,
-                  onTap: onRefuser,
+                  onTap: onRefuser ?? () {},
                 ),
+                ] else
+                  // Sans les boutons, l'en-tête annonce ce que la section
+                  // contient — sinon la ligne serait vide jusqu'au chevron.
+                  Text(
+                    'Évaluations du panel',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: kOlive,
+                    ),
+                  ),
                 const Spacer(),
+                if (showDecisions)
                 GestureDetector(
-                  onTap: onUrgent,
+                  onTap: onUrgent ?? () {},
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
                     padding: const EdgeInsets.symmetric(

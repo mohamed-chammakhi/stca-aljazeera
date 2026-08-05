@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../core/classification/classification_interne.dart';
+import '../../core/models/enums.dart';
+import '../../core/widgets/carte_classification.dart';
 import 'services/evaluation_service.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -60,8 +63,17 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
     _loadExistingEvaluation();
   }
 
-  // ── TYPE de fruité (Vert / Mûr) ──────────────────────────────────────────
-  bool _fruiteVert = true; // true = Vert, false = Mûr
+  // ── TYPE de fruité — PR-48 §5 et §8 ──────────────────────────────────────
+  TypeFruite _typeFruite = TypeFruite.vert;
+
+  // ── Classification interne PR-48 ─────────────────────────────────────────
+  /// Case du §9 : le PR-48 exige un « profil harmonieux » pour les deux classes
+  /// hautes mais ne le chiffre pas — c'est le dégustateur qui juge.
+  bool _profilNonHarmonieux = false;
+
+  /// Classe retenue à la main quand la grille §8 ne rend rien.
+  ClasseInterne? _classeManuelle;
+  String? _classeChoisieLe;
 
   // ─────────────────────────────────────────────────────────────────────────
   // ATTRIBUTS NÉGATIFS (défauts) — tous initialisés à 0.0
@@ -88,81 +100,28 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
       TextEditingController();
 
   // ─────────────────────────────────────────────────────────────────────────
-  // CALCUL — Médiane des défauts (valeur max parmi les défauts perçus)
-  // Selon normes COI : médiane du défaut perçu avec la plus grande intensité
+  // CALCUL — délégué à lib/core/classification/classification_interne.dart
+  // La logique vivait ici en trois copies qui avaient divergé ; elle n'existe
+  // plus qu'au même endroit pour tous les rôles.
   // ─────────────────────────────────────────────────────────────────────────
-  double get _medianeDefauts {
-    final defauts = [_chome, _moisi, _vinaigre, _gele, _rance, _autresDefaut];
-    // On prend le max comme défaut dominant (norme COI)
-    return defauts.reduce((a, b) => a > b ? a : b);
-  }
+  double get _medianeDefauts => medianeDefauts(
+    chome: _chome,
+    moisi: _moisi,
+    vinaigre: _vinaigre,
+    gele: _gele,
+    rance: _rance,
+    autresDefaut: _autresDefaut,
+  );
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // CALCUL — Classification automatique selon normes COI
-  // ─────────────────────────────────────────────────────────────────────────
-  Map<String, dynamic> get _classification {
-    final med = _medianeDefauts;
-    final fruit = _fruite;
-
-    if (med == 0.0 && fruit > 0.0) {
-      return {
-        'label': 'Extra Vierge',
-        'color': green,
-        'icon': Icons.workspace_premium_outlined,
-        'bg': green.withValues(alpha: 0.06),
-        'border': green.withValues(alpha: 0.28),
-        'description': 'Médiane défauts = 0.0 et Fruité > 0.0',
-      };
-    } else if (med > 0.0 && med <= 3.5 && fruit > 0.0) {
-      return {
-        'label': 'Vierge',
-        'color': Colors.orange.shade700,
-        'icon': Icons.verified_outlined,
-        'bg': Colors.orange.shade50,
-        'border': Colors.orange.shade200,
-        'description': '0.0 < Médiane défauts ≤ 3.5 et Fruité > 0.0',
-      };
-    } else if ((med > 3.5 && med <= 6.0) || (med <= 3.5 && fruit == 0.0)) {
-      return {
-        'label': 'Vierge Ordinaire',
-        'color': Colors.deepOrange.shade600,
-        'icon': Icons.info_outline,
-        'bg': Colors.deepOrange.shade50,
-        'border': Colors.deepOrange.shade200,
-        'description': 'Médiane défauts entre 3.5 et 6.0',
-      };
-    } else if (med > 6.0) {
-      return {
-        'label': 'Lampante',
-        'color': Colors.red.shade700,
-        'icon': Icons.warning_amber_rounded,
-        'bg': Colors.red.shade50,
-        'border': Colors.red.shade200,
-        'description': 'Médiane défauts > 6.0 — Non comestible en l\'état',
-      };
-    } else {
-      // Aucune valeur saisie
-      return {
-        'label': 'En attente d\'évaluation',
-        'color': Colors.grey.shade500,
-        'icon': Icons.hourglass_empty_rounded,
-        'bg': Colors.grey.shade50,
-        'border': Colors.grey.shade200,
-        'description': 'Saisir au moins le fruité pour classifier',
-      };
-    }
-  }
-
-  // ─────────────────────────────────────────────────────────────────────────
-  // CALCUL — Intensité selon COI
-  // Délicat ≤ 3.0 | Moyen 3.0–6.0 | Robuste > 6.0
-  // ─────────────────────────────────────────────────────────────────────────
-  String _intensiteLabel(double val) {
-    if (val == 0.0) return '';
-    if (val <= 3.0) return 'Délicat';
-    if (val <= 6.0) return 'Moyen';
-    return 'Robuste';
-  }
+  ResultatClassification get _resultat => ResultatClassification(
+    fruite: _fruite,
+    typeFruite: _typeFruite,
+    amertume: _amer,
+    piquant: _piquant,
+    mediane: _medianeDefauts,
+    profilNonHarmonieux: _profilNonHarmonieux,
+    classeManuelle: _classeManuelle,
+  );
 
   Future<void> _loadExistingEvaluation() async {
     try {
@@ -177,7 +136,14 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
   void _applyEvaluation(Map<String, dynamic> data) {
     _evaluationId = data['id'] as String?;
     _fruite = _numValue(data['fruite']);
-    _fruiteVert = data['fruite_vert'] as bool? ?? true;
+    _typeFruite = TypeFruiteX.fromJson(data['type_fruite'] as String?);
+    _profilNonHarmonieux = data['profil_non_harmonieux'] as bool? ?? false;
+    // Seule une classe explicitement marquée manuelle est restaurée : une classe
+    // automatique se recalcule depuis les valeurs, elle n'a pas à être relue.
+    _classeManuelle = (data['classe_interne_manuelle'] as bool? ?? false)
+        ? ClasseInterneX.fromJson(data['classe_interne'] as String?)
+        : null;
+    _classeChoisieLe = data['classe_interne_choisie_le'] as String?;
     _amer = _numValue(data['amertume']);
     _piquant = _numValue(data['piquant']);
     _chome = _numValue(data['chome']);
@@ -198,12 +164,18 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
     return double.tryParse(value.toString()) ?? 0.0;
   }
 
-  Map<String, dynamic> _evaluationPayload() => {
+  Map<String, dynamic> _evaluationPayload() {
+    final resultat = _resultat;
+    return {
     'echantillon': widget.echantillonId,
     'statut': 'en_cours',
-    'classification': _classificationCode(_classification['label'] as String),
+    'classification': resultat.coi?.toJson ?? '',
+    'classe_interne': resultat.classeRetenue?.toJson ?? '',
+    'classe_interne_manuelle': resultat.estManuelle,
+    'classe_interne_motif': resultat.estManuelle ? _motifCourant() : '',
+    'profil_non_harmonieux': _profilNonHarmonieux,
     'fruite': _fruite,
-    'fruite_vert': _fruiteVert,
+    'type_fruite': _typeFruite.toJson,
     'amertume': _amer,
     'piquant': _piquant,
     'chome': _chome,
@@ -214,22 +186,18 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
     'autres_defaut': _autresDefaut,
     'autres_defaut_nom': _autresDefautNomController.text.trim(),
     'commentaire': _notesController.text.trim(),
-  };
-
-  String _classificationCode(String label) {
-    switch (label) {
-      case 'Extra Vierge':
-        return 'extra_vierge';
-      case 'Vierge':
-        return 'vierge';
-      case 'Vierge Ordinaire':
-        return 'vierge_ordinaire';
-      case 'Lampante':
-        return 'lampante';
-      default:
-        return '';
-    }
+    };
   }
+
+  /// Motif « hors grille » figé en base au moment du choix manuel (§14).
+  String _motifCourant() => motifHorsGrille(
+    coi: _resultat.coi,
+    fruite: _fruite,
+    typeFruite: _typeFruite,
+    amertume: _amer,
+    piquant: _piquant,
+    profilNonHarmonieux: _profilNonHarmonieux,
+  );
 
   Future<Map<String, dynamic>> _saveDraft() async {
     final payload = _evaluationPayload();
@@ -240,6 +208,7 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
     return saved;
   }
 
+  // ── Couleur d'un slider de défaut — échelle 0–10, seuils COI inchangés ────
   Color _sliderColor(double val) {
     if (val <= 3.0) return green;
     if (val <= 6.0) return Colors.orange.shade500;
@@ -418,85 +387,26 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
                         onChanged: (v) => setState(() => _fruite = v),
                         isPositif: true,
                       ),
-                      // Toggle Vert / Mûr
+                      // ── Type de fruité — 3 valeurs (PR-48 §5 et §8) ──
+                      // « Vert-mûr » est ce qui sépare Extra B d'Extra B−.
                       if (_fruite > 0.0) ...[
+                        const SizedBox(height: 8),
+                        const Text(
+                          'Type de fruité :',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: oliveGreen,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                         const SizedBox(height: 8),
                         Row(
                           children: [
-                            const Text(
-                              'Type de fruité :',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: oliveGreen,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            GestureDetector(
-                              onTap: _estSoumis
-                                  ? null
-                                  : () => setState(() => _fruiteVert = true),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 14,
-                                  vertical: 6,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: _fruiteVert
-                                      ? green
-                                      : Colors.grey.shade100,
-                                  borderRadius: BorderRadius.circular(20),
-                                  border: Border.all(
-                                    color: _fruiteVert
-                                        ? green
-                                        : Colors.grey.shade300,
-                                  ),
-                                ),
-                                child: Text(
-                                  '🌿 Vert',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: _fruiteVert
-                                        ? Colors.white
-                                        : Colors.grey.shade600,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            GestureDetector(
-                              onTap: _estSoumis
-                                  ? null
-                                  : () => setState(() => _fruiteVert = false),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 14,
-                                  vertical: 6,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: !_fruiteVert
-                                      ? oliveGreen
-                                      : Colors.grey.shade100,
-                                  borderRadius: BorderRadius.circular(20),
-                                  border: Border.all(
-                                    color: !_fruiteVert
-                                        ? oliveGreen
-                                        : Colors.grey.shade300,
-                                  ),
-                                ),
-                                child: Text(
-                                  '🫒 Mûr',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: !_fruiteVert
-                                        ? Colors.white
-                                        : Colors.grey.shade600,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ),
-                            ),
+                            for (final type in TypeFruite.values) ...[
+                              Expanded(child: _chipTypeFruite(type)),
+                              if (type != TypeFruite.values.last)
+                                const SizedBox(width: 6),
+                            ],
                           ],
                         ),
                       ],
@@ -504,7 +414,7 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
                   ),
 
                   _buildSlider(
-                    label: 'Amer',
+                    label: 'Amertume',
                     description: 'Goût primaire — olives vertes ou en véraison',
                     value: _amer,
                     onChanged: (v) => setState(() => _amer = v),
@@ -773,8 +683,10 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
     required ValueChanged<double> onChanged,
     bool isPositif = false,
   }) {
+    // Attributs positifs : 0–5 (PR-48). Défauts : 0–10 (COI, inchangé).
+    final maxValeur = isPositif ? kMaxPositif : kMaxDefaut;
     final color = isPositif ? _sliderPositifColor(value) : _sliderColor(value);
-    final intensite = _intensiteLabel(value);
+    final intensite = intensiteLabel(value, positif: isPositif);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 20),
@@ -872,7 +784,9 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
                         if (value > 0.0) {
                           onChanged(
                             double.parse(
-                              (value - 0.5).clamp(0.0, 10.0).toStringAsFixed(1),
+                              (value - kPasSlider)
+                                  .clamp(0.0, maxValeur)
+                                  .toStringAsFixed(1),
                             ),
                           );
                         }
@@ -924,20 +838,20 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
                         ),
                       ),
                       child: Slider(
-                        value: value,
+                        value: value.clamp(0.0, maxValeur),
                         min: 0.0,
-                        max: 10.0,
-                        divisions: 20, // pas de 0.5
+                        max: maxValeur,
+                        divisions: (maxValeur / kPasSlider).round(),
                         onChanged: _estSoumis ? null : onChanged,
                       ),
                     ),
 
-                    // ── Graduation 0 à 10 ──
+                    // ── Graduation, 0 au maximum de l'échelle ──
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 4),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: List.generate(11, (i) {
+                        children: List.generate(maxValeur.round() + 1, (i) {
                           final isActive = value >= i.toDouble();
                           return Text(
                             '$i',
@@ -965,10 +879,12 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
                 onTap: _estSoumis
                     ? null
                     : () {
-                        if (value < 10.0) {
+                        if (value < maxValeur) {
                           onChanged(
                             double.parse(
-                              (value + 0.5).clamp(0.0, 10.0).toStringAsFixed(1),
+                              (value + kPasSlider)
+                                  .clamp(0.0, maxValeur)
+                                  .toStringAsFixed(1),
                             ),
                           );
                         }
@@ -977,12 +893,12 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
                   width: 34,
                   height: 34,
                   decoration: BoxDecoration(
-                    color: value < 10.0 && !_estSoumis
+                    color: value < maxValeur && !_estSoumis
                         ? color.withValues(alpha: 0.1)
                         : Colors.grey.shade100,
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
-                      color: value < 10.0 && !_estSoumis
+                      color: value < maxValeur && !_estSoumis
                           ? color.withValues(alpha: 0.4)
                           : Colors.grey.shade200,
                     ),
@@ -990,7 +906,7 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
                   child: Icon(
                     Icons.add,
                     size: 16,
-                    color: value < 10.0 && !_estSoumis
+                    color: value < maxValeur && !_estSoumis
                         ? color
                         : Colors.grey.shade400,
                   ),
@@ -1004,86 +920,72 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
   }
 
   // ─────────────────────────────────────────────────────────────────────────
-  // WIDGET — _buildClassificationCard
-  // Affiche la classification en temps réel
+  // WIDGET — carte de classification à deux niveaux (COI + classe interne)
+  // Le rendu vit dans lib/core/widgets/carte_classification.dart, partagé avec
+  // le chef dégustateur et la vue CEO.
   // ─────────────────────────────────────────────────────────────────────────
   Widget _buildClassificationCard() {
-    final cl = _classification;
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: (cl['bg'] as Color),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: cl['border'] as Color, width: 1.5),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(
-                cl['icon'] as IconData,
-                color: cl['color'] as Color,
-                size: 22,
-              ),
-              const SizedBox(width: 10),
-              Text(
-                'Classification COI',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey.shade600,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 0.5,
-                ),
-              ),
-              const Spacer(),
-              // ── Médiane défaut ──
-              Text(
-                'Méd. défaut: ${_medianeDefauts.toStringAsFixed(1)}',
-                style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            cl['label'] as String,
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.w800,
-              color: cl['color'] as Color,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            cl['description'] as String,
-            style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
-          ),
+    return CarteClassification(
+      resultat: _resultat,
+      medianeDefauts: _medianeDefauts,
+      fruite: _fruite,
+      typeFruite: _typeFruite,
+      amertume: _amer,
+      piquant: _piquant,
+      choisieLe: _dateCourte(_classeChoisieLe),
+      readOnly: _estSoumis,
+      onHarmonieChanged: (v) => setState(() {
+        _profilNonHarmonieux = v;
+        // Cocher la case annule la classe automatique : le choix manuel
+        // précédent ne vaut plus pour la nouvelle situation.
+        _classeManuelle = null;
+      }),
+      onClasseManuelleChanged: (c) => setState(() {
+        _classeManuelle = c;
+        _classeChoisieLe = c == null ? null : DateTime.now().toIso8601String();
+      }),
+    );
+  }
 
-          const SizedBox(height: 12),
+  /// Date affichée sur la pastille « choisie manuellement ».
+  String? _dateCourte(String? iso) {
+    if (iso == null || iso.isEmpty) return null;
+    final d = DateTime.tryParse(iso);
+    if (d == null) return null;
+    return '${d.day.toString().padLeft(2, '0')}/'
+        '${d.month.toString().padLeft(2, '0')}/${d.year}';
+  }
 
-          // ── Résumé des valeurs ──
-          Wrap(
-            spacing: 8,
-            runSpacing: 6,
-            children: [
-              if (_fruite > 0)
-                _valuePill(
-                  'Fruité ${_fruiteVert ? "Vert" : "Mûr"}',
-                  _fruite,
-                  green,
-                ),
-              if (_amer > 0) _valuePill('Amer', _amer, oliveGreen),
-              if (_piquant > 0) _valuePill('Piquant', _piquant, oliveGreen),
-              if (_chome > 0) _valuePill('Chômé', _chome, Colors.orange),
-              if (_moisi > 0) _valuePill('Moisi', _moisi, Colors.orange),
-              if (_vinaigre > 0) _valuePill('Vinaigré', _vinaigre, Colors.red),
-              if (_gele > 0) _valuePill('Gelé', _gele, Colors.red),
-              if (_rance > 0) _valuePill('Rance', _rance, Colors.red),
-              if (_autresDefaut > 0)
-                _valuePill('Autre', _autresDefaut, Colors.red),
-            ],
+  // ─────────────────────────────────────────────────────────────────────────
+  // WIDGET — _chipTypeFruite
+  // Vert / Vert-mûr / Mûr — PR-48 §5 et §8
+  // ─────────────────────────────────────────────────────────────────────────
+  Widget _chipTypeFruite(TypeFruite type) {
+    final actif = _typeFruite == type;
+    final couleur = type == TypeFruite.mur ? oliveGreen : green;
+
+    return GestureDetector(
+      onTap: _estSoumis ? null : () => setState(() => _typeFruite = type),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+        decoration: BoxDecoration(
+          color: actif ? couleur.withValues(alpha: 0.1) : Colors.grey.shade50,
+          borderRadius: BorderRadius.circular(9),
+          border: Border.all(
+            color: actif ? couleur : Colors.grey.shade300,
+            width: actif ? 1.5 : 1.0,
           ),
-        ],
+        ),
+        child: Text(
+          '${type.emoji} ${type.label}',
+          textAlign: TextAlign.center,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            fontSize: 11.5,
+            color: actif ? couleur : Colors.grey.shade600,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
       ),
     );
   }
@@ -1179,10 +1081,12 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
 
   // ─────────────────────────────────────────────────────────────────────────
   // COULEUR — slider positif (vert uniquement)
+  // Seuils rebasés sur l'échelle 0–5 du PR-48 : sur les anciens seuils 3 et 6,
+  // un fruité au maximum serait resté dans la couleur du milieu.
   // ─────────────────────────────────────────────────────────────────────────
   Color _sliderPositifColor(double val) {
-    if (val <= 3.0) return green;
-    if (val <= 6.0) return oliveGreen;
+    if (val <= 1.5) return green;
+    if (val <= 3.0) return oliveGreen;
     return Colors.teal.shade600;
   }
 
@@ -1307,8 +1211,7 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
                     margin: const EdgeInsets.all(20),
                   ),
                 );
-                final classif = _classification['label'] as String;
-                Navigator.pop(context, classif);
+                Navigator.pop(context, _resultat.coi?.label ?? '');
               } catch (error) {
                 if (!mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(

@@ -23,7 +23,7 @@ import '../widgets/chef_nav_mixin.dart';
 import '../../../core/utils/date_utils.dart';
 
 // ── Own model ─────────────────────────────────────────────────────────────────
-import 'navigation/models/echantillon.dart';
+import '../../core/models/echantillon_evaluation.dart';
 import 'services/evaluation_echantillons_chef_service.dart';
 
 // ── Own widgets ───────────────────────────────────────────────────────────────

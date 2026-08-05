@@ -64,7 +64,7 @@ def on_echantillon_saved(sender, instance, created, **kwargs):
     if created:
         recipients = _get_users_by_roles(
             User.Role.DIRECTION,
-            User.Role.CHEF_PANEL,
+            User.Role.CHEF_DEGUSTATION,
             User.Role.DEGUSTATEUR,
         )
         _notify(
@@ -82,7 +82,7 @@ def on_echantillon_saved(sender, instance, created, **kwargs):
 
     if old_recu is False and instance.recu_physiquement:
         now = timezone.now()
-        recipients = _get_users_by_roles(User.Role.DIRECTION, User.Role.CHEF_PANEL)
+        recipients = _get_users_by_roles(User.Role.DIRECTION, User.Role.CHEF_DEGUSTATION)
         _notify(
             recipients,
             Notification.Type.ECHANTILLON_RECU,
@@ -95,7 +95,7 @@ def on_echantillon_saved(sender, instance, created, **kwargs):
             section=Notification.Section.ECHANTILLONS,
         )
     elif old_statut != 'achat_confirme' and instance.statut_collecteur == 'achat_confirme':
-        recipients = _get_users_by_roles(User.Role.DIRECTION, User.Role.CHEF_PANEL)
+        recipients = _get_users_by_roles(User.Role.DIRECTION, User.Role.CHEF_DEGUSTATION)
         _notify(
             recipients,
             Notification.Type.ACHAT_CONFIRME,
@@ -111,7 +111,7 @@ def on_echantillon_saved(sender, instance, created, **kwargs):
             or getattr(instance, '_old_variete', instance.variete) != instance.variete
         )
         if meaningful_change:
-            recipients = _get_users_by_roles(User.Role.DIRECTION, User.Role.CHEF_PANEL)
+            recipients = _get_users_by_roles(User.Role.DIRECTION, User.Role.CHEF_DEGUSTATION)
             _notify(
                 recipients,
                 Notification.Type.ECHANTILLON_MODIFIE,
@@ -125,7 +125,7 @@ def on_echantillon_saved(sender, instance, created, **kwargs):
 @receiver(pre_delete, sender='echantillons.Echantillon')
 def on_echantillon_deleted(sender, instance, **kwargs):
     ref = _sample_ref(instance)
-    recipients = _get_users_by_roles(User.Role.DIRECTION, User.Role.CHEF_PANEL)
+    recipients = _get_users_by_roles(User.Role.DIRECTION, User.Role.CHEF_DEGUSTATION)
     _notify(
         recipients,
         Notification.Type.ECHANTILLON_SUPPRIME,
@@ -149,11 +149,11 @@ def on_evaluation_saved(sender, instance, created, **kwargs):
     ).values('degustateur').distinct().count()
     active_taster_count = User.objects.filter(
         is_active=True,
-        role__in=[User.Role.DEGUSTATEUR, User.Role.CHEF_PANEL],
+        role__in=[User.Role.DEGUSTATEUR, User.Role.CHEF_DEGUSTATION],
     ).count()
 
     if active_taster_count and submitted_count >= active_taster_count:
-        recipients = _get_users_by_roles(User.Role.DIRECTION, User.Role.CHEF_PANEL)
+        recipients = _get_users_by_roles(User.Role.DIRECTION, User.Role.CHEF_DEGUSTATION)
         _notify(
             recipients,
             Notification.Type.TOUTES_EVALUATIONS,
@@ -163,7 +163,7 @@ def on_evaluation_saved(sender, instance, created, **kwargs):
             section=Notification.Section.EVALUATIONS,
         )
     else:
-        recipients = _get_users_by_roles(User.Role.CHEF_PANEL).exclude(id=instance.degustateur_id)
+        recipients = _get_users_by_roles(User.Role.CHEF_DEGUSTATION).exclude(id=instance.degustateur_id)
         _notify(
             recipients,
             Notification.Type.EVALUATION_SOUMISE,
@@ -181,7 +181,7 @@ def on_analyse_saved(sender, instance, created, **kwargs):
 
     echantillon = instance.echantillon
     ref = _sample_ref(echantillon)
-    recipients = _get_users_by_roles(User.Role.DIRECTION, User.Role.CHEF_PANEL)
+    recipients = _get_users_by_roles(User.Role.DIRECTION, User.Role.CHEF_DEGUSTATION)
     _notify(
         recipients,
         Notification.Type.ANALYSE_SOUMISE,
@@ -199,7 +199,7 @@ def on_session_saved(sender, instance, created, **kwargs):
 
     creator = instance.cree_par
     if creator and creator.role == User.Role.DEGUSTATEUR:
-        recipients = _get_users_by_roles(User.Role.CHEF_PANEL)
+        recipients = _get_users_by_roles(User.Role.CHEF_DEGUSTATION)
     else:
         recipients = instance.participants.filter(is_active=True)
 

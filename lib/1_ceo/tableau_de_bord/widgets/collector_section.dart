@@ -147,6 +147,15 @@ class CollectorSection extends StatelessWidget {
     const double barW = 36.0;
 
     final sorted = _sorted(metric);
+    if (sorted.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(16, 20, 16, 24),
+        child: Text(
+          'Aucune donnee collecteur disponible',
+          style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+        ),
+      );
+    }
     final maxRaw = _maxRaw(metric, sorted);
 
     final yTop = _yLabel(1.0, metric, maxRaw);

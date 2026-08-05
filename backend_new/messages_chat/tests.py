@@ -20,7 +20,7 @@ class MessageApiTests(APITestCase):
             password='Test@12345',
             nom='Recipient',
             prenom='User',
-            role=User.Role.CHEF_PANEL,
+            role=User.Role.CHEF_DEGUSTATION,
         )
         self.other = User.objects.create_user(
             email='other.messages@example.com',

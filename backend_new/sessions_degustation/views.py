@@ -6,7 +6,7 @@ from rest_framework.views import APIView
 from .models import SessionDegustation
 from .serializers import SessionDegustationSerializer
 from users.models import User
-from users.permissions import IsChefPanel, IsDegustateurOrChef
+from users.permissions import IsChefDegustation, IsDegustateurOrChef
 
 
 # Handles two things:
@@ -56,7 +56,7 @@ class SessionDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 
 class SessionApprouverView(APIView):
-    permission_classes = [IsAuthenticated, IsChefPanel]
+    permission_classes = [IsAuthenticated, IsChefDegustation]
 
     def post(self, request, pk):
         with transaction.atomic():
@@ -75,7 +75,7 @@ class SessionApprouverView(APIView):
 
 
 class SessionRefuserView(APIView):
-    permission_classes = [IsAuthenticated, IsChefPanel]
+    permission_classes = [IsAuthenticated, IsChefDegustation]
 
     def post(self, request, pk):
         with transaction.atomic():

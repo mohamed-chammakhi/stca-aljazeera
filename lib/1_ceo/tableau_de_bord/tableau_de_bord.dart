@@ -15,6 +15,7 @@ import '../notifications/services/notification_ceo_service.dart';
 import '../notifications/notifications_ceo_page.dart';
 import '../../core/widgets/search_filter_bar.dart';
 import 'models/dashboard_models.dart';
+import 'services/dashboard_ceo_service.dart';
 import 'widgets/kpi_grid_card.dart';
 import 'widgets/pipeline_card.dart';
 import 'widgets/urgent_panel.dart';
@@ -53,28 +54,9 @@ class _HomePageCeoState extends State<HomePageCeo> with TickerProviderStateMixin
 
   // ── Notifications ──────────────────────────────────────────────────────────
   final _notifService = NotificationCeoService();
+  final _dashboardService = DashboardCeoService();
+  DashboardCeoSnapshot _dashboard = DashboardCeoSnapshot.mock();
   int _unreadCount = 0;
-
-  // ── Mock data — replace each list with a service call when API is ready ────
-  static const _collectors = [
-    CollecteurDashStat('Ahmed Dridi',   'AD', 8, 0.75, 92400, 6),
-    CollecteurDashStat('Fatma Bouzid',  'FB', 5, 0.80, 68900, 4),
-    CollecteurDashStat('Sami Kraiem',   'SK', 6, 0.67, 71200, 8),
-    CollecteurDashStat('Khalil Maalej', 'KM', 4, 0.50, 38000, 11),
-  ];
-
-  static const _urgentItems = [
-    UrgentDecision('ECH-2026-031', 'Ahmed Dridi',  'Henchir Errouss', 3),
-    UrgentDecision('ECH-2026-028', 'Sami Kraiem',  'Domaine Zitoun',  2),
-  ];
-
-  static const _suppliers = [
-    FournisseurStat('Henchir Errouss',   'Sfax',    7, 143200),
-    FournisseurStat('Domaine Zitoun',    'Gafsa',   5, 98400),
-    FournisseurStat('Ferme El Baraka',   'Sousse',  4, 76100),
-    FournisseurStat('Agricole Ben Ali',  'Nabeul',  3, 55300),
-    FournisseurStat('Coop. Nour',        'Sidi Bz', 2, 32000),
-  ];
 
   // ── Lifecycle ──────────────────────────────────────────────────────────────
   @override
@@ -90,11 +72,17 @@ class _HomePageCeoState extends State<HomePageCeo> with TickerProviderStateMixin
     );
     _ctrl.forward();
     _loadUnreadCount();
+    _loadDashboard();
   }
 
   Future<void> _loadUnreadCount() async {
     final count = await _notifService.fetchUnreadCount();
     if (mounted) setState(() => _unreadCount = count);
+  }
+
+  Future<void> _loadDashboard() async {
+    final snapshot = await _dashboardService.fetchDashboard();
+    if (mounted) setState(() => _dashboard = snapshot);
   }
 
   @override
@@ -246,19 +234,28 @@ class _HomePageCeoState extends State<HomePageCeo> with TickerProviderStateMixin
             child: ListView(
               padding: const EdgeInsets.fromLTRB(14, 16, 14, 52),
               children: [
-                _fs(0, const KpiGridCard()),
+                _fs(0, KpiGridCard(
+                  totalInvestment: _dashboard.totalInvestment,
+                  confirmedPurchases: _dashboard.confirmedPurchases,
+                  submittedAnalyses: _dashboard.submittedAnalyses,
+                )),
                 const SizedBox(height: 12),
-                _fs(1, const PipelineCard()),
+                _fs(1, PipelineCard(counts: [
+                  _dashboard.pipelineReceptionne,
+                  _dashboard.pipelineRecu,
+                  _dashboard.pipelineNegotiation,
+                  _dashboard.pipelineConfirmed,
+                ])),
                 const SizedBox(height: 12),
-                if (_urgentItems.isNotEmpty) ...[
+                if (_dashboard.urgentItems.isNotEmpty) ...[
                   _fs(2, UrgentPanel(
-                    items: _urgentItems,
+                    items: _dashboard.urgentItems,
                     onTap: () => _goTo(const AnalyseOrganoleptiqueCeoPage()),
                   )),
                   const SizedBox(height: 12),
                 ],
                 _fs(3, CollectorSection(
-                  collectors: _collectors,
+                  collectors: _dashboard.collectors,
                   selectedMetric: _collectorMetric,
                   dateRange: _collectorRange,
                   onMetricChanged: (m) => setState(() => _collectorMetric = m),
@@ -271,6 +268,7 @@ class _HomePageCeoState extends State<HomePageCeo> with TickerProviderStateMixin
                 const SizedBox(height: 12),
                 _fs(4, SalesEvolutionCard(
                   dateRange: _salesRange,
+                  points: _dashboard.purchaseEvolution,
                   dateChipBuilder: (range, _) => _dateChip(
                     range,
                     () => _pickRange(_salesRange, (r) => setState(() => _salesRange = r)),
@@ -280,6 +278,7 @@ class _HomePageCeoState extends State<HomePageCeo> with TickerProviderStateMixin
                 const SizedBox(height: 12),
                 _fs(5, ClassificationCard(
                   dateRange: _classRange,
+                  values: _dashboard.classifications,
                   dateChipBuilder: (range, _) => _dateChip(
                     range,
                     () => _pickRange(_classRange, (r) => setState(() => _classRange = r)),
@@ -288,7 +287,7 @@ class _HomePageCeoState extends State<HomePageCeo> with TickerProviderStateMixin
                 )),
                 const SizedBox(height: 12),
                 _fs(6, SupplierFrequencyCard(
-                  suppliers: _suppliers,
+                  suppliers: _dashboard.suppliers,
                   dateRange: _salesRange,
                   dateChipBuilder: (range, _) => _dateChip(
                     range,
@@ -297,7 +296,10 @@ class _HomePageCeoState extends State<HomePageCeo> with TickerProviderStateMixin
                   onRangeChanged: (r) => setState(() => _salesRange = r),
                 )),
                 const SizedBox(height: 12),
-                _fs(7, const StockDonutCard()),
+                _fs(7, StockDonutCard(
+                  transitLots: _dashboard.stockTransit,
+                  receivedLots: _dashboard.stockReceived,
+                )),
                 const SizedBox(height: 12),
                 _fs(8, const MapCtaCard()),
               ],

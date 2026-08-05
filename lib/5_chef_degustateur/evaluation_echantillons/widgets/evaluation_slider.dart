@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/classification/classification_interne.dart';
 import '../../widgets/chef_colors.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -25,15 +26,13 @@ class EvaluationSlider extends StatelessWidget {
     this.readOnly = false,
   });
 
-  // ── COI intensity label ─────────────────────────────────────────────────
-  String get _intensiteLabel {
-    if (value == 0.0) return '';
-    if (value <= 3.0) return 'Délicat';
-    if (value <= 6.0) return 'Moyen';
-    return 'Robuste';
-  }
+  /// Attributs positifs : 0–5 (PR-48). Défauts : 0–10 (COI, inchangé).
+  double get _maxValeur => isPositif ? kMaxPositif : kMaxDefaut;
 
-  // ── Color for negative attributes ──────────────────────────────────────
+  // ── COI intensity label ─────────────────────────────────────────────────
+  String get _intensiteLabel => intensiteLabel(value, positif: isPositif);
+
+  // ── Color for negative attributes — échelle 0–10, seuils COI inchangés ──
   Color get _sliderColor {
     if (value <= 3.0) return chefGreen;
     if (value <= 6.0) return Colors.orange.shade500;
@@ -41,9 +40,11 @@ class EvaluationSlider extends StatelessWidget {
   }
 
   // ── Color for positive attributes (stays in greens) ─────────────────────
+  // Seuils rebasés sur 0–5 : sur les anciens seuils 3 et 6, un fruité au
+  // maximum serait resté dans la couleur du milieu.
   Color get _sliderPositifColor {
-    if (value <= 3.0) return chefGreen;
-    if (value <= 6.0) return chefOlive;
+    if (value <= 1.5) return chefGreen;
+    if (value <= 3.0) return chefOlive;
     return Colors.teal.shade600;
   }
 
@@ -148,7 +149,9 @@ class EvaluationSlider extends StatelessWidget {
                         if (value > 0.0) {
                           onChanged(
                             double.parse(
-                              (value - 0.5).clamp(0.0, 10.0).toStringAsFixed(1),
+                              (value - kPasSlider)
+                                  .clamp(0.0, _maxValeur)
+                                  .toStringAsFixed(1),
                             ),
                           );
                         }
@@ -200,10 +203,10 @@ class EvaluationSlider extends StatelessWidget {
                         ),
                       ),
                       child: Slider(
-                        value: value,
+                        value: value.clamp(0.0, _maxValeur),
                         min: 0.0,
-                        max: 10.0,
-                        divisions: 20, // pas de 0.5
+                        max: _maxValeur,
+                        divisions: (_maxValeur / kPasSlider).round(),
                         onChanged: readOnly ? null : onChanged,
                       ),
                     ),
@@ -213,7 +216,7 @@ class EvaluationSlider extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(horizontal: 4),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: List.generate(11, (i) {
+                        children: List.generate(_maxValeur.round() + 1, (i) {
                           final isActive = value >= i.toDouble();
                           return Text(
                             '$i',
@@ -241,10 +244,12 @@ class EvaluationSlider extends StatelessWidget {
                 onTap: readOnly
                     ? null
                     : () {
-                        if (value < 10.0) {
+                        if (value < _maxValeur) {
                           onChanged(
                             double.parse(
-                              (value + 0.5).clamp(0.0, 10.0).toStringAsFixed(1),
+                              (value + kPasSlider)
+                                  .clamp(0.0, _maxValeur)
+                                  .toStringAsFixed(1),
                             ),
                           );
                         }
@@ -253,12 +258,12 @@ class EvaluationSlider extends StatelessWidget {
                   width: 34,
                   height: 34,
                   decoration: BoxDecoration(
-                    color: value < 10.0 && !readOnly
+                    color: value < _maxValeur && !readOnly
                         ? color.withValues(alpha:0.1)
                         : Colors.grey.shade100,
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
-                      color: value < 10.0 && !readOnly
+                      color: value < _maxValeur && !readOnly
                           ? color.withValues(alpha:0.4)
                           : Colors.grey.shade200,
                     ),
@@ -266,7 +271,7 @@ class EvaluationSlider extends StatelessWidget {
                   child: Icon(
                     Icons.add,
                     size: 16,
-                    color: value < 10.0 && !readOnly
+                    color: value < _maxValeur && !readOnly
                         ? color
                         : Colors.grey.shade400,
                   ),

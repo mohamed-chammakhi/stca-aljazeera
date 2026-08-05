@@ -10,7 +10,7 @@ class SessionDegustationSerializer(serializers.ModelSerializer):
     created_by = serializers.UUIDField(source='cree_par_id', read_only=True)
     created_at = serializers.DateTimeField(source='date_creation', read_only=True)
     participant_ids = serializers.PrimaryKeyRelatedField(
-        queryset=User.objects.filter(role__in=('degustateur', 'chef_panel'), is_active=True),
+        queryset=User.objects.filter(role__in=('degustateur', 'chef_degustation'), is_active=True),
         many=True,
         source='participants',
         required=False,

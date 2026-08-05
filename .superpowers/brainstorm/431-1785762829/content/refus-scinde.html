@@ -1,0 +1,203 @@
+<link href="https://fonts.googleapis.com/css2?family=Domine:wght@400;600;700&family=Alegreya:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+  .rs{ --green:#38835A; --dark:#1A2E1F; --orange:#D07B2F; --creme:#FEF3E8;
+       --rouge:#B71C1C; --gris:#9C9B9B;
+       --domine:'Domine',Georgia,serif; --alegreya:'Alegreya',Georgia,serif; }
+  .rs * { box-sizing:border-box; }
+
+  .phone{
+    width:330px; flex:0 0 330px; background:#fff; border-radius:20px;
+    border:1px solid rgba(0,0,0,.14); overflow:hidden; padding:14px;
+    font-family:var(--alegreya); color:var(--dark);
+    box-shadow:0 16px 40px -18px rgba(26,46,31,.4);
+  }
+
+  /* ── fenêtre de refus ─────────────────────────────── */
+  .dlg{ background:#fff; border-radius:16px; border:1px solid #E8E8E8; overflow:hidden; }
+  .dlg-t{ padding:18px 18px 4px; font-family:var(--domine); font-size:16px; font-weight:700; }
+  .dlg-b{ padding:10px 18px 6px; }
+  .dlg-f{ padding:10px 14px 14px; display:flex; gap:8px; justify-content:flex-end; }
+
+  .opt{
+    display:flex; gap:9px; align-items:flex-start; padding:11px 12px;
+    border:1.5px solid #E2E6E3; border-radius:11px; margin-bottom:9px; cursor:default;
+  }
+  .opt.on{ border-color:var(--orange); background:rgba(208,123,47,.055); }
+  .opt.on.def{ border-color:var(--rouge); background:rgba(183,28,28,.045); }
+  .radio{
+    width:16px; height:16px; flex:0 0 16px; margin-top:2px; border-radius:50%;
+    border:1.8px solid #C3CBC6; background:#fff;
+  }
+  .opt.on .radio{ border-color:var(--orange); border-width:5px; }
+  .opt.on.def .radio{ border-color:var(--rouge); border-width:5px; }
+  .opt h4{ margin:0 0 2px; font-size:13.5px; font-weight:700; font-family:var(--domine); }
+  .opt.on h4{ color:var(--orange); }
+  .opt.on.def h4{ color:var(--rouge); }
+  .opt p{ margin:0; font-size:11.5px; color:#6B7A70; line-height:1.4; }
+
+  .champ{
+    margin-top:9px; border:1.5px solid #E2E6E3; border-radius:9px;
+    padding:8px 10px; font-size:12.5px; color:var(--dark); background:#fff;
+  }
+  .champ .lg{ font-size:10px; color:var(--gris); font-weight:600; letter-spacing:.3px; display:block; margin-bottom:3px; }
+  .champ.vide{ color:#B9C0BB; }
+
+  .btn{ padding:9px 16px; border-radius:9px; font-size:13px; font-weight:700; font-family:var(--alegreya); }
+  .btn.ghost{ background:#fff; border:1.4px solid #DDE3DF; color:#6B7A70; }
+  .btn.go{ background:var(--orange); color:#fff; border:none; }
+
+  /* ── carte + marqueur ─────────────────────────────── */
+  .card{ border:1px solid #EDEDED; border-radius:12px; padding:12px; background:#fff; margin-bottom:12px; }
+  .card-t{ font-family:var(--domine); font-size:14.5px; font-weight:700; }
+  .card-s{ font-size:11.5px; color:var(--gris); margin:2px 0 9px; }
+  .rangee{ display:flex; gap:7px; align-items:center; flex-wrap:wrap; }
+
+  .chip-statut{
+    padding:4px 11px; border-radius:20px; font-size:11px; font-weight:700;
+    background:var(--orange); color:#fff;
+  }
+  .marq{
+    display:inline-flex; align-items:center; gap:4px;
+    padding:3px 9px; border-radius:20px; font-size:11px; font-weight:600;
+    letter-spacing:.2px; border:1.2px solid var(--orange);
+    background:var(--creme); color:var(--orange);
+  }
+  .marq.fort{ background:var(--orange); color:#fff; border-color:var(--orange); }
+  .marq .ic{ font-size:12px; line-height:1; }
+
+  .stack{ display:flex; gap:36px; flex-wrap:wrap; align-items:flex-start; }
+  .cap{ font-size:10px; letter-spacing:.11em; text-transform:uppercase; color:#8B968F; font-weight:700; margin:0 0 9px; }
+  .note{ font-size:12.5px; color:#6B7A70; line-height:1.55; max-width:370px; margin:11px 0 0; }
+  .lbl-x{ font-size:11px; color:var(--gris); margin:0 0 5px; font-weight:600; }
+</style>
+
+<div class="rs">
+
+<h2>Refus scindé — l'écran</h2>
+<p class="subtitle">Repris à la lettre de vos notes : un seul bouton « Refuser », le choix se fait dans la fenêtre.</p>
+
+<div class="stack">
+
+  <!-- ───── LA FENÊTRE ───── -->
+  <div>
+    <p class="cap">Ce qui s'ouvre au clic sur « Refuser »</p>
+    <div class="phone">
+      <div class="dlg">
+        <div class="dlg-t">Refuser — CHEMLALI-K7</div>
+        <div class="dlg-b">
+
+          <div class="opt on">
+            <span class="radio"></span>
+            <div>
+              <h4>Renvoyer en négociation</h4>
+              <p>Le prix ne convient pas, mais le stock reste intéressant. Le collecteur reçoit votre contre-proposition.</p>
+              <div class="champ">
+                <span class="lg">CONTRE-PRIX OU FOURCHETTE</span>
+                7.20 TND/L
+              </div>
+            </div>
+          </div>
+
+          <div class="opt def">
+            <span class="radio"></span>
+            <div>
+              <h4>Refus définitif</h4>
+              <p>Ce stock ne vous intéresse pas. L'échantillon sort du parcours d'achat.</p>
+            </div>
+          </div>
+
+          <div class="champ vide">
+            <span class="lg">RAISON</span>
+            Expliquer la décision au collecteur…
+          </div>
+
+        </div>
+        <div class="dlg-f">
+          <span class="btn ghost">Annuler</span>
+          <span class="btn go">Valider</span>
+        </div>
+      </div>
+    </div>
+    <p class="note">
+      La carte garde ses deux boutons actuels, <strong>Confirmer</strong> et <strong>Refuser</strong>.
+      Pas de troisième bouton. Le directeur est obligé de choisir explicitement, donc
+      plus de refus définitif par réflexe.
+    </p>
+  </div>
+
+  <!-- ───── LE MARQUEUR ───── -->
+  <div>
+    <p class="cap">Le marqueur sur la carte</p>
+
+    <p class="lbl-x">1 et 2 tours — discret, factuel</p>
+    <div class="card">
+      <div class="card-t">CHEMLALI-K7</div>
+      <div class="card-s">Henchir Errouss · Sfax · 40 T</div>
+      <div class="rangee">
+        <span class="chip-statut">En négociation</span>
+        <span class="marq"><span class="ic">↺</span> Renégocié ×2</span>
+      </div>
+    </div>
+
+    <p class="lbl-x">3 tours et plus — impossible à manquer</p>
+    <div class="card">
+      <div class="card-t">CHETOUI-J3</div>
+      <div class="card-s">Sidi Bouzid Nord · 28 T</div>
+      <div class="rangee">
+        <span class="chip-statut">En négociation</span>
+        <span class="marq fort"><span class="ic">↺</span> Renégocié ×4</span>
+      </div>
+    </div>
+
+    <p class="note">
+      <strong>Pourquoi une pastille contournée</strong> — le statut reste « En négociation ».
+      Si le marqueur était plein dès le premier tour, on le lirait comme un statut,
+      et on recréerait visuellement l'état qu'on a justement refusé de créer.
+      Il se distingue donc par la <strong>forme</strong>, pas seulement par la couleur.
+    </p>
+    <p class="note">
+      <strong>Pourquoi orange et pas rouge</strong> — le rouge est la couleur du refus.
+      Un marqueur rouge ferait lire « refusé » un échantillon qui est toujours vivant.
+    </p>
+    <p class="note">
+      <strong>Pourquoi le compteur ×N</strong> — vous avez décidé qu'il n'y a aucun plafond
+      au nombre de renégociations. Le compteur est donc le seul signal qu'un dossier
+      s'enlise. C'est pour ça qu'il durcit à partir du 3ᵉ tour.
+    </p>
+  </div>
+
+</div>
+
+<h3 style="margin-top:28px">Un point que vos notes ne tranchent pas</h3>
+<p class="subtitle" style="max-width:640px">
+  Le contre-prix est écrit « contre-prix / fourchette ». Or la partie 4 du même fichier dit que
+  la saisie d'un intervalle est un problème non résolu (décision C8 / D6, toujours ouverte).
+  Il faut donc décider ce que ce champ accepte <em>maintenant</em>.
+</p>
+
+<div class="options">
+  <div class="option" data-choice="simple" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Un seul prix pour l'instant</h3>
+      <p>Le champ accepte un nombre, comme les autres champs de prix aujourd'hui. La fourchette attendra que C8 soit tranché. Rien ne bloque, rien n'est inventé.</p>
+    </div>
+  </div>
+  <div class="option" data-choice="libre" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Texte libre</h3>
+      <p>Le directeur écrit ce qu'il veut : « 7.20 » ou « entre 7 et 7.50 ». Souple tout de suite, mais la valeur n'est plus calculable et le collecteur peut lire autre chose que ce qui était voulu.</p>
+    </div>
+  </div>
+  <div class="option" data-choice="deux" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Deux champs : de … à …</h3>
+      <p>Un minimum et un maximum, le maximum facultatif. Ça règle la fourchette, mais vos notes écartent explicitement « deux sélecteurs côte à côte, trop lourd ».</p>
+    </div>
+  </div>
+</div>
+
+</div>

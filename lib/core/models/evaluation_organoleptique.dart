@@ -16,14 +16,26 @@ class EvaluationOrganoleptique {
   // ── Denormalized display fields (API annotations — not sent on POST/PUT) ────
   final String? tasteurNom;    // taster's full name — for display in CEO view
 
-  // ── Classification result ─────────────────────────────────────────────────────
+  // ── Niveau 1 — catégorie réglementaire COI ────────────────────────────────────
   ClassificationHuile classification;
+
+  // ── Niveau 2 — classe interne PR-48 (§6 : huiles extra vierges uniquement) ────
+  ClasseInterne? classeInterne;
+  /// Vrai quand la grille §8 ne rendait aucune classe et que le dégustateur
+  /// a choisi la sienne.
+  bool classeInterneManuelle;
+  /// Motif « hors grille » figé au moment du choix (traçabilité §14).
+  String? classeInterneMotif;
+  String? classeInterneChoisieLe;   // ISO 8601, posé par le serveur
+  /// Critère « profil harmonieux » (§8) / « priorité à l'équilibre » (§9),
+  /// que le PR-48 ne chiffre pas — c'est le dégustateur qui juge.
+  bool profilNonHarmonieux;
 
   final String soumisLe;       // ISO 8601 — set by the server on submission
 
-  // ── Positive attributes (COI scale 0–10) ──────────────────────────────────────
+  // ── Positive attributes (échelle 0–5 — PR-48) ─────────────────────────────────
   double? fruite;
-  bool fruiteVert;   // true = Vert (green), false = Mûr (ripe)
+  TypeFruite typeFruite;
   double? amertume;
   double? piquant;
 
@@ -45,9 +57,14 @@ class EvaluationOrganoleptique {
     this.sessionId,
     this.tasteurNom,
     required this.classification,
+    this.classeInterne,
+    this.classeInterneManuelle = false,
+    this.classeInterneMotif,
+    this.classeInterneChoisieLe,
+    this.profilNonHarmonieux = false,
     required this.soumisLe,
     this.fruite,
-    this.fruiteVert = true,
+    this.typeFruite = TypeFruite.vert,
     this.amertume,
     this.piquant,
     this.chome,
@@ -81,9 +98,16 @@ class EvaluationOrganoleptique {
         sessionId:       json['session_id']         as String?,
         tasteurNom:      json['tasteur_nom']        as String?,
         classification:  ClassificationHuileX.fromJson(json['classification'] as String),
+        classeInterne:   ClasseInterneX.fromJson(json['classe_interne'] as String?),
+        classeInterneManuelle:
+                         (json['classe_interne_manuelle'] as bool?) ?? false,
+        classeInterneMotif:    json['classe_interne_motif']      as String?,
+        classeInterneChoisieLe: json['classe_interne_choisie_le'] as String?,
+        profilNonHarmonieux:
+                         (json['profil_non_harmonieux'] as bool?) ?? false,
         soumisLe:        json['soumis_le']          as String,
         fruite:          (json['fruite']            as num?)?.toDouble(),
-        fruiteVert:      (json['fruite_vert'] as bool?) ?? true,
+        typeFruite:      TypeFruiteX.fromJson(json['type_fruite'] as String?),
         amertume:        (json['amertume']          as num?)?.toDouble(),
         piquant:         (json['piquant']           as num?)?.toDouble(),
         chome:           (json['chome']             as num?)?.toDouble(),
@@ -108,9 +132,13 @@ class EvaluationOrganoleptique {
     'tasteur_id':        tasteurId,
     'session_id':        sessionId,
     'classification':   classification.toJson,
+    'classe_interne':          classeInterne?.toJson ?? '',
+    'classe_interne_manuelle': classeInterneManuelle,
+    'classe_interne_motif':    classeInterneMotif ?? '',
+    'profil_non_harmonieux':   profilNonHarmonieux,
     'soumis_le':        soumisLe,
     'fruite':           fruite,
-    'fruite_vert':      fruiteVert,
+    'type_fruite':      typeFruite.toJson,
     'amertume':         amertume,
     'piquant':          piquant,
     'chome':            chome,

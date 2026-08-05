@@ -396,7 +396,7 @@ class _HomeBodyState extends State<HomeBody> {
             child: body,
           ),
         ),
-        if (footer != null) footer,
+        ?footer,
       ],
     ),
   );

@@ -18,6 +18,9 @@ class Notification(models.Model):
         PROPOSITION_ACHAT_ATTENTE = 'proposition_achat_attente', "Proposition d'achat en attente"
         ANALYSE_URGENTE = 'ANALYSE_URGENTE', 'Analyse urgente demandee'
         NOUVELLE_SESSION = 'NOUVELLE_SESSION', 'Nouvelle session'
+        # La direction refuse le PRIX, pas le stock : le collecteur recoit une
+        # contre-proposition et l'echantillon reste en negociation.
+        NEGOCIATION_A_REVOIR = 'NEGOCIATION_A_REVOIR', 'Negociation a revoir'
 
     class Section(models.TextChoices):
         ECHANTILLONS = 'ECHANTILLONS', 'Echantillons'

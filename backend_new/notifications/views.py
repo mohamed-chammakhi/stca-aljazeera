@@ -2,6 +2,9 @@ from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from echantillons.models import Echantillon
+from users.models import User
+from users.permissions import IsDegustateurOrChef
 from .models import Notification
 from .serializers import NotificationSerializer
 
@@ -54,3 +57,71 @@ class NotificationUnreadCountView(APIView):
     def get(self, request):
         count = Notification.objects.filter(destinataire=request.user, is_read=False).count()
         return Response({'count': count})
+
+
+class UrgentAnalysisRequestView(APIView):
+    permission_classes = [IsDegustateurOrChef]
+
+    def post(self, request):
+        echantillon_id = request.data.get('echantillon') or request.data.get('echantillon_id')
+        if not echantillon_id:
+            return Response(
+                {'echantillon': ['Champ requis.']},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            echantillon = Echantillon.objects.get(pk=echantillon_id)
+        except Echantillon.DoesNotExist:
+            return Response(
+                {'detail': 'Echantillon introuvable.'},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        if not echantillon.recu_physiquement:
+            return Response(
+                {'detail': 'Seuls les echantillons recus physiquement peuvent etre demandes en urgence.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        lab_users = User.objects.filter(
+            role=User.Role.LABORATOIRE,
+            is_active=True,
+        )
+        if not lab_users.exists():
+            return Response(
+                {'detail': 'Aucun technicien laboratoire actif.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        requester_name = f'{request.user.prenom} {request.user.nom}'.strip()
+        sample_label = echantillon.numero or echantillon.reference_bouteille or str(echantillon.id)
+        title = 'Analyse laboratoire urgente'
+        message = (
+            f'{requester_name} demande une analyse urgente pour '
+            f"l'echantillon {sample_label}."
+        )
+
+        created = []
+        for lab_user in lab_users:
+            notification, was_created = Notification.objects.get_or_create(
+                destinataire=lab_user,
+                type=Notification.Type.ANALYSE_URGENTE,
+                echantillon=echantillon,
+                is_read=False,
+                defaults={
+                    'titre': title,
+                    'message': message,
+                    'section': Notification.Section.ANALYSES,
+                },
+            )
+            if was_created:
+                created.append(notification)
+
+        return Response(
+            {
+                'created': len(created),
+                'recipients': lab_users.count(),
+            },
+            status=status.HTTP_201_CREATED if created else status.HTTP_200_OK,
+        )

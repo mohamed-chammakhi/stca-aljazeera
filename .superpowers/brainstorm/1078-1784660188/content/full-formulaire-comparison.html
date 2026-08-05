@@ -1,0 +1,255 @@
+<style>
+  .phones-row { display:flex; gap:22px; align-items:flex-start; overflow-x:auto; padding-bottom:8px; }
+  .phone { width:346px; flex:0 0 auto; background:#fff; border-radius:28px; box-shadow:0 8px 30px rgba(0,0,0,0.18); border:6px solid #1a1a1a; overflow:hidden; }
+  .phone-tag { text-align:center; font-weight:800; font-size:13px; letter-spacing:1px; text-transform:uppercase; color:#666; margin-bottom:10px; }
+  .phone-scroll { height:640px; overflow-y:auto; background:#fff; }
+  .app-bar { background:#DCE9E2; height:65px; display:flex; align-items:center; padding:0 14px; gap:10px; }
+  .app-bar .back { color:#1A2E1F; font-size:18px; }
+  .app-bar .titles { display:flex; flex-direction:column; }
+  .app-bar .titles .t1 { font-family:Georgia,serif; font-weight:700; font-size:16px; color:#1A2E1F; }
+  .app-bar .titles .t2 { font-size:11px; color:#8a8a8a; }
+  .app-body { padding:14px; }
+  .fcard { background:#fff; border-radius:14px; padding:14px; box-shadow:0 3px 10px rgba(0,0,0,0.06); margin-bottom:14px; }
+  .fcard h4 { margin:0 0 3px; font-family:Georgia,serif; font-size:14px; font-weight:700; color:#1A2E1F; }
+  .fcard .sub { font-size:10px; color:#999; margin-bottom:10px; }
+  .fcard hr { border:none; border-top:1px solid #f0f0f0; margin-bottom:10px; }
+  .info-row { display:flex; align-items:center; gap:6px; font-size:11px; color:#1A2E1F; margin-bottom:3px; }
+  .photo-box { width:64px; height:64px; border-radius:10px; background:#EAF2EE; display:flex; align-items:center; justify-content:center; color:#bbb; font-size:22px; flex:0 0 auto; }
+  .class-card { border-radius:14px; padding:14px; border:1.5px solid; margin-bottom:14px; }
+  .class-card.coi { background:#F0F8F3; border-color:#38835A66; }
+  .class-card.interne { background:#FDF8EA; border-color:#c9a227; }
+  .class-top { display:flex; align-items:center; font-size:11px; font-weight:700; letter-spacing:0.5px; color:#777; }
+  .class-top .spacer { flex:1; }
+  .class-label { font-size:21px; font-weight:800; margin:6px 0 3px; }
+  .class-desc { font-size:11px; color:#777; margin-bottom:8px; }
+  .pill { display:inline-block; font-size:10px; font-weight:700; padding:3px 9px; border-radius:14px; margin:0 5px 5px 0; }
+  .badge-new { background:#c9a227; color:#fff; font-size:9px; font-weight:800; padding:2px 8px; border-radius:8px; letter-spacing:.5px; }
+  .attr-row { margin-bottom:16px; }
+  .attr-top { display:flex; align-items:center; justify-content:space-between; }
+  .attr-name { font-size:12px; font-weight:700; }
+  .attr-desc { font-size:10px; color:#999; }
+  .attr-val { font-size:12px; font-weight:800; border-radius:7px; padding:2px 8px; }
+  .attr-intens { font-size:9px; font-weight:700; border-radius:7px; padding:2px 7px; margin-left:5px; }
+  .slider-track { height:5px; border-radius:3px; background:#eee; margin:8px 0 4px; position:relative; }
+  .slider-fill { height:5px; border-radius:3px; position:absolute; left:0; top:0; }
+  .slider-thumb { width:14px; height:14px; border-radius:50%; position:absolute; top:-4.5px; }
+  .grad { display:flex; justify-content:space-between; font-size:8px; color:#bbb; }
+  .toggle-chip { display:inline-block; font-size:10px; font-weight:700; padding:4px 11px; border-radius:14px; margin-right:6px; }
+  .btn-outline { border:1.5px solid #38835A; color:#38835A; text-align:center; padding:10px; border-radius:12px; font-size:12px; font-weight:700; margin-bottom:10px; }
+  .btn-fill { background:#38835A; color:#fff; text-align:center; padding:11px; border-radius:12px; font-size:13px; font-weight:800; }
+  .fade-note { font-size:10px; color:#aaa; text-align:center; margin-top:10px; }
+</style>
+
+<h2>Fiche d'Évaluation — écran complet</h2>
+<p class="subtitle">Reproduction fidèle de l'écran réel (mêmes couleurs, mêmes cartes, même ordre). Faites défiler chaque téléphone verticalement.</p>
+
+<div class="phones-row">
+
+  <!-- ============ AVANT ============ -->
+  <div>
+    <div class="phone-tag">Avant — aujourd'hui</div>
+    <div class="phone">
+      <div class="app-bar">
+        <span class="back">&#8592;</span>
+        <div class="titles">
+          <span class="t1">Fiche d'Évaluation</span>
+          <span class="t2">ECH-2026-0143</span>
+        </div>
+      </div>
+      <div class="phone-scroll">
+        <div class="app-body">
+
+          <div class="fcard">
+            <h4>📋 Informations de l'Échantillon</h4>
+            <hr>
+            <div style="display:flex; gap:12px;">
+              <div class="photo-box">🖼️</div>
+              <div>
+                <div style="font-weight:700; font-size:13px; color:#1A2E1F; margin-bottom:4px;">ECH-2026-0143</div>
+                <div class="info-row">🏪 Domaine El Jazira</div>
+                <div class="info-row">🌿 Chemlali</div>
+                <div class="info-row">📍 Sfax</div>
+                <div class="info-row">📅 18/07/2026</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="class-card coi">
+            <div class="class-top">🏅&nbsp;&nbsp;CLASSIFICATION COI <span class="spacer"></span> Méd. défaut: 0.0</div>
+            <div class="class-label" style="color:#38835A;">Extra Vierge</div>
+            <div class="class-desc">Médiane défauts = 0.0 et Fruité &gt; 0.0</div>
+            <span class="pill" style="background:#38835A1a;color:#38835A;">Fruité Vert: 4.0</span>
+            <span class="pill" style="background:#6B81431a;color:#6B8143;">Amer: 3.2</span>
+            <span class="pill" style="background:#6B81431a;color:#6B8143;">Piquant: 3.5</span>
+          </div>
+
+          <div class="fcard">
+            <h4>✅ Attributs Positifs</h4>
+            <div class="sub">Tous les champs sont optionnels</div>
+            <hr>
+
+            <div class="attr-row">
+              <div class="attr-top">
+                <div><div class="attr-name" style="color:#38835A;">Fruité</div><div class="attr-desc">Sensations olfactives caractéristiques</div></div>
+                <div><span class="attr-val" style="background:#38835A1a;color:#38835A;">4.0</span><span class="attr-intens" style="background:#38835A1a;color:#38835A;">Moyen</span></div>
+              </div>
+              <div class="slider-track"><div class="slider-fill" style="width:40%;background:#38835A;"></div><div class="slider-thumb" style="left:40%;background:#38835A;"></div></div>
+              <div style="margin:6px 0 8px;"><span class="toggle-chip" style="background:#38835A;color:#fff;">🌿 Vert</span><span class="toggle-chip" style="background:#f0f0f0;color:#999;">🫒 Mûr</span></div>
+            </div>
+
+            <div class="attr-row">
+              <div class="attr-top">
+                <div><div class="attr-name" style="color:#38835A;">Amer</div><div class="attr-desc">Goût primaire — olives vertes</div></div>
+                <div><span class="attr-val" style="background:#6B81431a;color:#6B8143;">3.2</span><span class="attr-intens" style="background:#6B81431a;color:#6B8143;">Moyen</span></div>
+              </div>
+              <div class="slider-track"><div class="slider-fill" style="width:32%;background:#6B8143;"></div><div class="slider-thumb" style="left:32%;background:#6B8143;"></div></div>
+            </div>
+
+            <div class="attr-row">
+              <div class="attr-top">
+                <div><div class="attr-name" style="color:#38835A;">Piquant</div><div class="attr-desc">Sensation tactile — début de campagne</div></div>
+                <div><span class="attr-val" style="background:#6B81431a;color:#6B8143;">3.5</span><span class="attr-intens" style="background:#6B81431a;color:#6B8143;">Moyen</span></div>
+              </div>
+              <div class="slider-track"><div class="slider-fill" style="width:35%;background:#6B8143;"></div><div class="slider-thumb" style="left:35%;background:#6B8143;"></div></div>
+            </div>
+          </div>
+
+          <div class="fcard">
+            <h4>⚠️ Attributs Négatifs — Défauts</h4>
+            <div class="sub">Tous les champs sont optionnels</div>
+            <hr>
+            <div class="attr-row">
+              <div class="attr-top">
+                <div><div class="attr-name" style="color:#1A2E1F;">Chômé / Lie de boue</div><div class="attr-desc">Fermentation anaérobie</div></div>
+                <div><span class="attr-val" style="background:#f5f5f5;color:#bbb;">0.0</span></div>
+              </div>
+              <div class="slider-track"></div>
+            </div>
+            <div class="fade-note">… Moisi, Vinaigré, Gelé, Rance, Autre défaut (identiques, tous à 0.0)</div>
+          </div>
+
+          <div class="fcard">
+            <h4>📝 Notes du Dégustateur</h4>
+            <hr>
+            <div style="background:#fafafa; border:1px solid #eee; border-radius:10px; padding:10px; font-size:11px; color:#bbb;">Profil aromatique dominé par des notes vertes...</div>
+          </div>
+
+          <div class="btn-outline">💾 Enregistrer le brouillon</div>
+          <div class="btn-fill">🔒 Soumettre &amp; Verrouiller</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ APRÈS ============ -->
+  <div>
+    <div class="phone-tag">Après — proposé</div>
+    <div class="phone">
+      <div class="app-bar">
+        <span class="back">&#8592;</span>
+        <div class="titles">
+          <span class="t1">Fiche d'Évaluation</span>
+          <span class="t2">ECH-2026-0143</span>
+        </div>
+      </div>
+      <div class="phone-scroll">
+        <div class="app-body">
+
+          <div class="fcard">
+            <h4>📋 Informations de l'Échantillon</h4>
+            <hr>
+            <div style="display:flex; gap:12px;">
+              <div class="photo-box">🖼️</div>
+              <div>
+                <div style="font-weight:700; font-size:13px; color:#1A2E1F; margin-bottom:4px;">ECH-2026-0143</div>
+                <div class="info-row">🏪 Domaine El Jazira</div>
+                <div class="info-row">🌿 Chemlali</div>
+                <div class="info-row">📍 Sfax</div>
+                <div class="info-row">📅 18/07/2026</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="class-card coi">
+            <div class="class-top">🏅&nbsp;&nbsp;CLASSIFICATION COI <span class="spacer"></span> Méd. défaut: 0.0</div>
+            <div class="class-label" style="color:#38835A;">Extra Vierge</div>
+            <div class="class-desc">Médiane défauts = 0.0 et Fruité &gt; 0.0 (inchangé)</div>
+            <span class="pill" style="background:#38835A1a;color:#38835A;">Fruité Vert: 4.0</span>
+            <span class="pill" style="background:#6B81431a;color:#6B8143;">Amer: 3.2</span>
+            <span class="pill" style="background:#6B81431a;color:#6B8143;">Piquant: 3.5</span>
+          </div>
+
+          <!-- NEW CARD -->
+          <div class="class-card interne">
+            <div class="class-top">⭐&nbsp;&nbsp;CLASSE INTERNE <span class="spacer"></span> <span class="badge-new">NOUVEAU</span></div>
+            <div class="class-label" style="color:#8a6d00;">Extra A</div>
+            <div class="class-desc">Fruité vert marqué, amertume/piquant modérés — profil équilibré</div>
+            <span class="pill" style="background:#c9a2271a;color:#8a6d00;">Fruité Vert: 4.0</span>
+            <span class="pill" style="background:#c9a2271a;color:#8a6d00;">Amer: 3.2</span>
+            <span class="pill" style="background:#c9a2271a;color:#8a6d00;">Piquant: 3.5</span>
+            <div style="font-size:9.5px;color:#a08a3a;font-style:italic;margin-top:6px;">Usage interne — n'apparaît que si la classe COI est Extra Vierge</div>
+          </div>
+
+          <div class="fcard">
+            <h4>✅ Attributs Positifs</h4>
+            <div class="sub">Tous les champs sont optionnels — inchangés</div>
+            <hr>
+
+            <div class="attr-row">
+              <div class="attr-top">
+                <div><div class="attr-name" style="color:#38835A;">Fruité</div><div class="attr-desc">Sensations olfactives caractéristiques</div></div>
+                <div><span class="attr-val" style="background:#38835A1a;color:#38835A;">4.0</span><span class="attr-intens" style="background:#38835A1a;color:#38835A;">Moyen</span></div>
+              </div>
+              <div class="slider-track"><div class="slider-fill" style="width:40%;background:#38835A;"></div><div class="slider-thumb" style="left:40%;background:#38835A;"></div></div>
+              <div style="margin:6px 0 8px;"><span class="toggle-chip" style="background:#38835A;color:#fff;">🌿 Vert</span><span class="toggle-chip" style="background:#f0f0f0;color:#999;">🫒 Mûr</span></div>
+            </div>
+
+            <div class="attr-row">
+              <div class="attr-top">
+                <div><div class="attr-name" style="color:#38835A;">Amer</div><div class="attr-desc">Goût primaire — olives vertes</div></div>
+                <div><span class="attr-val" style="background:#6B81431a;color:#6B8143;">3.2</span><span class="attr-intens" style="background:#6B81431a;color:#6B8143;">Moyen</span></div>
+              </div>
+              <div class="slider-track"><div class="slider-fill" style="width:32%;background:#6B8143;"></div><div class="slider-thumb" style="left:32%;background:#6B8143;"></div></div>
+            </div>
+
+            <div class="attr-row">
+              <div class="attr-top">
+                <div><div class="attr-name" style="color:#38835A;">Piquant</div><div class="attr-desc">Sensation tactile — début de campagne</div></div>
+                <div><span class="attr-val" style="background:#6B81431a;color:#6B8143;">3.5</span><span class="attr-intens" style="background:#6B81431a;color:#6B8143;">Moyen</span></div>
+              </div>
+              <div class="slider-track"><div class="slider-fill" style="width:35%;background:#6B8143;"></div><div class="slider-thumb" style="left:35%;background:#6B8143;"></div></div>
+            </div>
+          </div>
+
+          <div class="fcard">
+            <h4>⚠️ Attributs Négatifs — Défauts</h4>
+            <div class="sub">Tous les champs sont optionnels — inchangés</div>
+            <hr>
+            <div class="attr-row">
+              <div class="attr-top">
+                <div><div class="attr-name" style="color:#1A2E1F;">Chômé / Lie de boue</div><div class="attr-desc">Fermentation anaérobie</div></div>
+                <div><span class="attr-val" style="background:#f5f5f5;color:#bbb;">0.0</span></div>
+              </div>
+              <div class="slider-track"></div>
+            </div>
+            <div class="fade-note">… Moisi, Vinaigré, Gelé, Rance, Autre défaut (identiques, tous à 0.0)</div>
+          </div>
+
+          <div class="fcard">
+            <h4>📝 Notes du Dégustateur</h4>
+            <hr>
+            <div style="background:#fafafa; border:1px solid #eee; border-radius:10px; padding:10px; font-size:11px; color:#bbb;">Profil aromatique dominé par des notes vertes...</div>
+          </div>
+
+          <div class="btn-outline">💾 Enregistrer le brouillon</div>
+          <div class="btn-fill">🔒 Soumettre &amp; Verrouiller</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="section" style="margin-top:16px;">
+  <p class="subtitle">Le seul ajout visuel est la carte dorée "Classe interne" insérée juste après la carte verte "Classification COI". Rien d'autre ne bouge : mêmes sliders, mêmes sections, même ordre, aucune nouvelle saisie demandée au dégustateur.</p>
+</div>

@@ -15,20 +15,19 @@ from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 from rest_framework.views import APIView
 from django_filters.rest_framework import DjangoFilterBackend
-from core.ocr_service import extract_echantillon_from_image
 
 from .models import Echantillon
 from .serializers import EchantillonSerializer
 from .filters import EchantillonFilter
 from users.models import User
-from users.permissions import IsChefPanel, IsDirection, IsCollecteur, IsDegustateur, IsLaboratoire
+from users.permissions import IsChefDegustation, IsDirection, IsCollecteur, IsDegustateur, IsLaboratoire
 from notifications.models import Notification
 
 
 # Fields that are tracked in the edit history once a sample is physically received.
 # Any change to these fields after recu_physiquement=True is recorded with old + new values.
 TRACKED_FIELDS = [
-    'variete', 'scellage', 'quantite_estimee',
+    'variete', 'num_citerne', 'quantite_estimee',
     'gouvernorat', 'delegation', 'cite', 'remarques',
 ]
 
@@ -95,7 +94,7 @@ class EchantillonViewSet(viewsets.ModelViewSet):
 
     # Every endpoint requires the user to be logged in.
     # If no valid JWT token is provided, Django returns 401 automatically.
-    permission_classes = [IsCollecteur | IsDegustateur | IsDirection | IsChefPanel | IsLaboratoire]
+    permission_classes = [IsCollecteur | IsDegustateur | IsDirection | IsChefDegustation | IsLaboratoire]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_class = EchantillonFilter
     search_fields = ['numero', 'reference_bouteille', 'variete', 'fournisseur__nom', 'fournisseur__code_fournisseur']
@@ -231,11 +230,11 @@ class EchantillonViewSet(viewsets.ModelViewSet):
             obj.save(update_fields=['recu_physiquement', 'date_arrivee_echantillon', 'updated_at'])
         return Response(EchantillonSerializer(obj, context={'request': request}).data)
 
-    @action(detail=True, methods=['patch', 'post'], permission_classes=[IsDegustateur | IsChefPanel])
+    @action(detail=True, methods=['patch', 'post'], permission_classes=[IsDegustateur | IsChefDegustation])
     def confirmer_reception(self, request, pk=None):
         return self._confirmer_reception(request)
 
-    @action(detail=True, methods=['post', 'patch'], permission_classes=[IsDegustateur | IsChefPanel], url_path='confirmer-reception')
+    @action(detail=True, methods=['post', 'patch'], permission_classes=[IsDegustateur | IsChefDegustation], url_path='confirmer-reception')
     def confirmer_reception_hyphen(self, request, pk=None):
         return self._confirmer_reception(request)
 
@@ -295,8 +294,8 @@ class EchantillonViewSet(viewsets.ModelViewSet):
             obj.quantite_cible_t = _decimal_from_display(request.data['quantite_cible_t'])
         if request.data.get('camion_reserve'):
             obj.camion_reserve = request.data['camion_reserve']
-        if request.data.get('scellage'):
-            obj.scellage = request.data['scellage']
+        if request.data.get('num_citerne'):
+            obj.num_citerne = request.data['num_citerne']
         if request.data.get('date_livraison_stock'):
             obj.date_livraison_stock = _datetime_from_payload(request.data['date_livraison_stock'])
         if request.data.get('date_livraison_stock_fin'):
@@ -365,6 +364,86 @@ class EchantillonViewSet(viewsets.ModelViewSet):
     def confirmer_achat_hyphen(self, request, pk=None):
         return self._confirmer_achat(request)
 
+    @action(detail=True, methods=['post'], permission_classes=[IsDirection],
+            url_path='renvoyer-en-negociation')
+    def renvoyer_en_negociation(self, request, pk=None):
+        # La direction refuse le PRIX, pas le stock.
+        #
+        # L'echantillon garde son statut « en negociation » : on ne cree pas un
+        # etat supplementaire dans le cycle de vie. Ce qui change, c'est la
+        # contre-proposition et le compteur de tours, que la carte affiche.
+        obj = self.get_object()
+
+        raison = request.data.get('raison_refus', '').strip()
+        if not raison:
+            return Response(
+                {'raison_refus': ['La raison est obligatoire.']},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if obj.statut_ceo != Echantillon.StatutCEO.EN_NEGOCIATION or obj.budget_negociation is None:
+            return Response(
+                {'detail': 'Aucune proposition d achat en attente pour cet echantillon.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        contre_prix = request.data.get('budget_negociation')
+        if not contre_prix:
+            return Response(
+                {'budget_negociation': ['Le contre-prix est obligatoire.']},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        prix_min = _decimal_from_display(contre_prix)
+        prix_max = _decimal_from_display(request.data.get('budget_negociation_max')) \
+            if request.data.get('budget_negociation_max') else None
+        if prix_max is not None and prix_min is not None and prix_max < prix_min:
+            return Response(
+                {'budget_negociation_max': ['Le prix haut doit etre superieur au prix bas.']},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        obj.budget_negociation = prix_min
+        obj.budget_negociation_max = prix_max
+        obj.raison_refus = raison
+        obj.nb_renegociations = (obj.nb_renegociations or 0) + 1
+
+        champs = [
+            'budget_negociation', 'budget_negociation_max',
+            'raison_refus', 'nb_renegociations', 'updated_at',
+        ]
+        if request.data.get('quantite_cible_t'):
+            obj.quantite_cible_t = _decimal_from_display(request.data['quantite_cible_t'])
+            champs.append('quantite_cible_t')
+        if request.data.get('date_livraison_stock'):
+            obj.date_livraison_stock = _datetime_from_payload(request.data['date_livraison_stock'])
+            champs.append('date_livraison_stock')
+        if request.data.get('date_livraison_stock_fin'):
+            obj.date_livraison_stock_fin = _datetime_from_payload(request.data['date_livraison_stock_fin'])
+            champs.append('date_livraison_stock_fin')
+
+        obj.save(update_fields=champs)
+        self._notify_renegociation(obj)
+        return Response(EchantillonSerializer(obj, context={'request': request}).data)
+
+    def _notify_renegociation(self, obj):
+        # Le collecteur est le seul a pouvoir agir sur la contre-proposition.
+        if not obj.collecteur:
+            return
+        if obj.budget_negociation_max is not None:
+            prix = (f"{_format_decimal(obj.budget_negociation)} - "
+                    f"{_format_decimal(obj.budget_negociation_max)} TND/L")
+        else:
+            prix = f"{_format_decimal(obj.budget_negociation)} TND/L"
+        ref = obj.reference_bouteille or obj.numero
+        Notification.objects.create(
+            destinataire=obj.collecteur,
+            type=Notification.Type.NEGOCIATION_A_REVOIR,
+            titre='Negociation a revoir',
+            message=f"{ref} : la direction propose {prix}. Motif : {obj.raison_refus}",
+            echantillon=obj,
+            section=Notification.Section.ACHATS_VALIDATION,
+        )
+
     @action(detail=True, methods=['post'], permission_classes=[IsDirection], url_path='refuser-achat')
     def refuser_achat(self, request, pk=None):
         obj = self.get_object()
@@ -407,23 +486,6 @@ class EchantillonViewSet(viewsets.ModelViewSet):
             return Response({'errors': errors}, status=status.HTTP_400_BAD_REQUEST)
         response_status = status.HTTP_201_CREATED if not errors else status.HTTP_207_MULTI_STATUS
         return Response({'created': created, 'errors': errors}, status=response_status)
-
-
-class EchantillonOCRView(APIView):
-    permission_classes = [IsCollecteur]
-    parser_classes = [MultiPartParser]
-
-    def post(self, request):
-        image_file = request.FILES.get('image')
-        if not image_file:
-            return Response({'detail': 'Champ image requis.'}, status=status.HTTP_400_BAD_REQUEST)
-        try:
-            result = extract_echantillon_from_image(image_file.read(), content_type=image_file.content_type or 'image/jpeg')
-            return Response(result)
-        except EnvironmentError as e:
-            return Response({'detail': str(e)}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
-        except Exception as e:
-            return Response({'detail': f'Erreur OCR: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class CollecteurCarteView(APIView):

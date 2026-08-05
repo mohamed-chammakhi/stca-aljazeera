@@ -1,5 +1,5 @@
 // ═════════════════════════════════════════════════════════════════════════════
-// FILE    : sessions_degustation/sessions_degustation_page.dart  (Chef de Panel)
+// FILE    : sessions_degustation/sessions_degustation_page.dart  (Chef de Dégustation)
 // ═════════════════════════════════════════════════════════════════════════════
 
 import 'package:flutter/material.dart';

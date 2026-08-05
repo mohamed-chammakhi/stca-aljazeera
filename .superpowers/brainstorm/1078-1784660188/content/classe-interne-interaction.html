@@ -1,0 +1,139 @@
+<style>
+  .phones-row { display:flex; gap:22px; align-items:flex-start; overflow-x:auto; padding-bottom:8px; }
+  .phone { width:346px; flex:0 0 auto; background:#fff; border-radius:28px; box-shadow:0 8px 30px rgba(0,0,0,0.18); border:6px solid #1a1a1a; overflow:hidden; }
+  .phone-tag { text-align:center; font-weight:800; font-size:13px; letter-spacing:1px; text-transform:uppercase; color:#666; margin-bottom:10px; }
+  .phone-scroll { height:460px; overflow-y:auto; background:#fff; }
+  .app-bar { background:#DCE9E2; height:65px; display:flex; align-items:center; padding:0 14px; gap:10px; }
+  .app-bar .back { color:#1A2E1F; font-size:18px; }
+  .app-bar .titles { display:flex; flex-direction:column; }
+  .app-bar .titles .t1 { font-family:Georgia,serif; font-weight:700; font-size:16px; color:#1A2E1F; }
+  .app-bar .titles .t2 { font-size:11px; color:#8a8a8a; }
+  .app-body { padding:14px; }
+  .class-card { border-radius:14px; padding:14px; border:1.5px solid; margin-bottom:14px; }
+  .class-card.coi { background:#F0F8F3; border-color:#38835A66; }
+  .class-card.interne { background:#FDF8EA; border-color:#c9a227; }
+  .class-top { display:flex; align-items:center; font-size:11px; font-weight:700; letter-spacing:0.5px; color:#777; }
+  .class-top .spacer { flex:1; }
+  .class-desc { font-size:11px; color:#777; margin:6px 0 10px; }
+  .badge-new { background:#c9a227; color:#fff; font-size:9px; font-weight:800; padding:2px 8px; border-radius:8px; letter-spacing:.5px; }
+  .candidates { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:10px; }
+  .cand-chip { border-radius:12px; padding:9px 13px; font-size:12px; font-weight:700; border:1.5px solid; }
+  .cand-chip.selected { background:#8a6d00; color:#fff; border-color:#8a6d00; }
+  .cand-chip.unselected { background:#fff; color:#8a6d00; border-color:#c9a22788; }
+  .cand-chip.disabled { background:#f3f3f3; color:#999; border-color:#e2e2e2; }
+  .approx-note { font-size:10px; color:#a08a3a; font-style:italic; margin-bottom:8px; }
+  .deseq-row { display:flex; align-items:center; gap:8px; border-top:1px dashed #e2cf8f; padding-top:10px; margin-top:2px; }
+  .deseq-chip { border-radius:10px; padding:7px 12px; font-size:11px; font-weight:700; border:1.5px solid #c0392b55; color:#c0392b; background:#fdecea; }
+  .deseq-chip.active { background:#c0392b; color:#fff; border-color:#c0392b; }
+  .readonly-note { font-size:10px; color:#999; background:#f6f6f6; border-radius:8px; padding:8px 10px; margin-top:4px; }
+  .fcard { background:#fff; border-radius:14px; padding:14px; box-shadow:0 3px 10px rgba(0,0,0,0.06); margin-bottom:14px; }
+</style>
+
+<h2>Bloc "Classe interne" — interaction candidats</h2>
+<p class="subtitle">Exemple limite volontaire : Fruité vert 3.0, Amer 3.0, Piquant 3.2 → chevauche Extra B+ ET Extra B. Les deux sont proposés, aucune autre classe n'est montrée.</p>
+
+<div class="phones-row">
+
+  <!-- ============ CHEF ============ -->
+  <div>
+    <div class="phone-tag">Chef de panel — interactif</div>
+    <div class="phone">
+      <div class="app-bar">
+        <span class="back">&#8592;</span>
+        <div class="titles">
+          <span class="t1">Fiche d'Évaluation</span>
+          <span class="t2">ECH-2026-0143</span>
+        </div>
+      </div>
+      <div class="phone-scroll">
+        <div class="app-body">
+
+          <div class="class-card coi">
+            <div class="class-top">🏅&nbsp;&nbsp;CLASSIFICATION COI <span class="spacer"></span> Méd. défaut: 0.0</div>
+            <div style="font-size:21px;font-weight:800;color:#38835A;margin:4px 0 2px;">Extra Vierge</div>
+            <div class="class-desc" style="margin-bottom:0;">Fruité vert 3.0 · Amer 3.0 · Piquant 3.2</div>
+          </div>
+
+          <div class="class-card interne">
+            <div class="class-top">⭐&nbsp;&nbsp;CLASSE INTERNE <span class="spacer"></span> <span class="badge-new">à finaliser</span></div>
+            <div class="class-desc">2 classes correspondent aux valeurs saisies — choisissez la classe finale :</div>
+
+            <div class="candidates">
+              <div class="cand-chip unselected">Extra B+</div>
+              <div class="cand-chip selected">Extra B ✓</div>
+            </div>
+
+            <div class="deseq-row">
+              <span style="font-size:10px;color:#999;">Profil jugé déséquilibré ?</span>
+              <div class="deseq-chip">⚠️ Marquer Extra déséquilibrée</div>
+            </div>
+          </div>
+
+          <div class="fcard" style="font-size:11px;color:#888;">
+            (sliders Fruité / Amer / Piquant / Défauts identiques à avant — non répétés ici)
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ DEGUSTATEUR ============ -->
+  <div>
+    <div class="phone-tag">Dégustateur — indicatif</div>
+    <div class="phone">
+      <div class="app-bar">
+        <span class="back">&#8592;</span>
+        <div class="titles">
+          <span class="t1">Fiche d'Évaluation</span>
+          <span class="t2">ECH-2026-0143</span>
+        </div>
+      </div>
+      <div class="phone-scroll">
+        <div class="app-body">
+
+          <div class="class-card coi">
+            <div class="class-top">🏅&nbsp;&nbsp;CLASSIFICATION COI <span class="spacer"></span> Méd. défaut: 0.0</div>
+            <div style="font-size:21px;font-weight:800;color:#38835A;margin:4px 0 2px;">Extra Vierge</div>
+            <div class="class-desc" style="margin-bottom:0;">Fruité vert 3.0 · Amer 3.0 · Piquant 3.2</div>
+          </div>
+
+          <div class="class-card interne">
+            <div class="class-top">⭐&nbsp;&nbsp;CLASSE INTERNE <span class="spacer"></span> <span class="badge-new">indicatif</span></div>
+            <div class="class-desc">Suggestion(s) selon vos valeurs — non finale :</div>
+
+            <div class="candidates">
+              <div class="cand-chip disabled">Extra B+</div>
+              <div class="cand-chip disabled">Extra B</div>
+            </div>
+
+            <div class="readonly-note">🔒 Seul le chef de panel finalise la classe interne.</div>
+          </div>
+
+          <div class="fcard" style="font-size:11px;color:#888;">
+            (sliders Fruité / Amer / Piquant / Défauts identiques à avant — non répétés ici)
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="section" style="margin-top:16px;">
+  <h3>Cas particulier — aucune classe ne correspond (trou de seuil)</h3>
+  <p class="subtitle">Exemple : Fruité vert 4.7 (entre le seuil A "&lt;4.5" et A+ "≥5"). Aucune classe ne matche exactement → les 2 classes les plus proches sont proposées, marquées "approximatif".</p>
+  <div class="class-card interne" style="max-width:400px;">
+    <div class="class-top">⭐&nbsp;&nbsp;CLASSE INTERNE <span class="spacer"></span> <span class="badge-new">à finaliser</span></div>
+    <div class="approx-note">Aucune correspondance exacte (Fruité 4.7 entre les seuils Extra A et Extra A+) — classes les plus proches :</div>
+    <div class="candidates">
+      <div class="cand-chip unselected">Extra A (approx.)</div>
+      <div class="cand-chip unselected">Extra A+ (approx.)</div>
+    </div>
+    <div class="deseq-row">
+      <span style="font-size:10px;color:#999;">Profil jugé déséquilibré ?</span>
+      <div class="deseq-chip">⚠️ Marquer Extra déséquilibrée</div>
+    </div>
+  </div>
+</div>

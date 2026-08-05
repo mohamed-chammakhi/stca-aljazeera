@@ -1,4 +1,5 @@
 {
+    "dart.flutterSdkPath": "C:/Users/takwa/Documents/flutter",
     "java.configuration.updateBuildConfiguration": "automatic",
     "java.import.exclusions": [
         "**/.worktrees/**",

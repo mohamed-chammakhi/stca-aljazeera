@@ -1,5 +1,5 @@
 import '../../../core/api_client.dart';
-import '../navigation/models/echantillon.dart';
+import '../../../core/models/echantillon_evaluation.dart';
 import '../navigation/models/mock_echantillons.dart';
 
 class EvaluationService {

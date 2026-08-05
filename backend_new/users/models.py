@@ -26,7 +26,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         COLLECTEUR            = 'collecteur',            'Collecteur'
         DEGUSTATEUR           = 'degustateur',           'Dégustateur'
         LABORATOIRE           = 'laboratoire',           'Laboratoire'
-        CHEF_PANEL            = 'chef_panel',            'Chef de Panel'
+        CHEF_DEGUSTATION      = 'chef_degustation',      'Chef de Dégustation'
         RESPONSABLE_FINANCIER = 'responsable_financier', 'Responsable Financier'
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)

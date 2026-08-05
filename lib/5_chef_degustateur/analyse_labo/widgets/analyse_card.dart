@@ -1,39 +1,22 @@
-// ═════════════════════════════════════════════════════════════════════════════
-// FILE    : analyse_laboratoire/widgets/analyse_card.dart
-// PURPOSE : Expandable card for one lab analysis — accent bar, header,
-//           collapsible criteria table, edit action.
-// ═════════════════════════════════════════════════════════════════════════════
-
 import 'package:flutter/material.dart';
-import '../models/analyse_labo.dart';
+
+import '../../../core/analyses/ligne_analyse_labo.dart';
+import '../../../core/analyses/rapport_labo.dart';
+import '../../../core/analyses/widgets/tableau_rapport_labo.dart';
+import '../../../core/widgets/grille_details.dart';
 import '../../widgets/chef_colors.dart';
 
-const Color _olive = Color(0xFF6B8143);
-const Color _redVal = Color(0xFFC62828);
-const Color _redBg = Color(0xFFFFEBEE);
+Color _accentColor(StatutAnalyse statut) =>
+    statut == StatutAnalyse.soumise ? chefGreen : const Color(0xFFD07B2F);
 
-Color _accentColor(StatutAnalyse s) {
-  switch (s) {
-    case StatutAnalyse.enAttente:
-      return const Color(0xFFD07B2F);
-    case StatutAnalyse.soumise:
-      return chefGreen;
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
 class AnalyseCard extends StatefulWidget {
-  final AnalyseLabo analyse;
-  final VoidCallback? onModifier;
-  final VoidCallback? onSupprimer;
+  final LigneAnalyseLabo analyse;
   final VoidCallback? onUrgentLabo;
   final bool isUrgentLabo;
 
   const AnalyseCard({
     super.key,
     required this.analyse,
-    this.onModifier,
-    this.onSupprimer,
     this.onUrgentLabo,
     this.isUrgentLabo = false,
   });
@@ -44,12 +27,12 @@ class AnalyseCard extends StatefulWidget {
 
 class _AnalyseCardState extends State<AnalyseCard> {
   bool _expanded = false;
+  bool _rapportExpanded = false;
 
   @override
   Widget build(BuildContext context) {
-    final a = widget.analyse;
-    final accent = _accentColor(a.statut);
-
+    final analyse = widget.analyse;
+    final accent = _accentColor(analyse.statut);
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
@@ -67,7 +50,6 @@ class _AnalyseCardState extends State<AnalyseCard> {
       clipBehavior: Clip.antiAlias,
       child: Column(
         children: [
-          // ── Header (always visible) ─────────────────────────────────────
           GestureDetector(
             onTap: () => setState(() => _expanded = !_expanded),
             behavior: HitTestBehavior.opaque,
@@ -75,22 +57,18 @@ class _AnalyseCardState extends State<AnalyseCard> {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Left accent bar (status color)
                   Container(width: 4, color: accent),
-
                   Expanded(
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(13, 10, 10, 10),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Row 1: name + statut pill + chevron
                           Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               Expanded(
                                 child: Text(
-                                  a.echantillonNom,
+                                  analyse.echantillonNom,
                                   style: const TextStyle(
                                     fontSize: 15,
                                     fontWeight: FontWeight.w700,
@@ -101,7 +79,7 @@ class _AnalyseCardState extends State<AnalyseCard> {
                                 ),
                               ),
                               AnimatedRotation(
-                                turns: _expanded ? 0.5 : 0.0,
+                                turns: _expanded ? 0.5 : 0,
                                 duration: const Duration(milliseconds: 200),
                                 child: Icon(
                                   Icons.keyboard_arrow_down,
@@ -111,12 +89,8 @@ class _AnalyseCardState extends State<AnalyseCard> {
                               ),
                             ],
                           ),
-
                           const SizedBox(height: 4),
-
-                          // Row 2: meta info + action icons (expanded)
                           Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               Icon(
                                 Icons.tag,
@@ -125,49 +99,21 @@ class _AnalyseCardState extends State<AnalyseCard> {
                               ),
                               const SizedBox(width: 4),
                               Text(
-                                a.id,
+                                analyse.id,
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w500,
                                   color: Colors.grey.shade500,
                                 ),
                               ),
-                              const SizedBox(width: 10),
-
                               const Spacer(),
-                              if (widget.onUrgentLabo != null) ...[
+                              if (widget.onUrgentLabo != null)
                                 _UrgentLaboBtn(
                                   isUrgent: widget.isUrgentLabo,
                                   onTap: widget.isUrgentLabo
                                       ? null
                                       : widget.onUrgentLabo,
                                 ),
-                                const SizedBox(width: 4),
-                              ],
-                              if (_expanded &&
-                                  (widget.onModifier != null ||
-                                      widget.onSupprimer != null)) ...[
-                                if (widget.onModifier != null)
-                                  Tooltip(
-                                    message: 'Modifier',
-                                    child: _SmallIconBtn(
-                                      icon: Icons.edit_outlined,
-                                      color: _olive,
-                                      onTap: widget.onModifier!,
-                                    ),
-                                  ),
-                                if (widget.onModifier != null)
-                                  const SizedBox(width: 2),
-                                if (widget.onSupprimer != null)
-                                  Tooltip(
-                                    message: 'Supprimer',
-                                    child: _SmallIconBtn(
-                                      icon: Icons.delete_outline,
-                                      color: Colors.red.shade300,
-                                      onTap: widget.onSupprimer!,
-                                    ),
-                                  ),
-                              ],
                             ],
                           ),
                         ],
@@ -178,11 +124,14 @@ class _AnalyseCardState extends State<AnalyseCard> {
               ),
             ),
           ),
-
-          // ── Expandable detail panel ─────────────────────────────────────
           AnimatedCrossFade(
             firstChild: const SizedBox.shrink(),
-            secondChild: _DetailPanel(a: a, accent: accent),
+            secondChild: _DetailPanel(
+              analyse: analyse,
+              rapportExpanded: _rapportExpanded,
+              onRapportToggle: () =>
+                  setState(() => _rapportExpanded = !_rapportExpanded),
+            ),
             crossFadeState: _expanded
                 ? CrossFadeState.showSecond
                 : CrossFadeState.showFirst,
@@ -194,16 +143,14 @@ class _AnalyseCardState extends State<AnalyseCard> {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// URGENT LAB BUTTON
-// ─────────────────────────────────────────────────────────────────────────────
 class _UrgentLaboBtn extends StatelessWidget {
   final bool isUrgent;
   final VoidCallback? onTap;
+
   const _UrgentLaboBtn({required this.isUrgent, this.onTap});
 
-  static const _urgent = Color(0xFFC62828);
-  static const _urgentBg = Color(0xFFFFEBEE);
+  static const urgent = Color(0xFFC62828);
+  static const urgentBg = Color(0xFFFFEBEE);
 
   @override
   Widget build(BuildContext context) => GestureDetector(
@@ -212,10 +159,10 @@ class _UrgentLaboBtn extends StatelessWidget {
       duration: const Duration(milliseconds: 250),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: isUrgent ? _urgentBg : Colors.transparent,
+        color: isUrgent ? urgentBg : Colors.transparent,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: isUrgent ? _urgent : const Color(0xFFE0E0E0),
+          color: isUrgent ? urgent : const Color(0xFFE0E0E0),
           width: 1.2,
         ),
       ),
@@ -227,7 +174,7 @@ class _UrgentLaboBtn extends StatelessWidget {
                 ? Icons.notifications_active
                 : Icons.notifications_outlined,
             size: 13,
-            color: isUrgent ? _urgent : Colors.grey.shade400,
+            color: isUrgent ? urgent : Colors.grey.shade400,
           ),
           if (isUrgent) ...[
             const SizedBox(width: 4),
@@ -236,7 +183,7 @@ class _UrgentLaboBtn extends StatelessWidget {
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w700,
-                color: _urgent,
+                color: urgent,
               ),
             ),
           ],
@@ -246,281 +193,259 @@ class _UrgentLaboBtn extends StatelessWidget {
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// SMALL ICON BUTTON
-// ─────────────────────────────────────────────────────────────────────────────
-class _SmallIconBtn extends StatelessWidget {
-  final IconData icon;
-  final Color color;
-  final VoidCallback onTap;
-  const _SmallIconBtn({
-    required this.icon,
-    required this.color,
-    required this.onTap,
+class _DetailPanel extends StatelessWidget {
+  final LigneAnalyseLabo analyse;
+  final bool rapportExpanded;
+  final VoidCallback onRapportToggle;
+
+  const _DetailPanel({
+    required this.analyse,
+    required this.rapportExpanded,
+    required this.onRapportToggle,
   });
 
   @override
-  Widget build(BuildContext context) => GestureDetector(
-    onTap: onTap,
-    behavior: HitTestBehavior.opaque,
-    child: Padding(
-      padding: const EdgeInsets.all(5),
-      child: Icon(icon, size: 18, color: color),
+  Widget build(BuildContext context) {
+    final rapport = analyse.rapport;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Divider(color: Colors.grey.shade100, height: 1),
+        if (_aDesInformationsEchantillon)
+          _InformationsEchantillon(analyse: analyse),
+        if (rapport != null)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 10, 14, 2),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.person_outline,
+                  size: 13,
+                  color: Colors.grey.shade400,
+                ),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: RichText(
+                    text: TextSpan(
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey.shade500,
+                      ),
+                      children: [
+                        const TextSpan(text: 'Analyse soumise par '),
+                        TextSpan(
+                          text: analyse.technicienNom,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w700,
+                            color: chefDark,
+                          ),
+                        ),
+                        if (rapport.dateAnalyse != null)
+                          TextSpan(text: ' le ${rapport.dateAnalyse}'),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        GestureDetector(
+          onTap: rapport == null ? null : onRapportToggle,
+          behavior: HitTestBehavior.opaque,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.biotech_outlined,
+                  size: 13,
+                  color: rapport == null ? Colors.grey.shade300 : chefGreen,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  'Rapport',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: rapport == null ? Colors.grey.shade300 : chefGreen,
+                  ),
+                ),
+                const Spacer(),
+                if (rapport?.dateAnalyse != null)
+                  Text(
+                    'Soumis le ${rapport!.dateAnalyse}',
+                    style: TextStyle(fontSize: 11, color: Colors.grey.shade400),
+                  ),
+                const SizedBox(width: 6),
+                AnimatedRotation(
+                  turns: rapportExpanded ? 0.5 : 0,
+                  duration: const Duration(milliseconds: 180),
+                  child: Icon(
+                    Icons.keyboard_arrow_down,
+                    size: 16,
+                    color: rapport == null ? Colors.grey.shade300 : chefGreen,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        AnimatedCrossFade(
+          firstChild: const SizedBox.shrink(),
+          secondChild: rapport == null
+              ? const _EnAttenteHint()
+              : _RapportBody(rapport: rapport),
+          crossFadeState: rapport == null || rapportExpanded
+              ? CrossFadeState.showSecond
+              : CrossFadeState.showFirst,
+          duration: const Duration(milliseconds: 200),
+        ),
+      ],
+    );
+  }
+
+  bool get _aDesInformationsEchantillon =>
+      analyse.fournisseurNom != null ||
+      analyse.gouvernorat != null ||
+      analyse.collecteurNom != null ||
+      analyse.variete != null;
+}
+
+class _InformationsEchantillon extends StatelessWidget {
+  final LigneAnalyseLabo analyse;
+
+  const _InformationsEchantillon({required this.analyse});
+
+  @override
+  Widget build(BuildContext context) => Container(
+    margin: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+    decoration: BoxDecoration(
+      color: const Color(0xFFF7FAF8),
+      borderRadius: BorderRadius.circular(8),
+      border: Border.all(color: Colors.grey.shade100),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(
+              Icons.inventory_2_outlined,
+              size: 12,
+              color: Colors.grey.shade400,
+            ),
+            const SizedBox(width: 5),
+            Text(
+              "Informations de l'échantillon",
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey.shade500,
+                letterSpacing: 0.2,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        GrilleDetails(
+          items: [
+            DetailItem('N° échantillon', analyse.echantillonId),
+            if (analyse.fournisseurNom != null)
+              DetailItem('Fournisseur', analyse.fournisseurNom!),
+            if (analyse.variete != null)
+              DetailItem('Variété', analyse.variete!),
+            if (analyse.gouvernorat != null)
+              DetailItem(
+                'Gouvernorat',
+                analyse.delegation != null
+                    ? '${analyse.gouvernorat} — ${analyse.delegation}'
+                    : analyse.gouvernorat!,
+              ),
+            if (analyse.collecteurNom != null)
+              DetailItem('Collecteur', analyse.collecteurNom!),
+            if (analyse.quantiteEstimee != null)
+              DetailItem('Quantité estimée', '${analyse.quantiteEstimee} T'),
+          ],
+        ),
+      ],
     ),
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// DETAIL PANEL
-// ─────────────────────────────────────────────────────────────────────────────
-class _DetailPanel extends StatelessWidget {
-  final AnalyseLabo a;
-  final Color accent;
-  const _DetailPanel({required this.a, required this.accent});
+class _RapportBody extends StatelessWidget {
+  final RapportLabo rapport;
+
+  const _RapportBody({required this.rapport});
 
   @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Divider(color: Colors.grey.shade100, height: 1),
+  Widget build(BuildContext context) => Column(
+    children: [
+      Padding(
+        padding: const EdgeInsets.fromLTRB(12, 0, 12, 10),
+        child: BandeauClassification(
+          classification: rapport.classificationAuto,
+        ),
+      ),
+      if (rapport.horsNormes.isNotEmpty)
+        Padding(
+          padding: const EdgeInsets.fromLTRB(12, 0, 12, 10),
+          child: AlerteHorsNormes(parametres: rapport.horsNormes),
+        ),
+      TableauRapportLabo(rapport: rapport, groupeParTableau: true),
+      if (rapport.notes != null && rapport.notes!.isNotEmpty)
         Container(
-          margin: const EdgeInsets.all(12),
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          width: double.infinity,
+          margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
           decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(10),
+            color: const Color(0xFFF7FAF8),
+            borderRadius: BorderRadius.circular(8),
             border: Border.all(color: Colors.grey.shade100),
           ),
-          child: Column(
+          child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Technicien row
-              Row(
-                children: [
-                  Icon(
-                    Icons.person_outline,
-                    size: 13,
-                    color: Colors.grey.shade400,
-                  ),
-                  const SizedBox(width: 5),
-                  Text(
-                    'Technicien : ',
-                    style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
-                  ),
-                  Text(
-                    a.technicienNom,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: chefDark,
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 12),
-
-              // Criteria table
-              _CriteresTable(criteres: a.criteres),
-
-              // Notes (optional)
-              if (a.notes != null && a.notes!.isNotEmpty) ...[
-                const SizedBox(height: 10),
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF7FAF8),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.grey.shade100),
-                  ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Icon(
-                        Icons.notes_outlined,
-                        size: 13,
-                        color: Colors.grey.shade400,
-                      ),
-                      const SizedBox(width: 6),
-                      Expanded(
-                        child: Text(
-                          a.notes!,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey.shade600,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+              Icon(Icons.notes_outlined, size: 13, color: Colors.grey.shade400),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  rapport.notes!,
+                  style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
                 ),
-              ],
+              ),
             ],
           ),
         ),
-      ],
-    );
-  }
+    ],
+  );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// CRITERIA TABLE
-// ─────────────────────────────────────────────────────────────────────────────
-class _CriteresTable extends StatelessWidget {
-  final List<CritereAnalyse> criteres;
-  const _CriteresTable({required this.criteres});
-
-  String _seuilLabel(CritereAnalyse c) {
-    if (c.seuilMin == null && c.seuilMax == null) return '—';
-    if (c.seuilMin != null && c.seuilMax != null) {
-      return '${c.seuilMin}–${c.seuilMax} ${c.unite}'.trim();
-    }
-    if (c.seuilMax != null) return '≤ ${c.seuilMax} ${c.unite}'.trim();
-    return '≥ ${c.seuilMin} ${c.unite}'.trim();
-  }
+class _EnAttenteHint extends StatelessWidget {
+  const _EnAttenteHint();
 
   @override
-  Widget build(BuildContext context) {
-    return Column(
+  Widget build(BuildContext context) => Container(
+    margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+    decoration: BoxDecoration(
+      color: Colors.orange.shade50,
+      borderRadius: BorderRadius.circular(10),
+      border: Border.all(color: Colors.orange.shade100),
+    ),
+    child: Row(
       children: [
-        // Header row
-        _TableRow(
-          critere: 'Critère',
-          valeur: 'Valeur',
-          seuil: 'Norme',
-          conforme: null,
-          isHeader: true,
+        Icon(
+          Icons.hourglass_top_outlined,
+          size: 13,
+          color: Colors.orange.shade700,
         ),
-        ...criteres.map(
-          (c) => _TableRow(
-            critere: c.label,
-            valeur: '${c.valeur} ${c.unite}'.trim(),
-            seuil: _seuilLabel(c),
-            conforme: c.conforme,
-          ),
+        const SizedBox(width: 6),
+        Text(
+          'Analyse non encore soumise',
+          style: TextStyle(fontSize: 12, color: Colors.orange.shade800),
         ),
       ],
-    );
-  }
-}
-
-class _TableRow extends StatelessWidget {
-  final String critere;
-  final String valeur;
-  final String seuil;
-  final bool? conforme;
-  final bool isHeader;
-
-  const _TableRow({
-    required this.critere,
-    required this.valeur,
-    required this.seuil,
-    required this.conforme,
-    this.isHeader = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final bg = isHeader
-        ? const Color(0xFFF1F8F4)
-        : conforme == false
-        ? _redBg
-        : Colors.white;
-
-    final indicatorColor = isHeader || conforme == null
-        ? Colors.transparent
-        : conforme!
-        ? chefGreen
-        : _redVal;
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 2),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey.shade100),
-      ),
-      child: IntrinsicHeight(
-        child: Row(
-          children: [
-            // Left micro-bar (conformité indicator)
-            Container(
-              width: 3,
-              decoration: BoxDecoration(
-                color: indicatorColor,
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(8),
-                  bottomLeft: Radius.circular(8),
-                ),
-              ),
-            ),
-            // Critère label
-            Expanded(
-              flex: 5,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 8),
-                child: Text(
-                  critere,
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: isHeader ? FontWeight.w700 : FontWeight.w500,
-                    color: isHeader ? _olive : chefDark,
-                  ),
-                ),
-              ),
-            ),
-            Container(width: 1, color: Colors.grey.shade100),
-            // Valeur
-            Expanded(
-              flex: 3,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 8),
-                child: Text(
-                  valeur,
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: isHeader
-                        ? _olive
-                        : conforme == false
-                        ? _redVal
-                        : chefGreen,
-                  ),
-                ),
-              ),
-            ),
-            Container(width: 1, color: Colors.grey.shade100),
-            // Norme
-            Expanded(
-              flex: 4,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 8),
-                child: Text(
-                  seuil,
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: isHeader ? _olive : Colors.grey.shade500,
-                  ),
-                ),
-              ),
-            ),
-            // Conformité icon
-            if (!isHeader && conforme != null)
-              Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: Icon(
-                  conforme! ? Icons.check_circle : Icons.cancel,
-                  color: conforme! ? chefGreen : _redVal,
-                  size: 14,
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
+    ),
+  );
 }

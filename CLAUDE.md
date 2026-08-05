@@ -108,6 +108,44 @@ AppBar(
 
 ---
 
+## Two Hard Rules (stated by the project owner)
+
+### 1. Same thing → same name, written the same way
+
+If two variables, fields, classes or files serve the **same purpose in the same context**,
+they get the **same name** and, where possible, live in **one shared file**. Do not rename
+something just because it moved to another role module, and do not duplicate a file "for"
+a second role when both use it identically.
+
+Duplicated code drifts, and the drift is silent. This already caused a real bug: the
+evaluation sample model was copied from `3_degustateur/` into `5_chef_degustateur/`, the
+original was later taught to read lowercase statuses, and the copy never got the fix — so
+every submitted evaluation displayed as "En attente" on the head taster's screen. Both
+copies are now merged into [`lib/core/models/echantillon_evaluation.dart`](lib/core/models/echantillon_evaluation.dart).
+
+**Before merging or renaming, verify two things:**
+- it does not change **which table** a value is written to
+- it does not cross **two users' data** (see rule 2)
+
+Display-only code is safe to merge on sight. Anything on a write path gets checked first.
+When the check passes, merge — no need to ask.
+
+### 2. Never let one user's data reach or overwrite another's
+
+Two failures to guard against:
+- a **status belonging to user A shown to user B**
+- **work done by user A overwritten by user B**
+
+The consequence is operational, not cosmetic: someone stops seeing what they need, and the
+work is delayed. With 5 roles evaluating the same samples in parallel, and traceability as
+the whole point of the app, crossed user data corrupts the record of who did what.
+
+Practical check: any code that groups records by sample id must not silently keep one
+record per sample when several users each have their own. Verify the API already filters by
+the connected user before assuming the client must.
+
+---
+
 ## Role Files â€” Load the One You Need
 
 | Working on... | Read this file |

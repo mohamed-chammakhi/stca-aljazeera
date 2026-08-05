@@ -4,7 +4,7 @@
 // TODO: remove when backend is ready and replace with EchantillonService.fetch()
 // ─────────────────────────────────────────────────────────────────────────────
 
-import 'echantillon.dart';
+import '../../../../core/models/echantillon_evaluation.dart';
 
 // TODO: remove when backend is ready
 final List<Echantillon> mockEchantillonsEvaluation = [

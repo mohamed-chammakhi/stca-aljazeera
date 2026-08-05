@@ -22,6 +22,8 @@ import '../widgets/base_sample_card.dart';
 import '../widgets/status_filter_chip.dart';
 import 'widgets/achat_section.dart';
 import '../validation_achats/validation_achats_ceo_page.dart';
+import '../echantillons/services/echantillon_ceo_service.dart';
+import '../../core/widgets/grille_details.dart';
 
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -42,7 +44,29 @@ class _AchatsConfirmesCeoPageState extends State<AchatsConfirmesCeoPage> with Ce
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
 
-  List<EchantillonCeoView> get _allAchats => mockAchatsConfirmes;
+  final _service = EchantillonCeoService();
+  List<EchantillonCeoView> _allAchats = List.of(mockAchatsConfirmes);
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAchats();
+  }
+
+  Future<void> _loadAchats() async {
+    try {
+      final data = await _service.fetchCeoViews();
+      if (mounted) {
+        setState(
+          () => _allAchats = data
+              .where((e) => e.statut == StatutCeo.achatConfirme)
+              .toList(),
+        );
+      }
+    } catch (_) {
+      if (mounted) setState(() => _allAchats = List.of(mockAchatsConfirmes));
+    }
+  }
 
   @override
   void dispose() {

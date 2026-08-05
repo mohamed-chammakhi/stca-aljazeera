@@ -1,15 +1,18 @@
+import '../../../core/api_client.dart';
 import '../models/membre_panel.dart';
 import '../models/mock_membres.dart';
 
 class MembresPanelChefService {
-  // TODO: inject ApiClient here when backend is ready
-  // final ApiClient _api;
-
   Future<List<MembrePanel>> fetchMembres() async {
-    // TODO: replace with: return _api.get('/panel/membres/');
-    return _mockMembres();
+    try {
+      final data = await apiClient.getList('/api/users/panel-members/');
+      return data
+          .map((e) => MembrePanel.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } catch (_) {
+      return _mockMembres();
+    }
   }
 
-  // TODO: remove when backend is ready
   List<MembrePanel> _mockMembres() => List.from(mockMembresPanel);
 }

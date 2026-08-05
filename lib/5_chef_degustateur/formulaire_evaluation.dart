@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../core/classification/classification_interne.dart';
+import '../core/models/enums.dart';
+import '../core/widgets/carte_classification.dart';
 import 'evaluation_echantillons/widgets/evaluation_slider.dart';
-import 'evaluation_echantillons/widgets/classification_card.dart';
+import 'evaluation_echantillons/services/evaluation_echantillons_chef_service.dart';
 
 // PAGE — Formulaire de dégustation COI (StatefulWidget — sliders + classification temps réel)
 class FormulaireEvaluationPage extends StatefulWidget {
@@ -29,7 +32,7 @@ class FormulaireEvaluationPage extends StatefulWidget {
   });
 
   @override
-  _FormulaireEvaluationPageState createState() =>
+  State<FormulaireEvaluationPage> createState() =>
       _FormulaireEvaluationPageState();
 }
 
@@ -43,15 +46,29 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
 
   // ── Soumis → verrouille tout ──────────────────────────────────────────────
   late bool _estSoumis;
+  final EvaluationEchantillonsChefService _service =
+      EvaluationEchantillonsChefService();
+  String? _evaluationId;
+  bool _saving = false;
 
   @override
   void initState() {
     super.initState();
     _estSoumis = widget.readOnly;
+    _loadExistingEvaluation();
   }
 
-  // ── TYPE de fruité (Vert / Mûr) ──────────────────────────────────────────
-  bool _fruiteVert = true; // true = Vert, false = Mûr
+  // ── TYPE de fruité — PR-48 §5 et §8 ──────────────────────────────────────
+  TypeFruite _typeFruite = TypeFruite.vert;
+
+  // ── Classification interne PR-48 ─────────────────────────────────────────
+  /// Case du §9 : le PR-48 exige un « profil harmonieux » pour les deux classes
+  /// hautes mais ne le chiffre pas — c'est le dégustateur qui juge.
+  bool _profilNonHarmonieux = false;
+
+  /// Classe retenue à la main quand la grille §8 ne rend rien.
+  ClasseInterne? _classeManuelle;
+  String? _classeChoisieLe;
 
   // ── Attributs négatifs (défauts) ─────────────────────────────────────────
   double _chome = 0.0; // Chômé / Lie de boue
@@ -73,65 +90,120 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
   final TextEditingController _autresDefautNomController =
       TextEditingController();
 
-  // ── Médiane défauts COI (max des défauts perçus) ─────────────────────────
-  double get _medianeDefauts {
-    final defauts = [_chome, _moisi, _vinaigre, _gele, _rance, _autresDefaut];
-    // On prend le max comme défaut dominant (norme COI)
-    return defauts.reduce((a, b) => a > b ? a : b);
+  // ── Calcul — délégué à lib/core/classification/classification_interne.dart ─
+  // La logique vivait ici en copie du formulaire dégustateur ; les deux copies
+  // avaient divergé. Elle n'existe plus qu'au même endroit pour tous les rôles.
+  double get _medianeDefauts => medianeDefauts(
+    chome: _chome,
+    moisi: _moisi,
+    vinaigre: _vinaigre,
+    gele: _gele,
+    rance: _rance,
+    autresDefaut: _autresDefaut,
+  );
+
+  ResultatClassification get _resultat => ResultatClassification(
+    fruite: _fruite,
+    typeFruite: _typeFruite,
+    amertume: _amer,
+    piquant: _piquant,
+    mediane: _medianeDefauts,
+    profilNonHarmonieux: _profilNonHarmonieux,
+    classeManuelle: _classeManuelle,
+  );
+
+  /// Date affichée sur la pastille « choisie manuellement ».
+  String? _dateCourte(String? iso) {
+    if (iso == null || iso.isEmpty) return null;
+    final d = DateTime.tryParse(iso);
+    if (d == null) return null;
+    return '${d.day.toString().padLeft(2, '0')}/'
+        '${d.month.toString().padLeft(2, '0')}/${d.year}';
   }
 
-  // ── Classification COI automatique ───────────────────────────────────────
-  Map<String, dynamic> get _classification {
-    final med = _medianeDefauts;
-    final fruit = _fruite;
-
-    if (med == 0.0 && fruit > 0.0) {
-      return {
-        'label': 'Extra Vierge',
-        'color': green,
-        'icon': Icons.workspace_premium_outlined,
-        'bg': green.withValues(alpha: 0.06),
-        'border': green.withValues(alpha: 0.28),
-        'description': 'Médiane défauts = 0.0 et Fruité > 0.0',
-      };
-    } else if (med > 0.0 && med <= 3.5 && fruit > 0.0) {
-      return {
-        'label': 'Vierge',
-        'color': Colors.orange.shade700,
-        'icon': Icons.verified_outlined,
-        'bg': Colors.orange.shade50,
-        'border': Colors.orange.shade200,
-        'description': '0.0 < Médiane défauts ≤ 3.5 et Fruité > 0.0',
-      };
-    } else if ((med > 3.5 && med <= 6.0) || (med <= 3.5 && fruit == 0.0)) {
-      return {
-        'label': 'Vierge Ordinaire',
-        'color': Colors.deepOrange.shade600,
-        'icon': Icons.info_outline,
-        'bg': Colors.deepOrange.shade50,
-        'border': Colors.deepOrange.shade200,
-        'description': 'Médiane défauts entre 3.5 et 6.0',
-      };
-    } else if (med > 6.0) {
-      return {
-        'label': 'Lampante',
-        'color': Colors.red.shade700,
-        'icon': Icons.warning_amber_rounded,
-        'bg': Colors.red.shade50,
-        'border': Colors.red.shade200,
-        'description': 'Médiane défauts > 6.0 — Non comestible en l\'état',
-      };
-    } else {
-      // Aucune valeur saisie
-      return {
-        'label': 'En attente d\'évaluation',
-        'color': Colors.grey.shade500,
-        'icon': Icons.hourglass_empty_rounded,
-        'bg': Colors.grey.shade50,
-        'border': Colors.grey.shade200,
-        'description': 'Saisir au moins le fruité pour classifier',
-      };
+  Future<void> _loadExistingEvaluation() async {
+    try {
+      final evaluation = await _service.fetchEvaluation(widget.echantillonId);
+      if (evaluation == null || !mounted) return;
+      setState(() => _applyEvaluation(evaluation));
+    } catch (_) {
+      // Keep the current form usable with local/default values if offline.
     }
+  }
+
+  void _applyEvaluation(Map<String, dynamic> data) {
+    _evaluationId = data['id'] as String?;
+    _fruite = _numValue(data['fruite']);
+    _typeFruite = TypeFruiteX.fromJson(data['type_fruite'] as String?);
+    _profilNonHarmonieux = data['profil_non_harmonieux'] as bool? ?? false;
+    // Seule une classe explicitement marquée manuelle est restaurée : une classe
+    // automatique se recalcule depuis les valeurs, elle n'a pas à être relue.
+    _classeManuelle = (data['classe_interne_manuelle'] as bool? ?? false)
+        ? ClasseInterneX.fromJson(data['classe_interne'] as String?)
+        : null;
+    _classeChoisieLe = data['classe_interne_choisie_le'] as String?;
+    _amer = _numValue(data['amertume']);
+    _piquant = _numValue(data['piquant']);
+    _chome = _numValue(data['chome']);
+    _moisi = _numValue(data['moisi']);
+    _vinaigre = _numValue(data['vinaigre']);
+    _rance = _numValue(data['rance']);
+    _gele = _numValue(data['gele']);
+    _autresDefaut = _numValue(data['autres_defaut']);
+    _autresDefautNomController.text =
+        data['autres_defaut_nom']?.toString() ?? '';
+    _notesController.text = data['commentaire']?.toString() ?? '';
+    _estSoumis = widget.readOnly || data['statut'] == 'soumis';
+  }
+
+  double _numValue(dynamic value) {
+    if (value == null) return 0.0;
+    if (value is num) return value.toDouble();
+    return double.tryParse(value.toString()) ?? 0.0;
+  }
+
+  Map<String, dynamic> _evaluationPayload() {
+    final resultat = _resultat;
+    return {
+    'echantillon': widget.echantillonId,
+    'statut': 'en_cours',
+    'classification': resultat.coi?.toJson ?? '',
+    'classe_interne': resultat.classeRetenue?.toJson ?? '',
+    'classe_interne_manuelle': resultat.estManuelle,
+    'classe_interne_motif': resultat.estManuelle ? _motifCourant() : '',
+    'profil_non_harmonieux': _profilNonHarmonieux,
+    'fruite': _fruite,
+    'type_fruite': _typeFruite.toJson,
+    'amertume': _amer,
+    'piquant': _piquant,
+    'chome': _chome,
+    'moisi': _moisi,
+    'vinaigre': _vinaigre,
+    'rance': _rance,
+    'gele': _gele,
+    'autres_defaut': _autresDefaut,
+    'autres_defaut_nom': _autresDefautNomController.text.trim(),
+    'commentaire': _notesController.text.trim(),
+    };
+  }
+
+  /// Motif « hors grille » figé en base au moment du choix manuel (§14).
+  String _motifCourant() => motifHorsGrille(
+    coi: _resultat.coi,
+    fruite: _fruite,
+    typeFruite: _typeFruite,
+    amertume: _amer,
+    piquant: _piquant,
+    profilNonHarmonieux: _profilNonHarmonieux,
+  );
+
+  Future<Map<String, dynamic>> _saveDraft() async {
+    final payload = _evaluationPayload();
+    final saved = _evaluationId == null
+        ? await _service.createEvaluation(payload)
+        : await _service.updateEvaluation(_evaluationId!, payload);
+    _evaluationId = saved['id'] as String?;
+    return saved;
   }
 
   @override
@@ -143,7 +215,6 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
 
   @override
   Widget build(BuildContext context) {
-    final cl = _classification;
     return Scaffold(
       backgroundColor: _bg,
       appBar: AppBar(
@@ -219,24 +290,26 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
             // ══════════════════════════════════════════════════════════════
             // SECTION 2 — CLASSIFICATION EN TEMPS RÉEL
             // ══════════════════════════════════════════════════════════════
-            ClassificationCard(
-              classificationLabel: cl['label'] as String,
-              classificationDescription: cl['description'] as String,
-              classificationColor: cl['color'] as Color,
-              classificationBg: cl['bg'] as Color,
-              classificationBorder: cl['border'] as Color,
-              classificationIcon: cl['icon'] as IconData,
-              fruite: _fruite,
-              fruiteVert: _fruiteVert,
-              amer: _amer,
-              piquant: _piquant,
-              chome: _chome,
-              moisi: _moisi,
-              vinaigre: _vinaigre,
-              gele: _gele,
-              rance: _rance,
-              autresDefaut: _autresDefaut,
+            CarteClassification(
+              resultat: _resultat,
               medianeDefauts: _medianeDefauts,
+              fruite: _fruite,
+              typeFruite: _typeFruite,
+              amertume: _amer,
+              piquant: _piquant,
+              choisieLe: _dateCourte(_classeChoisieLe),
+              readOnly: _estSoumis,
+              onHarmonieChanged: (v) => setState(() {
+                _profilNonHarmonieux = v;
+                // Cocher la case annule la classe automatique : le choix manuel
+                // précédent ne vaut plus pour la nouvelle situation.
+                _classeManuelle = null;
+              }),
+              onClasseManuelleChanged: (c) => setState(() {
+                _classeManuelle = c;
+                _classeChoisieLe =
+                    c == null ? null : DateTime.now().toIso8601String();
+              }),
             ),
 
             const SizedBox(height: 16),
@@ -484,7 +557,7 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
       SizedBox(
         width: double.infinity,
         child: OutlinedButton.icon(
-          onPressed: _enregistrerBrouillon,
+          onPressed: _saving ? null : _enregistrerBrouillon,
           icon: const Icon(Icons.save_outlined, size: 18),
           label: const Text('Enregistrer le brouillon'),
           style: OutlinedButton.styleFrom(
@@ -499,7 +572,7 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
       SizedBox(
         width: double.infinity,
         child: ElevatedButton.icon(
-          onPressed: _confirmerSoumission,
+          onPressed: _saving ? null : _confirmerSoumission,
           icon: const Icon(Icons.lock_outline, size: 18),
           label: const Text(
             'Soumettre & Verrouiller',
@@ -537,24 +610,25 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
           isPositif: true,
           readOnly: _estSoumis,
         ),
+        // ── Type de fruité — 3 valeurs (PR-48 §5 et §8) ──
+        // « Vert-mûr » est ce qui sépare Extra B d'Extra B−.
         if (_fruite > 0.0) ...[
+          const SizedBox(height: 8),
+          const Text(
+            'Type de fruité :',
+            style: TextStyle(
+              fontSize: 12,
+              color: oliveGreen,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
           const SizedBox(height: 8),
           Row(
             children: [
-              const Text(
-                'Type de fruité :',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: oliveGreen,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(width: 12),
-              _fruiteToggleChip('🌿 Vert', isSelected: _fruiteVert, color: green,
-                  onTap: () => setState(() => _fruiteVert = true)),
-              const SizedBox(width: 8),
-              _fruiteToggleChip('🫒 Mûr', isSelected: !_fruiteVert, color: oliveGreen,
-                  onTap: () => setState(() => _fruiteVert = false)),
+              for (final type in TypeFruite.values) ...[
+                Expanded(child: _chipTypeFruite(type)),
+                if (type != TypeFruite.values.last) const SizedBox(width: 6),
+              ],
             ],
           ),
         ],
@@ -562,26 +636,30 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
     );
   }
 
-  Widget _fruiteToggleChip(
-    String label, {
-    required bool isSelected,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
+  // ── Chip de type de fruité — Vert / Vert-mûr / Mûr (PR-48 §5 et §8) ──────
+  Widget _chipTypeFruite(TypeFruite type) {
+    final actif = _typeFruite == type;
+    final couleur = type == TypeFruite.mur ? oliveGreen : green;
+
     return GestureDetector(
-      onTap: _estSoumis ? null : onTap,
+      onTap: _estSoumis ? null : () => setState(() => _typeFruite = type),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
         decoration: BoxDecoration(
-          color: isSelected ? color : Colors.grey.shade100,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: isSelected ? color : Colors.grey.shade300),
+          color: actif ? couleur.withValues(alpha: 0.1) : Colors.grey.shade50,
+          borderRadius: BorderRadius.circular(9),
+          border: Border.all(
+            color: actif ? couleur : Colors.grey.shade300,
+            width: actif ? 1.5 : 1.0,
+          ),
         ),
         child: Text(
-          label,
+          '${type.emoji} ${type.label}',
+          textAlign: TextAlign.center,
+          overflow: TextOverflow.ellipsis,
           style: TextStyle(
-            fontSize: 12,
-            color: isSelected ? Colors.white : Colors.grey.shade600,
+            fontSize: 11.5,
+            color: actif ? couleur : Colors.grey.shade600,
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -688,27 +766,50 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
   }
 
   // ── Action: brouillon ───────────────────────────────────────────────────
-  void _enregistrerBrouillon() {
-    // TODO: POST /api/evaluations/brouillon
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text(
-          'Brouillon enregistré',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+  Future<void> _enregistrerBrouillon() async {
+    setState(() => _saving = true);
+    try {
+      await _saveDraft();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text(
+            'Brouillon enregistre',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+          ),
+          backgroundColor: oliveGreen,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          margin: const EdgeInsets.all(20),
         ),
-        backgroundColor: oliveGreen,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        margin: const EdgeInsets.all(20),
-      ),
-    );
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            _service.messageFor(error),
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          backgroundColor: Colors.red.shade700,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          margin: const EdgeInsets.all(20),
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
   }
 
   // ── Action: confirmer soumission ────────────────────────────────────────
   void _confirmerSoumission() {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: Row(
           children: [
             Icon(Icons.lock_outline, color: green, size: 22),
@@ -744,35 +845,63 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: const Text('Annuler'),
           ),
           ElevatedButton.icon(
-            onPressed: () {
-              // Close the confirm dialog
-              Navigator.pop(context);
-              setState(() => _estSoumis = true);
-              // TODO: POST /api/evaluations/soumettre
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: const Text(
-                    'Évaluation soumise et verrouillée ✅',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
+            onPressed: () async {
+              Navigator.pop(dialogContext);
+              setState(() => _saving = true);
+              try {
+                final draft = await _saveDraft();
+                final evaluationId = _evaluationId ?? draft['id'] as String?;
+                if (evaluationId == null) {
+                  throw StateError('Evaluation introuvable.');
+                }
+                await _service.soumettre(evaluationId);
+                if (!mounted) return;
+                setState(() => _estSoumis = true);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: const Text(
+                      'Evaluation soumise et verrouillee',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
+                    backgroundColor: green,
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    margin: const EdgeInsets.all(20),
                   ),
-                  backgroundColor: green,
-                  behavior: SnackBarBehavior.floating,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                );
+                final classif = _resultat.coi?.label ?? '';
+                Navigator.pop(context, classif);
+              } catch (error) {
+                if (!mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      _service.messageFor(error),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    backgroundColor: Colors.red.shade700,
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    margin: const EdgeInsets.all(20),
                   ),
-                  margin: const EdgeInsets.all(20),
-                ),
-              );
-              // Return the classification label to the calling page
-              final classif = _classification['label'] as String;
-              Navigator.pop(context, classif);
+                );
+              } finally {
+                if (mounted) setState(() => _saving = false);
+              }
             },
             icon: const Icon(Icons.lock_outline, size: 16),
             label: const Text('Soumettre'),

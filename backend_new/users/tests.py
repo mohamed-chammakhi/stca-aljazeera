@@ -80,6 +80,75 @@ class CurrentUserProfileApiTests(APITestCase):
         self.assertTrue(self.user.is_active)
 
 
+class PanelMemberApiTests(APITestCase):
+    def setUp(self):
+        self.degustateur = User.objects.create_user(
+            email='degustateur@stca.tn',
+            password='Test@12345',
+            nom='Chammakhi',
+            prenom='Ichrak',
+            role=User.Role.DEGUSTATEUR,
+        )
+        self.chef = User.objects.create_user(
+            email='chef@stca.tn',
+            password='Test@12345',
+            nom='Chef',
+            prenom='Panel',
+            role=User.Role.CHEF_DEGUSTATION,
+        )
+        self.inactive_degustateur = User.objects.create_user(
+            email='inactive.degustateur@stca.tn',
+            password='Test@12345',
+            nom='Inactive',
+            prenom='Panel',
+            role=User.Role.DEGUSTATEUR,
+            is_active=False,
+        )
+        self.collecteur = User.objects.create_user(
+            email='collecteur.panel@stca.tn',
+            password='Test@12345',
+            nom='Collecteur',
+            prenom='HorsPanel',
+            role=User.Role.COLLECTEUR,
+        )
+        User.objects.create_user(
+            email='direction.panel@stca.tn',
+            password='Test@12345',
+            nom='Direction',
+            prenom='HorsPanel',
+            role=User.Role.DIRECTION,
+        )
+        User.objects.create_user(
+            email='labo.panel@stca.tn',
+            password='Test@12345',
+            nom='Labo',
+            prenom='HorsPanel',
+            role=User.Role.LABORATOIRE,
+        )
+
+    def test_panel_members_requires_authentication(self):
+        response = self.client.get('/api/users/panel-members/')
+
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_authenticated_user_can_list_active_panel_members_only(self):
+        self.client.force_authenticate(user=self.collecteur)
+
+        response = self.client.get('/api/users/panel-members/')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        ids = {item['id'] for item in response.data['results']}
+        self.assertIn(str(self.degustateur.id), ids)
+        self.assertIn(str(self.chef.id), ids)
+        self.assertNotIn(str(self.inactive_degustateur.id), ids)
+        self.assertEqual(len(ids), 2)
+
+        first = response.data['results'][0]
+        self.assertIn('membre_depuis', first)
+        self.assertIn('est_en_ligne', first)
+        self.assertNotIn('email', first)
+
+
 class DirectionUserManagementApiTests(APITestCase):
     def setUp(self):
         self.direction = User.objects.create_user(

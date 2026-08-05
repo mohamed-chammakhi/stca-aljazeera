@@ -23,7 +23,7 @@ class Command(BaseCommand):
             ('collecteur@stca.tn', 'Collecteur', 'Amine', User.Role.COLLECTEUR),
             ('degustateur@stca.tn', 'Degustateur', 'Salma', User.Role.DEGUSTATEUR),
             ('labo@stca.tn', 'Laboratoire', 'Nour', User.Role.LABORATOIRE),
-            ('chef@stca.tn', 'Chef', 'Panel', User.Role.CHEF_PANEL),
+            ('chef@stca.tn', 'Chef', 'Dégustation', User.Role.CHEF_DEGUSTATION),
         ]
 
         for email, nom, prenom, role in users:

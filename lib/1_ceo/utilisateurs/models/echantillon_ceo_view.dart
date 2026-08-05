@@ -6,18 +6,15 @@
 
 // Re-export core types so CEO pages only need to import this one file.
 export '../../../../core/models/enums.dart'
-    show
-        ClassificationHuile,
-        ClassificationHuileX,
-        StatutCeo,
-        StatutCeoX;
+    show ClassificationHuile, ClassificationHuileX, StatutCeo, StatutCeoX;
 
 export '../../../../core/models/evaluation_organoleptique.dart';
+export '../../../../core/analyses/rapport_labo.dart';
 export '../../../../core/widgets/analyse_labo_sheet_adapter.dart';
 
+import '../../../../core/analyses/rapport_labo.dart';
 import '../../../../core/models/enums.dart';
 import '../../../../core/models/evaluation_organoleptique.dart';
-import '../../../../core/widgets/analyse_labo_sheet_adapter.dart';
 
 // ── Sample view model ─────────────────────────────────────────────────────────
 class EchantillonCeoView {
@@ -26,7 +23,7 @@ class EchantillonCeoView {
   final String gouvernorat;
   final String? delegation;
   final String codeFournisseur;
-  final String? scellage;
+  final String? numCiterne;
   final String? variete;
   final String? quantiteEstimee;
   final String dateAjout;
@@ -37,9 +34,17 @@ class EchantillonCeoView {
   StatutCeo statut;
   final int totalTasteurs;
   final List<EvaluationOrganoleptique> evaluations;
-  final AnalyseLaboCeoView? analyse;
+  final RapportLabo? analyse;
   String? raisonRefus;
   String? budgetNegociation;
+
+  /// Borne haute quand la direction propose un intervalle plutôt qu'un prix
+  /// ferme. Vide = prix unique.
+  String? budgetNegociationMax;
+
+  /// Nombre de fois que la direction a renvoyé la proposition en négociation.
+  /// Alimente le marqueur « Renégocié ×N » sur la carte.
+  int nbRenegociations;
   String? dateLivraisonStockSouhaitee; // CEO's desired delivery date for stock
   String? quantiteCibleT;
   String? camionReserve;
@@ -47,7 +52,8 @@ class EchantillonCeoView {
   bool stockArrive;
   String? dateLivraisonStock;
   String? dateLivraisonStockFin; // end of range when stock delivery is a period
-  String? dateLivraisonPrevueFin; // end of range when sample delivery is a period
+  String?
+  dateLivraisonPrevueFin; // end of range when sample delivery is a period
   String? remarques;
 
   EchantillonCeoView({
@@ -56,7 +62,7 @@ class EchantillonCeoView {
     required this.gouvernorat,
     this.delegation,
     required this.codeFournisseur,
-    this.scellage,
+    this.numCiterne,
     this.variete,
     this.quantiteEstimee,
     required this.dateAjout,
@@ -70,6 +76,8 @@ class EchantillonCeoView {
     this.analyse,
     this.raisonRefus,
     this.budgetNegociation,
+    this.budgetNegociationMax,
+    this.nbRenegociations = 0,
     this.dateLivraisonStockSouhaitee,
     this.quantiteCibleT,
     this.camionReserve,

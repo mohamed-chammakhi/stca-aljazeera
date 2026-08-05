@@ -8,6 +8,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/session_degustation.dart';
 import '../../widgets/chef_colors.dart';
+import '../../../core/widgets/grille_details.dart';
 
 const Color _olive = Color(0xFF6B8143);
 
@@ -420,18 +421,16 @@ class _DetailPanel extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // ── Attribute grid ────────────────────────────────────────
-              Wrap(
-                spacing: 100,
-                runSpacing: 10,
-                children: [
-                  _DetailItem('Date', s.date),
-                  _DetailItem('Heure', s.heure),
-                  _DetailItem('Lieu', s.lieu),
-                  _DetailItem(
+              GrilleDetails(
+                items: [
+                  DetailItem('Date', s.date),
+                  DetailItem('Heure', s.heure),
+                  DetailItem('Lieu', s.lieu),
+                  DetailItem(
                     'Échantillons',
                     '${s.nbEchantillons} échantillon${s.nbEchantillons > 1 ? "s" : ""}',
                   ),
-                  _DetailItem('Organisé par', s.createdBy),
+                  DetailItem('Organisé par', s.createdBy),
                 ],
               ),
               // ── Participants with presence status ─────────────────────
@@ -460,7 +459,7 @@ class _DetailPanel extends StatelessWidget {
                       .toList(),
                 ),
               ] else
-                _DetailItem(
+                DetailItem(
                   'Participants',
                   '${s.nbParticipants} participant(s)',
                 ),
@@ -512,36 +511,6 @@ class _DetailPanel extends StatelessWidget {
 // ─────────────────────────────────────────────────────────────────────────────
 // DETAIL ITEM
 // ─────────────────────────────────────────────────────────────────────────────
-class _DetailItem extends StatelessWidget {
-  final String label;
-  final String value;
-  const _DetailItem(this.label, this.value);
-
-  @override
-  Widget build(BuildContext context) => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text(
-        label,
-        style: const TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w600,
-          color: Color(0xFFAAAAAA),
-          letterSpacing: 0.3,
-        ),
-      ),
-      const SizedBox(height: 2),
-      Text(
-        value,
-        style: const TextStyle(
-          fontSize: 13,
-          fontWeight: FontWeight.w600,
-          color: chefDark,
-        ),
-      ),
-    ],
-  );
-}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PRESENCE CHIP — participant pill showing confirmation status

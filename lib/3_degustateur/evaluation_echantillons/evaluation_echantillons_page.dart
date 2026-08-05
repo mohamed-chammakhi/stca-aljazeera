@@ -18,9 +18,8 @@ import '../sessions_degustation/sessions_degustation_page.dart';
 import '../analyse_labo/analyse_laboratoire_page.dart';
 
 // ── Own model ─────────────────────────────────────────────────────────────────
-import 'navigation/models/echantillon.dart';
+import '../../core/models/echantillon_evaluation.dart';
 import 'services/evaluation_service.dart';
-import '../../../core/utils/date_utils.dart';
 
 // ── Own widgets ───────────────────────────────────────────────────────────────
 import 'navigation/widgets/echantillon_card.dart';

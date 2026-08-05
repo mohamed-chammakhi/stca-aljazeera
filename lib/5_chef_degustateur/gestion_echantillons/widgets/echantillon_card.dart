@@ -7,8 +7,10 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../../../core/models/echantillon.dart';
+import '../../../../core/widgets/historique_modifications.dart';
 import '../../../../core/models/enums.dart';
 import '../../widgets/chef_colors.dart';
+import '../../../core/widgets/grille_details.dart';
 
 const Color _olive = Color(0xFF6B8143);
 const Color _green = Color(0xFF38835A);
@@ -179,33 +181,51 @@ class _EchantillonCardState extends State<EchantillonCard> {
                                       Flexible(
                                         fit: FlexFit.loose,
                                         child: AnimatedSize(
-                                          duration: const Duration(milliseconds: 200),
+                                          duration: const Duration(
+                                            milliseconds: 200,
+                                          ),
                                           curve: Curves.easeInOut,
                                           child: _showRecuMsg
                                               ? Container(
-                                                  margin: const EdgeInsets.only(right: 6),
-                                                  padding: const EdgeInsets.symmetric(
-                                                    horizontal: 7,
-                                                    vertical: 3,
+                                                  margin: const EdgeInsets.only(
+                                                    right: 6,
                                                   ),
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        horizontal: 7,
+                                                        vertical: 3,
+                                                      ),
                                                   decoration: BoxDecoration(
                                                     color: _green,
-                                                    borderRadius: BorderRadius.circular(6),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          6,
+                                                        ),
                                                   ),
                                                   child: Row(
-                                                    mainAxisSize: MainAxisSize.min,
+                                                    mainAxisSize:
+                                                        MainAxisSize.min,
                                                     children: [
-                                                      const Icon(Icons.check, size: 10, color: Colors.white),
+                                                      const Icon(
+                                                        Icons.check,
+                                                        size: 10,
+                                                        color: Colors.white,
+                                                      ),
                                                       const SizedBox(width: 4),
                                                       Flexible(
                                                         child: Text(
                                                           'Réception physique confirmée',
-                                                          overflow: TextOverflow.ellipsis,
-                                                          style: const TextStyle(
-                                                            fontSize: 10,
-                                                            color: Colors.white,
-                                                            fontWeight: FontWeight.w600,
-                                                          ),
+                                                          overflow: TextOverflow
+                                                              .ellipsis,
+                                                          style:
+                                                              const TextStyle(
+                                                                fontSize: 10,
+                                                                color: Colors
+                                                                    .white,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w600,
+                                                              ),
                                                         ),
                                                       ),
                                                     ],
@@ -225,7 +245,12 @@ class _EchantillonCardState extends State<EchantillonCard> {
                                               : Icons.check_circle_outline,
                                           color: e.recuPhysiquement
                                               ? chefGreen
-                                              : const Color.fromARGB(255, 137, 136, 136),
+                                              : const Color.fromARGB(
+                                                  255,
+                                                  137,
+                                                  136,
+                                                  136,
+                                                ),
                                           onTap: () => _confirmToggleRecu(),
                                         ),
                                       ),
@@ -353,32 +378,36 @@ class _DetailPanel extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // ── Attribute grid ─────────────────────────────────────────
-              Wrap(
-                spacing: 90,
-                runSpacing: 10,
-                children: [
-                  _DetailItem('N° échantillon', e.ref),
-                  _DetailItem('Réf. bouteille', e.referenceBouteille),
+              GrilleDetails(
+                items: [
+                  DetailItem('N° échantillon', e.ref),
+                  DetailItem('Réf. bouteille', e.referenceBouteille),
                   if (e.codeFournisseur != null)
-                    _DetailItem('Fournisseur', e.codeFournisseur!),
+                    DetailItem('Fournisseur', e.codeFournisseur!),
                   if (e.variete != null && e.variete!.isNotEmpty)
-                    _DetailItem('Variété', e.variete!),
-                  _DetailItem(
+                    DetailItem('Variété', e.variete!),
+                  DetailItem(
                     'Gouvernorat',
                     e.delegation != null
                         ? '${e.gouvernorat} — ${e.delegation}'
                         : e.gouvernorat,
                   ),
                   if (e.collecteurNom != null && e.collecteurNom!.isNotEmpty)
-                    _DetailItem('Collecteur', e.collecteurNom!),
-                  if (e.scellage != null && e.scellage!.isNotEmpty)
-                    _DetailItem('Scellage', e.scellage!),
-                  _DetailItem(
+                    DetailItem('Collecteur', e.collecteurNom!),
+                  if (e.numCiterne != null && e.numCiterne!.isNotEmpty)
+                    DetailItem('N° citerne', e.numCiterne!),
+                  DetailItem(
                     'Reçu physiquement',
                     e.recuPhysiquement ? 'Oui' : 'Non',
                   ),
                 ],
               ),
+              // Edits made after physical reception. Hidden entirely when the
+              // sample was never touched — an empty panel would only add noise.
+              if (e.historique.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                HistoriqueModifications(historique: e.historique),
+              ],
             ],
           ),
         ),
@@ -530,33 +559,3 @@ class _RecuConfirmDialog extends StatelessWidget {
 // ─────────────────────────────────────────────────────────────────────────────
 // DETAIL ITEM
 // ─────────────────────────────────────────────────────────────────────────────
-class _DetailItem extends StatelessWidget {
-  final String label;
-  final String value;
-  const _DetailItem(this.label, this.value);
-
-  @override
-  Widget build(BuildContext context) => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text(
-        label,
-        style: const TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w600,
-          color: Color(0xFFAAAAAA),
-          letterSpacing: 0.3,
-        ),
-      ),
-      const SizedBox(height: 2),
-      Text(
-        value,
-        style: const TextStyle(
-          fontSize: 13,
-          fontWeight: FontWeight.w600,
-          color: chefDark,
-        ),
-      ),
-    ],
-  );
-}

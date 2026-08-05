@@ -24,6 +24,7 @@ import '../tableau_de_bord/tableau_de_bord.dart';
 import '../widgets/search_date_filter_bar.dart';
 import '../widgets/sample_card_echantillon.dart';
 import 'widgets/collecteur_section.dart';
+import 'services/echantillon_ceo_service.dart';
 
 
 String _initials(String name) {
@@ -52,7 +53,23 @@ class _EchantillonsCeoPageState extends State<EchantillonsCeoPage> with CeoNavMi
   final Set<String> _expandedCollecteurs = {};
   final Set<String> _expandedSamples = {};
 
-  List<EchantillonCeoView> get _allEchantillons => mockEchantillons;
+  final _service = EchantillonCeoService();
+  List<EchantillonCeoView> _allEchantillons = List.of(mockEchantillons);
+
+  @override
+  void initState() {
+    super.initState();
+    _loadEchantillons();
+  }
+
+  Future<void> _loadEchantillons() async {
+    try {
+      final data = await _service.fetchCeoViews();
+      if (mounted) setState(() => _allEchantillons = data);
+    } catch (_) {
+      if (mounted) setState(() => _allEchantillons = List.of(mockEchantillons));
+    }
+  }
 
   @override
   void dispose() {

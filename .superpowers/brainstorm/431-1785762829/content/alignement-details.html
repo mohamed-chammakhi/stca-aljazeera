@@ -1,0 +1,201 @@
+<link href="https://fonts.googleapis.com/css2?family=Domine:wght@400;600;700&family=Alegreya:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+  .al { --green:#38835A; --dark:#1A2E1F; --gray:#9C9B9B; --line:#EEEEEE;
+        --domine:'Domine',Georgia,serif; --alegreya:'Alegreya',Georgia,serif; }
+  .al * { box-sizing:border-box; }
+
+  .card{
+    width:330px; background:#fff; border-radius:12px; border:1px solid #EDEDED;
+    font-family:var(--alegreya); color:var(--dark); overflow:hidden;
+    box-shadow:0 10px 26px -14px rgba(26,46,31,.3);
+  }
+  .card-head{
+    padding:11px 13px; border-bottom:1px solid var(--line);
+    font-family:var(--domine); font-size:13px; font-weight:700;
+    display:flex; justify-content:space-between; align-items:center;
+  }
+  .card-head span{ font-size:11px; color:var(--gray); font-weight:400; font-family:var(--alegreya); }
+  .panel{ margin:10px 12px 12px; padding:12px; border:1px solid #F2F2F2; border-radius:10px; }
+
+  .lbl{ font-size:11px; font-weight:600; color:var(--gray); letter-spacing:.3px; line-height:1.25; }
+  .val{ font-size:13px; font-weight:600; color:var(--dark); line-height:1.3; margin-top:2px; }
+
+  /* ── AVANT : Wrap, largeur libre ───────────────────────────── */
+  .avant{ display:flex; flex-wrap:wrap; column-gap:34px; row-gap:10px; }
+  .avant > div{ min-width:100px; }
+  .avant .val{ white-space:nowrap; }
+
+  /* ── APRÈS : grille 2 colonnes, largeur fixe ───────────────── */
+  .apres{ display:grid; grid-template-columns:1fr 1fr; column-gap:16px; row-gap:12px; align-items:start; }
+
+  /* guides de colonne */
+  .guides{ position:relative; }
+  .guides::before, .guides::after{
+    content:''; position:absolute; top:-4px; bottom:-4px; width:1px;
+    background:repeating-linear-gradient(to bottom,#38835A 0 4px,transparent 4px 8px);
+    opacity:.55;
+  }
+  .guides::before{ left:0; }
+  .guides::after{ left:calc(50% + 8px); }
+
+  .bad{ position:relative; }
+  .bad::before, .bad::after{
+    content:''; position:absolute; top:-4px; bottom:-4px; width:1px;
+    background:repeating-linear-gradient(to bottom,#E64A19 0 4px,transparent 4px 8px);
+    opacity:.6;
+  }
+  .bad::before{ left:0; }
+  .bad::after{ left:calc(50% + 8px); }
+
+  .stack{ display:flex; gap:38px; flex-wrap:wrap; align-items:flex-start; }
+  .cap{ font-size:10px; letter-spacing:.11em; text-transform:uppercase; color:#8B968F; font-weight:700; margin:0 0 9px; }
+  .note{ font-size:12.5px; color:#6B7A70; line-height:1.55; max-width:360px; margin:12px 0 0; }
+  .tag{
+    display:inline-block; font-size:10px; font-weight:700; letter-spacing:.05em;
+    padding:2px 7px; border-radius:5px; margin-bottom:9px;
+  }
+  .tag.ko{ background:#FDECE7; color:#C4451A; }
+  .tag.ok{ background:#E7F1EC; color:#2E6B4A; }
+  code{ font-size:11.5px; background:#F4F6F5; padding:1px 5px; border-radius:4px; }
+</style>
+
+<div class="al">
+
+<h2>Alignement des boîtes de détails</h2>
+<p class="subtitle">Même contenu, même largeur de carte. Les pointillés marquent où devraient tomber les deux colonnes.</p>
+
+<div class="stack">
+
+  <!-- AVANT -->
+  <div>
+    <p class="cap">Aujourd'hui</p>
+    <span class="tag ko">Wrap · spacing 90</span>
+    <div class="card">
+      <div class="card-head">ECH-2026-042 <span>Détails</span></div>
+      <div class="panel">
+        <div class="avant bad">
+          <div><div class="lbl">N° échantillon</div><div class="val">ECH-2026-042</div></div>
+          <div><div class="lbl">Réf. bouteille</div><div class="val">B-0042</div></div>
+          <div><div class="lbl">Fournisseur</div><div class="val">FRN-118</div></div>
+          <div><div class="lbl">Variété</div><div class="val">Chemlali</div></div>
+          <div><div class="lbl">Gouvernorat</div><div class="val">Sfax — Sfax Sud</div></div>
+          <div><div class="lbl">Collecteur</div><div class="val">Ali Ben Salem</div></div>
+          <div><div class="lbl">N° citerne</div><div class="val">CIT-07</div></div>
+          <div><div class="lbl">Reçu physiquement</div><div class="val">Oui</div></div>
+        </div>
+      </div>
+    </div>
+    <p class="note">
+      Chaque cellule prend la largeur de son texte. « Sfax — Sfax Sud » est plus large
+      que « B-0042 », donc la colonne de droite se décale à chaque ligne. Deux
+      éléments courts se retrouvent parfois sur la même ligne que trois autres.
+      Et comme la valeur ne peut pas revenir à la ligne, une valeur longue pousse
+      sa voisine hors de la carte.
+    </p>
+  </div>
+
+  <!-- APRÈS -->
+  <div>
+    <p class="cap">Proposé</p>
+    <span class="tag ok">GrilleDetails · 2 colonnes fixes</span>
+    <div class="card">
+      <div class="card-head">ECH-2026-042 <span>Détails</span></div>
+      <div class="panel">
+        <div class="apres guides">
+          <div><div class="lbl">N° échantillon</div><div class="val">ECH-2026-042</div></div>
+          <div><div class="lbl">Réf. bouteille</div><div class="val">B-0042</div></div>
+          <div><div class="lbl">Fournisseur</div><div class="val">FRN-118</div></div>
+          <div><div class="lbl">Variété</div><div class="val">Chemlali</div></div>
+          <div><div class="lbl">Gouvernorat</div><div class="val">Sfax — Sfax Sud</div></div>
+          <div><div class="lbl">Collecteur</div><div class="val">Ali Ben Salem</div></div>
+          <div><div class="lbl">N° citerne</div><div class="val">CIT-07</div></div>
+          <div><div class="lbl">Reçu physiquement</div><div class="val">Oui</div></div>
+        </div>
+      </div>
+    </div>
+    <p class="note">
+      Chaque cellule fait exactement la moitié de la largeur, gouttière déduite.
+      Les deux colonnes tombent toujours au même endroit, sur toutes les lignes
+      et dans toutes les cartes du projet.
+    </p>
+  </div>
+
+</div>
+
+<h3 style="margin-top:30px">Le cas qui casse aujourd'hui : une valeur longue</h3>
+
+<div class="stack">
+  <div>
+    <p class="cap">Aujourd'hui</p>
+    <div class="card">
+      <div class="card-head">ECH-2026-051 <span>Détails</span></div>
+      <div class="panel">
+        <div class="avant bad">
+          <div><div class="lbl">Fournisseur</div><div class="val">Coopérative Oléicole de Sidi Bouzid Nord</div></div>
+          <div><div class="lbl">Variété</div><div class="val">Chetoui</div></div>
+          <div><div class="lbl">Livraison stock</div><div class="val">12/08/2026 → 19/08/2026</div></div>
+          <div><div class="lbl">Camion</div><div class="val">TN-4421</div></div>
+        </div>
+      </div>
+    </div>
+    <p class="note">
+      La valeur ne revient pas à la ligne : elle sort de la carte et écrase ce
+      qu'il y a à côté. C'est le « les valeurs rentrent les unes dans les autres »
+      dont vous parlez.
+    </p>
+  </div>
+
+  <div>
+    <p class="cap">Proposé</p>
+    <div class="card">
+      <div class="card-head">ECH-2026-051 <span>Détails</span></div>
+      <div class="panel">
+        <div class="apres guides">
+          <div><div class="lbl">Fournisseur</div><div class="val">Coopérative Oléicole de Sidi Bouzid Nord</div></div>
+          <div><div class="lbl">Variété</div><div class="val">Chetoui</div></div>
+          <div><div class="lbl">Livraison stock</div><div class="val">12/08/2026 → 19/08/2026</div></div>
+          <div><div class="lbl">Camion</div><div class="val">TN-4421</div></div>
+        </div>
+      </div>
+    </div>
+    <p class="note">
+      La valeur passe à la ligne dans sa cellule. La ligne devient plus haute,
+      « Variété » reste calé en haut à droite, et rien ne déborde.
+    </p>
+  </div>
+</div>
+
+<h3 style="margin-top:30px">Portée du changement</h3>
+<p class="subtitle" style="max-width:640px">
+  Le projet contient <strong>dix copies</strong> du même widget <code>DetailItem</code> — une par rôle —
+  et <strong>129 utilisations</strong>, posées dans des <code>Wrap</code> avec des espacements différents
+  (20, 60, 90). Je remplace le tout par un seul <code>GrilleDetails</code> dans <code>lib/core/widgets/</code>,
+  comme pour la classification. Les dix copies disparaissent.
+</p>
+
+<div class="options">
+  <div class="option" data-choice="ok" onclick="toggleSelect(this)">
+    <div class="letter">✓</div>
+    <div class="content">
+      <h3>Applique ça partout</h3>
+      <p>Les 24 fichiers avec un panneau de détails : échantillons, sessions, analyses labo, évaluations, achats, utilisateurs — pour les 5 rôles.</p>
+    </div>
+  </div>
+  <div class="option" data-choice="three" onclick="toggleSelect(this)">
+    <div class="letter">3</div>
+    <div class="content">
+      <h3>Trois colonnes plutôt que deux</h3>
+      <p>Plus compact, mais les cellules tombent à ~95 px sur téléphone et presque toutes les valeurs passeront sur deux lignes.</p>
+    </div>
+  </div>
+  <div class="option" data-choice="change" onclick="toggleSelect(this)">
+    <div class="letter">✎</div>
+    <div class="content">
+      <h3>Je veux autre chose</h3>
+      <p>Dites-moi quoi dans le terminal.</p>
+    </div>
+  </div>
+</div>
+
+</div>

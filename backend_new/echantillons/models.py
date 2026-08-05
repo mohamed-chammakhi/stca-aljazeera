@@ -56,9 +56,9 @@ class Echantillon(models.Model):
     delegation  = models.CharField(max_length=100, blank=True)
     cite        = models.CharField(max_length=100, blank=True)
 
-    # Sample physical details (stored as strings — values like "20L", "sealed", "oui")
+    # Sample physical details (stored as strings: values like "20L" or tank numbers)
     variete          = models.CharField(max_length=100, blank=True)
-    scellage         = models.CharField(max_length=50, blank=True)
+    num_citerne      = models.CharField(max_length=50, blank=True)
     quantite_estimee = models.CharField(max_length=50, blank=True)
     image_url        = models.CharField(max_length=500, blank=True)
 
@@ -82,10 +82,18 @@ class Echantillon(models.Model):
 
     # CEO negotiation details (set when CEO approves)
     budget_negociation  = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    # Borne haute quand la direction propose un intervalle de prix plutot qu'un
+    # prix ferme. Vide = prix unique, porte par budget_negociation seul.
+    budget_negociation_max = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
     quantite_cible_t    = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     camion_reserve      = models.CharField(max_length=50, blank=True)
     note_interne        = models.TextField(blank=True)
     raison_refus        = models.TextField(blank=True)
+
+    # Nombre de fois que la direction a renvoye la proposition en negociation.
+    # Aucun plafond : la decision de refuser reste humaine. Ce compteur est donc
+    # le seul signal qu'un dossier s'enlise — d'ou son affichage sur la carte.
+    nb_renegociations   = models.PositiveIntegerField(default=0)
 
     # Purchase confirmation (set by collector when confirming achat)
     prix_final = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)

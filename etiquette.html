@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<!--
+  BOTTLE LABEL — 5 cm diameter bottle
+  Print size: 3.5 cm wide × 7 cm tall
+  Single-column so ALL fields stay in the flat front zone of the bottle.
+  To save as PNG: open in browser, zoom so label fills screen, screenshot.
+  To print: Ctrl+P → Custom size → 3.5cm × 7cm, no margins.
+-->
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #d4d4d4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    font-family: 'Times New Roman', serif;
+  }
+
+  /* Screen preview — print size: 3.5cm × 9cm */
+  .label {
+    width: 220px;
+    height: 510px; /* 9cm at 96dpi × ~1.5 scale */
+    background: #fff;
+    border: 2px solid #000;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .header {
+    background: #c6c6c6;
+    text-align: center;
+    padding: 4px 6px 5px;
+    border-bottom: 2px solid #000;
+    flex-shrink: 0;
+  }
+
+  .header .subtitle {
+    font-size: 12px;
+    font-style: italic;
+    color: #222;
+    white-space: nowrap;
+    line-height: 1.2;
+  }
+
+  .header .title {
+    font-size: 16px;
+    font-weight: 900;
+    letter-spacing: 1.5px;
+    color: #000;
+    margin-top: 3px;
+  }
+
+  /* each field stretches equally to fill remaining height */
+  .field {
+    flex: 1;
+    padding: 8px 10px 0px;
+    border-bottom: 1.5px solid #000;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .field:last-child {
+    border-bottom: none;
+  }
+
+  .field-label {
+    display: block;
+    font-size: 16px;
+    font-style: italic;
+    color: #111;
+  }
+
+  .field-line {
+    display: block;
+    width: 100%;
+    border-bottom: 1px solid #000;
+    margin-bottom: 8px;
+  }
+
+  /* ── Print overrides ── */
+  @media print {
+    body { background: none; }
+    .label {
+      width: 3.5cm;
+      height: 9cm;
+      border-width: 1.5px;
+    }
+    .header .subtitle { font-size: 5pt; }
+    .header .title    { font-size: 7pt;  }
+    .field-label      { font-size: 6pt;  }
+  }
+</style>
+</head>
+<body>
+<div class="label">
+
+  <div class="header">
+    <div class="subtitle">Prélèvement d'échantillon à la réception</div>
+    <div class="title">STCA AL JAZIRA</div>
+  </div>
+
+  <div class="field">
+    <span class="field-label">Date de réception :</span>
+    <span class="field-line"></span>
+  </div>
+
+  <div class="field">
+    <span class="field-label">Fournisseur :</span>
+    <span class="field-line"></span>
+  </div>
+
+  <div class="field">
+    <span class="field-label">Citerne n° :</span>
+    <span class="field-line"></span>
+  </div>
+
+  <div class="field">
+    <span class="field-label">Quantité :</span>
+    <span class="field-line"></span>
+  </div>
+
+</div>
+</body>
+</html>

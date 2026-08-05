@@ -6,6 +6,7 @@
 import 'package:flutter/material.dart';
 
 import '../utilisateurs/models/echantillon_ceo_view.dart';
+import '../../core/widgets/grille_details.dart';
 
 const Color _green = Color(0xFF38835A);
 const Color _white = Color.fromARGB(255, 255, 255, 255);
@@ -38,39 +39,6 @@ StatutCfg statutConfig(StatutCeo s) {
 // ─────────────────────────────────────────────────────────────────────────────
 // DETAIL ITEM  — a small label + value column, used inside SampleDetails
 // ─────────────────────────────────────────────────────────────────────────────
-class DetailItem extends StatelessWidget {
-  final String label;
-  final String value;
-  const DetailItem(this.label, this.value, {super.key});
-
-  @override
-  Widget build(BuildContext context) => ConstrainedBox(
-    constraints: const BoxConstraints(minWidth: 100),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.w600,
-            color: Color(0xFF9C9B9B),
-            letterSpacing: 0.4,
-          ),
-        ),
-        const SizedBox(height: 3),
-        Text(
-          value,
-          style: const TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-            color: _dark,
-          ),
-        ),
-      ],
-    ),
-  );
-}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // SAMPLE DETAILS  — expanded detail panel for one echantillon
@@ -88,13 +56,13 @@ class _SampleDetailsState extends State<SampleDetails> {
 
   // Helper: wraps a string in the — sentence — gray style
   Text _dLine(String s) => Text(
-        '— $s —',
-        style: const TextStyle(
-          fontSize: 13,
-          color: Color(0xFF9C9B9B),
-          fontWeight: FontWeight.w400,
-        ),
-      );
+    '— $s —',
+    style: const TextStyle(
+      fontSize: 13,
+      color: Color(0xFF9C9B9B),
+      fontWeight: FontWeight.w400,
+    ),
+  );
 
   Color _statutColor(StatutCeo s) {
     switch (s) {
@@ -159,10 +127,8 @@ class _SampleDetailsState extends State<SampleDetails> {
           const SizedBox(height: 10),
 
           // ── Detail grid ───────────────────────────────────────────────────
-          Wrap(
-            spacing: 60,
-            runSpacing: 12,
-            children: [
+          GrilleDetails(
+            items: [
               DetailItem('N° échantillon', e.id),
               DetailItem('Ref. bouteille', e.referenceBouteille),
               DetailItem(
@@ -171,7 +137,7 @@ class _SampleDetailsState extends State<SampleDetails> {
               ),
               DetailItem('Fournisseur', e.codeFournisseur),
               if (e.variete != null) DetailItem('Variété', e.variete!),
-              if (e.scellage != null) DetailItem('Scellage', e.scellage!),
+              if (e.numCiterne != null) DetailItem('N° citerne', e.numCiterne!),
               if (e.quantiteEstimee != null)
                 DetailItem('Quantité', '${e.quantiteEstimee} T'),
               DetailItem('Date d\'ajout', e.dateAjout),
@@ -335,53 +301,20 @@ class PurchaseDetailsPanel extends StatelessWidget {
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: color.withValues(alpha: 0.18)),
       ),
-      child: Wrap(
-        spacing: 20,
-        runSpacing: 6,
-        children: [
+      child: GrilleDetails(
+        items: [
           if (e.quantiteCibleT != null)
-            _ReceiptLine(
-              label: 'Quantité livrée',
-              value: '${e.quantiteCibleT} T',
-            ),
+            DetailItem('Quantité livrée', '${e.quantiteCibleT} T'),
           if (e.budgetNegociation != null)
-            _ReceiptLine(label: 'Montant total', value: e.budgetNegociation!),
+            DetailItem('Montant total', e.budgetNegociation!),
           if (e.camionReserve != null)
-            _ReceiptLine(label: 'Camion', value: e.camionReserve!),
+            DetailItem('Camion', e.camionReserve!),
         ],
       ),
     );
   }
 }
 
-class _ReceiptLine extends StatelessWidget {
-  final String label;
-  final String value;
-  const _ReceiptLine({required this.label, required this.value});
-
-  @override
-  Widget build(BuildContext context) => Row(
-    mainAxisSize: MainAxisSize.min,
-    children: [
-      Text(
-        '$label : ',
-        style: const TextStyle(
-          fontSize: 12,
-          color: Color(0xFF9C9B9B),
-          fontWeight: FontWeight.w500,
-        ),
-      ),
-      Text(
-        value,
-        style: const TextStyle(
-          fontSize: 12,
-          color: _dark,
-          fontWeight: FontWeight.w700,
-        ),
-      ),
-    ],
-  );
-}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // SAMPLE ROW  — one row in the collecteur list, with expandable details

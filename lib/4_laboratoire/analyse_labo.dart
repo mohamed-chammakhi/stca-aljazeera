@@ -1,8 +1,14 @@
 // ═════════════════════════════════════════════════════════════════════════════
-// FILE : laboratoire/models/analyse_labo.dart
-// PURPOSE : Core data model for a laboratory analysis report
+// FILE : laboratoire/analyse_labo.dart
+// PURPOSE : Le rapport d'analyse du laboratoire, tel qu'il est imprimé.
+//
+// Les 28 valeurs mesurées ne sont plus 28 champs nommés : elles vivent dans
+// une table indexée par clé de paramètre. La liste des paramètres, leur ordre
+// et leurs seuils sont décrits une seule fois, dans core/analyses/normes_coi.dart.
+// Ajouter un paramètre ne touche donc plus ce fichier.
 // ═════════════════════════════════════════════════════════════════════════════
 
+import '../core/analyses/normes_coi.dart';
 import '../core/models/enums.dart' show StatutLabo, StatutLaboX;
 
 /// Alias kept for callers within this module.
@@ -14,80 +20,77 @@ class AnalyseLabo {
   String echantillonId;
   String echantillonRef;
 
-  // ── Physicochemical parameters (COI / IOC standard) ──────────────────────
-  double? aciditeLibre; // Free acidity (%  oleic acid) — max 0.8 for EV
-  double? indicePeroxyde; // Peroxide value (meqO2/kg)    — max 20 for EV
-  double? k232; // UV absorbance K232            — max 2.50 for EV
-  double? k270; // UV absorbance K270            — max 0.22 for EV
-  double? deltaK; // Delta-K                       — max 0.01 for EV
-  double? humidite; // Moisture & volatiles (%)      — max 0.2
-  double? impuretes; // Insoluble impurities (%)      — max 0.1
-  double? polyphenolsTotaux; // Total polyphenols (mg/kg) — quality indicator
-  double? tocopherols; // Tocopherols (mg/kg)       — quality indicator
+  // ── Identification du certificat ──────────────────────────────────────────
+  // Ce que porte l'en-tête du rapport papier et que l'échantillon ne connaît
+  // pas déjà. L'importateur, la facture et les adresses concernent la vente à
+  // l'export, pas la décision d'achat : ils restent sur le papier.
+  String? numeroCertificat;
+  String? numeroLot;
+  String? dateDebutAnalyse; // aaaa-mm-jj
+  String? dateFinAnalyse; // aaaa-mm-jj
+  int? quantiteMl;
 
-  // ── Fatty acid profile (optional advanced panel) ──────────────────────────
-  double? acideOleique; // Oleic acid C18:1 (%)  — 55–83 normal range
-  double? acideLinoleique; // Linoleic acid C18:2 (%)
-  double? acidePalmitique; // Palmitic acid C16:0 (%)
+  /// Les 28 valeurs mesurées, par clé de paramètre — voir [kTousParametres].
+  final Map<String, double?> valeurs;
 
-  // ── Classification result (auto-computed) ─────────────────────────────────
-  String? classification; // "Extra Vierge" / "Vierge" / "Lampante"
-
-  // ── Metadata ──────────────────────────────────────────────────────────────
+  // ── Métadonnées ───────────────────────────────────────────────────────────
   StatutAnalyse statut;
   String? dateAnalyse;
   String? technicienId;
   String? notes;
-  String? imageRapportUrl; // photo of scanned paper report (optional)
+  String? imageRapportUrl; // photo du rapport papier, conservée comme preuve
 
   AnalyseLabo({
     this.id,
     required this.echantillonId,
     required this.echantillonRef,
-    this.aciditeLibre,
-    this.indicePeroxyde,
-    this.k232,
-    this.k270,
-    this.deltaK,
-    this.humidite,
-    this.impuretes,
-    this.polyphenolsTotaux,
-    this.tocopherols,
-    this.acideOleique,
-    this.acideLinoleique,
-    this.acidePalmitique,
-    this.classification,
+    Map<String, double?>? valeurs,
+    this.numeroCertificat,
+    this.numeroLot,
+    this.dateDebutAnalyse,
+    this.dateFinAnalyse,
+    this.quantiteMl,
     this.statut = StatutAnalyse.enAttente,
     this.dateAnalyse,
     this.technicienId,
     this.notes,
     this.imageRapportUrl,
-  });
+  }) : valeurs = {...?valeurs};
 
-  // ── Auto-classify based on COI norms ─────────────────────────────────────
-  String get classificationAuto {
-    if (aciditeLibre == null || indicePeroxyde == null) return '—';
-    if (aciditeLibre! <= 0.8 &&
-        indicePeroxyde! <= 20 &&
-        (k270 == null || k270! <= 0.22) &&
-        (k232 == null || k232! <= 2.50)) {
-      return 'Extra Vierge';
-    } else if (aciditeLibre! <= 2.0 && indicePeroxyde! <= 20) {
-      return 'Vierge';
-    } else {
-      return 'Lampante';
-    }
-  }
+  double? valeur(String cle) => valeurs[cle];
+
+  // Raccourcis vers les quatre grandeurs qui décident du classement. Ce sont
+  // les seules lues ailleurs dans l'app.
+  double? get aciditeLibre => valeurs['acidite'];
+  double? get indicePeroxyde => valeurs['indice_peroxyde'];
+  double? get k232 => valeurs['k232'];
+  double? get k270 => valeurs['k270'];
+
+  /// Classement COI déduit des valeurs. `null` tant que les quatre grandeurs
+  /// obligatoires ne sont pas toutes renseignées.
+  String? get classification => classificationCoi(valeurs);
+
+  /// Ce qu'affiche un écran : le classement, ou un tiret s'il est indécidable.
+  /// Les paramètres saisis qui sortent de la norme COI.
+  ///
+  /// Une valeur peut sortir de la norme sans que le classement change —
+  /// c'est le cas des stérols et des acides gras, qui trahissent un mélange
+  /// plutôt qu'une dégradation. C'est ce qui déclenche l'alerte au directeur.
+  List<ParametreAnalyse> get horsNormes => parametresHorsNormes(valeurs);
 
   bool get isComplete =>
-      aciditeLibre != null &&
-      indicePeroxyde != null &&
-      k270 != null &&
-      k232 != null;
+      kParametresObligatoires.every((cle) => valeurs[cle] != null);
 
   static double? _double(dynamic value) {
     if (value is num) return value.toDouble();
-    if (value is String) return double.tryParse(value);
+    if (value is String) return lireDecimal(value);
+    return null;
+  }
+
+  static int? _int(dynamic value) {
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    if (value is String) return int.tryParse(value.trim());
     return null;
   }
 
@@ -112,19 +115,21 @@ class AnalyseLabo {
     echantillonId:
         (json['echantillon_id'] ?? json['echantillon'] ?? '') as String,
     echantillonRef: (json['echantillon_ref'] ?? '') as String,
-    aciditeLibre: _double(json['acidite_libre'] ?? json['acidite']),
-    indicePeroxyde: _double(json['indice_peroxyde']),
-    k232: _double(json['k232']),
-    k270: _double(json['k270']),
-    deltaK: _double(json['delta_k']),
-    humidite: _double(json['humidite']),
-    impuretes: _double(json['impuretes']),
-    polyphenolsTotaux: _double(json['polyphenols_totaux']),
-    tocopherols: _double(json['tocopherols']),
-    acideOleique: _double(json['acide_oleique']),
-    acideLinoleique: _double(json['acide_linoleique']),
-    acidePalmitique: _double(json['acide_palmitique']),
-    classification: json['classification'] as String?,
+    valeurs: {
+      for (final p in kTousParametres)
+        // 'acidite_libre' est l'ancien nom du même champ, encore renvoyé par
+        // l'API à côté de 'acidite'.
+        p.cle: _double(
+          p.cle == 'acidite'
+              ? (json['acidite'] ?? json['acidite_libre'])
+              : json[p.cle],
+        ),
+    },
+    numeroCertificat: json['numero_certificat'] as String?,
+    numeroLot: json['numero_lot'] as String?,
+    dateDebutAnalyse: json['date_debut_analyse'] as String?,
+    dateFinAnalyse: json['date_fin_analyse'] as String?,
+    quantiteMl: _int(json['quantite_ml']),
     statut: _statutFromJson(json['statut']),
     dateAnalyse: json['date_analyse'] as String?,
     technicienId: json['technicien_id'] as String?,
@@ -137,24 +142,17 @@ class AnalyseLabo {
     'echantillon': echantillonId,
     'echantillon_id': echantillonId,
     'echantillon_ref': echantillonRef,
-    'acidite': aciditeLibre,
-    'acidite_libre': aciditeLibre,
-    'indice_peroxyde': indicePeroxyde,
-    'k232': k232,
-    'k270': k270,
-    'delta_k': deltaK,
-    'humidite': humidite,
-    'impuretes': impuretes,
-    'polyphenols_totaux': polyphenolsTotaux,
-    'tocopherols': tocopherols,
-    'acide_oleique': acideOleique,
-    'acide_linoleique': acideLinoleique,
-    'acide_palmitique': acidePalmitique,
-    'classification': classification,
+    for (final p in kTousParametres) p.cle: valeurs[p.cle],
+    'numero_certificat': numeroCertificat,
+    'numero_lot': numeroLot,
+    'date_debut_analyse': dateDebutAnalyse,
+    'date_fin_analyse': dateFinAnalyse,
+    'quantite_ml': quantiteMl,
     'statut': statut.toJson,
     'date_analyse': dateAnalyse,
     'technicien_id': technicienId,
     'notes': notes,
     'image_rapport_url': imageRapportUrl,
+    // 'classification' n'est pas envoyé : le serveur le déduit des valeurs.
   };
 }

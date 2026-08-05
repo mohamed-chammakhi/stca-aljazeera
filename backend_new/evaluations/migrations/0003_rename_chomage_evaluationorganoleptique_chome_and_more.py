@@ -30,9 +30,4 @@ class Migration(migrations.Migration):
             name='autres_defaut',
             field=models.DecimalField(blank=True, decimal_places=1, max_digits=4, null=True),
         ),
-        migrations.AlterField(
-            model_name='evaluationorganoleptique',
-            name='fruite_vert',
-            field=models.BooleanField(default=True),
-        ),
     ]

@@ -9,6 +9,7 @@ from .models import User
 from .permissions import IsDirection
 from .serializers import (
     LoginSerializer,
+    PanelMemberSerializer,
     UserAdminUpdateSerializer,
     UserCreateSerializer,
     UserProfileUpdateSerializer,
@@ -59,6 +60,17 @@ class CurrentUserView(APIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(UserSerializer(request.user).data, status=status.HTTP_200_OK)
+
+
+class PanelMemberListView(generics.ListAPIView):
+    serializer_class = PanelMemberSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return User.objects.filter(
+            role__in=[User.Role.DEGUSTATEUR, User.Role.CHEF_DEGUSTATION],
+            is_active=True,
+        ).order_by('nom', 'prenom', 'date_creation')
 
 
 # GET /api/users/

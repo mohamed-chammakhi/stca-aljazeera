@@ -2,7 +2,12 @@ from rest_framework import serializers
 
 from echantillons.models import Echantillon
 
+from . import normes_coi
 from .models import AnalyseLabo, CritereAnalyse
+
+# Les 28 valeurs mesurees, dans l'ordre du rapport papier. Une seule liste :
+# ajouter un parametre dans normes_coi suffit a l'exposer par l'API.
+VALEURS_MESUREES = [p.cle for p in normes_coi.TOUS_PARAMETRES]
 
 
 class CritereAnalyseSerializer(serializers.ModelSerializer):
@@ -17,23 +22,41 @@ class AnalyseLaboSerializer(serializers.ModelSerializer):
     echantillon_ref = serializers.CharField(source='echantillon.reference_bouteille', read_only=True)
     acidite_libre = serializers.SerializerMethodField()
     technicien_id = serializers.UUIDField(source='technicien.id', read_only=True)
+    technicien_nom = serializers.SerializerMethodField()
+    # Deduits des valeurs, jamais saisis : le classement et l'alerte doivent
+    # dire la meme chose sur tous les ecrans.
+    classification = serializers.CharField(read_only=True)
+    parametres_hors_normes = serializers.ListField(read_only=True)
 
     class Meta:
         model = AnalyseLabo
         fields = [
             'id', 'echantillon', 'echantillon_id', 'echantillon_ref',
-            'technicien', 'technicien_id', 'statut',
-            'acidite', 'acidite_libre', 'indice_peroxyde', 'k232', 'k270', 'delta_k', 'humidite', 'impuretes',
+            'technicien', 'technicien_id', 'technicien_nom', 'statut',
+            # identification du certificat
+            'numero_certificat', 'numero_lot',
+            'date_debut_analyse', 'date_fin_analyse', 'quantite_ml',
+            # valeurs mesurees
+            *VALEURS_MESUREES,
+            'acidite_libre',
+            # deduits
+            'classification', 'parametres_hors_normes',
             'photo', 'notes', 'criteres',
             'date_analyse', 'date_modification',
         ]
         read_only_fields = [
-            'id', 'technicien', 'technicien_id',
+            'id', 'technicien', 'technicien_id', 'technicien_nom',
+            'classification', 'parametres_hors_normes',
             'date_analyse', 'date_modification',
         ]
 
     def get_acidite_libre(self, obj):
         return obj.acidite
+
+    def get_technicien_nom(self, obj):
+        if obj.technicien:
+            return f'{obj.technicien.prenom} {obj.technicien.nom}'.strip()
+        return ''
 
     def to_internal_value(self, data):
         data = data.copy()
@@ -86,6 +109,7 @@ class LabEchantillonAnalyseSerializer(serializers.ModelSerializer):
         model = Echantillon
         fields = [
             'id', 'ref', 'numero', 'gouvernorat',
+            'delegation', 'date_ajout',
             'code_fournisseur', 'collecteur_nom',
             'reference_bouteille', 'variete', 'quantite_estimee',
             'date_arrivee', 'date_arrivee_echantillon',

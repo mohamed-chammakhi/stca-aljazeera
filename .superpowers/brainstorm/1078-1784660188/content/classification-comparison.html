@@ -1,0 +1,72 @@
+<h2>Formulaire d'évaluation — Avant / Après</h2>
+<p class="subtitle">Seule la zone "Classification" change. Les sliders Fruité / Amer / Piquant / Défauts restent identiques dans les deux versions.</p>
+
+<div class="split">
+  <div class="mockup">
+    <div class="mockup-header">AVANT — aujourd'hui</div>
+    <div class="mockup-body">
+      <div style="border:1px solid #cfe3d8;background:#f2f8f4;border-radius:12px;padding:14px;margin-bottom:10px;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:20px;">🏅</span>
+          <strong style="color:#1A2E1F;">Extra Vierge</strong>
+        </div>
+        <p style="margin:6px 0 0;font-size:13px;color:#446;">Médiane défauts = 0.0 et Fruité &gt; 0.0</p>
+      </div>
+      <div class="placeholder" style="font-size:12px;padding:10px;">
+        Amer et Piquant sont saisis sur des sliders plus bas dans le formulaire,
+        mais <strong>n'influencent pas</strong> la classification affichée ici.
+      </div>
+    </div>
+  </div>
+
+  <div class="mockup">
+    <div class="mockup-header">APRÈS — proposé</div>
+    <div class="mockup-body">
+      <div style="border:1px solid #cfe3d8;background:#f2f8f4;border-radius:12px;padding:14px;margin-bottom:10px;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:20px;">🏅</span>
+          <strong style="color:#1A2E1F;">Extra Vierge</strong>
+        </div>
+        <p style="margin:6px 0 0;font-size:13px;color:#446;">Médiane défauts = 0.0 et Fruité &gt; 0.0 (inchangé)</p>
+      </div>
+
+      <div style="border:2px solid #c9a227;background:#fdf8ea;border-radius:12px;padding:14px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="font-size:20px;">⭐</span>
+            <strong style="color:#6b5200;">Classe interne : Extra A</strong>
+          </div>
+          <span class="label" style="background:#c9a227;color:#fff;border-radius:8px;padding:2px 8px;">interne</span>
+        </div>
+        <p style="margin:8px 0 4px;font-size:12px;color:#6b5200;">
+          Fruité vert 4.0 · Amertume 3.2 · Piquant 3.5 — profil équilibré
+        </p>
+        <p style="margin:0;font-size:11px;color:#8a7228;font-style:italic;">
+          Ne remplace pas la classification COI officielle ci-dessus — visible uniquement si Extra Vierge.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top:18px;">
+  <h3>Ce qui apparaît de nouveau</h3>
+  <div class="pros-cons">
+    <div class="pros">
+      <h4>Nouveau bloc "Classe interne"</h4>
+      <ul>
+        <li>N'apparaît que si Extra Vierge (COI) est confirmé</li>
+        <li>Calculé depuis Fruité (+ vert/mûr), Amertume, Piquant déjà saisis</li>
+        <li>Étiquette parmi : Extra A+, Extra A, Extra B+, Extra B, Extra B−, Extra C</li>
+      </ul>
+    </div>
+    <div class="cons">
+      <h4>Ce qui ne change pas</h4>
+      <ul>
+        <li>La carte COI reste identique et prioritaire</li>
+        <li>Aucun slider supplémentaire à saisir</li>
+        <li>Le calcul reste automatique et temps réel</li>
+      </ul>
+    </div>
+  </div>
+</div>

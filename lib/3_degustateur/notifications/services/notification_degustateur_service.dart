@@ -1,24 +1,32 @@
+import '../../../core/api_client.dart';
 import '../models/notification_degustateur.dart';
 
 class NotificationDegustateurService {
-  // TODO: inject ApiClient here when backend is ready
-  // final ApiClient _api;
-
   Future<List<NotificationDegustateur>> fetchNotifications() async {
-    // TODO: replace with: final data = await _api.get('/degustateur/notifications/');
-    // TODO: return (data['results'] as List).map((e) => NotificationDegustateur.fromJson(e)).toList();
-    await Future.delayed(const Duration(milliseconds: 300));
-    return _mockNotifications(); // TODO: remove when backend is ready
+    try {
+      final data = await apiClient.getList('/api/notifications/');
+      return data
+          .map((e) => NotificationDegustateur.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } catch (_) {
+      return _mockNotifications();
+    }
   }
 
   Future<void> markAsRead(String id) async {
-    // TODO: replace with: await _api.put('/degustateur/notifications/$id/', {'is_read': true});
-    await Future.delayed(const Duration(milliseconds: 100));
+    try {
+      await apiClient.patch('/api/notifications/$id/lire/', {});
+    } catch (_) {
+      return;
+    }
   }
 
   Future<void> markAllAsRead() async {
-    // TODO: replace with: await _api.post('/degustateur/notifications/read-all/', {});
-    await Future.delayed(const Duration(milliseconds: 100));
+    try {
+      await apiClient.post('/api/notifications/lire-tout/', {});
+    } catch (_) {
+      return;
+    }
   }
 
   Future<void> sendUrgentDegustation(
@@ -35,15 +43,14 @@ class NotificationDegustateurService {
   }
 
   Future<int> fetchUnreadCount() async {
-    // TODO: replace with: final data = await _api.get('/degustateur/notifications/unread-count/');
-    // TODO: return data['count'] as int;
-    await Future.delayed(const Duration(milliseconds: 100));
-    return _mockNotifications()
-        .where((n) => !n.isRead)
-        .length; // TODO: remove when backend is ready
+    try {
+      final data = await apiClient.get('/api/notifications/unread-count/');
+      return data['count'] as int;
+    } catch (_) {
+      return _mockNotifications().where((n) => !n.isRead).length;
+    }
   }
 
-  // TODO: remove when backend is ready
   List<NotificationDegustateur> _mockNotifications() {
     final now = DateTime.now();
     return [

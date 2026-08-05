@@ -1,33 +1,76 @@
-import '../../../../core/models/echantillon.dart';
+import '../../../core/api_client.dart';
+import '../../../core/models/echantillon.dart';
 import '../models/mock_echantillons.dart';
 
 class GestionEchantillonsChefService {
-  // TODO: inject ApiClient here when backend is ready
-  // final ApiClient _api;
+  Map<String, dynamic> _toFlutterMap(Map<String, dynamic> api) {
+    return {
+      'id': api['id'],
+      'ref': api['numero'] ?? '',
+      'fournisseur_id': api['fournisseur'] ?? '',
+      'collecteur_id': api['collecteur'] ?? '',
+      'code_fournisseur': api['code_fournisseur'],
+      'fournisseur_nom': api['fournisseur_nom'],
+      'collecteur_nom': api['collecteur_nom'],
+      'gouvernorat': api['gouvernorat'] ?? '',
+      'delegation': api['delegation'],
+      'cite': api['cite'],
+      'reference_bouteille': api['reference_bouteille'] ?? '',
+      'num_citerne': api['num_citerne'],
+      'variete': api['variete'],
+      'quantite_estimee': api['quantite_estimee'],
+      'image_url': api['image_url'],
+      'statut_collecteur': api['statut_collecteur'] ?? 'receptionne',
+      'statut_degustateur': api['statut_degustateur'],
+      'statut_labo': api['statut_labo'],
+      'statut_ceo': api['statut_ceo'],
+      'recu_physiquement': api['recu_physiquement'] ?? false,
+      'date_arrivee_echantillon': api['date_arrivee_echantillon'],
+      'budget_negociation': api['budget_negociation'],
+      'quantite_cible_t': api['quantite_cible_t'],
+      'camion_reserve': api['camion_reserve'],
+      'note_interne': api['note_interne'],
+      'raison_refus': api['raison_refus'],
+      'stock_arrive': api['stock_arrive'] ?? false,
+      'date_livraison_stock': api['date_livraison_stock'],
+      'classification': api['classification'],
+      'remarques': api['remarques'],
+      'date_ajout': api['date_ajout'] ?? '',
+      'updated_at': api['updated_at'],
+    };
+  }
 
   Future<List<Echantillon>> fetchEchantillons() async {
-    // TODO: replace with: return _api.get('/echantillons/?role=chef_degustateur');
-    return _mockEchantillons();
+    try {
+      final items = await apiClient.getList('/api/echantillons/');
+      return items
+          .map((e) => Echantillon.fromJson(_toFlutterMap(e as Map<String, dynamic>)))
+          .toList();
+    } catch (_) {
+      return _mockEchantillons();
+    }
   }
 
   Future<Echantillon> createEchantillon(Echantillon e) async {
-    // TODO: replace with: return _api.post('/echantillons/', e.toJson());
-    return e;
+    final response = await apiClient.post('/api/echantillons/', e.toJson());
+    return Echantillon.fromJson(_toFlutterMap(response));
   }
 
   Future<Echantillon> updateEchantillon(Echantillon e) async {
-    // TODO: replace with: return _api.put('/echantillons/${e.id}/', e.toJson());
-    return e;
+    final response = await apiClient.patch(
+      '/api/echantillons/${e.id}/',
+      e.toJson(),
+    );
+    return Echantillon.fromJson(_toFlutterMap(response));
   }
 
   Future<void> deleteEchantillon(String id) async {
-    // TODO: replace with: await _api.delete('/echantillons/$id/');
+    await apiClient.delete('/api/echantillons/$id/');
   }
 
   Future<void> toggleRecuPhysiquement(String id, bool value) async {
-    // TODO: replace with: await _api.patch('/echantillons/$id/', {'recu_physiquement': value});
+    await apiClient.patch('/api/echantillons/$id/confirmer-reception/', {});
   }
 
-  // TODO: remove when backend is ready
   List<Echantillon> _mockEchantillons() => List.from(mockEchantillonsGestion);
 }

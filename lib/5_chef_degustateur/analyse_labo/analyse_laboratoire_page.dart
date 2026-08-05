@@ -5,12 +5,10 @@
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'models/analyse_labo.dart';
-import 'services/analyse_labo_chef_service.dart';
+import '../../../core/analyses/ligne_analyse_labo.dart';
+import '../../../core/analyses/ligne_analyse_labo_service.dart';
 import '../widgets/statut_chip.dart';
 import 'widgets/analyse_card.dart';
-import 'widgets/dialogs/formulaire_analyse_dialog.dart';
-import 'widgets/dialogs/suppression_analyse_dialog.dart';
 // date filter sheet + button
 import '../gestion_echantillons/widgets/search_filter_bar.dart';
 
@@ -31,7 +29,7 @@ class AnalyseLaboratoirePage extends StatefulWidget {
   const AnalyseLaboratoirePage({super.key});
 
   @override
-  _AnalyseLaboratoirePageState createState() => _AnalyseLaboratoirePageState();
+  State<AnalyseLaboratoirePage> createState() => _AnalyseLaboratoirePageState();
 }
 
 class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage>
@@ -50,8 +48,8 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage>
       _filtreStatutLabel != null;
 
   // ── SERVICE ───────────────────────────────────────────────────────────────────
-  final _service = AnalyseLaboChefService();
-  List<AnalyseLabo> _analyses = [];
+  final _service = LigneAnalyseLaboService();
+  List<LigneAnalyseLabo> _analyses = [];
   final Set<String> _urgentSent = {};
 
   @override
@@ -74,7 +72,7 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage>
     }
   }
 
-  List<AnalyseLabo> get _filtres {
+  List<LigneAnalyseLabo> get _filtres {
     return _analyses.where((a) {
       final matchRecherche =
           _recherche.isEmpty ||
@@ -87,7 +85,7 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage>
 
       bool matchDate = true;
       if (_dateDebut != null || _dateFin != null) {
-        final raw = DegDateUtils.parseDate(a.dateAnalyse);
+        final raw = DegDateUtils.parseDate(a.dateEnregistrement ?? '');
         if (raw == null) {
           matchDate = false;
         } else {
@@ -112,25 +110,7 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage>
     }).toList();
   }
 
-  // ── CRUD helpers ─────────────────────────────────────────────────────────────
-  int get _prochainNumero => _analyses.length + 1;
-
-  void _onAjouter(AnalyseLabo analyse) {
-    setState(() => _analyses.add(analyse));
-    _showSuccess('Analyse ajoutée pour ${analyse.echantillonNom}');
-  }
-
-  void _onModifier(AnalyseLabo analyse) {
-    setState(() {});
-    _showSuccess('Analyse modifiée');
-  }
-
-  void _onSupprimer(AnalyseLabo analyse) {
-    setState(() => _analyses.remove(analyse));
-    _showSuccess('Analyse supprimée');
-  }
-
-  void _confirmSendUrgent(AnalyseLabo a) {
+  void _confirmSendUrgent(LigneAnalyseLabo a) {
     showDialog(
       context: context,
       builder: (_) => Dialog(
@@ -148,22 +128,24 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage>
                   topRight: Radius.circular(16),
                 ),
               ),
-              child: Row(children: [
-                const Icon(
-                  Icons.notifications_active,
-                  color: Colors.white,
-                  size: 20,
-                ),
-                const SizedBox(width: 10),
-                Text(
-                  'Notifier le laboratoire',
-                  style: GoogleFonts.domine(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.notifications_active,
                     color: Colors.white,
+                    size: 20,
                   ),
-                ),
-              ]),
+                  const SizedBox(width: 10),
+                  Text(
+                    'Notifier le laboratoire',
+                    style: GoogleFonts.domine(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 18, 20, 8),
@@ -219,24 +201,6 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage>
     );
   }
 
-  void _showSuccess(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          msg,
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        backgroundColor: kGreen,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        margin: const EdgeInsets.all(20),
-      ),
-    );
-  }
-
   // ── Date filter sheet ─────────────────────────────────────────────────────────
   Future<void> _showDateFilter() async {
     await showModalBottomSheet(
@@ -274,23 +238,6 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage>
     return Scaffold(
       backgroundColor: kBg,
 
-      // ── FAB ───────────────────────────────────────────────────────────────────
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => showFormulaireAnalyseDialog(
-          context,
-          analyse: null,
-          prochainNumero: _prochainNumero,
-          onSave: _onAjouter,
-        ),
-        backgroundColor: const Color.fromARGB(255, 197, 206, 201),
-        elevation: 2,
-        icon: const Icon(Icons.add, color: kDark),
-        label: const Text(
-          'Nouvelle analyse',
-          style: TextStyle(color: kDark, fontWeight: FontWeight.w700),
-        ),
-      ),
-
       // ── DRAWER ────────────────────────────────────────────────────────────────
       drawer: AppDrawer(
         onaccueil: () => Navigator.pop(context),
@@ -298,7 +245,8 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage>
             goToPage(const EvaluationEchantillonsPage()),
         onGestionEchantillons: () => goToPage(const GestionEchantillonsPage()),
         onAnalyseLaboratoire: () => goToPage(const AnalyseLaboratoirePage()),
-        onSessionsDegustationPage: () => goToPage(const SessionsDegustationPage()),
+        onSessionsDegustationPage: () =>
+            goToPage(const SessionsDegustationPage()),
         onMembredupanel: () => goToPage(const MembresPanelPage()),
         onVueEnsembleEvaluations: () =>
             goToPage(const VueEnsembleEvaluationsPage()),
@@ -509,23 +457,12 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage>
                 : Scrollbar(
                     thumbVisibility: true,
                     child: ListView.builder(
-                      padding: const EdgeInsets.fromLTRB(16, 10, 16, 110),
+                      padding: const EdgeInsets.fromLTRB(16, 10, 16, 24),
                       itemCount: filtres.length,
                       itemBuilder: (context, index) {
                         final a = filtres[index];
                         return AnalyseCard(
                           analyse: a,
-                          onModifier: () => showFormulaireAnalyseDialog(
-                            context,
-                            analyse: a,
-                            prochainNumero: _prochainNumero,
-                            onSave: _onModifier,
-                          ),
-                          onSupprimer: () => showSuppressionAnalyseDialog(
-                            context,
-                            analyse: a,
-                            onConfirmer: () => _onSupprimer(a),
-                          ),
                           isUrgentLabo: _urgentSent.contains(a.id),
                           onUrgentLabo: () => _confirmSendUrgent(a),
                         );
@@ -538,4 +475,3 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage>
     );
   }
 }
-

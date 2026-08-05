@@ -24,7 +24,7 @@ class NotificationApiTests(APITestCase):
             password='Test@12345',
             nom='Panel',
             prenom='Chef',
-            role=User.Role.CHEF_PANEL,
+            role=User.Role.CHEF_DEGUSTATION,
         )
         self.degustateur = User.objects.create_user(
             email='degustateur.notifications@example.com',
@@ -46,6 +46,21 @@ class NotificationApiTests(APITestCase):
             nom='Collector',
             prenom='User',
             role=User.Role.COLLECTEUR,
+        )
+        self.lab = User.objects.create_user(
+            email='lab.notifications@example.com',
+            password='Test@12345',
+            nom='Lab',
+            prenom='Active',
+            role=User.Role.LABORATOIRE,
+        )
+        self.inactive_lab = User.objects.create_user(
+            email='lab.inactive.notifications@example.com',
+            password='Test@12345',
+            nom='Lab',
+            prenom='Inactive',
+            role=User.Role.LABORATOIRE,
+            is_active=False,
         )
         self.sample = Echantillon.objects.create(
             reference_bouteille='REF-NOTIF-001',
@@ -124,6 +139,78 @@ class NotificationApiTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         self.assertFalse(Notification.objects.get(id=notification.id).is_read)
 
+    def test_degustateur_can_request_urgent_lab_analysis(self):
+        self.authenticate(self.degustateur)
+
+        response = self.client.post(
+            '/api/notifications/analyse-urgente/',
+            {'echantillon': str(self.sample.id)},
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.json()['created'], 1)
+        notification = Notification.objects.get(type=Notification.Type.ANALYSE_URGENTE)
+        self.assertEqual(notification.destinataire, self.lab)
+        self.assertEqual(notification.echantillon, self.sample)
+        self.assertEqual(notification.section, Notification.Section.ANALYSES)
+        self.assertIn('Taster One', notification.message)
+
+    def test_urgent_lab_analysis_request_is_idempotent_per_unread_lab_notification(self):
+        self.authenticate(self.chef)
+
+        first = self.client.post(
+            '/api/notifications/analyse-urgente/',
+            {'echantillon': str(self.sample.id)},
+            format='json',
+        )
+        second = self.client.post(
+            '/api/notifications/analyse-urgente/',
+            {'echantillon': str(self.sample.id)},
+            format='json',
+        )
+
+        self.assertEqual(first.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(second.status_code, status.HTTP_200_OK)
+        self.assertEqual(second.json()['created'], 0)
+        self.assertEqual(
+            Notification.objects.filter(type=Notification.Type.ANALYSE_URGENTE).count(),
+            1,
+        )
+
+    def test_only_panel_roles_can_request_urgent_lab_analysis(self):
+        self.authenticate(self.collecteur)
+
+        response = self.client.post(
+            '/api/notifications/analyse-urgente/',
+            {'echantillon': str(self.sample.id)},
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertFalse(Notification.objects.filter(type=Notification.Type.ANALYSE_URGENTE).exists())
+
+    def test_urgent_lab_analysis_requires_physical_reception(self):
+        not_received = Echantillon.objects.create(
+            reference_bouteille='REF-NOTIF-002',
+            collecteur=self.collecteur,
+            gouvernorat='Sfax',
+            delegation='Sfax Sud',
+            variete='Chemlali',
+            recu_physiquement=False,
+        )
+        Notification.objects.all().delete()
+        self.authenticate(self.degustateur)
+
+        response = self.client.post(
+            '/api/notifications/analyse-urgente/',
+            {'echantillon': str(not_received.id)},
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertFalse(Notification.objects.filter(type=Notification.Type.ANALYSE_URGENTE).exists())
+
 
 class NotificationSignalTests(APITestCase):
     def setUp(self):
@@ -139,7 +226,7 @@ class NotificationSignalTests(APITestCase):
             password='Test@12345',
             nom='Panel',
             prenom='Chef',
-            role=User.Role.CHEF_PANEL,
+            role=User.Role.CHEF_DEGUSTATION,
         )
         self.taster_one = User.objects.create_user(
             email='taster.signal.one@example.com',

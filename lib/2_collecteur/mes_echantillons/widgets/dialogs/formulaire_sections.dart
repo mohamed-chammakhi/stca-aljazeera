@@ -4,6 +4,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../../core/services/variete_service.dart';
+import '../../../../core/widgets/champ_autocomplete.dart';
 import 'formulaire_decorations.dart';
 import 'bouteille_row.dart';
 
@@ -437,6 +439,9 @@ class _BouteilleCard extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           Row(
+            // Top-aligned: the variety field grows downwards when its suggestion
+            // list opens, and centring would drag the reference field with it.
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
                 child: _CardField(
@@ -447,10 +452,14 @@ class _BouteilleCard extends StatelessWidget {
               ),
               const SizedBox(width: 10),
               Expanded(
-                child: _CardField(
+                // Free text with suggestions — never a closed list. The
+                // collector must be able to write a variety nobody used before.
+                child: ChampAutocomplete<String>(
                   controller: row.varieteCtrl,
                   label: 'Variété',
                   hint: 'Chemlali, Chetoui...',
+                  chercher: VarieteService.instance.suggest,
+                  libelle: (v) => v,
                 ),
               ),
             ],
@@ -461,8 +470,8 @@ class _BouteilleCard extends StatelessWidget {
               Expanded(
                 flex: 5,
                 child: _CardField(
-                  controller: row.scellageCtrl,
-                  label: 'Scellage',
+                  controller: row.numCiterneCtrl,
+                  label: 'N° citerne',
                   hint: 'Z1, Z2...',
                   textCapitalization: TextCapitalization.characters,
                 ),

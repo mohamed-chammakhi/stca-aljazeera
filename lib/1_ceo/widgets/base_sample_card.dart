@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'sample_card_echantillon.dart'; // DetailItem lives here
 import '../utilisateurs/models/echantillon_ceo_view.dart';
+import '../../core/widgets/grille_details.dart';
 
 const Color _dark = Color(0xFF1A2E1F);
 const Color _white = Color.fromARGB(255, 255, 255, 255);
@@ -14,7 +15,8 @@ class BaseSampleCard extends StatefulWidget {
   final Color tintColor;
   final Color? accentColor; // left accent bar color (collecteur-style)
   final Widget badge;
-  final List<DetailItem> detailItems;
+  /// Cellules du panneau de détails — voir [GrilleDetails.items].
+  final List<Widget> detailItems;
   final Widget? bottomSection;
 
   final Widget? deliveryWidget;
@@ -104,11 +106,17 @@ class _BaseSampleCardState extends State<BaseSampleCard> {
                                     fontWeight: FontWeight.w500,
                                     color: Colors.grey.shade500,
                                   ),
+                                  // Sans ça, un en-tête trop chargé écrasait la
+                                  // référence en une colonne d'un caractère.
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ],
                             ),
                           ),
-                          widget.badge,
+                          // Le badge cède de la place au lieu de déborder :
+                          // certains badges s'ouvrent au clic et deviennent
+                          // bien plus larges que la carte.
+                          Flexible(child: widget.badge),
                           const SizedBox(width: 8),
                           AnimatedRotation(
                             turns: _detailExpanded ? 0.5 : 0.0,
@@ -156,7 +164,7 @@ class _BaseSampleCardState extends State<BaseSampleCard> {
 // DETAIL PANEL
 // ─────────────────────────────────────────────────────────────────────────────
 class _DetailPanel extends StatelessWidget {
-  final List<DetailItem> items;
+  final List<Widget> items;
   final Widget? deliveryWidget;
   const _DetailPanel({required this.items, this.deliveryWidget});
 
@@ -172,7 +180,7 @@ class _DetailPanel extends StatelessWidget {
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Wrap(spacing: 60, runSpacing: 10, children: items),
+        GrilleDetails(items: items),
         if (deliveryWidget != null) ...[
           const SizedBox(height: 12),
           deliveryWidget!,
@@ -216,7 +224,9 @@ class CardBadgeRow extends StatelessWidget {
     children: [
       for (int i = 0; i < badges.length; i++) ...[
         if (i > 0) const SizedBox(width: 6),
-        badges[i],
+        // Chaque badge cède de la place plutôt que de pousser ses voisins hors
+        // de la carte. Certains s'ouvrent au clic sur un texte long.
+        Flexible(child: badges[i]),
       ],
     ],
   );

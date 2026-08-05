@@ -5,9 +5,8 @@ from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from core.ocr_service import extract_analyse_from_image
 from echantillons.models import Echantillon
-from users.permissions import IsChefPanel, IsDirection, IsLaboratoire
+from users.permissions import IsChefDegustation, IsDegustateur, IsDirection, IsLaboratoire
 
 from .models import AnalyseLabo
 from .serializers import AnalyseLaboSerializer, LabEchantillonAnalyseSerializer
@@ -23,7 +22,7 @@ def _sync_echantillon_labo_status(analyse):
 
 class LabEchantillonListView(generics.ListAPIView):
     serializer_class = LabEchantillonAnalyseSerializer
-    permission_classes = [IsLaboratoire | IsDirection | IsChefPanel]
+    permission_classes = [IsLaboratoire | IsDirection | IsChefDegustation | IsDegustateur]
 
     def get_queryset(self):
         return (
@@ -35,7 +34,7 @@ class LabEchantillonListView(generics.ListAPIView):
 
 class AnalyseListCreateView(generics.ListCreateAPIView):
     serializer_class = AnalyseLaboSerializer
-    permission_classes = [IsLaboratoire | IsDirection | IsChefPanel]
+    permission_classes = [IsLaboratoire | IsDirection | IsChefDegustation | IsDegustateur]
     # Accept JSON (no photo) AND multipart (photo upload).
     parser_classes = [JSONParser, MultiPartParser, FormParser]
 
@@ -52,7 +51,7 @@ class AnalyseListCreateView(generics.ListCreateAPIView):
                 .select_related('echantillon', 'technicien')
                 .order_by('-date_analyse')
             )
-        # Direction and chef_panel can see all analyses.
+        # Direction and panel roles can see all analyses.
         return (
             AnalyseLabo.objects.all()
             .select_related('echantillon', 'technicien')
@@ -67,7 +66,7 @@ class AnalyseListCreateView(generics.ListCreateAPIView):
 
 class AnalyseDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = AnalyseLaboSerializer
-    permission_classes = [IsLaboratoire | IsDirection | IsChefPanel]
+    permission_classes = [IsLaboratoire | IsDirection | IsChefDegustation | IsDegustateur]
     parser_classes = [JSONParser, MultiPartParser, FormParser]
 
     def get_permissions(self):
@@ -129,27 +128,3 @@ class AnalyseSoumettreView(APIView):
         return Response(AnalyseLaboSerializer(analyse, context={'request': request}).data)
 
 
-class AnalyseOCRView(APIView):
-    permission_classes = [IsLaboratoire]
-    parser_classes = [MultiPartParser]
-
-    def post(self, request):
-        image_file = request.FILES.get('image')
-        if not image_file:
-            return Response(
-                {'detail': 'Champ image requis.'},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        try:
-            result = extract_analyse_from_image(
-                image_file.read(),
-                content_type=image_file.content_type or 'image/jpeg',
-            )
-            return Response(result)
-        except EnvironmentError as e:
-            return Response({'detail': str(e)}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
-        except Exception as e:
-            return Response(
-                {'detail': f'Erreur OCR: {str(e)}'},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )

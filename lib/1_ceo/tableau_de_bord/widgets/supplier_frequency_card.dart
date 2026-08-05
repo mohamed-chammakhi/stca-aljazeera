@@ -28,6 +28,7 @@ class SupplierFrequencyCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final totalAchats = suppliers.fold(0, (s, e) => s + e.achats);
+    final effectiveTotal = totalAchats == 0 ? 1 : totalAchats;
 
     return Container(
       decoration: _cardDeco(),
@@ -76,7 +77,7 @@ class SupplierFrequencyCard extends StatelessWidget {
               itemCount: suppliers.length,
               itemBuilder: (_, i) {
                 final s = suppliers[i];
-                final share = s.achats / totalAchats;
+                final share = s.achats / effectiveTotal;
                 final pct = (share * 100).toStringAsFixed(1);
                 final color = _supplierGreenStops[i.clamp(0, _supplierGreenStops.length - 1)];
                 return Padding(

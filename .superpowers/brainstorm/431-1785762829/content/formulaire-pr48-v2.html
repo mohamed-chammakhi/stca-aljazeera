@@ -1,0 +1,267 @@
+<link href="https://fonts.googleapis.com/css2?family=Domine:wght@400;600;700&family=Alegreya:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+  .pr48 {
+    --headerBg:#DCE9E2; --green:#38835A; --dark:#1A2E1F; --olive:#6B8143;
+    --orange:#F57C00; --red:#D32F2F; --line:rgba(0,0,0,.06);
+    --domine:'Domine',Georgia,serif;
+    --alegreya:'Alegreya',Georgia,serif;
+  }
+  .pr48 * { box-sizing:border-box; }
+
+  .phone{
+    width:330px; flex:0 0 330px; background:#fff; border-radius:26px;
+    border:1px solid rgba(0,0,0,.14); overflow:hidden;
+    box-shadow:0 18px 44px -18px rgba(26,46,31,.42);
+    font-family:var(--alegreya); color:var(--dark);
+  }
+  .phone-bar{ background:var(--headerBg); padding:14px 16px 12px; display:flex; gap:10px; }
+  .phone-bar .back{ font-size:19px; line-height:1; margin-top:2px; }
+  .phone-bar .t1{ font-family:var(--domine); font-weight:700; font-size:15px; }
+  .phone-bar .t2{ font-size:11px; color:#6b7a70; margin-top:1px; }
+  .phone-body{ padding:14px; background:#fff; }
+
+  .sec{ border:1px solid var(--line); border-radius:14px; padding:13px; margin-bottom:12px; }
+  .sec-title{ font-family:var(--domine); font-size:12.5px; font-weight:700; margin:0 0 11px; }
+
+  .scale-note{
+    font-size:10px; color:#6b7a70; background:#f5f8f6; border-radius:7px;
+    padding:5px 8px; margin-bottom:11px;
+  }
+
+  .sl{ margin-top:13px; }
+  .sl.first{ margin-top:0; }
+  .sl-top{ display:flex; align-items:baseline; justify-content:space-between; margin-bottom:6px; gap:8px; }
+  .sl-name{ font-size:12px; font-weight:600; }
+  .sl-right{ display:flex; align-items:center; gap:7px; flex:0 0 auto; }
+  .sl-val{ font-family:var(--domine); font-size:13.5px; font-weight:700; }
+  .sl-tag{
+    font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.06em;
+    padding:2px 6px; border-radius:5px;
+  }
+  .sl-track{ position:relative; height:5px; border-radius:3px; background:#eceeed; }
+  .sl-fill{ position:absolute; inset:0 auto 0 0; border-radius:3px; }
+  .sl-knob{
+    position:absolute; top:50%; width:14px; height:14px; border-radius:50%;
+    transform:translate(-50%,-50%); border:2.5px solid #fff;
+    box-shadow:0 1px 4px rgba(0,0,0,.28);
+  }
+  .sl-scale{
+    display:flex; justify-content:space-between; margin-top:5px;
+    font-size:9px; color:#a3aca6; font-variant-numeric:tabular-nums;
+  }
+  .txt-in{
+    margin-top:8px; width:100%; border:1.5px solid #e2e6e3; border-radius:8px;
+    padding:7px 9px; font-size:11px; color:#a3aca6; font-family:var(--alegreya);
+  }
+
+  .med{
+    display:flex; justify-content:space-between; align-items:baseline;
+    margin-top:14px; padding-top:11px; border-top:1px dashed rgba(0,0,0,.1);
+  }
+  .med-l{ font-size:11px; font-weight:600; }
+  .med-r{ font-family:var(--domine); font-size:16px; font-weight:700; }
+  .med-note{ font-size:10px; color:#8b968f; margin-top:3px; }
+
+  .cc{ border:1px solid var(--line); border-radius:14px; overflow:hidden; }
+  .cc-row{ padding:12px 13px; }
+  .cc-row + .cc-row{ border-top:1px solid var(--line); }
+  .cc-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:7px; }
+  .cc-label{ font-size:9.5px; font-weight:700; letter-spacing:.11em; text-transform:uppercase; color:#8b968f; }
+  .cc-meta{ font-size:9.5px; color:#9aa39d; font-variant-numeric:tabular-nums; }
+  .cc-name{ display:flex; align-items:center; gap:8px; }
+  .cc-dot{ width:9px; height:9px; border-radius:50%; flex:0 0 9px; }
+  .cc-value{ font-family:var(--domine); font-size:17px; font-weight:700; line-height:1.1; }
+  .cc-why{ font-size:11px; color:#6b7a70; margin-top:5px; line-height:1.45; }
+  .cc-check{
+    display:flex; gap:7px; align-items:flex-start; margin-top:10px;
+    padding-top:9px; border-top:1px dashed rgba(0,0,0,.09);
+    font-size:10.5px; color:#5d6b62; line-height:1.4;
+  }
+  .cc-box{ width:13px; height:13px; flex:0 0 13px; margin-top:1px; border:1.5px solid #b3bdb6; border-radius:3px; background:#fff; }
+  .cc-row.off{ background:#fafbfa; }
+  .cc-row.off .cc-value{ color:#a8b0aa; }
+
+  .col{ flex:1; min-width:320px; }
+  .stack{ display:flex; gap:34px; flex-wrap:wrap; align-items:flex-start; }
+  .cap{ font-size:10px; letter-spacing:.11em; text-transform:uppercase; color:#8b968f; font-weight:700; margin:0 0 9px; }
+  .state-head{ font-family:var(--domine); font-size:13.5px; font-weight:700; margin:0 0 3px; }
+  .state-sub{ font-size:12px; color:#6b7a70; margin:0 0 10px; line-height:1.5; }
+  .state-card{ border:1px solid var(--line); border-radius:13px; background:#fff; font-family:var(--alegreya); color:var(--dark); max-width:370px; }
+  .state-block{ margin-bottom:22px; }
+
+  .flow{
+    display:flex; align-items:center; gap:9px; flex-wrap:wrap;
+    font-family:var(--alegreya); font-size:11.5px; margin:10px 0 0;
+  }
+  .flow b{ font-family:var(--domine); }
+  .pill{ padding:5px 10px; border-radius:20px; border:1.5px solid; font-weight:600; }
+  .arrow{ color:#b3bdb6; font-size:14px; }
+</style>
+
+<div class="pr48">
+
+<h2>Les défauts : où ils entrent, ce qu'ils déclenchent</h2>
+<p class="subtitle">Les six défauts sont bien dans le formulaire. Ils gardent leur échelle 0–10 et commandent tout le reste.</p>
+
+<div class="stack">
+
+  <div>
+    <p class="cap">Section « Défauts » — les six, au complet</p>
+    <div class="phone">
+      <div class="phone-bar">
+        <span class="back">←</span>
+        <div>
+          <div class="t1">Fiche d'Évaluation</div>
+          <div class="t2">ECH-2026-042</div>
+        </div>
+      </div>
+
+      <div class="phone-body">
+        <div class="sec">
+          <p class="sec-title">Défauts</p>
+          <div class="scale-note">Échelle 0 à 10 — absente du PR-48, donc inchangée</div>
+
+          <div class="sl first">
+            <div class="sl-top">
+              <span class="sl-name">Chômé / Lie de boue</span>
+              <span class="sl-right"><span class="sl-val" style="color:#38835A">0.0</span></span>
+            </div>
+            <div class="sl-track"><div class="sl-fill" style="width:0;background:#38835A"></div><div class="sl-knob" style="left:0;background:#38835A"></div></div>
+          </div>
+
+          <div class="sl">
+            <div class="sl-top">
+              <span class="sl-name">Moisi / Humide / Terreux</span>
+              <span class="sl-right"><span class="sl-val" style="color:#38835A">0.0</span></span>
+            </div>
+            <div class="sl-track"><div class="sl-fill" style="width:0;background:#38835A"></div><div class="sl-knob" style="left:0;background:#38835A"></div></div>
+          </div>
+
+          <div class="sl">
+            <div class="sl-top">
+              <span class="sl-name">Vinaigré / Acide-Aigre</span>
+              <span class="sl-right"><span class="sl-val" style="color:#38835A">0.0</span></span>
+            </div>
+            <div class="sl-track"><div class="sl-fill" style="width:0;background:#38835A"></div><div class="sl-knob" style="left:0;background:#38835A"></div></div>
+          </div>
+
+          <div class="sl">
+            <div class="sl-top">
+              <span class="sl-name">Gelé (bois mouillé)</span>
+              <span class="sl-right"><span class="sl-val" style="color:#38835A">0.0</span></span>
+            </div>
+            <div class="sl-track"><div class="sl-fill" style="width:0;background:#38835A"></div><div class="sl-knob" style="left:0;background:#38835A"></div></div>
+          </div>
+
+          <div class="sl">
+            <div class="sl-top">
+              <span class="sl-name">Rance</span>
+              <span class="sl-right"><span class="sl-val" style="color:#38835A">0.0</span></span>
+            </div>
+            <div class="sl-track"><div class="sl-fill" style="width:0;background:#38835A"></div><div class="sl-knob" style="left:0;background:#38835A"></div></div>
+          </div>
+
+          <div class="sl">
+            <div class="sl-top">
+              <span class="sl-name">Autres défauts</span>
+              <span class="sl-right"><span class="sl-val" style="color:#38835A">0.0</span></span>
+            </div>
+            <div class="sl-track"><div class="sl-fill" style="width:0;background:#38835A"></div><div class="sl-knob" style="left:0;background:#38835A"></div></div>
+            <input class="txt-in" value="Nom du défaut perçu" readonly>
+          </div>
+
+          <div class="med">
+            <div>
+              <div class="med-l">Médiane des défauts</div>
+              <div class="med-note">le plus fort des six</div>
+            </div>
+            <div class="med-r" style="color:#38835A">0.0</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col">
+    <p class="cap">Ce que les défauts commandent</p>
+
+    <div class="state-block">
+      <h3 class="state-head">La chaîne de décision</h3>
+      <p class="state-sub">Les défauts ne sont jamais comparés aux attributs positifs. Ils servent à une seule chose : décider si la classe interne a le droit d'exister.</p>
+      <div class="flow">
+        <span class="pill" style="border-color:#b3bdb6;color:#5d6b62">Les 6 défauts</span>
+        <span class="arrow">→</span>
+        <span class="pill" style="border-color:#b3bdb6;color:#5d6b62">Médiane</span>
+        <span class="arrow">→</span>
+        <span class="pill" style="border-color:#38835A;color:#38835A">Catégorie COI</span>
+        <span class="arrow">→</span>
+        <span class="pill" style="border-color:#4E9A6B;color:#4E9A6B">Classe interne</span>
+      </div>
+    </div>
+
+    <div class="state-block">
+      <h3 class="state-head">Tous à 0 → la classe interne s'ouvre</h3>
+      <p class="state-sub">Médiane 0.0 et fruité au-dessus de 0 : l'huile est extra vierge. Le §6 est satisfait, la grille du §8 s'applique.</p>
+      <div class="state-card">
+        <div class="cc-row">
+          <div class="cc-head"><span class="cc-label">Catégorie COI</span><span class="cc-meta">Méd. défauts 0.0</span></div>
+          <div class="cc-name"><span class="cc-dot" style="background:#38835A"></span><span class="cc-value" style="color:#38835A">Extra Vierge</span></div>
+        </div>
+        <div class="cc-row">
+          <div class="cc-head"><span class="cc-label">Classe interne</span><span class="cc-meta">PR-48</span></div>
+          <div class="cc-name"><span class="cc-dot" style="background:#4E9A6B"></span><span class="cc-value" style="color:#4E9A6B">Extra A</span></div>
+          <p class="cc-why">Fruité 4.0 vert · Amertume 3.0 · Piquant 3.5</p>
+          <div class="cc-check"><span class="cc-box"></span><span>Profil non harmonieux — un attribut domine les autres (§9)</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="state-block">
+      <h3 class="state-head">Un seul défaut à 2.0 → tout se ferme</h3>
+      <p class="state-sub">Il suffit d'un rance à 2.0. La médiane passe à 2.0, l'huile devient Vierge, et la classe interne est verrouillée — même si le fruité valait 5.0. C'est la condition du §6, et elle ne se contourne pas.</p>
+      <div class="state-card">
+        <div class="cc-row">
+          <div class="cc-head"><span class="cc-label">Catégorie COI</span><span class="cc-meta">Méd. défauts 2.0</span></div>
+          <div class="cc-name"><span class="cc-dot" style="background:#F57C00"></span><span class="cc-value" style="color:#F57C00">Vierge</span></div>
+          <p class="cc-why">Rance 2.0 — le plus fort des six défauts</p>
+        </div>
+        <div class="cc-row off">
+          <div class="cc-head"><span class="cc-label">Classe interne</span><span class="cc-meta">PR-48</span></div>
+          <div class="cc-name"><span class="cc-dot" style="background:#cfd6d1"></span><span class="cc-value">Non applicable</span></div>
+          <p class="cc-why">Réservée aux huiles extra vierges — un défaut a été perçu (§6)</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="state-block">
+      <h3 class="state-head">Pourquoi les deux échelles ne se gênent pas</h3>
+      <p class="state-sub">
+        Aucun calcul ne met un défaut et un attribut positif dans la même opération.
+        La médiane se calcule sur les six défauts seuls, en 0–10.
+        La catégorie COI ne regarde le fruité que pour savoir s'il dépasse 0 — vrai sur 0–5 comme sur 0–10.
+        Et la grille du §8 exige que les défauts valent zéro : quand elle s'applique, il n'y a plus rien à comparer.
+      </p>
+    </div>
+  </div>
+
+</div>
+
+<div class="options">
+  <div class="option" data-choice="ok" onclick="toggleSelect(this)">
+    <div class="letter">✓</div>
+    <div class="content">
+      <h3>C'est bon, code-le</h3>
+      <p>Les six défauts restent en 0–10 et gardent leur rôle actuel. Seuls fruité, amertume et piquant passent en 0–5.</p>
+    </div>
+  </div>
+  <div class="option" data-choice="change" onclick="toggleSelect(this)">
+    <div class="letter">✎</div>
+    <div class="content">
+      <h3>Non, il faut changer les défauts aussi</h3>
+      <p>Dites-moi comment dans le terminal.</p>
+    </div>
+  </div>
+</div>
+
+</div>

@@ -40,7 +40,7 @@ Seeded test accounts:
 | Collecteur | `collecteur@stca.tn` | `Test@12345` |
 | Degustateur | `degustateur@stca.tn` | `Test@12345` |
 | Technicien Labo | `labo@stca.tn` | `Test@12345` |
-| Chef de Panel | `chef@stca.tn` | `Test@12345` |
+| Chef de Dégustation | `chef@stca.tn` | `Test@12345` |
 
 ## Done
 
@@ -169,7 +169,7 @@ Backend:
   - `DELETE /api/analyses/{id}/`
   - `POST /api/analyses/{id}/soumettre/`
 - Lab technicians can create, update, delete, and submit analyses.
-- Direction and Chef de Panel can read lab analysis data but cannot create,
+- Direction and Chef de Dégustation can read lab analysis data but cannot create,
   update, delete, or submit analyses.
 - Analysis creation is blocked unless the sample was physically received.
 - Creating or saving an analysis sets the sample lab status to `en_cours`.
@@ -217,7 +217,7 @@ Backend:
   - `PATCH /api/fournisseurs/{id}/`
   - `DELETE /api/fournisseurs/{id}/`
 - Collectors can create/update/delete suppliers.
-- Direction, Degustateur, and Chef de Panel can read suppliers.
+- Direction, Degustateur, and Chef de Dégustation can read suppliers.
 - Supplier creation requires `code_fournisseur`.
 - Supplier list supports search by name, code, region, and phone.
 - Collector sample endpoints are available:
@@ -275,7 +275,7 @@ python manage.py test echantillons fournisseurs
 
 Backend:
 
-- Physical reception can now be confirmed by Degustateur and Chef de Panel:
+- Physical reception can now be confirmed by Degustateur and Chef de Dégustation:
   - `PATCH /api/echantillons/{id}/confirmer_reception/`
   - `POST/PATCH /api/echantillons/{id}/confirmer-reception/`
 - Reception confirmation is idempotent: already received samples keep their
@@ -328,12 +328,12 @@ Backend:
 - Existing compatibility route remains available:
   `GET/POST /api/sessions_degustation/`
 - Session detail/update/delete remains available through both route prefixes.
-- Degustateur and Chef de Panel can list and create tasting sessions.
+- Degustateur and Chef de Dégustation can list and create tasting sessions.
 - Sessions created by a Degustateur start as `en_attente_validation`.
-- Sessions created by Chef de Panel start as `planifiee`.
-- Chef de Panel can approve pending sessions:
+- Sessions created by Chef de Dégustation start as `planifiee`.
+- Chef de Dégustation can approve pending sessions:
   `POST /api/sessions/{id}/approuver/`
-- Chef de Panel can refuse pending sessions:
+- Chef de Dégustation can refuse pending sessions:
   `POST /api/sessions/{id}/refuser/`
 - Refused sessions are excluded from normal session lists.
 - Degustateur/Chef can confirm attendance on planned/in-progress sessions:
@@ -376,13 +376,46 @@ Verification:
   notifications migration:
   `notifications/migrations/0002_alter_notification_type.py`
 
+### Panel Members Consultation
+
+Backend:
+
+- Authenticated panel-member consultation endpoint is available:
+  `GET /api/users/panel-members/`
+- The endpoint returns active users with role `degustateur` or `chef_degustation`.
+- Direction, collector, lab, and inactive panel accounts are excluded from the
+  panel-member list.
+- Response fields match the existing Flutter member-card contract:
+  `id`, `nom`, `prenom`, `role`, `membre_depuis`, and `est_en_ligne`.
+- Email and other account-management fields are not exposed through this
+  consultation endpoint.
+- Focused API tests were added in `backend_new/users/tests.py`.
+
+Flutter:
+
+- Degustateur panel-member service now calls:
+  `GET /api/users/panel-members/`
+- Chef de Dégustation panel-member service now calls:
+  `GET /api/users/panel-members/`
+- Existing mock panel member data remains as fallback/dev scenario data if the
+  API cannot be reached.
+- No visual design, layout, colors, spacing, cards, drawers, or navigation
+  behavior was changed.
+
+Verification:
+
+- Django focused tests passed:
+  `$env:DEBUG='True'; $env:DB_ENGINE='sqlite'; .\venv\Scripts\python.exe manage.py test users`
+- Flutter analysis passed:
+  `flutter analyze lib/3_degustateur/membres_panel/services/membres_panel_service.dart lib/5_chef_degustateur/membres_panel/services/membres_panel_chef_service.dart`
+
 ### Chef Evaluation Overview and Divergence
 
 Backend:
 
 - Chef-only evaluation overview endpoint is available:
   `GET /api/chef/evaluations/`
-- Access is restricted to `chef_panel`; other authenticated roles receive
+- Access is restricted to `chef_degustation`; other authenticated roles receive
   `403`.
 - The endpoint returns submitted organoleptic evaluations grouped by sample.
 - Draft/in-progress evaluations are not exposed in the chef overview.
@@ -448,7 +481,7 @@ Backend:
   - `ACHAT_CONFIRME`
   - `NOUVELLE_SESSION`
 - `TOUTES_EVALUATIONS` now compares submitted evaluations with all active
-  Degustateur/Chef de Panel users instead of firing after the first submitted
+  Degustateur/Chef de Dégustation users instead of firing after the first submitted
   evaluation when no draft exists.
 - Notification migration was added:
   `backend_new/notifications/migrations/0002_alter_notification_section_alter_notification_type.py`
@@ -508,7 +541,7 @@ Backend:
   confirmed-purchase value, and average days to close.
 - CEO urgent decisions list samples whose evaluations are submitted while CEO
   action is still pending.
-- Chef dashboard endpoints are restricted to `chef_panel`:
+- Chef dashboard endpoints are restricted to `chef_degustation`:
   - `GET /api/chef/dashboard/pipeline/`
   - `GET /api/chef/dashboard/urgentes/`
   - `GET /api/chef/dashboard/sessions-en-attente/`
@@ -590,26 +623,101 @@ Verification:
 - Migration check passed:
   `$env:DEBUG='True'; $env:DB_ENGINE='sqlite'; .\venv\Scripts\python.exe manage.py makemigrations --check --dry-run`
 
+### Backlog Table Completion Pass - Non-AI Scope
+
+Backend:
+
+- Panel member consultation is available to Degustateur and Chef roles through:
+  `GET /api/users/panel-members/`
+- Urgent laboratory requests are available to Degustateur and Chef roles through:
+  `POST /api/notifications/analyse-urgente/`
+- Urgent request creation validates physical sample reception, prevents duplicate
+  urgent requests for the same requester/sample pair, and notifies active lab
+  technicians with `type=ANALYSE_URGENTE`.
+- Laboratory analysis consultation now allows Direction, Chef, and Degustateur
+  read access while keeping create/update/delete/submit restricted to
+  `laboratoire`.
+- Direction can read submitted organoleptic evaluations from
+  `GET /api/evaluations/`; create/update/submit remains restricted to
+  Degustateur/Chef.
+- CEO dashboard endpoint is implemented at `GET /api/ceo/dashboard/` and returns
+  KPIs, pipeline counts, collector performance, supplier frequency,
+  classifications, urgent decisions, stock state, and purchase evolution.
+
+Flutter:
+
+- Panel member consultation services for Degustateur and Chef now call
+  `/api/users/panel-members/` with mock fallback.
+- Degustateur and Chef lab consultation services now call backend analysis/sample
+  endpoints with mock fallback.
+- Degustateur and Chef urgent lab buttons now call
+  `/api/notifications/analyse-urgente/`.
+- CEO notification service now uses backend list/read/read-all/unread-count
+  endpoints with mock fallback.
+- Degustateur and Chef notification services now use backend notification
+  endpoints with mock fallback.
+- Chef sample-management service now uses backend sample CRUD/reception endpoints
+  with mock fallback.
+- Chef evaluation list/form now loads drafts, saves drafts, updates existing
+  evaluations, and submits through `/api/evaluations/`.
+- Chef cross-panel overview now calls `/api/chef/evaluations/`, including
+  divergence data, with mock fallback.
+- CEO sample consultation, organoleptic consultation, laboratory consultation,
+  and confirmed-purchases pages now load aggregated backend sample data through
+  `EchantillonCeoService.fetchCeoViews()` with mock fallback.
+- CEO dashboard service/page now calls `/api/ceo/dashboard/` and feeds the
+  existing KPI, pipeline, collector, purchase-evolution, classification,
+  supplier, and stock cards from live data while preserving mock fallback.
+
+Verification:
+
+- Flutter focused analysis passed for the updated CEO dashboard files.
+- Flutter focused analysis passed for the Chef evaluation form/service.
+- Earlier focused Django tests in this pass passed for `users`, `notifications`,
+  `analyses`, and `evaluations`.
+- The PostgreSQL fresh-test-database blocker was fixed by correcting the
+  historical `evaluations` migrations so `fruite_vert` is created as a boolean
+  from the start.
+- Fresh PostgreSQL focused test passed:
+  `python manage.py test evaluations -v 1 --noinput`
+- The backend was started on `0.0.0.0:8000` and verified from the LAN API URL
+  used by the phone build: `http://10.207.180.8:8000/api/schema/` returned `200`.
+- Android debug and release APKs were built with:
+  `--dart-define=API_BASE_URL=http://10.207.180.8:8000`
+  - `build/app/outputs/flutter-apk/app-debug.apk`
+  - `build/app/outputs/flutter-apk/app-release.apk`
+- Full-project `flutter analyze` still reports pre-existing warnings/infos in
+  older role files, but the APK build succeeds.
+
+Deferred:
+
+- AI/OCR extraction is intentionally left for the later AI work the user
+  requested to handle separately. Existing OCR-related mock/dev flows remain in
+  place.
+
 ## Next Recommended Backend Feature
 
-### 1. Urgent Analysis Requests and OCR Hardening
+### 1. Physical Phone Smoke Test
 
-- Add a backend action for Degustateur/Chef to send an `ANALYSE_URGENTE`
-  notification to active laboratory technicians for a specific sample.
-- Preserve the existing per-session urgent-button lock behavior in Flutter when
-  wiring the action later.
-- Verify and test Collector bottle-label OCR:
-  `POST /api/echantillons/ocr/`
-- Verify and test laboratory paper-report OCR:
-  `POST /api/analyses/ocr/`
-- Preserve mock OCR/dev data paths while adding real API behavior.
+- Connect an Android phone with USB debugging enabled, then run:
+  `flutter install --debug --dart-define=API_BASE_URL=http://10.207.180.8:8000`
+- Keep Django running with:
+  `python manage.py runserver 0.0.0.0:8000 --noreload`
+- Phone and PC must stay on the same Wi-Fi network, and Windows Firewall must
+  allow inbound TCP traffic on port `8000`.
 
-### 2. Flutter Service Wiring Pass
+### 2. AI/OCR Work
 
-- Wire CEO and Chef dashboard services to the new backend endpoints.
-- Keep existing mock data as fallback/dev scenario data.
-- Do not change dashboard visual design, layout, colors, spacing, or
-  navigation behavior.
+- Azure AI/OCR wiring is now in place in
+  `backend_new/core/ocr_service.py`.
+- Flutter continues to call the existing multipart endpoints:
+  `/api/echantillons/ocr/` and `/api/analyses/ocr/`.
+- Django now maps Azure Document Intelligence custom-model fields back to the
+  existing Flutter JSON contracts, with configurable field aliases in
+  `backend_new/.env`.
+- Remaining step: fill the local Azure endpoint, API key, model IDs, and exact
+  custom field aliases, then run a phone smoke test with real label/report
+  photos.
 
 ## How To Continue Next Time
 

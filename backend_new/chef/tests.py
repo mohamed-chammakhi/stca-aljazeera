@@ -16,9 +16,9 @@ class ChefEvaluationOverviewApiTests(APITestCase):
         self.chef = User.objects.create_user(
             email='chef.overview@example.com',
             password='Test@12345',
-            nom='Panel',
+            nom='Degustation',
             prenom='Chef',
-            role=User.Role.CHEF_PANEL,
+            role=User.Role.CHEF_DEGUSTATION,
         )
         self.taster_one = User.objects.create_user(
             email='taster.one@example.com',
@@ -109,7 +109,7 @@ class ChefEvaluationOverviewApiTests(APITestCase):
         self.assertEqual(group['divergence_details'][0]['key'], 'fruite')
 
         statuses = {item['degustateur']: item['statut'] for item in group['evaluations']}
-        self.assertEqual(statuses['Chef Panel'], 'en_attente')
+        self.assertEqual(statuses['Chef Degustation'], 'en_attente')
         self.assertEqual(statuses['Taster One'], EvaluationOrganoleptique.Statut.SOUMIS)
 
     def test_does_not_flag_divergence_before_three_submitted_evaluations(self):
@@ -166,9 +166,9 @@ class ChefDashboardApiTests(APITestCase):
         self.chef = User.objects.create_user(
             email='chef.dashboard@example.com',
             password='Test@12345',
-            nom='Panel',
+            nom='Degustation',
             prenom='Chef',
-            role=User.Role.CHEF_PANEL,
+            role=User.Role.CHEF_DEGUSTATION,
         )
         self.taster_one = User.objects.create_user(
             email='taster.dashboard.one@example.com',

@@ -27,7 +27,7 @@ External participant who collects samples from across Tunisia.
 ## Pages
 
 - **Échantillons** — own registered samples, filterable by date. Shows current state per sample (see states below).
-- **Ajouter un échantillon** (FAB) — form: supplier code, origin (gouvernorat/délégation), référence bouteille, variety, quantity, scellage, optional expected arrival date. Collector can photo the handwritten bottle label → Gemini Vision OCR auto-fills fields → collector reviews and corrects before saving. Multiple bottles → each bottle gets its own `reference_bouteille` and is saved as a separate `Echantillon` record. The `numero` is auto-assigned on save.
+- **Ajouter un échantillon** (FAB) — form: supplier code, origin (gouvernorat/délégation), référence bouteille, variety, quantity, numéro de citerne, optional expected arrival date. Collector can photo the handwritten bottle label → Azure AI Document Intelligence custom model extracts the structured fields → collector reviews and corrects before saving. Multiple bottles → each bottle gets its own `reference_bouteille` and is saved as a separate `Echantillon` record. The `numero` is auto-assigned on save.
 - **Carte** — map of Tunisian delegations. Visited delegations highlighted, unvisited not. Helps plan future routes.
 - **Chat** — messaging with Direction (CEO). Planned; implement if time allows.
 - **Dashboard** — collector-level KPIs and activity summary.

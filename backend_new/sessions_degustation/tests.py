@@ -26,7 +26,7 @@ class SessionDegustationApiTests(APITestCase):
             password='Test@12345',
             nom='Chef',
             prenom='Panel',
-            role=User.Role.CHEF_PANEL,
+            role=User.Role.CHEF_DEGUSTATION,
         )
         self.collecteur = User.objects.create_user(
             email='collecteur.sessions@example.com',

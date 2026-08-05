@@ -1,3 +1,4 @@
+import '../../../core/analyses/normes_coi.dart';
 import '../../../core/api_client.dart';
 import '../../../core/models/enums.dart' show StatutLaboX;
 import '../models/echantillon_labo.dart';
@@ -126,13 +127,15 @@ class LaboService {
     return {
       'echantillon': echantillonId,
       'statut': statut,
-      'acidite': analyse.aciditeLibre,
-      'indice_peroxyde': analyse.indicePeroxyde,
-      'k232': analyse.k232,
-      'k270': analyse.k270,
-      'delta_k': analyse.deltaK,
-      'humidite': analyse.humidite,
-      'impuretes': analyse.impuretes,
+      // Les 28 valeurs partent depuis la même liste que celle qui les affiche.
+      // Elles étaient énumérées à la main ici : les paramètres absents de cette
+      // liste étaient saisis par le technicien puis perdus à l'envoi.
+      for (final p in kTousParametres) p.cle: analyse.valeur(p.cle),
+      'numero_certificat': analyse.numeroCertificat,
+      'numero_lot': analyse.numeroLot,
+      'date_debut_analyse': analyse.dateDebutAnalyse,
+      'date_fin_analyse': analyse.dateFinAnalyse,
+      'quantite_ml': analyse.quantiteMl,
       'notes': analyse.notes,
     };
   }

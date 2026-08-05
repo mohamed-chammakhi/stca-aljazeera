@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:project3/core/theme/app_colors.dart';
+import 'package:project3/core/utils/montant_achat.dart';
 import '../../utilisateurs/models/echantillon_ceo_view.dart';
 import '../../widgets/sample_card_echantillon.dart';
+import '../../../core/widgets/grille_details.dart';
 
 class PropositionSection extends StatelessWidget {
   final EchantillonCeoView echantillon;
@@ -30,8 +32,8 @@ class PropositionSection extends StatelessWidget {
     final headerLabel = _isPending
         ? "Proposition d'achat"
         : _isConfirmed
-            ? 'Décision : achat confirmé'
-            : 'Décision : refusé';
+        ? 'Décision : achat confirmé'
+        : 'Décision : refusé';
 
     return Column(
       children: [
@@ -46,8 +48,8 @@ class PropositionSection extends StatelessWidget {
                   _isPending
                       ? Icons.pending_actions_outlined
                       : _isConfirmed
-                          ? Icons.handshake_outlined
-                          : Icons.block_outlined,
+                      ? Icons.handshake_outlined
+                      : Icons.block_outlined,
                   size: 13,
                   color: accentColor,
                 ),
@@ -84,8 +86,9 @@ class PropositionSection extends StatelessWidget {
             onConfirmer: onConfirmer,
             onRefuser: onRefuser,
           ),
-          crossFadeState:
-              isExpanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+          crossFadeState: isExpanded
+              ? CrossFadeState.showSecond
+              : CrossFadeState.showFirst,
           duration: const Duration(milliseconds: 200),
         ),
       ],
@@ -134,18 +137,26 @@ class _PropositionDetails extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-          Wrap(
-            spacing: 20,
-            runSpacing: 10,
-            children: [
+          GrilleDetails(
+            items: [
               if (e.budgetNegociation != null)
                 DetailItem('Prix négocié', e.budgetNegociation!),
+              // What the purchase actually costs. The unit price alone does not
+              // say what is being committed — the Direction validates a total.
+              if (MontantAchat.formater(
+                    e.budgetNegociation,
+                    e.quantiteCibleT,
+                  ) !=
+                  null)
+                DetailItem(
+                  'Montant total',
+                  MontantAchat.formater(e.budgetNegociation, e.quantiteCibleT)!,
+                ),
               if (e.quantiteCibleT != null)
                 DetailItem('Quantité', '${e.quantiteCibleT} T'),
               if (e.camionReserve != null)
                 DetailItem('Camion', e.camionReserve!),
-              if (e.scellage != null)
-                DetailItem('Scellage', e.scellage!),
+              if (e.numCiterne != null) DetailItem('N° citerne', e.numCiterne!),
               if (e.dateLivraisonStock != null)
                 DetailItem(
                   'Livraison stock',
@@ -198,13 +209,18 @@ class _PropositionDetails extends StatelessWidget {
                 Expanded(
                   child: OutlinedButton.icon(
                     onPressed: onRefuser,
-                    icon: const Icon(Icons.block_outlined,
-                        size: 16, color: Color(0xFFB71C1C)),
+                    icon: const Icon(
+                      Icons.block_outlined,
+                      size: 16,
+                      color: Color(0xFFB71C1C),
+                    ),
                     label: const Text('Refuser'),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: const Color(0xFFB71C1C),
                       side: const BorderSide(
-                          color: Color(0xFFB71C1C), width: 1.4),
+                        color: Color(0xFFB71C1C),
+                        width: 1.4,
+                      ),
                       padding: const EdgeInsets.symmetric(vertical: 11),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),

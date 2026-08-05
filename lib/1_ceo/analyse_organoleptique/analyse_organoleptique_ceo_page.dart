@@ -27,6 +27,8 @@ import 'widgets/approval_dialog.dart';
 import 'widgets/refusal_dialog.dart';
 import 'widgets/panel_section.dart';
 import 'widgets/panel_widgets.dart';
+import '../echantillons/services/echantillon_ceo_service.dart';
+import '../../core/widgets/grille_details.dart';
 
 const Color _headerBg = Color.fromARGB(255, 220, 233, 226);
 const Color _green = Color(0xFF38835A);
@@ -85,16 +87,35 @@ class _AnalyseOrganoleptiqueCeoPageState
   DateFilterType _dateType = DateFilterType.enregistrement;
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
+  final _service = EchantillonCeoService();
+  List<EchantillonCeoView> _allEchantillons = List.of(
+    mockEchantillonsOrganoleptique,
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    _loadEchantillons();
+  }
+
+  Future<void> _loadEchantillons() async {
+    try {
+      final data = await _service.fetchCeoViews();
+      if (mounted) setState(() => _allEchantillons = data);
+    } catch (_) {
+      if (mounted) {
+        setState(
+          () => _allEchantillons = List.of(mockEchantillonsOrganoleptique),
+        );
+      }
+    }
+  }
 
   @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
   }
-
-  List<EchantillonCeoView> get _allEchantillons =>
-      mockEchantillonsOrganoleptique;
-
 
   String? _dateFieldFor(EchantillonCeoView e) {
     switch (_dateType) {
@@ -363,18 +384,55 @@ class _AnalyseOrganoleptiqueCeoPageState
         reference: e.referenceBouteille,
         isEdit: isEdit,
         initialBudget: e.budgetNegociation,
+        initialQuantite: e.quantiteCibleT,
         initialNote: e.noteInterne,
-        onApprove: (budget, dateSouhaitee, note) {
-          setState(() {
-            e.statut = StatutCeo.enNegociation;
-            e.budgetNegociation = budget;
-            e.dateLivraisonStockSouhaitee = dateSouhaitee;
-            e.noteInterne = note;
-            e.raisonRefus = null;
-          });
-        },
+        onApprove: (budget, quantite, dateSouhaitee, note) =>
+            _enregistrerNegociation(e, budget, quantite, dateSouhaitee, note),
       ),
     );
+  }
+
+  /// La négociation part au serveur avant d'être affichée. Sans cet appel elle
+  /// ne vivait qu'en mémoire : elle disparaissait au redémarrage et le
+  /// collecteur ne la voyait jamais.
+  Future<void> _enregistrerNegociation(
+    EchantillonCeoView e,
+    String budget,
+    String? quantite,
+    String? dateSouhaitee,
+    String? note,
+  ) async {
+    try {
+      await _service.approuver(
+        e.id,
+        budgetNegociation: budget,
+        quantiteCibleT: quantite,
+        noteInterne: note,
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: const Color(0xFFB71C1C),
+          content: Text(
+            'Négociation non enregistrée — ${e.referenceBouteille}.',
+            style: const TextStyle(fontSize: 13),
+          ),
+          duration: const Duration(seconds: 3),
+        ),
+      );
+      return;
+    }
+
+    if (!mounted) return;
+    setState(() {
+      e.statut = StatutCeo.enNegociation;
+      e.budgetNegociation = budget;
+      e.quantiteCibleT = quantite;
+      e.dateLivraisonStockSouhaitee = dateSouhaitee;
+      e.noteInterne = note;
+      e.raisonRefus = null;
+    });
   }
 
   Future<void> _showRefuserDialog(EchantillonCeoView e) async {

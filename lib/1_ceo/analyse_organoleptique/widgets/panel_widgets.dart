@@ -230,7 +230,10 @@ class _RecuPhysiqueIndicatorState extends State<RecuPhysiqueIndicator> {
           mainAxisSize: MainAxisSize.min,
           children: [
             // Animated inline pill (same pattern as echantillon_card)
-            AnimatedSize(
+            // Flexible : la pastille dépliée réclamait sinon sa largeur
+            // naturelle et poussait tout l'en-tête hors de la carte.
+            Flexible(
+              child: AnimatedSize(
               duration: const Duration(milliseconds: 200),
               curve: Curves.easeInOut,
               child: _showPill
@@ -255,20 +258,28 @@ class _RecuPhysiqueIndicatorState extends State<RecuPhysiqueIndicator> {
                             color: Colors.white,
                           ),
                           const SizedBox(width: 4),
-                          Text(
-                            widget.recuPhysiquement
-                                ? 'Échantillon présent dans la société'
-                                : 'Échantillon non encore présent dans la société ',
-                            style: const TextStyle(
-                              fontSize: 10,
-                              color: Colors.white,
-                              fontWeight: FontWeight.w600,
+                          // Le texte revient à la ligne dans la place qu'on lui
+                          // laisse. Sans ça la pastille dépliée poussait tout
+                          // l'en-tête hors de la carte.
+                          Flexible(
+                            child: Text(
+                              widget.recuPhysiquement
+                                  ? 'Échantillon présent dans la société'
+                                  : 'Échantillon non encore présent dans la société',
+                              softWrap: true,
+                              style: const TextStyle(
+                                fontSize: 10,
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
+                                height: 1.3,
+                              ),
                             ),
                           ),
                         ],
                       ),
                     )
                   : const SizedBox.shrink(),
+              ),
             ),
             // Animated icon (same as echantillon_card tick)
             AnimatedSwitcher(

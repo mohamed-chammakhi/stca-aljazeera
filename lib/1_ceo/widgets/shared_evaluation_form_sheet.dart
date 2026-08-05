@@ -10,6 +10,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+
+import '../../core/models/enums.dart';
 import '../utilisateurs/models/echantillon_ceo_view.dart';
 
 const Color _green = Color(0xFF38835A);
@@ -182,7 +184,7 @@ class _EvaluationFormSheet extends StatelessWidget {
                     _CriteriaRow(
                       label:
                           'Fruité'
-                          '${ev.fruite! > 0 ? (ev.fruiteVert ? " — Vert" : " — Mûr") : ""}',
+                          '${ev.fruite! > 0 ? " — ${ev.typeFruite.label}" : ""}',
                       value: ev.fruite!,
                       isPositif: true,
                     ),
@@ -445,6 +447,80 @@ class _ClassificationCard extends StatelessWidget {
               color: classColor,
             ),
           ),
+
+          // ── Classe interne PR-48 — §6 : huiles extra vierges uniquement ──
+          if (ev.classeInterne != null) ...[
+            const SizedBox(height: 10),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.7),
+                borderRadius: BorderRadius.circular(9),
+                border: Border.all(
+                  color: Color(ev.classeInterne!.colorValue)
+                      .withValues(alpha: 0.35),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        'CLASSE INTERNE',
+                        style: TextStyle(
+                          fontSize: 9.5,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 1.1,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                      const Spacer(),
+                      Text(
+                        'PR-48',
+                        style: TextStyle(
+                          fontSize: 9.5,
+                          color: Colors.grey.shade500,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    ev.classeInterne!.label,
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w800,
+                      color: Color(ev.classeInterne!.colorValue),
+                    ),
+                  ),
+                  if (ev.classeInterneManuelle) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      'Choisie manuellement'
+                      '${ev.classeInterneMotif?.isNotEmpty == true ? " — ${ev.classeInterneMotif}" : ""}',
+                      style: TextStyle(
+                        fontSize: 10.5,
+                        color: Colors.orange.shade800,
+                        height: 1.35,
+                      ),
+                    ),
+                  ],
+                  if (ev.profilNonHarmonieux) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      'Profil déclaré non harmonieux (§9)',
+                      style: TextStyle(
+                        fontSize: 10.5,
+                        color: Colors.orange.shade800,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
+
           const SizedBox(height: 10),
           // Value pills summary
           Wrap(
@@ -453,7 +529,7 @@ class _ClassificationCard extends StatelessWidget {
             children: [
               if (ev.fruite != null && ev.fruite! > 0)
                 _Pill(
-                  'Fruité ${ev.fruiteVert ? "Vert" : "Mûr"} : ${ev.fruite!.toStringAsFixed(1)}',
+                  'Fruité ${ev.typeFruite.label} : ${ev.fruite!.toStringAsFixed(1)}',
                   _green,
                 ),
               if (ev.amertume != null && ev.amertume! > 0)
