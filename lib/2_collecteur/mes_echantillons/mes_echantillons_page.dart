@@ -683,7 +683,7 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
                   final photo = photos != null && i < photos.length
                       ? photos[i]
                       : null;
-                  // Attach each OCR label photo to the matching bottle sample.
+                  // Attach each label photo to the matching bottle sample.
                   if (photo != null) {
                     created.add(
                       await _service.createEchantillonWithImage(

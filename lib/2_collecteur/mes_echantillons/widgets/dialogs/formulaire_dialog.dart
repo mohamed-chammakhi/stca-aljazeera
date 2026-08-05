@@ -28,7 +28,7 @@ class SamplePhoto {
 }
 
 // Save callback. Carries one optional photo per bottle row so each created
-// sample keeps the label image that produced its OCR prefill.
+// sample keeps its optional bottle-label photo.
 typedef SaveSamplesCb =
     void Function(
       List<EchantillonCollecteur> samples, {

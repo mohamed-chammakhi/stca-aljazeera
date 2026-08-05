@@ -177,24 +177,6 @@ class EchantillonCollecteurService {
     return EchantillonCollecteur.fromJson(_toFlutterMap(response));
   }
 
-  /// Sends a bottle photo to the backend OCR endpoint and returns the
-  /// best-guess pre-fill values. The recognition runs entirely on the
-  /// on-premise server: the image never leaves the company.
-  ///
-  /// Returned keys: reference, variete, quantite, fournisseur_nom,
-  /// gouvernorat, _confidence. OCR is only an assistant: every value is
-  /// editable and the collector confirms before saving.
-  Future<Map<String, dynamic>> ocrFromImage(
-    List<int> imageBytes,
-    String filename,
-  ) async {
-    return apiClient.postMultipart(
-      '/api/echantillons/ocr/',
-      bytes: imageBytes,
-      filename: filename,
-    );
-  }
-
   /// Creates a new echantillon AND uploads its bottle photo in one request.
   /// The photo is stored on the on-premise server and shown to tasters later.
   Future<EchantillonCollecteur> createEchantillonWithImage(

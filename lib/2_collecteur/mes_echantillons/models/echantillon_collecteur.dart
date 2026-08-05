@@ -90,7 +90,7 @@ class EchantillonCollecteur {
   // per supplier — has nothing to count it under.
   String? fournisseurId;
   String codeFournisseur;
-  // Transient write-only supplier name (OCR-read or user-typed). NOT loaded
+  // Transient write-only supplier name entered during creation. NOT loaded
   // from the API; only sent on create so the backend can match by name and
   // never mistake a handwritten name for a supplier code.
   String? fournisseurNom;

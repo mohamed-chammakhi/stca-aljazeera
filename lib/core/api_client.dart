@@ -237,8 +237,7 @@ class ApiClient {
 
   // POST (multipart) — upload a file plus optional text fields.
   //
-  // Used by backend OCR endpoints (a bottle photo is sent, recognised
-  // text comes back) and by sample creation when a bottle photo is attached.
+  // Used by sample creation when a bottle photo is attached.
   // Handles the same automatic token-refresh-and-retry as the other methods.
   Future<Map<String, dynamic>> postMultipart(
     String path, {
