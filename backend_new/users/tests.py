@@ -1,5 +1,6 @@
 from rest_framework import status
 from rest_framework.test import APITestCase
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from .models import User
 
@@ -80,6 +81,108 @@ class CurrentUserProfileApiTests(APITestCase):
         self.assertTrue(self.user.is_active)
 
 
+class ChangePasswordApiTests(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            email='password@stca.tn',
+            password='Ancien@123',
+            nom='Mot',
+            prenom='Passe',
+            role=User.Role.COLLECTEUR,
+        )
+
+    def test_change_password_requires_authentication(self):
+        response = self.client.post(
+            '/api/users/me/changer-mot-de-passe/',
+            {
+                'ancien_mot_de_passe': 'Ancien@123',
+                'nouveau_mot_de_passe': 'Nouveau@456',
+            },
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_change_password_checks_old_password_and_keeps_jwt_valid(self):
+        access = str(RefreshToken.for_user(self.user).access_token)
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {access}')
+
+        response = self.client.post(
+            '/api/users/me/changer-mot-de-passe/',
+            {
+                'ancien_mot_de_passe': 'Ancien@123',
+                'nouveau_mot_de_passe': 'Nouveau@456',
+            },
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.user.refresh_from_db()
+        self.assertFalse(self.user.check_password('Ancien@123'))
+        self.assertTrue(self.user.check_password('Nouveau@456'))
+
+        same_token_response = self.client.get('/api/users/me/')
+        self.assertEqual(same_token_response.status_code, status.HTTP_200_OK)
+        self.assertEqual(same_token_response.data['id'], str(self.user.id))
+
+    def test_change_password_rejects_wrong_old_password(self):
+        self.client.force_authenticate(user=self.user)
+
+        response = self.client.post(
+            '/api/users/me/changer-mot-de-passe/',
+            {
+                'ancien_mot_de_passe': 'Erreur@123',
+                'nouveau_mot_de_passe': 'Nouveau@456',
+            },
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.data,
+            {
+                'code': 'password_incorrect',
+                'detail': 'Mot de passe actuel incorrect.',
+            },
+        )
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.check_password('Ancien@123'))
+
+    def test_change_password_rejects_each_invalid_new_password_rule(self):
+        self.client.force_authenticate(user=self.user)
+
+        for invalid_password in ('Ab@1', 'Nouveau@', 'Nouveau1'):
+            with self.subTest(password=invalid_password):
+                response = self.client.post(
+                    '/api/users/me/changer-mot-de-passe/',
+                    {
+                        'ancien_mot_de_passe': 'Ancien@123',
+                        'nouveau_mot_de_passe': invalid_password,
+                    },
+                    format='json',
+                )
+                self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+                self.assertIn('nouveau_mot_de_passe', response.data)
+
+    def test_change_password_rejects_same_password(self):
+        self.client.force_authenticate(user=self.user)
+
+        response = self.client.post(
+            '/api/users/me/changer-mot-de-passe/',
+            {
+                'ancien_mot_de_passe': 'Ancien@123',
+                'nouveau_mot_de_passe': 'Ancien@123',
+            },
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.data['detail'],
+            "Le nouveau mot de passe doit être différent de l'ancien.",
+        )
+
+
 class PanelMemberApiTests(APITestCase):
     def setUp(self):
         self.degustateur = User.objects.create_user(
@@ -149,7 +252,7 @@ class PanelMemberApiTests(APITestCase):
         self.assertNotIn('email', first)
 
 
-class DirectionUserManagementApiTests(APITestCase):
+class UserManagementApiTests(APITestCase):
     def setUp(self):
         self.direction = User.objects.create_user(
             email='direction@stca.tn',
@@ -165,6 +268,20 @@ class DirectionUserManagementApiTests(APITestCase):
             prenom='Test',
             role=User.Role.COLLECTEUR,
         )
+        self.chef = User.objects.create_user(
+            email='chef.users@stca.tn',
+            password='Test@12345',
+            nom='Chef',
+            prenom='Panel',
+            role=User.Role.CHEF_DEGUSTATION,
+        )
+        self.degustateur = User.objects.create_user(
+            email='degustateur.users@stca.tn',
+            password='Test@12345',
+            nom='Degustateur',
+            prenom='Simple',
+            role=User.Role.DEGUSTATEUR,
+        )
 
     def test_direction_can_list_users(self):
         self.client.force_authenticate(user=self.direction)
@@ -172,17 +289,25 @@ class DirectionUserManagementApiTests(APITestCase):
         response = self.client.get('/api/users/')
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertGreaterEqual(response.data['count'], 2)
+        self.assertGreaterEqual(response.data['count'], 4)
 
-    def test_non_direction_cannot_list_users(self):
-        self.client.force_authenticate(user=self.collecteur)
+    def test_chef_can_list_users(self):
+        self.client.force_authenticate(user=self.chef)
+
+        response = self.client.get('/api/users/')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertGreaterEqual(response.data['count'], 4)
+
+    def test_degustateur_cannot_list_users(self):
+        self.client.force_authenticate(user=self.degustateur)
 
         response = self.client.get('/api/users/')
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    def test_direction_can_create_user(self):
-        self.client.force_authenticate(user=self.direction)
+    def test_chef_can_create_user(self):
+        self.client.force_authenticate(user=self.chef)
 
         response = self.client.post(
             '/api/users/',
@@ -201,8 +326,37 @@ class DirectionUserManagementApiTests(APITestCase):
         self.assertTrue(created.check_password('Test@12345'))
         self.assertEqual(response.data['role'], User.Role.LABORATOIRE)
 
-    def test_direction_can_update_user(self):
+    def test_direction_cannot_create_user(self):
         self.client.force_authenticate(user=self.direction)
+
+        response = self.client.post(
+            '/api/users/',
+            {
+                'email': 'forbidden.create@stca.tn',
+                'nom': 'Interdit',
+                'prenom': 'Direction',
+                'role': User.Role.LABORATOIRE,
+            },
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_direction_and_chef_can_retrieve_user_details(self):
+        self.client.force_authenticate(user=self.direction)
+        direction_response = self.client.get(f'/api/users/{self.collecteur.id}/')
+
+        self.client.force_authenticate(user=self.chef)
+        chef_response = self.client.get(f'/api/users/{self.collecteur.id}/')
+
+        self.assertEqual(direction_response.status_code, status.HTTP_200_OK)
+        self.assertEqual(chef_response.status_code, status.HTTP_200_OK)
+        self.assertEqual(direction_response.data['id'], str(self.collecteur.id))
+        self.assertEqual(chef_response.data['id'], str(self.collecteur.id))
+        self.assertFalse(User.objects.filter(email='forbidden.create@stca.tn').exists())
+
+    def test_chef_can_update_user(self):
+        self.client.force_authenticate(user=self.chef)
 
         response = self.client.patch(
             f'/api/users/{self.collecteur.id}/',
@@ -218,8 +372,30 @@ class DirectionUserManagementApiTests(APITestCase):
         self.assertEqual(self.collecteur.role, User.Role.DEGUSTATEUR)
         self.assertEqual(self.collecteur.telephone, '+216 55 444 333')
 
-    def test_direction_can_toggle_another_user_active_state(self):
+    def test_direction_cannot_update_or_delete_user(self):
         self.client.force_authenticate(user=self.direction)
+
+        update_response = self.client.patch(
+            f'/api/users/{self.collecteur.id}/',
+            {'telephone': '+216 90 000 000'},
+            format='json',
+        )
+        delete_response = self.client.delete(f'/api/users/{self.collecteur.id}/')
+
+        self.assertEqual(update_response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(delete_response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertTrue(User.objects.filter(pk=self.collecteur.pk).exists())
+
+    def test_chef_can_delete_direction_account(self):
+        self.client.force_authenticate(user=self.chef)
+
+        response = self.client.delete(f'/api/users/{self.direction.id}/')
+
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertFalse(User.objects.filter(pk=self.direction.pk).exists())
+
+    def test_chef_can_toggle_another_user_active_state(self):
+        self.client.force_authenticate(user=self.chef)
 
         response = self.client.post(f'/api/users/{self.collecteur.id}/toggle-active/')
 
@@ -228,20 +404,29 @@ class DirectionUserManagementApiTests(APITestCase):
         self.assertFalse(self.collecteur.is_active)
         self.assertFalse(response.data['is_active'])
 
-    def test_direction_cannot_toggle_own_active_state(self):
+    def test_direction_cannot_toggle_user_active_state(self):
         self.client.force_authenticate(user=self.direction)
 
-        response = self.client.post(f'/api/users/{self.direction.id}/toggle-active/')
+        response = self.client.post(f'/api/users/{self.collecteur.id}/toggle-active/')
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.collecteur.refresh_from_db()
+        self.assertTrue(self.collecteur.is_active)
+
+    def test_chef_cannot_toggle_own_active_state(self):
+        self.client.force_authenticate(user=self.chef)
+
+        response = self.client.post(f'/api/users/{self.chef.id}/toggle-active/')
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.direction.refresh_from_db()
-        self.assertTrue(self.direction.is_active)
+        self.chef.refresh_from_db()
+        self.assertTrue(self.chef.is_active)
 
-    def test_direction_cannot_demote_or_deactivate_self_by_patch(self):
-        self.client.force_authenticate(user=self.direction)
+    def test_chef_cannot_demote_or_deactivate_self_by_patch(self):
+        self.client.force_authenticate(user=self.chef)
 
         response = self.client.patch(
-            f'/api/users/{self.direction.id}/',
+            f'/api/users/{self.chef.id}/',
             {
                 'role': User.Role.COLLECTEUR,
                 'is_active': False,
@@ -250,14 +435,14 @@ class DirectionUserManagementApiTests(APITestCase):
         )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.direction.refresh_from_db()
-        self.assertEqual(self.direction.role, User.Role.DIRECTION)
-        self.assertTrue(self.direction.is_active)
+        self.chef.refresh_from_db()
+        self.assertEqual(self.chef.role, User.Role.CHEF_DEGUSTATION)
+        self.assertTrue(self.chef.is_active)
 
-    def test_direction_cannot_delete_self(self):
-        self.client.force_authenticate(user=self.direction)
+    def test_chef_cannot_delete_self(self):
+        self.client.force_authenticate(user=self.chef)
 
-        response = self.client.delete(f'/api/users/{self.direction.id}/')
+        response = self.client.delete(f'/api/users/{self.chef.id}/')
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertTrue(User.objects.filter(pk=self.direction.pk).exists())
+        self.assertTrue(User.objects.filter(pk=self.chef.pk).exists())

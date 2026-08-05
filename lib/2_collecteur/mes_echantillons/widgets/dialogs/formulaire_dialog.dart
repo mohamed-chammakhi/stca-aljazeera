@@ -77,8 +77,7 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
   bool _geoLoaded = false;
 
   /// Set only when a suggestion is picked. Stays null while the collector types
-  /// a name of their own — that is what tells _resoudreFournisseur it has a new
-  /// supplier on its hands rather than a known one.
+  /// a name of their own; the backend resolves that name with the sample.
   Fournisseur? _fournisseurChoisi;
 
   // ── Shared controllers ───────────────────────────────────────────────────
@@ -276,7 +275,7 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
     final e = widget.echantillon;
 
     _codeFournisseurCtrl = TextEditingController(
-      text: e?.codeFournisseur ?? '',
+      text: e?.fournisseurNom ?? e?.codeFournisseur ?? '',
     );
     _collecteurCtrl = TextEditingController(text: e?.collecteurNom ?? '');
     _remarquesCtrl = TextEditingController(text: e?.remarques ?? '');
@@ -331,35 +330,22 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
       _bouteilles.isNotEmpty &&
       _bouteilles.every((b) => b.refCtrl.text.trim().isNotEmpty);
 
-  /// Turns what was typed in the supplier field into a reference entry, and
-  /// returns its id — null when the field was left empty.
-  ///
-  /// The collector types freely; this is where a free name becomes a real link.
-  /// Without it the sample reaches the database with no supplier, and the CEO
-  /// dashboard cannot attribute it to anyone.
-  Future<String?> _resoudreFournisseur() async {
+  /// Keeps duplicate detection at save time without creating the supplier in a
+  /// separate request. The sample endpoint resolves the final typed name.
+  Future<void> _verifierFournisseur() async {
     final saisi = _codeFournisseurCtrl.text.trim();
-    if (saisi.isEmpty) return null;
+    if (saisi.isEmpty) return;
 
     // Picked from the suggestions and left untouched since: already a known
     // entry, nothing to ask.
     if (_fournisseurChoisi != null && _fournisseurChoisi!.nom.trim() == saisi) {
-      return _fournisseurChoisi!.id;
+      return;
     }
 
     final resultatProches = await FournisseurService.instance
         .findNearDuplicates(saisi);
     if (resultatProches.estDemonstration) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Référentiel fournisseur en démonstration : le nom saisi sera conservé sans rapprochement.',
-            ),
-          ),
-        );
-      }
-      return null;
+      return;
     }
     final proches = resultatProches.donnees;
     if (proches.isNotEmpty && mounted) {
@@ -371,20 +357,8 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
       if (choisi != null) {
         _codeFournisseurCtrl.text = choisi.nom;
         _fournisseurChoisi = choisi;
-        return choisi.id;
+        return;
       }
-    }
-
-    try {
-      return (await FournisseurService.instance.create(
-        nom: saisi,
-        region: _gouvernorat,
-      )).id;
-    } catch (_) {
-      // No network, or the API refused. The sample is still worth saving: the
-      // typed name stays on it and the link can be repaired later. Losing the
-      // whole entry because the collector is out of range would be worse.
-      return null;
     }
   }
 
@@ -406,9 +380,9 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
       return;
     }
 
-    // Resolved before closing: it may need to ask the collector a question,
+    // Checked before closing: it may need to ask the collector a question,
     // and a dialog cannot open on a form that is already gone.
-    final fournisseurId = await _resoudreFournisseur();
+    await _verifierFournisseur();
     if (!mounted) return;
 
     Navigator.pop(context);
@@ -417,7 +391,7 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
     final collecteur = _collecteurCtrl.text.trim().isEmpty
         ? null
         : _collecteurCtrl.text.trim();
-    final codeFournisseur = _codeFournisseurCtrl.text.trim().isEmpty
+    final fournisseurNom = _codeFournisseurCtrl.text.trim().isEmpty
         ? null
         : _codeFournisseurCtrl.text.trim();
 
@@ -440,7 +414,9 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
           ? null
           : _remarquesCtrl.text.trim();
       e.dateArriveeEchantillon = _livDate;
-      e.fournisseurId = fournisseurId ?? e.fournisseurId;
+      e.fournisseurId = _fournisseurChoisi?.id ?? e.fournisseurId;
+      e.fournisseurNom = fournisseurNom;
+      e.codeFournisseur = fournisseurNom ?? '';
       widget.onSaveMultiple([e]); // modification: photo unchanged here
     } else {
       final now = DateTime.now();
@@ -452,8 +428,9 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
           id: 'new-${now.millisecondsSinceEpoch}-$idx',
           numero:
               '${now.year}/${(widget.prochainNumero + idx).toString().padLeft(4, '0')}',
-          fournisseurId: fournisseurId,
-          codeFournisseur: codeFournisseur ?? '',
+          fournisseurId: _fournisseurChoisi?.id,
+          codeFournisseur: fournisseurNom ?? '',
+          fournisseurNom: fournisseurNom,
           collecteurId: 'collecteur-placeholder',
           collecteurNom: collecteur ?? '',
           referenceBouteille: b.refCtrl.text.trim(),

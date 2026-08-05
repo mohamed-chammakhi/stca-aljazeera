@@ -95,6 +95,105 @@ class CollectorEchantillonApiTests(APITestCase):
         self.assertEqual(sample.fournisseur.code_fournisseur, 'SF-42')
         self.assertTrue(Fournisseur.objects.filter(code_fournisseur='SF-42').exists())
 
+    def test_collector_sample_with_unknown_supplier_name_creates_and_links_it(self):
+        self.authenticate(self.collector)
+
+        response = self.client.post(
+            '/api/echantillons/',
+            {
+                'reference_bouteille': 'NOM-001',
+                'fournisseur_nom': 'Domaine Nouveau',
+                'gouvernorat': 'Sfax',
+            },
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        sample = Echantillon.objects.get(id=response.data['id'])
+        self.assertIsNotNone(sample.fournisseur)
+        self.assertEqual(sample.fournisseur.nom, 'Domaine Nouveau')
+        self.assertEqual(
+            Fournisseur.objects.filter(nom='Domaine Nouveau').count(),
+            1,
+        )
+
+    def test_collector_sample_with_existing_supplier_name_does_not_duplicate_it(self):
+        supplier = Fournisseur.objects.create(
+            code_fournisseur='EX-001',
+            nom='Domaine Existant',
+            region='Sfax',
+        )
+        self.authenticate(self.collector)
+
+        response = self.client.post(
+            '/api/echantillons/',
+            {
+                'reference_bouteille': 'NOM-002',
+                'fournisseur_nom': 'domaine existant',
+                'gouvernorat': 'Sfax',
+            },
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        sample = Echantillon.objects.get(id=response.data['id'])
+        self.assertEqual(sample.fournisseur, supplier)
+        self.assertEqual(
+            Fournisseur.objects.filter(nom__iexact='Domaine Existant').count(),
+            1,
+        )
+
+    def test_update_without_supplier_fields_keeps_the_existing_supplier(self):
+        # Le degustateur qui corrige une variete envoie sa mise a jour sans
+        # aucun champ fournisseur. Le lien doit survivre : l'effacer ici
+        # supprimerait le fournisseur d'un echantillon sans que personne ne le
+        # demande, et sans qu'aucun message ne le signale.
+        supplier = Fournisseur.objects.create(
+            code_fournisseur='GARDE-001',
+            nom='Domaine A Conserver',
+            region='Sfax',
+        )
+        self.authenticate(self.collector)
+        created = self.client.post(
+            '/api/echantillons/',
+            {
+                'reference_bouteille': 'MAJ-001',
+                'fournisseur_nom': 'Domaine A Conserver',
+                'gouvernorat': 'Sfax',
+            },
+            format='json',
+        )
+        self.assertEqual(created.status_code, status.HTTP_201_CREATED)
+        sample_id = created.data['id']
+
+        self.authenticate(self.degustateur)
+        response = self.client.patch(
+            f'/api/echantillons/{sample_id}/',
+            {'variete': 'Chetoui'},
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        sample = Echantillon.objects.get(id=sample_id)
+        self.assertEqual(sample.variete, 'Chetoui')
+        self.assertEqual(sample.fournisseur, supplier)
+
+    def test_collector_sample_without_supplier_name_is_accepted(self):
+        self.authenticate(self.collector)
+
+        response = self.client.post(
+            '/api/echantillons/',
+            {
+                'reference_bouteille': 'SANS-FOURNISSEUR',
+                'gouvernorat': 'Sfax',
+            },
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        sample = Echantillon.objects.get(id=response.data['id'])
+        self.assertIsNone(sample.fournisseur)
+
     def test_direction_cannot_create_collector_sample(self):
         self.authenticate(self.direction)
 

@@ -18,6 +18,7 @@ class AppDrawer extends StatelessWidget {
   final VoidCallback onAnalyseLaboratoire;
   final VoidCallback onSessionsDegustationPage;
   final VoidCallback onMembredupanel;
+  final VoidCallback onUtilisateurs;
   final VoidCallback onVueEnsembleEvaluations;
   final VoidCallback onProfil;
   final VoidCallback onDeconnexion;
@@ -30,6 +31,7 @@ class AppDrawer extends StatelessWidget {
     required this.onAnalyseLaboratoire,
     required this.onSessionsDegustationPage,
     required this.onMembredupanel,
+    required this.onUtilisateurs,
     required this.onVueEnsembleEvaluations,
     required this.onProfil,
     required this.onDeconnexion,
@@ -148,11 +150,6 @@ class AppDrawer extends StatelessWidget {
                     onTap: onSessionsDegustationPage,
                   ),
                   _DrawerItem(
-                    icon: Icons.people_outline,
-                    label: 'Membres du panel',
-                    onTap: onMembredupanel,
-                  ),
-                  _DrawerItem(
                     icon: Icons.assessment_outlined,
                     label: 'Vue d\'ensemble évaluations',
                     onTap: onVueEnsembleEvaluations,
@@ -162,7 +159,20 @@ class AppDrawer extends StatelessWidget {
                   Divider(color: _olive.withValues(alpha: 0.15), height: 1),
                   const SizedBox(height: 4),
 
-                  _SectionLabel('Compte'),
+                  // Les trois entrées qui parlent de personnes, de la plus large
+                  // responsabilité à la plus étroite : les comptes de tous, puis
+                  // l'équipe, puis soi-même.
+                  _SectionLabel('Comptes'),
+                  _DrawerItem(
+                    icon: Icons.manage_accounts_outlined,
+                    label: 'Utilisateurs',
+                    onTap: onUtilisateurs,
+                  ),
+                  _DrawerItem(
+                    icon: Icons.people_outline,
+                    label: 'Membres du panel',
+                    onTap: onMembredupanel,
+                  ),
                   _DrawerItem(
                     icon: Icons.person_outline,
                     label: 'Votre profil',

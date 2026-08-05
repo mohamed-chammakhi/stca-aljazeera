@@ -63,7 +63,7 @@ class EchantillonSerializer(serializers.ModelSerializer):
             )
         return attrs
 
-    def _resolve_fournisseur(self, validated_data):
+    def _resolve_fournisseur(self, validated_data, is_update=False):
         code = (validated_data.pop('code_fournisseur', None) or '').strip()
         nom_input = getattr(self, '_extra_fournisseur_nom', '').strip()
 
@@ -98,6 +98,17 @@ class EchantillonSerializer(serializers.ModelSerializer):
             validated_data['fournisseur'] = self._supplier_by_name_or_create(
                 nom_input, region
             )
+            return validated_data
+
+        # Aucune information de fournisseur dans la requete.
+        #
+        # A la creation, l'echantillon n'a simplement pas de fournisseur.
+        # A la modification, il faut LAISSER celui qui existe deja : le
+        # degustateur qui corrige une variete envoie sa mise a jour sans champ
+        # fournisseur, et effacer le lien ici supprimerait le fournisseur d'un
+        # echantillon sans que personne ne le demande ni ne le voie.
+        if is_update:
+            validated_data.pop('fournisseur', None)
             return validated_data
 
         validated_data['fournisseur'] = None
@@ -136,7 +147,7 @@ class EchantillonSerializer(serializers.ModelSerializer):
         return super().create(validated_data)
 
     def update(self, instance, validated_data):
-        validated_data = self._resolve_fournisseur(validated_data)
+        validated_data = self._resolve_fournisseur(validated_data, is_update=True)
         return super().update(instance, validated_data)
 
     def get_fournisseur_nom(self, obj):

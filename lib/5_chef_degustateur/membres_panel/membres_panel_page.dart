@@ -13,6 +13,7 @@ import '../gestion_echantillons/gestion_echantillons_page.dart';
 import '../evaluation_echantillons/evaluation_echantillons_page.dart';
 import '../profil.dart';
 import '../tableau_de_bord/widgets/app_drawer.dart';
+import '../utilisateurs/utilisateurs_chef_page.dart';
 import '../sessions_degustation/sessions_degustation_page.dart';
 import '../analyse_labo/analyse_laboratoire_page.dart';
 import '../vue_ensemble_evaluations/vue_ensemble_evaluations_page.dart';
@@ -220,6 +221,7 @@ class _MembresPanelPageState extends State<MembresPanelPage> with ChefNavMixin {
         // OLD : ProfilePage from profil.dart (same level)
         // NEW : ProfilePage from ../profil.dart (one level up) ✅ done
         onMembredupanel: () => goToPage(const MembresPanelPage()),
+        onUtilisateurs: () => goToPage(const UtilisateursChefPage()),
         onVueEnsembleEvaluations: () =>
             goToPage(const VueEnsembleEvaluationsPage()),
         onProfil: () => goToPage(const ProfilePage()),

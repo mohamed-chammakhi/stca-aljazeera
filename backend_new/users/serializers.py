@@ -1,3 +1,5 @@
+import re
+
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from .models import User
@@ -107,6 +109,17 @@ class UserProfileUpdateSerializer(serializers.ModelSerializer):
             })
         return attrs
 
+
+class ChangePasswordSerializer(serializers.Serializer):
+    ancien_mot_de_passe = serializers.CharField(write_only=True, trim_whitespace=False)
+    nouveau_mot_de_passe = serializers.CharField(write_only=True, trim_whitespace=False)
+
+    def validate_nouveau_mot_de_passe(self, value):
+        if len(value) < 6 or not re.search(r'[0-9]', value) or not re.search(r'[^a-zA-Z0-9]', value):
+            raise serializers.ValidationError(
+                'Le mot de passe doit contenir au moins 6 caractères, un chiffre et un caractère spécial.'
+            )
+        return value
 
 class LoginSerializer(TokenObtainPairSerializer):
     @classmethod

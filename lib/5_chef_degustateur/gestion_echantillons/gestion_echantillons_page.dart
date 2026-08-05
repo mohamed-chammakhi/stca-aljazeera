@@ -11,6 +11,7 @@ import '../evaluation_echantillons/evaluation_echantillons_page.dart';
 import '../widgets/statut_chip.dart';
 import '../profil.dart';
 import '../tableau_de_bord/widgets/app_drawer.dart';
+import '../utilisateurs/utilisateurs_chef_page.dart';
 import '../membres_panel/membres_panel_page.dart';
 import '../../../main.dart';
 import '../sessions_degustation/sessions_degustation_page.dart';
@@ -228,6 +229,7 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage>
         onSessionsDegustationPage: () =>
             goToPage(const SessionsDegustationPage()),
         onMembredupanel: () => goToPage(const MembresPanelPage()),
+        onUtilisateurs: () => goToPage(const UtilisateursChefPage()),
         onVueEnsembleEvaluations: () =>
             goToPage(const VueEnsembleEvaluationsPage()),
         onProfil: () => goToPage(const ProfilePage()),

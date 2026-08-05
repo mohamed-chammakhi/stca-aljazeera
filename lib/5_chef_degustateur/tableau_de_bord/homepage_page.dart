@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'widgets/app_drawer.dart';
+import '../utilisateurs/utilisateurs_chef_page.dart';
 import '../widgets/chef_colors.dart';
 import 'widgets/home_body.dart';
 
@@ -201,6 +202,7 @@ class _HomePageState extends State<HomePage> {
         onAnalyseLaboratoire: () => _goTo(const AnalyseLaboratoirePage()),
         onSessionsDegustationPage: () => _goTo(const SessionsDegustationPage()),
         onMembredupanel: () => _goTo(const MembresPanelPage()),
+        onUtilisateurs: () => _goTo(const UtilisateursChefPage()),
         onVueEnsembleEvaluations: () =>
             _goTo(const VueEnsembleEvaluationsPage()),
         onProfil: () => _goTo(const ProfilePage()),

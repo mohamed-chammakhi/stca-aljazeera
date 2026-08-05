@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:project3/core/services/profile_service.dart';
+import 'package:project3/core/widgets/change_password_dialog.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'mes_echantillons/mes_echantillons_page.dart';
 import 'widgets/collecteur_drawer.dart';
@@ -541,149 +542,17 @@ class _ProfileCollecteurPageState extends State<ProfileCollecteurPage>
     );
   }
 
-  void _showChangePasswordDialog() {
-    final currentPwController = TextEditingController();
-    final newPwController = TextEditingController();
-    final confirmPwController = TextEditingController();
-    bool obscureCurrent = true;
-    bool obscureNew = true;
-    bool obscureConfirm = true;
-
-    showDialog(
+  Future<void> _showChangePasswordDialog() async {
+    final changed = await showDialog<bool>(
       context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setDialogState) => AlertDialog(
-          title: Text(
-            'Changer le mot de passe',
-            style: GoogleFonts.domine(
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-              color: colDark,
-            ),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: currentPwController,
-                obscureText: obscureCurrent,
-                decoration: InputDecoration(
-                  labelText: 'Mot de passe actuel',
-                  labelStyle: const TextStyle(color: colOlive),
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      obscureCurrent
-                          ? Icons.visibility_off_outlined
-                          : Icons.visibility_outlined,
-                      color: colOlive,
-                      size: 20,
-                    ),
-                    onPressed: () =>
-                        setDialogState(() => obscureCurrent = !obscureCurrent),
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(color: colGreen, width: 2),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: newPwController,
-                obscureText: obscureNew,
-                decoration: InputDecoration(
-                  labelText: 'Nouveau mot de passe',
-                  labelStyle: const TextStyle(color: colOlive),
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      obscureNew
-                          ? Icons.visibility_off_outlined
-                          : Icons.visibility_outlined,
-                      color: colOlive,
-                      size: 20,
-                    ),
-                    onPressed: () =>
-                        setDialogState(() => obscureNew = !obscureNew),
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(color: colGreen, width: 2),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: confirmPwController,
-                obscureText: obscureConfirm,
-                decoration: InputDecoration(
-                  labelText: 'Confirmer le mot de passe',
-                  labelStyle: const TextStyle(color: colOlive),
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      obscureConfirm
-                          ? Icons.visibility_off_outlined
-                          : Icons.visibility_outlined,
-                      color: colOlive,
-                      size: 20,
-                    ),
-                    onPressed: () =>
-                        setDialogState(() => obscureConfirm = !obscureConfirm),
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(color: colGreen, width: 2),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Annuler'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                if (newPwController.text.isEmpty ||
-                    confirmPwController.text.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Veuillez remplir tous les champs'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                  return;
-                }
-                if (newPwController.text == confirmPwController.text) {
-                  Navigator.pop(context);
-                  _showSuccess('Mot de passe changé avec succès');
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Les mots de passe ne correspondent pas'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                }
-              },
-              style: ElevatedButton.styleFrom(backgroundColor: colGreen),
-              child: const Text(
-                'Enregistrer',
-                style: TextStyle(color: Colors.white),
-              ),
-            ),
-          ],
-        ),
+      builder: (_) => const ChangePasswordDialog(
+        accentColor: colGreen,
+        labelColor: colOlive,
+        titleColor: colDark,
       ),
     );
+    if (changed == true && mounted) {
+      _showSuccess('Mot de passe changé avec succès');
+    }
   }
 }

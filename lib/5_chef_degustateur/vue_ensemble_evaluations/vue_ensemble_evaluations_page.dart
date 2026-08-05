@@ -11,6 +11,7 @@ import '../../core/models/enums.dart';
 
 import '../profil.dart';
 import '../tableau_de_bord/widgets/app_drawer.dart';
+import '../utilisateurs/utilisateurs_chef_page.dart';
 import '../tableau_de_bord/homepage_page.dart';
 import '../membres_panel/membres_panel_page.dart';
 import '../gestion_echantillons/gestion_echantillons_page.dart';
@@ -530,6 +531,7 @@ class _VueEnsembleEvaluationsPageState
         onAnalyseLaboratoire: () => _goTo(const AnalyseLaboratoirePage()),
         onSessionsDegustationPage: () => _goTo(const SessionsDegustationPage()),
         onMembredupanel: () => _goTo(const MembresPanelPage()),
+        onUtilisateurs: () => _goTo(const UtilisateursChefPage()),
         onVueEnsembleEvaluations: () => Navigator.pop(context),
         onProfil: () => _goTo(const ProfilePage()),
         onDeconnexion: _goToLogin,

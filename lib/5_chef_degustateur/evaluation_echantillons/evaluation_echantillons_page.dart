@@ -8,6 +8,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 // ── Page imports ──────────────────────────────────────────────────────────────
 import '../tableau_de_bord/widgets/app_drawer.dart';
+import '../utilisateurs/utilisateurs_chef_page.dart';
 import '../widgets/statut_chip.dart';
 import '../membres_panel/membres_panel_page.dart';
 import '../../../main.dart';
@@ -284,6 +285,7 @@ class _EvaluationEchantillonsPageState extends State<EvaluationEchantillonsPage>
         onSessionsDegustationPage: () =>
             goToPage(const SessionsDegustationPage()),
         onMembredupanel: () => goToPage(const MembresPanelPage()),
+        onUtilisateurs: () => goToPage(const UtilisateursChefPage()),
         onVueEnsembleEvaluations: () =>
             goToPage(const VueEnsembleEvaluationsPage()),
         onProfil: () => goToPage(const ProfilePage()),

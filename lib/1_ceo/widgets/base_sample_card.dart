@@ -113,10 +113,13 @@ class _BaseSampleCardState extends State<BaseSampleCard> {
                               ],
                             ),
                           ),
-                          // Le badge cède de la place au lieu de déborder :
-                          // certains badges s'ouvrent au clic et deviennent
-                          // bien plus larges que la carte.
-                          Flexible(child: widget.badge),
+                          // Le badge occupe la moitié droite et s'y aligne à
+                          // droite : sans ça, il restait collé au titre et la
+                          // moitié de la carte tombait en vide après le
+                          // chevron. Il cède quand même de la place au lieu de
+                          // déborder — certains badges s'ouvrent au clic et
+                          // deviennent bien plus larges que la carte.
+                          Expanded(child: widget.badge),
                           const SizedBox(width: 8),
                           AnimatedRotation(
                             turns: _detailExpanded ? 0.5 : 0.0,
@@ -221,6 +224,9 @@ class CardBadgeRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Row(
     mainAxisSize: MainAxisSize.min,
+    // Les badges se rangent contre le chevron, à droite de la carte, plutôt
+    // que de flotter au milieu.
+    mainAxisAlignment: MainAxisAlignment.end,
     children: [
       for (int i = 0; i < badges.length; i++) ...[
         if (i > 0) const SizedBox(width: 6),

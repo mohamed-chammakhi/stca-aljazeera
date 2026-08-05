@@ -90,9 +90,8 @@ class EchantillonCollecteur {
   // per supplier — has nothing to count it under.
   String? fournisseurId;
   String codeFournisseur;
-  // Transient write-only supplier name entered during creation. NOT loaded
-  // from the API; only sent on create so the backend can match by name and
-  // never mistake a handwritten name for a supplier code.
+  // Supplier name displayed by the app and sent on create/update so the backend
+  // can match by name without a separate supplier creation request.
   String? fournisseurNom;
 
   // Bottle
@@ -188,6 +187,7 @@ class EchantillonCollecteur {
         delegation: json['delegation'] as String?,
         cite: json['cite'] as String?,
         fournisseurId: json['fournisseur']?.toString(),
+        fournisseurNom: json['fournisseur_nom'] as String?,
         codeFournisseur: json['code_fournisseur'] as String? ?? '',
         referenceBouteille: json['reference_bouteille'] as String? ?? '',
         numCiterne: json['num_citerne'] as String?,

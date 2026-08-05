@@ -7,6 +7,7 @@ import '4_laboratoire/echantillons_labo/echantillons_labo_page.dart';
 import '5_chef_degustateur/tableau_de_bord/homepage_page.dart' as chef;
 import 'core/api_client.dart';
 import 'core/models/enums.dart';
+import 'core/password_validation.dart';
 import 'core/services/auth_service.dart';
 
 // ENTRY POINT
@@ -125,17 +126,7 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   String? _validatePassword(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Le champ mot de passe est obligatoire';
-    }
-    if (value.length < 6) return 'Veuillez saisir un mot de passe valide';
-    if (!value.contains(RegExp(r'[0-9]'))) {
-      return 'Veuillez saisir un mot de passe valide';
-    }
-    if (!value.contains(RegExp(r'[^a-zA-Z0-9]'))) {
-      return 'Veuillez saisir un mot de passe valide';
-    }
-    return null;
+    return validatePassword(value);
   }
 
   // ── Navigation helper ─────────────────────────────────────────────────────
@@ -468,10 +459,7 @@ class _LoginPageState extends State<LoginPage> {
                     runSpacing: 4,
                     alignment: WrapAlignment.center,
                     children: [
-                      _debugBtn(
-                        'Direction',
-                        () => _goTo(const HomePageCeo()),
-                      ),
+                      _debugBtn('Direction', () => _goTo(const HomePageCeo())),
                       _debugBtn('Dégustateur', () => _goTo(const HomePage())),
                       _debugBtn(
                         'Collecteur',

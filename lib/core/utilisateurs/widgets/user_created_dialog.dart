@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-/// Success dialog shown after a new user is created.
+/// Shared success dialog shown after a new user is created.
 /// Auto-dismisses after 4 seconds; user can also close manually.
 class UserCreatedDialog extends StatefulWidget {
   final String prenom;

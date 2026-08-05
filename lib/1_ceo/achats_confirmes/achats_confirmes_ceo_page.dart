@@ -16,7 +16,7 @@ import '../analyse_laboratoire/analyse_laboratoire_ceo_page.dart';
 import '../profil_ceo_page.dart';
 import '../../main.dart';
 import '../utilisateurs/models/mock_data_patch.dart';
-import '../utilisateurs/widgets/utilisateurs_ceo_page.dart';
+import '../utilisateurs/utilisateurs_ceo_page.dart';
 import '../widgets/search_date_filter_bar.dart';
 import '../widgets/sample_card_echantillon.dart';
 import '../widgets/base_sample_card.dart';

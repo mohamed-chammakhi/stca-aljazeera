@@ -1,6 +1,6 @@
 // ═════════════════════════════════════════════════════════════════════════════
-// FILE : ceo/utilisateurs/utilisateurs_ceo_page.dart
-// PURPOSE : CEO user management page — view all users, their roles,
+// FILE : core/utilisateurs/utilisateurs_page_body.dart
+// PURPOSE : Shared user page — view all users, their roles,
 //           contact info, status, and perform admin actions.
 // DATA   : Reads from the Django API, with mockUtilisateurs kept as fallback.
 // STYLE  : Matches ProfilceoPage — same palette, fonts, and component style.
@@ -8,38 +8,36 @@
 
 import 'package:flutter/material.dart';
 import 'package:project3/core/theme/app_colors.dart';
-import '../../widgets/ceo_nav_mixin.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../../main.dart';
-import '../../widgets/ceo_drawer.dart';
-import '../../echantillons/echantillons_ceo_page.dart';
-import '../../achats_confirmes/achats_confirmes_ceo_page.dart';
-import '../../validation_achats/validation_achats_ceo_page.dart';
-import '../../analyse_laboratoire/analyse_laboratoire_ceo_page.dart';
-import '../../analyse_organoleptique/analyse_organoleptique_ceo_page.dart';
-import '../../profil_ceo_page.dart';
-import '../../utilisateurs/services/utilisateurs_ceo_service.dart';
-import '../../../../core/models/user_profile.dart';
-import '../../../../core/models/enums.dart';
-import 'user_card.dart';
-import 'user_created_dialog.dart';
-import '../../../../core/widgets/bandeau_demonstration.dart';
+import '../models/user_profile.dart';
+import '../models/enums.dart';
+import '../widgets/bandeau_demonstration.dart';
+import 'utilisateurs_service.dart';
+import 'widgets/user_card.dart';
+import 'widgets/user_created_dialog.dart';
 
 // ── Local aliases — keep page code unchanged while using core types ────────────
 typedef UserRole = RoleUtilisateur;
-typedef AppUser = UserProfile;
 
-// ── Page ──────────────────────────────────────────────────────────────────────
-class UtilisateursCeoPage extends StatefulWidget {
-  const UtilisateursCeoPage({super.key});
+class UtilisateursPageBody extends StatefulWidget {
+  /// Quand false, la page est en consultation : ni bouton d'ajout, ni bascule
+  /// d'activation, ni suppression. Le serveur reste le vrai garde-fou.
+  final bool peutGerer;
+  final UtilisateursService? service;
+
+  const UtilisateursPageBody({
+    super.key,
+    required this.peutGerer,
+    this.service,
+  });
 
   @override
-  State<UtilisateursCeoPage> createState() => _UtilisateursCeoPageState();
+  State<UtilisateursPageBody> createState() => _UtilisateursPageBodyState();
 }
 
-class _UtilisateursCeoPageState extends State<UtilisateursCeoPage>
-    with CeoNavMixin {
+class _UtilisateursPageBodyState extends State<UtilisateursPageBody> {
+  late final UtilisateursService _service;
   // ── Role accent colors ─────────────────────────────────────────────────────
   // CEO → blue, Laboratoire → orange, Dégustateur → kGreen, Collecteur → pink
   static const _roleColors = {
@@ -51,7 +49,7 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage>
   };
 
   // ── Data ──────────────────────────────────────────────────────────────────
-  List<AppUser> _utilisateurs = [];
+  List<UserProfile> _utilisateurs = [];
   bool _isLoading = false;
   bool _isMutating = false;
   bool _usesMockData = false;
@@ -63,7 +61,7 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage>
   String _searchQuery = '';
 
   // ── Derived filtered list ──────────────────────────────────────────────────
-  List<AppUser> get _filtered {
+  List<UserProfile> get _filtered {
     return _utilisateurs.where((u) {
       final matchRole = _activeFilter == null || u.role == _activeFilter;
       final q = _searchQuery.toLowerCase();
@@ -81,6 +79,7 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage>
   @override
   void initState() {
     super.initState();
+    _service = widget.service ?? utilisateursService;
     _loadUsers();
   }
 
@@ -93,7 +92,7 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage>
   Future<void> _loadUsers() async {
     setState(() => _isLoading = true);
     try {
-      final resultat = await utilisateursCeoService.fetchUsers();
+      final resultat = await _service.fetchUsers();
       if (!mounted) return;
       setState(() {
         _utilisateurs = resultat.donnees;
@@ -113,46 +112,10 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage>
   Widget build(BuildContext context) {
     final filtered = _filtered;
 
-    return Scaffold(
-      backgroundColor: kBg,
-      drawer: CeoDrawer(
-        onEchantillons: () => goToPage(const EchantillonsCeoPage()),
-        onAnalyseOrganoleptique: () =>
-            goToPage(const AnalyseOrganoleptiqueCeoPage()),
-        onAnalyseLaboratoire: () => goToPage(const AnalyseLaboratoireCeoPage()),
-        onValidationAchats: () => goToPage(const ValidationAchatsCeoPage()),
-        onAchatsConfirmes: () => goToPage(const AchatsConfirmesCeoPage()),
-        onTableauDeBord: () => Navigator.pop(context),
-        onProfil: () => goToPage(const ProfilceoPage()),
-        onutilisiateurs: () => Navigator.pop(context),
-        onDeconnexion: () => goToPage(LoginPage()),
-      ),
-      appBar: AppBar(
-        backgroundColor: kHeaderBg,
-        elevation: 0,
-        centerTitle: false,
-        toolbarHeight: 52,
-        title: Text(
-          'Utilisateurs',
-          style: GoogleFonts.domine(
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
-            color: kDark,
-          ),
-        ),
-        iconTheme: const IconThemeData(color: kDark),
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _isLoading || _usesMockData ? null : _showAddUserSheet,
-        backgroundColor: const Color.fromARGB(255, 197, 206, 201),
-        elevation: 2,
-        icon: const Icon(Icons.person_add_outlined, color: kDark),
-        label: Text(
-          'Ajouter',
-          style: GoogleFonts.domine(color: kDark, fontWeight: FontWeight.w700),
-        ),
-      ),
-      body: _isLoading && _utilisateurs.isEmpty
+    return Stack(
+      children: [
+        Positioned.fill(
+          child: _isLoading && _utilisateurs.isEmpty
           ? const Center(child: CircularProgressIndicator())
           : VueResultatService(
               estDemonstration: _usesMockData,
@@ -165,7 +128,19 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage>
                     color: kHeaderBg,
                     padding: const EdgeInsets.fromLTRB(16, 10, 16, 14),
                     child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        if (!widget.peutGerer) ...[
+                          const Text(
+                            'Consultation seule — la gestion des comptes appartient au chef dégustation.',
+                            style: TextStyle(
+                              color: Color(0xFF6B8E7A),
+                              fontSize: 12,
+                              fontStyle: FontStyle.italic,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                        ],
                         TextField(
                           controller: _searchController,
                           onChanged: (v) =>
@@ -227,17 +202,50 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage>
                     height: 1,
                     color: Colors.black.withValues(alpha: 0.06),
                   ),
+                  Container(
+                    color: kBg,
+                    padding: const EdgeInsets.fromLTRB(16, 9, 16, 9),
+                    child: Row(
+                      children: [
+                        Text(
+                          '${filtered.length} utilisateur${filtered.length > 1 ? 's' : ''}',
+                          style: const TextStyle(
+                            color: kDark,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const Spacer(),
+                        if (_activeFilter != null || _searchQuery.isNotEmpty)
+                          TextButton.icon(
+                            onPressed: () => setState(() {
+                              _activeFilter = null;
+                              _searchQuery = '';
+                              _searchController.clear();
+                            }),
+                            icon: const Icon(Icons.filter_alt_off_outlined, size: 16),
+                            label: const Text('Effacer les filtres'),
+                          ),
+                      ],
+                    ),
+                  ),
                   Expanded(
                     child: filtered.isEmpty
                         ? _buildEmpty()
                         : ListView.builder(
-                            padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
+                            padding: EdgeInsets.fromLTRB(
+                              16,
+                              8,
+                              16,
+                              widget.peutGerer ? 100 : 24,
+                            ),
                             itemCount: filtered.length,
                             itemBuilder: (_, i) => UserCard(
                               user: filtered[i],
                               green: kGreen,
                               darkText: kDark,
                               roleColors: _roleColors,
+                              peutGerer: widget.peutGerer,
                               onToggleStatus: () =>
                                   _confirmToggleStatus(filtered[i]),
                               onDelete: () => _confirmDelete(filtered[i]),
@@ -249,6 +257,27 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage>
                 ],
               ),
             ),
+        ),
+        if (widget.peutGerer)
+          Positioned(
+            right: 16,
+            bottom: 16,
+            child: FloatingActionButton.extended(
+              key: const ValueKey('utilisateurs_ajouter'),
+              onPressed: _isLoading || _usesMockData ? null : _showAddUserSheet,
+              backgroundColor: const Color.fromARGB(255, 197, 206, 201),
+              elevation: 2,
+              icon: const Icon(Icons.person_add_outlined, color: kDark),
+              label: Text(
+                'Ajouter',
+                style: GoogleFonts.domine(
+                  color: kDark,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ),
+      ],
     );
   }
 
@@ -360,7 +389,7 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage>
   }
 
   // ── Toggle active / inactive ───────────────────────────────────────────────
-  void _confirmToggleStatus(AppUser user) {
+  void _confirmToggleStatus(UserProfile user) {
     final action = user.isActive ? 'désactiver' : 'réactiver';
     showDialog(
       context: context,
@@ -401,7 +430,7 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage>
   }
 
   // ── Delete ─────────────────────────────────────────────────────────────────
-  void _confirmDelete(AppUser user) {
+  void _confirmDelete(UserProfile user) {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
@@ -443,7 +472,7 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage>
     );
   }
 
-  Future<void> _toggleUserStatus(AppUser user) async {
+  Future<void> _toggleUserStatus(UserProfile user) async {
     if (_isMutating) return;
     if (_usesMockData) {
       _showError(
@@ -454,7 +483,7 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage>
 
     setState(() => _isMutating = true);
     try {
-      final updated = await utilisateursCeoService.toggleActive(user.id);
+      final updated = await _service.toggleActive(user.id);
       if (!mounted) return;
       setState(() {
         final idx = _utilisateurs.indexWhere((u) => u.id == user.id);
@@ -467,13 +496,13 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage>
       );
     } catch (error) {
       if (!mounted) return;
-      _showError(utilisateursCeoService.messageFor(error));
+      _showError(_service.messageFor(error));
     } finally {
       if (mounted) setState(() => _isMutating = false);
     }
   }
 
-  Future<void> _deleteUser(AppUser user) async {
+  Future<void> _deleteUser(UserProfile user) async {
     if (_isMutating) return;
     if (_usesMockData) {
       _showError(
@@ -484,20 +513,20 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage>
 
     setState(() => _isMutating = true);
     try {
-      await utilisateursCeoService.deleteUser(user.id);
+      await _service.deleteUser(user.id);
       if (!mounted) return;
       setState(() => _utilisateurs.removeWhere((u) => u.id == user.id));
       _showSuccess('${user.nomComplet} supprimé');
     } catch (error) {
       if (!mounted) return;
-      _showError(utilisateursCeoService.messageFor(error));
+      _showError(_service.messageFor(error));
     } finally {
       if (mounted) setState(() => _isMutating = false);
     }
   }
 
   // ── Profile bottom sheet ───────────────────────────────────────────────────
-  void _showUserProfile(AppUser user) {
+  void _showUserProfile(UserProfile user) {
     final colors = _roleColors[user.role]!;
     showModalBottomSheet(
       context: context,
@@ -884,7 +913,7 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage>
                               }
                               setSheet(() => isSaving = true);
                               try {
-                                final newUser = await utilisateursCeoService
+                                final newUser = await _service
                                     .createUser(
                                       prenom: prenomCtrl.text.trim(),
                                       nom: nomCtrl.text.trim(),
@@ -903,7 +932,7 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage>
                               } catch (error) {
                                 if (!mounted) return;
                                 _showError(
-                                  utilisateursCeoService.messageFor(error),
+                                  _service.messageFor(error),
                                 );
                               } finally {
                                 if (ctx.mounted) {

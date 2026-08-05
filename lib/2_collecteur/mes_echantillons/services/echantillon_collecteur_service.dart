@@ -9,7 +9,10 @@ import '../../../../core/services/resultat_service.dart';
 import 'echantillon_mock_data.dart';
 
 class EchantillonCollecteurService {
+  final ApiClient _api;
   bool _usingMockData = false;
+
+  EchantillonCollecteurService({ApiClient? api}) : _api = api ?? apiClient;
   // ── Field mapping: Django API → Flutter fromJson ───────────────────────────
   //
   // The Django API returns field names that differ from what fromJson() expects.
@@ -60,6 +63,8 @@ class EchantillonCollecteurService {
       'gouvernorat': api['gouvernorat'] ?? '',
       'delegation': api['delegation'],
       'cite': api['cite'],
+      'fournisseur': api['fournisseur'],
+      'fournisseur_nom': api['fournisseur_nom'],
       'code_fournisseur': api['code_fournisseur'] ?? '',
       'reference_bouteille': api['reference_bouteille'] ?? '',
       'num_citerne': api['num_citerne'],
@@ -96,7 +101,7 @@ class EchantillonCollecteurService {
       'gouvernorat': json['gouvernorat'],
       'delegation': json['delegation'],
       'cite': json['cite'],
-      'code_fournisseur': e.codeFournisseur,
+      if (nom.isEmpty) 'code_fournisseur': e.codeFournisseur,
       // Only sent when present so legacy edits don't accidentally override
       // the supplier match with an empty string.
       if (nom.isNotEmpty) 'fournisseur_nom': nom,
@@ -133,7 +138,7 @@ class EchantillonCollecteurService {
         path: '/api/echantillons/',
         queryParameters: params.isEmpty ? null : params,
       );
-      final items = await apiClient.getList(uri.toString());
+      final items = await _api.getList(uri.toString());
       _usingMockData = false;
       return items
           .map(
@@ -171,7 +176,7 @@ class EchantillonCollecteurService {
     if (_usingMockData) {
       throw StateError('Création indisponible avec les données de démonstration.');
     }
-    final response = await apiClient.post(
+    final response = await _api.post(
       '/api/echantillons/',
       _toDjangoMap(e),
     );
@@ -193,7 +198,7 @@ class EchantillonCollecteurService {
     dj.forEach((k, v) {
       if (v != null && v.toString().isNotEmpty) fields[k] = v.toString();
     });
-    final response = await apiClient.postMultipart(
+    final response = await _api.postMultipart(
       '/api/echantillons/',
       bytes: imageBytes,
       filename: filename,
@@ -209,7 +214,7 @@ class EchantillonCollecteurService {
     if (_usingMockData) {
       throw StateError('Modification indisponible avec les données de démonstration.');
     }
-    final response = await apiClient.patch(
+    final response = await _api.patch(
       '/api/echantillons/${e.id}/',
       _toDjangoMap(e),
     );
@@ -221,7 +226,7 @@ class EchantillonCollecteurService {
     if (_usingMockData) {
       throw StateError('Suppression indisponible avec les données de démonstration.');
     }
-    await apiClient.delete('/api/echantillons/$id/');
+    await _api.delete('/api/echantillons/$id/');
   }
 
   /// Confirms the purchase of an echantillon.
@@ -239,7 +244,7 @@ class EchantillonCollecteurService {
     final body = <String, dynamic>{};
     if (prixFinal != null) body['prix_final'] = prixFinal;
     if (camionLivraison != null) body['camion_reserve'] = camionLivraison;
-    final response = await apiClient.patch(
+    final response = await _api.patch(
       '/api/echantillons/$id/confirmer-achat/',
       body,
     );

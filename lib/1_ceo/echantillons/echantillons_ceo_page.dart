@@ -16,7 +16,7 @@ import '../analyse_laboratoire/analyse_laboratoire_ceo_page.dart';
 import '../achats_confirmes/achats_confirmes_ceo_page.dart';
 import '../validation_achats/validation_achats_ceo_page.dart';
 import '../utilisateurs/models/mock_data_patch.dart';
-import '../utilisateurs/widgets/utilisateurs_ceo_page.dart';
+import '../utilisateurs/utilisateurs_ceo_page.dart';
 import '../../main.dart';
 import '../profil_ceo_page.dart';
 import '../tableau_de_bord/tableau_de_bord.dart';

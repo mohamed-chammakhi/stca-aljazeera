@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../../core/models/user_profile.dart';
-import '../../../../core/models/enums.dart';
+import '../../models/user_profile.dart';
+import '../../models/enums.dart';
 
 /// Expandable user card with role accent bar, status indicator, and action buttons.
 class UserCard extends StatefulWidget {
@@ -8,6 +8,7 @@ class UserCard extends StatefulWidget {
   final Color green;
   final Color darkText;
   final Map<RoleUtilisateur, ({Color bg, Color fg})> roleColors;
+  final bool peutGerer;
   final VoidCallback onToggleStatus;
   final VoidCallback onDelete;
   final VoidCallback onViewProfile;
@@ -18,6 +19,7 @@ class UserCard extends StatefulWidget {
     required this.green,
     required this.darkText,
     required this.roleColors,
+    required this.peutGerer,
     required this.onToggleStatus,
     required this.onDelete,
     required this.onViewProfile,
@@ -130,30 +132,41 @@ class _UserCardState extends State<UserCard> {
                     ),
                   ),
                   const Spacer(),
-                  GestureDetector(
-                    onTap: widget.onToggleStatus,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                      decoration: BoxDecoration(
-                        color: user.isActive ? const Color(0xFFF5F5F5) : const Color(0xFFE6F7EE),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: user.isActive ? const Color(0xFFE0E0E0) : const Color(0xFF9DD4B4),
+                  if (widget.peutGerer) ...[
+                    GestureDetector(
+                      key: ValueKey('utilisateur_toggle_${user.id}'),
+                      onTap: widget.onToggleStatus,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: user.isActive ? const Color(0xFFF5F5F5) : const Color(0xFFE6F7EE),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: user.isActive ? const Color(0xFFE0E0E0) : const Color(0xFF9DD4B4),
+                          ),
                         ),
-                      ),
-                      child: Text(
-                        user.isActive ? 'Désactiver' : 'Réactiver',
-                        style: TextStyle(
-                          fontSize: 10, fontWeight: FontWeight.w700,
-                          color: user.isActive ? const Color(0xFF9E9E9E) : const Color(0xFF2E7D52),
+                        child: Text(
+                          user.isActive ? 'Désactiver' : 'Réactiver',
+                          style: TextStyle(
+                            fontSize: 10, fontWeight: FontWeight.w700,
+                            color: user.isActive ? const Color(0xFF9E9E9E) : const Color(0xFF2E7D52),
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 8),
+                    const SizedBox(width: 8),
+                  ],
                   _IconBtn(icon: Icons.remove_red_eye_outlined, color: const Color(0xFF9E9E9E), bgColor: const Color(0xFFF5F5F5), onTap: widget.onViewProfile),
-                  const SizedBox(width: 6),
-                  _IconBtn(icon: Icons.delete_outline, color: const Color(0xFFBB4444), bgColor: const Color(0xFFFFF5F5), onTap: widget.onDelete),
+                  if (widget.peutGerer) ...[
+                    const SizedBox(width: 6),
+                    _IconBtn(
+                      key: ValueKey('utilisateur_supprimer_${user.id}'),
+                      icon: Icons.delete_outline,
+                      color: const Color(0xFFBB4444),
+                      bgColor: const Color(0xFFFFF5F5),
+                      onTap: widget.onDelete,
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -172,7 +185,7 @@ class _IconBtn extends StatelessWidget {
   final Color bgColor;
   final VoidCallback onTap;
 
-  const _IconBtn({required this.icon, required this.color, required this.bgColor, required this.onTap});
+  const _IconBtn({super.key, required this.icon, required this.color, required this.bgColor, required this.onTap});
 
   @override
   Widget build(BuildContext context) => GestureDetector(

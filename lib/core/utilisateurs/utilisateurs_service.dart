@@ -1,14 +1,16 @@
-import '../../../../core/api_client.dart';
-import '../../../../core/models/enums.dart';
-import '../../../../core/models/user_profile.dart';
-import '../../../../core/services/resultat_service.dart';
-import '../models/mock_data_patch.dart';
+import '../api_client.dart';
+import '../models/enums.dart';
+import '../models/user_profile.dart';
+import '../services/resultat_service.dart';
+import '../../1_ceo/utilisateurs/models/mock_data_patch.dart';
 
-class UtilisateursCeoService {
-  const UtilisateursCeoService();
+class UtilisateursService {
+  final ApiClient _api;
+
+  UtilisateursService({ApiClient? api}) : _api = api ?? apiClient;
 
   Future<Resultat<List<UserProfile>>> fetchUsers() => avecSecours(() async {
-    final items = await apiClient.getList('/api/users/');
+    final items = await _api.getList('/api/users/');
     return items
         .map((item) => UserProfile.fromJson(item as Map<String, dynamic>))
         .toList();
@@ -21,7 +23,7 @@ class UtilisateursCeoService {
     required RoleUtilisateur role,
     required String telephone,
   }) async {
-    final data = await apiClient.post('/api/users/', {
+    final data = await _api.post('/api/users/', {
       'nom': nom,
       'prenom': prenom,
       'email': email,
@@ -33,11 +35,11 @@ class UtilisateursCeoService {
   }
 
   Future<UserProfile> toggleActive(String id) async {
-    final data = await apiClient.post('/api/users/$id/toggle-active/', {});
+    final data = await _api.post('/api/users/$id/toggle-active/', {});
     return UserProfile.fromJson(data);
   }
 
-  Future<void> deleteUser(String id) => apiClient.delete('/api/users/$id/');
+  Future<void> deleteUser(String id) => _api.delete('/api/users/$id/');
 
   String messageFor(Object error) {
     if (error is ApiException) {
@@ -53,4 +55,4 @@ class UtilisateursCeoService {
   }
 }
 
-const utilisateursCeoService = UtilisateursCeoService();
+final utilisateursService = UtilisateursService();

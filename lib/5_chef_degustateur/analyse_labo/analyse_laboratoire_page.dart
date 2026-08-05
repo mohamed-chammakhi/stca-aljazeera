@@ -15,6 +15,7 @@ import '../gestion_echantillons/widgets/search_filter_bar.dart';
 // app-wide imports
 import '../profil.dart';
 import '../tableau_de_bord/widgets/app_drawer.dart';
+import '../utilisateurs/utilisateurs_chef_page.dart';
 import '../membres_panel/membres_panel_page.dart';
 import '../gestion_echantillons/gestion_echantillons_page.dart';
 import '../evaluation_echantillons/evaluation_echantillons_page.dart';
@@ -277,6 +278,7 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage>
         onSessionsDegustationPage: () =>
             goToPage(const SessionsDegustationPage()),
         onMembredupanel: () => goToPage(const MembresPanelPage()),
+        onUtilisateurs: () => goToPage(const UtilisateursChefPage()),
         onVueEnsembleEvaluations: () =>
             goToPage(const VueEnsembleEvaluationsPage()),
         onProfil: () => goToPage(const ProfilePage()),
