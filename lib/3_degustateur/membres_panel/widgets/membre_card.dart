@@ -5,7 +5,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../models/membre_panel.dart';
+import 'package:project3/core/models/membre_panel.dart';
 
 const Color _green = Color(0xFF38835A);
 const Color _darkText = Color(0xFF1A2E1F);

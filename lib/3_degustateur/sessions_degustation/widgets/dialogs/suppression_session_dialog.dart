@@ -5,7 +5,7 @@
 // ═════════════════════════════════════════════════════════════════════════════
 
 import 'package:flutter/material.dart';
-import '../../models/session_degustation.dart';
+import 'package:project3/core/models/session_degustation.dart';
 
 const Color _green = Color(0xFF38835A);
 const Color _darkText = Color(0xFF1A2E1F);

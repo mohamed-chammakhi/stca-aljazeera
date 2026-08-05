@@ -6,7 +6,7 @@
 
 import 'dart:async';
 import 'package:flutter/material.dart';
-import '../models/session_degustation.dart';
+import 'package:project3/core/models/session_degustation.dart';
 import '../../../core/widgets/grille_details.dart';
 
 const Color _dark = Color(0xFF1A2E1F);

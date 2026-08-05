@@ -1,13 +1,7 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// FILE : gestion_echantillons/models/mock_echantillons.dart
-// PURPOSE : mock sample data for gestion page
-// TODO: remove when backend is ready and replace with EchantillonService.fetch()
-// ─────────────────────────────────────────────────────────────────────────────
+import 'echantillon.dart';
+import 'enums.dart';
 
-import '../../../core/models/echantillon.dart';
-import '../../../core/models/enums.dart';
-
-// TODO: remove when backend is ready
+// Données de secours partagées par les pages de gestion des deux rôles.
 final List<Echantillon> mockEchantillonsGestion = [
   Echantillon(
     id: 'aaa00000-0000-0000-0000-000000000001',

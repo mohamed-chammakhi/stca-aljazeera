@@ -1,6 +1,6 @@
 import '../../../core/api_client.dart';
 import '../../../core/services/resultat_service.dart';
-import '../models/notification_degustateur.dart';
+import 'package:project3/core/models/notification_degustateur.dart';
 
 class NotificationDegustateurService {
   final ApiClient _api;

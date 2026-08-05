@@ -1,6 +1,6 @@
 import '../../../core/api_client.dart';
 import '../../../core/services/resultat_service.dart';
-import '../models/membre_panel.dart';
+import 'package:project3/core/models/membre_panel.dart';
 import '../models/mock_membres.dart';
 
 class MembresPanelChefService {

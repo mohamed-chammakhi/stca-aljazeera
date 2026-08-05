@@ -5,7 +5,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../models/membre_panel.dart';
+import 'package:project3/core/models/membre_panel.dart';
 import '../../widgets/chef_colors.dart';
 
 class MembreCard extends StatelessWidget {

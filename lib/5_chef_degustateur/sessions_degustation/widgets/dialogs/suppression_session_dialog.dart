@@ -5,7 +5,7 @@
 // ═════════════════════════════════════════════════════════════════════════════
 
 import 'package:flutter/material.dart';
-import '../../models/session_degustation.dart';
+import 'package:project3/core/models/session_degustation.dart';
 import '../../../widgets/chef_colors.dart';
 
 Future<void> showSuppressionSessionDialog(

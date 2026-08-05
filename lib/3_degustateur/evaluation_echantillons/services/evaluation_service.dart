@@ -1,7 +1,7 @@
 import '../../../core/api_client.dart';
 import '../../../core/models/echantillon_evaluation.dart';
 import '../../../core/services/resultat_service.dart';
-import '../navigation/models/mock_echantillons.dart';
+import '../../../core/models/mock_echantillons_evaluation.dart';
 
 class EvaluationService {
   bool _usingMockData = false;

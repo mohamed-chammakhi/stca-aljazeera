@@ -4,7 +4,6 @@ import 'package:project3/3_degustateur/sessions_degustation/widgets/session_card
     as degustateur;
 import 'package:project3/5_chef_degustateur/sessions_degustation/widgets/session_card.dart'
     as chef;
-import 'package:project3/core/models/enums.dart';
 import 'package:project3/core/models/session_degustation.dart';
 
 SessionDegustation _session() => SessionDegustation(

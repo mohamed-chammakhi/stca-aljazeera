@@ -6,6 +6,7 @@
 // ═════════════════════════════════════════════════════════════════════════════
 
 import 'enums.dart';
+export 'enums.dart' show StatutSession, StatutSessionX;
 
 String _stringValue(dynamic value, [String fallback = '']) =>
     value == null ? fallback : value.toString();

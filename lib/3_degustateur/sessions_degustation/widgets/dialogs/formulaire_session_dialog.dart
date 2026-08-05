@@ -7,8 +7,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../models/session_degustation.dart';
-import '../../../membres_panel/models/membre_panel.dart';
+import 'package:project3/core/models/session_degustation.dart';
+import 'package:project3/core/models/membre_panel.dart';
 import '../../../membres_panel/services/membres_panel_service.dart';
 import '../../../../../core/widgets/bandeau_demonstration.dart';
 import '../../../../../core/services/resultat_service.dart';

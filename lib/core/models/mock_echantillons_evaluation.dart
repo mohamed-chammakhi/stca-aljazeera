@@ -1,12 +1,6 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// FILE : evaluation_echantillons/models/mock_echantillons.dart
-// PURPOSE : mock sample data for evaluation page — remove when backend is ready
-// TODO: remove when backend is ready and replace with EchantillonService.fetch()
-// ─────────────────────────────────────────────────────────────────────────────
+import 'echantillon_evaluation.dart';
 
-import '../../../../core/models/echantillon_evaluation.dart';
-
-// TODO: remove when backend is ready
+// Données de secours partagées par les pages d'évaluation des deux rôles.
 final List<Echantillon> mockEchantillonsEvaluation = [
   Echantillon(
     id: '2026/0001',

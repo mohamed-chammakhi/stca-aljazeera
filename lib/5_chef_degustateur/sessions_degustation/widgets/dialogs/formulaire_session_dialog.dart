@@ -7,7 +7,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../models/session_degustation.dart';
+import 'package:project3/core/models/session_degustation.dart';
 import '../../../widgets/chef_colors.dart';
 
 const Color _fieldFill = Color(0xFFF7FAF8);

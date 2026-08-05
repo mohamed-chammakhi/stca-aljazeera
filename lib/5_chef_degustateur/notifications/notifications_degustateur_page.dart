@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'models/notification_degustateur.dart';
+import 'package:project3/core/models/notification_degustateur.dart';
 import 'services/notification_degustateur_service.dart';
 import '../widgets/chef_colors.dart';
 import '../../../core/widgets/bandeau_demonstration.dart';

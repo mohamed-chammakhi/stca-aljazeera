@@ -1,12 +1,60 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// FILE : sessions_degustation/models/mock_sessions.dart
-// PURPOSE : mock session data for chef sessions page
-// TODO: remove when backend is ready and replace with SessionsChefService.fetch()
-// ─────────────────────────────────────────────────────────────────────────────
-
 import 'session_degustation.dart';
 
-// TODO: remove when backend is ready
+// Données de secours utilisées uniquement si l'API dégustateur est indisponible.
+final List<SessionDegustation> mockSessionsDegustateur = [
+  SessionDegustation(
+    id: 'SES-001',
+    titre: 'Session Chemlali - Lot A',
+    date: '20/03/2026',
+    heure: '09:00',
+    lieu: 'Salle de dégustation A',
+    statut: StatutSession.terminee,
+    echantillonIds: ['aaa00000-0000-0000-0000-000000000001'],
+    participantIds: ['mock-ichrak', 'mock-lobna', 'mock-maha'],
+    participantNoms: ['Ichrak C.', 'Lobna E.', 'Maha O.'],
+    confirmedParticipantIds: ['mock-ichrak', 'mock-maha'],
+    confirmedParticipantNoms: ['Ichrak C.', 'Maha O.'],
+    notes: 'Apporter les fiches de notation',
+    createdBy: 'mock-user-001',
+    createdAt: '2026-03-01T08:00:00Z',
+  ),
+  SessionDegustation(
+    id: 'SES-002',
+    titre: 'Session Chetoui - Lot B',
+    date: '10/04/2026',
+    heure: '10:30',
+    lieu: 'Laboratoire 2',
+    statut: StatutSession.planifiee,
+    echantillonIds: ['aaa00000-0000-0000-0000-000000000003'],
+    participantIds: ['mock-ichrak', 'mock-lobna'],
+    participantNoms: ['Ichrak C.', 'Lobna E.'],
+    confirmedParticipantIds: [],
+    confirmedParticipantNoms: [],
+    createdBy: 'mock-user-001',
+    createdAt: '2026-03-20T08:00:00Z',
+  ),
+  SessionDegustation(
+    id: 'SES-003',
+    titre: 'Session Oueslati - Lot C',
+    date: '18/05/2026',
+    heure: '14:00',
+    lieu: 'Salle de dégustation B',
+    statut: StatutSession.planifiee,
+    echantillonIds: [
+      'aaa00000-0000-0000-0000-000000000004',
+      'aaa00000-0000-0000-0000-000000000002',
+    ],
+    participantIds: ['mock-ichrak', 'mock-lobna', 'mock-maha'],
+    participantNoms: ['Ichrak C.', 'Lobna E.', 'Maha O.'],
+    confirmedParticipantIds: ['mock-ichrak'],
+    confirmedParticipantNoms: ['Ichrak C.'],
+    notes: 'Préparer les verres ISO 3591',
+    createdBy: 'mock-user-001',
+    createdAt: '2026-04-10T08:00:00Z',
+  ),
+];
+
+// Données de secours du chef, avec les propositions à valider qu'il supervise.
 final List<SessionDegustation> mockSessionsChef = [
   SessionDegustation(
     id: 'SES-001',
@@ -43,18 +91,12 @@ final List<SessionDegustation> mockSessionsChef = [
     lieu: 'Salle de dégustation B',
     statut: StatutSession.planifiee,
     echantillonIds: ['OL-2024-003', 'OL-2024-004'],
-    participantIds: [
-      'mock-ichrak',
-      'mock-maha',
-      'mock-nayrouz',
-      'mock-yosra',
-    ],
+    participantIds: ['mock-ichrak', 'mock-maha', 'mock-nayrouz', 'mock-yosra'],
     participantNoms: ['Ichrak C.', 'Maha O.', 'Nayrouz F.', 'Yosra S.'],
     notes: 'Préparer les verres ISO 3591',
     createdBy: 'mock-user-001',
     createdAt: '2026-02-10T08:00:00Z',
   ),
-  // Sessions suggested by normal dégustateurs — awaiting chef approval
   SessionDegustation(
     id: 'SES-005',
     titre: 'Session Oueslati - Lot C',

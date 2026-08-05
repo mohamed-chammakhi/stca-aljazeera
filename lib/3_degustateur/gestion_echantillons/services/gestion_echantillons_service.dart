@@ -1,7 +1,7 @@
 import '../../../core/models/echantillon.dart';
 import '../../../core/api_client.dart';
 import '../../../core/services/resultat_service.dart';
-import '../models/mock_echantillons.dart';
+import '../../../core/models/mock_echantillons_gestion.dart';
 
 class GestionEchantillonsService {
   // ── Field mapping: Django API → Echantillon.fromJson ─────────────────────

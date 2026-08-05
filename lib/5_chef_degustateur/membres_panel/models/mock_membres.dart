@@ -4,7 +4,7 @@
 // TODO: remove when backend is ready and replace with MembresPanelChefService.fetch()
 // ─────────────────────────────────────────────────────────────────────────────
 
-import 'membre_panel.dart';
+import 'package:project3/core/models/membre_panel.dart';
 
 // TODO: remove when backend is ready
 const List<MembrePanel> mockMembresPanel = [

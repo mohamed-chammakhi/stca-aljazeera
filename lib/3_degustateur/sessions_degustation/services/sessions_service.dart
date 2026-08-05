@@ -1,7 +1,7 @@
 import '../../../../core/api_client.dart';
 import '../../../../core/services/resultat_service.dart';
 import '../../../../core/models/session_degustation.dart';
-import '../models/mock_sessions.dart';
+import '../../../core/models/mock_sessions.dart';
 
 class SessionsService {
   static final _uuidPattern = RegExp(

@@ -1,7 +1,4 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// FILE : membres_panel/models/membre_panel.dart
-// PURPOSE : data model for a panel member
-// ─────────────────────────────────────────────────────────────────────────────
+// Data model shared by the degustateur and chef degustateur modules.
 
 class MembrePanel {
   final String id;

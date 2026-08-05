@@ -15,7 +15,7 @@ import 'widgets/home_body.dart';
 import '../../../core/theme/app_colors.dart';
 import '../widgets/degustateur_nav_mixin.dart';
 import '../profil/profil_page.dart';
-import '../notifications/models/notification_degustateur.dart';
+import 'package:project3/core/models/notification_degustateur.dart';
 import '../notifications/services/notification_degustateur_service.dart';
 import '../../../core/widgets/bandeau_demonstration.dart';
 import '../notifications/notifications_degustateur_page.dart';
