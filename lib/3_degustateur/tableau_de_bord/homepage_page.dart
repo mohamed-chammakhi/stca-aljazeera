@@ -83,7 +83,13 @@ class _HomePageState extends State<HomePage> with DegustateurNavMixin {
       case 'EVALUATIONS':
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => const EvaluationEchantillonsPage()),
+          MaterialPageRoute(
+            builder: (_) => n.echantillonId == null
+                ? const EvaluationEchantillonsPage()
+                : EvaluationEchantillonsPage(
+                    echantillonCible: n.echantillonId,
+                  ),
+          ),
         );
         break;
       case 'ANALYSES':

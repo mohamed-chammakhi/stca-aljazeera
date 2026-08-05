@@ -40,12 +40,14 @@ class EchantillonCard extends StatefulWidget {
   final Echantillon echantillon;
   final VoidCallback onAction; // Commencer / Continuer
   final VoidCallback? onVoir; // Voir l'évaluation soumise (read-only)
+  final bool isHighlighted;
 
   const EchantillonCard({
     super.key,
     required this.echantillon,
     required this.onAction,
     this.onVoir,
+    this.isHighlighted = false,
   });
 
   @override
@@ -66,11 +68,18 @@ class _EchantillonCardState extends State<EchantillonCard> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(
+          color: widget.isHighlighted
+              ? const Color(0xFFD07B2F)
+              : Colors.grey.shade200,
+          width: widget.isHighlighted ? 2 : 1,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 8,
+            color: widget.isHighlighted
+                ? const Color(0xFFD07B2F).withValues(alpha: 0.25)
+                : Colors.black.withValues(alpha: 0.06),
+            blurRadius: widget.isHighlighted ? 14 : 8,
             offset: const Offset(0, 3),
           ),
         ],

@@ -211,6 +211,106 @@ class NotificationApiTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertFalse(Notification.objects.filter(type=Notification.Type.ANALYSE_URGENTE).exists())
 
+    def test_direction_requests_urgent_evaluation_for_active_panel(self):
+        inactive_taster = User.objects.create_user(
+            email='degustateur.inactive.notifications@example.com',
+            password='Test@12345',
+            nom='Inactive',
+            prenom='Taster',
+            role=User.Role.DEGUSTATEUR,
+            is_active=False,
+        )
+        self.authenticate(self.direction)
+
+        response = self.client.post(
+            '/api/notifications/evaluation-urgente/',
+            {'echantillon': str(self.sample.id)},
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.json(), {'created': 3, 'recipients': 3})
+        notifications = Notification.objects.filter(
+            type=Notification.Type.EVALUATION_URGENTE,
+        )
+        self.assertEqual(
+            set(notifications.values_list('destinataire_id', flat=True)),
+            {self.chef.id, self.degustateur.id, self.other_degustateur.id},
+        )
+        self.assertFalse(notifications.filter(destinataire=inactive_taster).exists())
+        for notification in notifications:
+            self.assertEqual(notification.echantillon, self.sample)
+            self.assertEqual(notification.section, Notification.Section.EVALUATIONS)
+            self.assertEqual(
+                notification.titre,
+                f'Évaluation urgente — échantillon {self.sample.numero}',
+            )
+
+    def test_urgent_evaluation_request_is_idempotent_per_unread_recipient(self):
+        self.authenticate(self.direction)
+
+        first = self.client.post(
+            '/api/notifications/evaluation-urgente/',
+            {'echantillon': str(self.sample.id)},
+            format='json',
+        )
+        second = self.client.post(
+            '/api/notifications/evaluation-urgente/',
+            {'echantillon': str(self.sample.id)},
+            format='json',
+        )
+
+        self.assertEqual(first.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(second.status_code, status.HTTP_200_OK)
+        self.assertEqual(second.json(), {'created': 0, 'recipients': 3})
+        self.assertEqual(
+            Notification.objects.filter(
+                type=Notification.Type.EVALUATION_URGENTE,
+            ).count(),
+            3,
+        )
+
+    def test_non_direction_cannot_request_urgent_evaluation(self):
+        self.authenticate(self.degustateur)
+
+        response = self.client.post(
+            '/api/notifications/evaluation-urgente/',
+            {'echantillon': str(self.sample.id)},
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertFalse(
+            Notification.objects.filter(
+                type=Notification.Type.EVALUATION_URGENTE,
+            ).exists()
+        )
+
+    def test_urgent_evaluation_requires_physical_reception(self):
+        not_received = Echantillon.objects.create(
+            reference_bouteille='REF-NOTIF-EVAL-002',
+            collecteur=self.collecteur,
+            gouvernorat='Sfax',
+            delegation='Sfax Sud',
+            variete='Chemlali',
+            recu_physiquement=False,
+        )
+        Notification.objects.all().delete()
+        self.authenticate(self.direction)
+
+        response = self.client.post(
+            '/api/notifications/evaluation-urgente/',
+            {'echantillon': str(not_received.id)},
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertFalse(
+            Notification.objects.filter(
+                type=Notification.Type.EVALUATION_URGENTE,
+            ).exists()
+        )
+
 
 class NotificationSignalTests(APITestCase):
     def setUp(self):

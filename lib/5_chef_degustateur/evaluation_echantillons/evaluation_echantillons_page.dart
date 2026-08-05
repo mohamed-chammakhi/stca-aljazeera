@@ -33,7 +33,14 @@ import 'navigation/widgets/empty_state.dart';
 import '../gestion_echantillons/widgets/search_filter_bar.dart';
 
 class EvaluationEchantillonsPage extends StatefulWidget {
-  const EvaluationEchantillonsPage({super.key});
+  final String? echantillonCible;
+  final EvaluationEchantillonsChefService? service;
+
+  const EvaluationEchantillonsPage({
+    super.key,
+    this.echantillonCible,
+    this.service,
+  });
 
   @override
   _EvaluationEchantillonsPageState createState() =>
@@ -44,6 +51,9 @@ class _EvaluationEchantillonsPageState extends State<EvaluationEchantillonsPage>
     with ChefNavMixin {
   // ── STATE ────────────────────────────────────────────────────────────────────
   final TextEditingController _searchController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+  final GlobalKey _cibleKey = GlobalKey();
+  bool _cibleIntrouvableSignalee = false;
   String _recherche = '';
   String? _filtreStatutLabel;
   DateTime? _dateDebut;
@@ -54,7 +64,7 @@ class _EvaluationEchantillonsPageState extends State<EvaluationEchantillonsPage>
       _dateFilterActive || _recherche.isNotEmpty || _filtreStatutLabel != null;
 
   // ── DATA ──────────────────────────────────────────────────────────────────────
-  final _service = EvaluationEchantillonsChefService();
+  late final EvaluationEchantillonsChefService _service;
   List<Echantillon> _echantillons = [];
   bool _estDemonstration = false;
   Object? _erreurChargement;
@@ -62,6 +72,7 @@ class _EvaluationEchantillonsPageState extends State<EvaluationEchantillonsPage>
   @override
   void initState() {
     super.initState();
+    _service = widget.service ?? EvaluationEchantillonsChefService();
     _loadData();
   }
 
@@ -74,9 +85,53 @@ class _EvaluationEchantillonsPageState extends State<EvaluationEchantillonsPage>
         _estDemonstration = resultat.estDemonstration;
         _erreurChargement = null;
       });
+      _positionnerCible();
     } catch (erreur) {
       if (mounted) setState(() => _erreurChargement = erreur);
     }
+  }
+
+  void _positionnerCible() {
+    final cible = widget.echantillonCible;
+    if (cible == null) return;
+    final index = _echantillonsFiltres.indexWhere((e) => e.id == cible);
+    if (index == -1) {
+      if (_cibleIntrouvableSignalee) return;
+      _cibleIntrouvableSignalee = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              "L'échantillon demandé n'est plus disponible dans cette liste.",
+            ),
+          ),
+        );
+      });
+      return;
+    }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted || !_scrollController.hasClients) return;
+      final positionApproximative = (index * 104.0).clamp(
+        0.0,
+        _scrollController.position.maxScrollExtent,
+      );
+      await _scrollController.animateTo(
+        positionApproximative,
+        duration: const Duration(milliseconds: 450),
+        curve: Curves.easeOutCubic,
+      );
+      if (!mounted) return;
+      final cibleContext = _cibleKey.currentContext;
+      if (cibleContext != null && cibleContext.mounted) {
+        await Scrollable.ensureVisible(
+          cibleContext,
+          duration: const Duration(milliseconds: 250),
+          alignment: 0.2,
+        );
+      }
+    });
   }
 
   // ── FILTER LOGIC ─────────────────────────────────────────────────────────────
@@ -208,6 +263,7 @@ class _EvaluationEchantillonsPageState extends State<EvaluationEchantillonsPage>
   @override
   void dispose() {
     _searchController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -431,14 +487,20 @@ class _EvaluationEchantillonsPageState extends State<EvaluationEchantillonsPage>
               child: filtres.isEmpty
                   ? const EmptyState()
                   : Scrollbar(
+                      controller: _scrollController,
                       thumbVisibility: true,
                       child: ListView.builder(
+                        controller: _scrollController,
                         padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
                         itemCount: filtres.length,
                         itemBuilder: (context, index) {
                           final e = filtres[index];
                           return EchantillonCard(
+                            key: e.id == widget.echantillonCible
+                                ? _cibleKey
+                                : ValueKey(e.id),
                             echantillon: e,
+                            isHighlighted: e.id == widget.echantillonCible,
                             onAction: () => _onActionEchantillon(e),
                             onVoir: () => _onVoir(e),
                           );

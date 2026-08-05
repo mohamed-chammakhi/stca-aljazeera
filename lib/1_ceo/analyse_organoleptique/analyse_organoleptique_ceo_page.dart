@@ -325,10 +325,11 @@ class _AnalyseOrganoleptiqueCeoPageState
                       ),
                       onPressed: () async {
                         Navigator.pop(context);
-                        await NotificationDegustateurService()
-                            .sendUrgentDegustation(e.id, e.referenceBouteille);
-                        setState(() => _urgentSent.add(e.id));
-                        if (mounted) {
+                        try {
+                          await NotificationDegustateurService()
+                              .sendUrgentDegustation(e.id);
+                          if (!mounted) return;
+                          setState(() => _urgentSent.add(e.id));
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: const Text(
@@ -340,6 +341,21 @@ class _AnalyseOrganoleptiqueCeoPageState
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
+                              margin: const EdgeInsets.all(20),
+                            ),
+                          );
+                        } catch (erreur) {
+                          if (!mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                'Notification non envoyée : $erreur',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              backgroundColor: Colors.red.shade700,
+                              behavior: SnackBarBehavior.floating,
                               margin: const EdgeInsets.all(20),
                             ),
                           );

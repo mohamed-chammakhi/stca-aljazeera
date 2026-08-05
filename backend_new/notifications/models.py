@@ -17,6 +17,7 @@ class Notification(models.Model):
         ACHAT_CONFIRME = 'ACHAT_CONFIRME', 'Achat confirme'
         PROPOSITION_ACHAT_ATTENTE = 'proposition_achat_attente', "Proposition d'achat en attente"
         ANALYSE_URGENTE = 'ANALYSE_URGENTE', 'Analyse urgente demandee'
+        EVALUATION_URGENTE = 'EVALUATION_URGENTE', 'Evaluation urgente demandee'
         NOUVELLE_SESSION = 'NOUVELLE_SESSION', 'Nouvelle session'
         # La direction refuse le PRIX, pas le stock : le collecteur recoit une
         # contre-proposition et l'echantillon reste en negociation.

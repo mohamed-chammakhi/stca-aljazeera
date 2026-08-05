@@ -3,9 +3,13 @@ import '../../../core/services/resultat_service.dart';
 import '../models/notification_degustateur.dart';
 
 class NotificationDegustateurService {
+  final ApiClient _api;
+
+  NotificationDegustateurService({ApiClient? api}) : _api = api ?? apiClient;
+
   Future<Resultat<List<NotificationDegustateur>>> fetchNotifications() =>
       avecSecours(() async {
-        final data = await apiClient.getList('/api/notifications/');
+        final data = await _api.getList('/api/notifications/');
         return data
             .map(
               (e) =>
@@ -15,28 +19,21 @@ class NotificationDegustateurService {
       }, _mockNotifications);
 
   Future<void> markAsRead(String id) async {
-    await apiClient.patch('/api/notifications/$id/lire/', {});
+    await _api.patch('/api/notifications/$id/lire/', {});
   }
 
   Future<void> markAllAsRead() async {
-    await apiClient.post('/api/notifications/lire-tout/', {});
+    await _api.post('/api/notifications/lire-tout/', {});
   }
 
-  Future<void> sendUrgentDegustation(
-    String echantillonId,
-    String echantillonReference,
-  ) async {
-    // TODO: replace with: await _api.post('/degustateur/notifications/urgent/', {
-    //   'echantillon_id': echantillonId,
-    //   'echantillon_reference': echantillonReference,
-    // });
-    await Future.delayed(
-      const Duration(milliseconds: 200),
-    ); // TODO: remove when backend is ready
+  Future<void> sendUrgentDegustation(String echantillonId) async {
+    await _api.post('/api/notifications/evaluation-urgente/', {
+      'echantillon': echantillonId,
+    });
   }
 
   Future<Resultat<int>> fetchUnreadCount() => avecSecours(() async {
-    final data = await apiClient.get('/api/notifications/unread-count/');
+    final data = await _api.get('/api/notifications/unread-count/');
     return data['count'] as int;
   }, () => _mockNotifications().where((n) => !n.isRead).length);
 

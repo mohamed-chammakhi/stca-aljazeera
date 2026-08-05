@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from echantillons.models import Echantillon
 from users.models import User
-from users.permissions import IsDegustateurOrChef
+from users.permissions import IsDegustateurOrChef, IsDirection
 from .models import Notification
 from .serializers import NotificationSerializer
 
@@ -122,6 +122,74 @@ class UrgentAnalysisRequestView(APIView):
             {
                 'created': len(created),
                 'recipients': lab_users.count(),
+            },
+            status=status.HTTP_201_CREATED if created else status.HTTP_200_OK,
+        )
+
+
+class UrgentEvaluationRequestView(APIView):
+    permission_classes = [IsDirection]
+
+    def post(self, request):
+        echantillon_id = request.data.get('echantillon') or request.data.get('echantillon_id')
+        if not echantillon_id:
+            return Response(
+                {'echantillon': ['Champ requis.']},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            echantillon = Echantillon.objects.get(pk=echantillon_id)
+        except Echantillon.DoesNotExist:
+            return Response(
+                {'detail': 'Echantillon introuvable.'},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        if not echantillon.recu_physiquement:
+            return Response(
+                {'detail': 'Seuls les echantillons recus physiquement peuvent etre demandes en urgence.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        panel_users = User.objects.filter(
+            role__in=(User.Role.DEGUSTATEUR, User.Role.CHEF_DEGUSTATION),
+            is_active=True,
+        )
+        if not panel_users.exists():
+            return Response(
+                {'detail': 'Aucun degustateur actif.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        requester_name = f'{request.user.prenom} {request.user.nom}'.strip()
+        sample_label = echantillon.numero or echantillon.reference_bouteille or str(echantillon.id)
+        title = f'Évaluation urgente — échantillon {sample_label}'
+        message = (
+            f'{requester_name} demande une évaluation urgente pour '
+            f"l'échantillon {sample_label}."
+        )
+
+        created = []
+        for panel_user in panel_users:
+            notification, was_created = Notification.objects.get_or_create(
+                destinataire=panel_user,
+                type=Notification.Type.EVALUATION_URGENTE,
+                echantillon=echantillon,
+                is_read=False,
+                defaults={
+                    'titre': title,
+                    'message': message,
+                    'section': Notification.Section.EVALUATIONS,
+                },
+            )
+            if was_created:
+                created.append(notification)
+
+        return Response(
+            {
+                'created': len(created),
+                'recipients': panel_users.count(),
             },
             status=status.HTTP_201_CREATED if created else status.HTTP_200_OK,
         )
