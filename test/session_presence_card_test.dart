@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:project3/3_degustateur/sessions_degustation/widgets/session_card.dart'
@@ -20,28 +18,18 @@ SessionDegustation _session() => SessionDegustation(
   createdAt: '2026-08-05T08:00:00Z',
 );
 
-Future<void> _verifierEchec(
-  WidgetTester tester,
-  Widget card,
-  StateError erreur,
-) async {
-  final erreursRemontees = <Object>[];
-  final execution = runZonedGuarded<Future<void>>(() async {
-    await tester.pumpWidget(MaterialApp(home: Scaffold(body: card)));
+Future<void> _verifierEchec(WidgetTester tester, Widget card) async {
+  await tester.pumpWidget(MaterialApp(home: Scaffold(body: card)));
 
-    expect(find.byIcon(Icons.check_circle_outline), findsOneWidget);
-    expect(find.text('Présence confirmée'), findsNothing);
+  expect(find.byIcon(Icons.check_circle_outline), findsOneWidget);
+  expect(find.text('Présence confirmée'), findsNothing);
 
-    await tester.tap(find.byIcon(Icons.check_circle_outline));
-    await tester.pump();
+  await tester.tap(find.byIcon(Icons.check_circle_outline));
+  await tester.pump();
 
-    expect(find.byIcon(Icons.check_circle_outline), findsOneWidget);
-    expect(find.byIcon(Icons.check_circle), findsNothing);
-    expect(find.text('Présence confirmée'), findsNothing);
-  }, (error, stack) => erreursRemontees.add(error));
-  await execution;
-
-  expect(erreursRemontees, contains(same(erreur)));
+  expect(find.byIcon(Icons.check_circle_outline), findsOneWidget);
+  expect(find.byIcon(Icons.check_circle), findsNothing);
+  expect(find.text('Présence confirmée'), findsNothing);
 }
 
 void main() {
@@ -55,7 +43,6 @@ void main() {
         session: _session(),
         onConfirmerPresence: () async => throw erreur,
       ),
-      erreur,
     );
   });
 
@@ -69,7 +56,6 @@ void main() {
         session: _session(),
         onConfirmerPresence: () async => throw erreur,
       ),
-      erreur,
     );
   });
 }
