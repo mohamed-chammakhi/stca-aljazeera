@@ -26,8 +26,18 @@ comportement voulues (le chef n'a pas les boutons de décision, par exemple) —
 doivent devenir un paramètre du widget partagé (comme `peutGerer` sur la page Utilisateurs),
 pas disparaître.
 
-**Un commit par fichier fusionné. Jamais deux à la fois.** Si un commit casse quelque chose,
-on doit pouvoir revenir en arrière sans perdre le reste.
+**Tu ne commites pas.** La règle du `PROTOCOLE.md` s'applique sans exception ici aussi :
+Claude relit et commite lui-même, un commit par fichier fusionné. La phrase « un commit par
+fichier » décrit **son** travail de relecture, pas le tien — c'est une consigne mal formulée
+au départ, corrigée ici.
+
+**Ce que ça change concrètement pour toi : tu travailles étape par étape.** Tu fais **une
+seule étape** (parmi les 5 ci-dessous), tu la vérifies, tu écris ton rapport, et tu
+t'arrêtes. Tu ne commences pas l'étape suivante. Claude relit, commite fichier par fichier,
+puis te relance pour l'étape d'après.
+
+C'est cette découpe qui donne la sécurité recherchée : si une fusion casse quelque chose, on
+revient en arrière sur ce fichier-là sans perdre le reste.
 
 **Destination :** `lib/core/`, dans un sous-dossier qui reflète la fonction (`models/`,
 `widgets/`, `services/`), à l'image de ce qui existe déjà pour `lib/core/utilisateurs/` et
@@ -136,7 +146,7 @@ c'est déjà tranché.
 
 ### 5. Tests
 
-Après **chaque** fichier fusionné :
+Après **chaque** fichier fusionné, avant de passer au suivant :
 
 ```bash
 cd project3
@@ -144,8 +154,11 @@ flutter analyze lib test
 flutter test
 ```
 
-Après le dernier fichier de chaque étape (1 à 5), lance en plus la suite Django si tu as
-touché des routes ou des serializers (normalement non, cette tâche est côté Flutter) :
+Si un fichier casse quelque chose, répare-le avant de continuer — ne laisse pas s'accumuler
+plusieurs fusions cassées dans la même étape, elles deviennent impossibles à démêler.
+
+À la fin de l'étape, lance en plus la suite Django si tu as touché des routes ou des
+serializers (normalement non, cette tâche est côté Flutter) :
 
 ```bash
 ./backend_new/venv/Scripts/python.exe backend_new/manage.py test --keepdb
@@ -155,10 +168,11 @@ Repères à ne pas faire baisser : **157 tests Django au vert**, `flutter test` 
 (le seul échec connu, `widget_test.dart`, est hors périmètre — ne le corrige pas ici),
 `flutter analyze lib test` **0 erreur**.
 
-**À la main, avec le backend lancé, après l'étape 5 complète :** ouvrir chaque écran fusionné
-sous les deux rôles (dégustateur simple, puis chef dégustateur) et vérifier que rien ne
-manque à l'écran — un champ vide qui ne plantait aucun test serait le signe d'une fusion qui
-a supprimé une différence de comportement au lieu de la rendre paramétrable.
+**À la main, avec le backend lancé** — c'est le propriétaire du projet qui le fera, pas toi,
+une fois les 5 étapes terminées : ouvrir chaque écran fusionné sous les deux rôles
+(dégustateur simple, puis chef dégustateur) et vérifier que rien ne manque à l'écran. Un
+champ vide qui ne plantait aucun test serait le signe d'une fusion qui a supprimé une
+différence de comportement au lieu de la rendre paramétrable.
 
 ---
 
@@ -167,11 +181,26 @@ a supprimé une différence de comportement au lieu de la rendre paramétrable.
 - La décoche de « reçu physiquement » qui ne notifie personne (§1 de
   [`03_degustateur.md`](../notifications/03_degustateur.md)) — lacune déjà connue, pas de
   cette tâche.
-- T2, T3, T4, T5 du carnet dégustateur — questions ouvertes, non résolues ici.
+- T5 du carnet dégustateur — seule question encore ouverte (qui prévenir quand un
+  dégustateur ajoute lui-même un échantillon manqué par le collecteur). T1 à T4 sont
+  tranchées, voir §4 et le carnet.
 - Tout défaut trouvé en dehors des 33 fichiers listés — signale-le, n'y touche pas.
+
+---
+
+## RÉPONSE À LA QUESTION 1 (contradiction Git)
+
+Tu avais raison de t'arrêter : les deux consignes se contredisaient bien. C'était une erreur
+de rédaction de la tâche, pas une exception voulue.
+
+**C'est le `PROTOCOLE.md` qui prévaut : tu ne commites jamais.** La section « Règle absolue »
+ci-dessus a été corrigée en conséquence, et te dit désormais de travailler **une étape à la
+fois** puis de t'arrêter pour relecture.
+
+Tu peux reprendre à l'**étape 1**.
 
 ---
 
 ## RAPPORT
 
-_(à compléter par l'exécuteur, une entrée par fichier fusionné)_
+_(à compléter par l'exécuteur, une entrée par fichier fusionné, une section par étape)_
