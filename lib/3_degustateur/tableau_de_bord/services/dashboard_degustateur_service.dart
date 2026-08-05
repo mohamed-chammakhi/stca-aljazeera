@@ -31,17 +31,6 @@ class DashboardDegustateurService {
     ],
   );
 
-  Future<List<EvaluationUrgenteCeo>> fetchUrgentesCeo() async {
-    return [
-      const EvaluationUrgenteCeo(
-        id: 'aaa00000-0000-0000-0000-000000000005',
-        reference: 'Chemlali · 2026/0005',
-        collecteurNom: 'Ahmed Dridi',
-        fournisseurNom: 'Domaine Bel-Air',
-      ),
-    ];
-  }
-
   Future<Resultat<PipelineData>> fetchPipeline() => avecSecours(
     () async => PipelineData.fromJson(
       await _api.get('/api/degustateur/dashboard/pipeline/'),

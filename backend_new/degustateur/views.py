@@ -69,13 +69,19 @@ class DegustateurPresenceView(APIView):
     def get(self, request):
         date_debut = request.query_params.get('date_debut')
         date_fin = request.query_params.get('date_fin')
-        sessions = sessions_for_user(request.user)
+        all_sessions = sessions_for_user(request.user)
+        sessions = all_sessions
         if date_debut:
             sessions = sessions.filter(date__gte=date_debut)
         if date_fin:
             sessions = sessions.filter(date__lte=date_fin)
         return Response(
-            presence_summary(sessions, request.user, timezone.now().date())
+            presence_summary(
+                sessions,
+                request.user,
+                timezone.now().date(),
+                upcoming_sessions=all_sessions,
+            )
         )
 
 

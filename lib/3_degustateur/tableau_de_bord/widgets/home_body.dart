@@ -42,9 +42,7 @@ class _HomeBodyState extends State<HomeBody> {
   final _service = DashboardDegustateurService();
 
   List<EvaluationUrgente> _urgentes = [];
-  List<EvaluationUrgenteCeo> _urgentesCeo = [];
   final Set<String> _ignoredUrgentes = {};
-  final Set<String> _ignoredUrgentesCeo = {};
 
   PipelineData? _pipeline;
   List<ClassificationPoint> _classifications = [];
@@ -53,9 +51,7 @@ class _HomeBodyState extends State<HomeBody> {
   List<ActiviteItem> _activite = [];
   int _activiteTotal = 0;
   bool _activiteLoading = false;
-  final Set<String> _sectionsDemonstration = {
-    'urgentes_ceo',
-  };
+  final Set<String> _sectionsDemonstration = {};
   Object? _erreurChargement;
 
   DateTime? _classDateDebut;
@@ -77,7 +73,6 @@ class _HomeBodyState extends State<HomeBody> {
   Future<void> _loadAll() async {
     try {
       final fUrgentes = _service.fetchUrgentes();
-      final fUrgentesCeo = _service.fetchUrgentesCeo();
       final fPipeline = _service.fetchPipeline();
       final fCls = _service.fetchClassifications(
         dateDebut: _classDateDebut,
@@ -98,7 +93,6 @@ class _HomeBodyState extends State<HomeBody> {
       );
       final results = await Future.wait([
         fUrgentes,
-        fUrgentesCeo,
         fPipeline,
         fCls,
         fPresence,
@@ -106,11 +100,10 @@ class _HomeBodyState extends State<HomeBody> {
       ]);
       final activite = await fAct;
       final urgentes = results[0] as Resultat<List<EvaluationUrgente>>;
-      final pipeline = results[2] as Resultat<PipelineData>;
-      final classifications =
-          results[3] as Resultat<List<ClassificationPoint>>;
-      final presence = results[4] as Resultat<PresenceData>;
-      final delai = results[5] as Resultat<DelaiSummary>;
+      final pipeline = results[1] as Resultat<PipelineData>;
+      final classifications = results[2] as Resultat<List<ClassificationPoint>>;
+      final presence = results[3] as Resultat<PresenceData>;
+      final delai = results[4] as Resultat<DelaiSummary>;
       if (!mounted) return;
       setState(() {
         _memoriserOrigine('urgentes', urgentes);
@@ -120,7 +113,6 @@ class _HomeBodyState extends State<HomeBody> {
         _memoriserOrigine('delai', delai);
         _memoriserOrigine('activite', activite);
         _urgentes = urgentes.donnees;
-        _urgentesCeo = results[1] as List<EvaluationUrgenteCeo>;
         _pipeline = pipeline.donnees;
         _classifications = classifications.donnees;
         _presence = presence.donnees;
@@ -489,11 +481,8 @@ class _HomeBodyState extends State<HomeBody> {
             const SizedBox(height: 12),
             HomeUrgentesSection(
               urgentes: _urgentes,
-              urgentesCeo: _urgentesCeo,
               ignoredUrgentes: _ignoredUrgentes,
-              ignoredUrgentesCeo: _ignoredUrgentesCeo,
               onIgnore: (id) => setState(() => _ignoredUrgentes.add(id)),
-              onIgnoreCeo: (id) => setState(() => _ignoredUrgentesCeo.add(id)),
             ),
             const SizedBox(height: 12),
             HomePresenceSection(
@@ -596,16 +585,13 @@ class _HomeBodyState extends State<HomeBody> {
 
   // ── 2. URGENTES ───────────────────────────────────────────────────────────
   Widget _buildUrgentes() {
-    final visibleCeo = _urgentesCeo
-        .where((e) => !_ignoredUrgentesCeo.contains(e.id))
-        .toList();
     final visible1j = _urgentes
         .where((e) => !_ignoredUrgentes.contains(e.id) && e.joursEnAttente == 1)
         .toList();
     final visible2j = _urgentes
         .where((e) => !_ignoredUrgentes.contains(e.id) && e.joursEnAttente >= 2)
         .toList();
-    final total = visibleCeo.length + visible1j.length + visible2j.length;
+    final total = visible1j.length + visible2j.length;
 
     if (total == 0) return const SizedBox.shrink();
 
@@ -685,18 +671,8 @@ class _HomeBodyState extends State<HomeBody> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // ── CEO urgencies FIRST ──
-                  if (visibleCeo.isNotEmpty) ...[
-                    _subsectionHeader(
-                      'Demandes urgentes — Direction',
-                      _purple,
-                      visibleCeo.length,
-                    ),
-                    ...visibleCeo.map((u) => _urgenteCeoRow(u)),
-                  ],
                   // ── 1-day ──
                   if (visible1j.isNotEmpty) ...[
-                    if (visibleCeo.isNotEmpty) _subsectionDivider(),
                     _subsectionHeader(
                       'En attente depuis 1 jour',
                       _amber,
@@ -706,8 +682,7 @@ class _HomeBodyState extends State<HomeBody> {
                   ],
                   // ── 2+ days ──
                   if (visible2j.isNotEmpty) ...[
-                    if (visibleCeo.isNotEmpty || visible1j.isNotEmpty)
-                      _subsectionDivider(),
+                    if (visible1j.isNotEmpty) _subsectionDivider(),
                     _subsectionHeader(
                       'Critique — 2j et plus',
                       _red,
@@ -785,45 +760,6 @@ class _HomeBodyState extends State<HomeBody> {
     height: 1,
     color: const Color(0xFFF0F0F0),
     margin: const EdgeInsets.symmetric(horizontal: 14),
-  );
-
-  // Row for CEO-flagged urgent evaluation — no badges
-  Widget _urgenteCeoRow(EvaluationUrgenteCeo u) => GestureDetector(
-    onTap: () => Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => const EvaluationEchantillonsPage()),
-    ),
-    child: Container(
-      padding: const EdgeInsets.fromLTRB(14, 11, 14, 11),
-      color: _purple.withValues(alpha: 0.025),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  u.reference,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: _dark,
-                  ),
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  '${u.collecteurNom}  ·  ${u.fournisseurNom}',
-                  style: TextStyle(fontSize: 13, color: Colors.grey.shade400),
-                ),
-              ],
-            ),
-          ),
-          _ignoreButton(
-            onConfirm: () => setState(() => _ignoredUrgentesCeo.add(u.id)),
-          ),
-        ],
-      ),
-    ),
   );
 
   // Row for time-based urgent evaluation

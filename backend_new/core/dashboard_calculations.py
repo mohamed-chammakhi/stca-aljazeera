@@ -7,7 +7,7 @@ from echantillons.models import Echantillon
 
 def user_full_name(user):
     if not user:
-        return ''
+        return 'Inconnu'
     return f'{user.prenom} {user.nom}'.strip()
 
 
@@ -91,7 +91,7 @@ def monthly_classification_distribution(evaluations):
     return [{'label': label, **counts} for label, counts in sorted(monthly.items())]
 
 
-def presence_summary(sessions, user, today):
+def presence_summary(sessions, user, today, upcoming_sessions=None):
     """Aggregate only the supplied user's attendance over an already scoped queryset."""
     present = sessions.filter(presences_confirmees=user).count()
     missed = (
@@ -100,8 +100,9 @@ def presence_summary(sessions, user, today):
         .exclude(presences_confirmees=user)
         .count()
     )
+    upcoming_source = upcoming_sessions if upcoming_sessions is not None else sessions
     upcoming = (
-        sessions.filter(date__gte=today, statut='planifiee')
+        upcoming_source.filter(date__gte=today, statut='planifiee')
         .order_by('date')
         .first()
     )

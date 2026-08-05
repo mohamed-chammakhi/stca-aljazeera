@@ -34,36 +34,6 @@ class EvaluationUrgente {
   };
 }
 
-// CEO-flagged urgent evaluation (requires priority attention)
-class EvaluationUrgenteCeo {
-  final String id;
-  final String reference;
-  final String collecteurNom;
-  final String fournisseurNom;
-
-  const EvaluationUrgenteCeo({
-    required this.id,
-    required this.reference,
-    required this.collecteurNom,
-    required this.fournisseurNom,
-  });
-
-  factory EvaluationUrgenteCeo.fromJson(Map<String, dynamic> json) =>
-      EvaluationUrgenteCeo(
-        id: json['id'] as String,
-        reference: json['reference'] as String,
-        collecteurNom: json['collecteur_nom'] as String,
-        fournisseurNom: json['fournisseur_nom'] as String,
-      );
-
-  Map<String, dynamic> toJson() => {
-    'id': id,
-    'reference': reference,
-    'collecteur_nom': collecteurNom,
-    'fournisseur_nom': fournisseurNom,
-  };
-}
-
 class PipelineData {
   final int receptionne;
   final int nonEvaluee;

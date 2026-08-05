@@ -8,31 +8,22 @@ class HomeUrgentesSection extends StatelessWidget {
   const HomeUrgentesSection({
     super.key,
     required this.urgentes,
-    required this.urgentesCeo,
     required this.ignoredUrgentes,
-    required this.ignoredUrgentesCeo,
     required this.onIgnore,
-    required this.onIgnoreCeo,
   });
   final List<EvaluationUrgente> urgentes;
-  final List<EvaluationUrgenteCeo> urgentesCeo;
   final Set<String> ignoredUrgentes;
-  final Set<String> ignoredUrgentesCeo;
   final void Function(String id) onIgnore;
-  final void Function(String id) onIgnoreCeo;
 
   @override
   Widget build(BuildContext context) {
-    final visibleCeo = urgentesCeo
-        .where((e) => !ignoredUrgentesCeo.contains(e.id))
-        .toList();
     final visible1j = urgentes
         .where((e) => !ignoredUrgentes.contains(e.id) && e.joursEnAttente == 1)
         .toList();
     final visible2j = urgentes
         .where((e) => !ignoredUrgentes.contains(e.id) && e.joursEnAttente >= 2)
         .toList();
-    final total = visibleCeo.length + visible1j.length + visible2j.length;
+    final total = visible1j.length + visible2j.length;
 
     if (total == 0) return const SizedBox.shrink();
 
@@ -112,18 +103,8 @@ class HomeUrgentesSection extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // ── CEO urgencies FIRST ──
-                  if (visibleCeo.isNotEmpty) ...[
-                    _subsectionHeader(
-                      'Demandes urgentes — Direction',
-                      homePurple,
-                      visibleCeo.length,
-                    ),
-                    ...visibleCeo.map((u) => _urgenteCeoRow(context, u)),
-                  ],
                   // ── 1-day ──
                   if (visible1j.isNotEmpty) ...[
-                    if (visibleCeo.isNotEmpty) _subsectionDivider(),
                     _subsectionHeader(
                       'En attente depuis 1 jour',
                       homeAmber,
@@ -133,8 +114,7 @@ class HomeUrgentesSection extends StatelessWidget {
                   ],
                   // ── 2+ days ──
                   if (visible2j.isNotEmpty) ...[
-                    if (visibleCeo.isNotEmpty || visible1j.isNotEmpty)
-                      _subsectionDivider(),
+                    if (visible1j.isNotEmpty) _subsectionDivider(),
                     _subsectionHeader(
                       'Critique — 2j et plus',
                       homeRed,
@@ -213,46 +193,6 @@ class HomeUrgentesSection extends StatelessWidget {
     color: const Color(0xFFF0F0F0),
     margin: const EdgeInsets.symmetric(horizontal: 14),
   );
-
-  Widget _urgenteCeoRow(BuildContext context, EvaluationUrgenteCeo u) =>
-      GestureDetector(
-        onTap: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const EvaluationEchantillonsPage()),
-        ),
-        child: Container(
-          padding: const EdgeInsets.fromLTRB(14, 11, 14, 11),
-          color: homePurple.withValues(alpha: 0.025),
-          child: Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      u.reference,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                        color: homeDark,
-                      ),
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      '${u.collecteurNom}  ·  ${u.fournisseurNom}',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: Colors.grey.shade400,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              _IgnoreButton(onConfirm: () => onIgnoreCeo(u.id)),
-            ],
-          ),
-        ),
-      );
 
   Widget _urgenteRow(BuildContext context, EvaluationUrgente u) {
     final isCritique = u.joursEnAttente >= 2;

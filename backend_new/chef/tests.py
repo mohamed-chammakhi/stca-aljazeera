@@ -252,23 +252,59 @@ class ChefDashboardApiTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_pipeline_urgentes_and_ceo_blockers_return_flutter_keys(self):
+        self.pending_sample.collecteur = None
+        self.pending_sample.save(update_fields=['collecteur'])
+        SessionDegustation.objects.create(
+            titre='Session a valider',
+            date=(timezone.now() + timedelta(days=1)).date(),
+            heure=time(8, 30),
+            lieu='Salle validation',
+            cree_par=self.taster_one,
+            statut=SessionDegustation.Statut.EN_ATTENTE_VALIDATION,
+        )
         self.authenticate(self.chef)
 
         pipeline = self.client.get('/api/chef/dashboard/pipeline/')
         urgentes = self.client.get('/api/chef/dashboard/urgentes/')
+        sessions = self.client.get('/api/chef/dashboard/sessions-en-attente/')
         ceo_blockers = self.client.get('/api/chef/dashboard/urgentes-ceo/')
 
         self.assertEqual(pipeline.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            set(pipeline.json()),
+            {'receptionne', 'en_attente_eval', 'en_cours', 'soumis'},
+        )
         self.assertEqual(pipeline.json()['en_attente_eval'], 1)
         self.assertEqual(pipeline.json()['en_cours'], 1)
         self.assertEqual(pipeline.json()['soumis'], 1)
 
         self.assertEqual(urgentes.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            set(urgentes.json()[0]),
+            {
+                'id', 'numero', 'reference', 'variete', 'collecteur_nom',
+                'fournisseur_nom', 'jours_en_attente', 'days_waiting', 'badge',
+            },
+        )
         self.assertEqual(urgentes.json()[0]['id'], str(self.pending_sample.id))
+        self.assertEqual(urgentes.json()[0]['collecteur_nom'], 'Inconnu')
         self.assertIn('jours_en_attente', urgentes.json()[0])
         self.assertIn('collecteur_nom', urgentes.json()[0])
 
+        self.assertEqual(sessions.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            set(sessions.json()[0]),
+            {'id', 'titre', 'date', 'heure', 'lieu', 'cree_par', 'propose_par'},
+        )
+
         self.assertEqual(ceo_blockers.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            set(ceo_blockers.json()[0]),
+            {
+                'id', 'numero', 'reference', 'reference_bouteille', 'variete',
+                'collecteur_nom', 'fournisseur_nom',
+            },
+        )
         self.assertEqual(ceo_blockers.json()[0]['id'], str(self.submitted_sample.id))
         self.assertEqual(ceo_blockers.json()[0]['reference_bouteille'], 'REF-DASH-SUB')
 
@@ -283,10 +319,20 @@ class ChefDashboardApiTests(APITestCase):
         classifications = self.client.get('/api/chef/dashboard/classifications/')
 
         self.assertEqual(delai.status_code, status.HTTP_200_OK)
+        self.assertEqual(set(delai.json()), {'membres', 'panel_moyen'})
+        self.assertEqual(
+            set(delai.json()['membres'][0]),
+            {'nom', 'delai_moyen', 'panel_moyen'},
+        )
         self.assertEqual(delai.json()['panel_moyen'], 2.0)
         self.assertEqual(len(delai.json()['membres']), 3)
 
         self.assertEqual(alignement.status_code, status.HTTP_200_OK)
+        self.assertEqual(set(alignement.json()), {'membres'})
+        self.assertEqual(
+            set(alignement.json()['membres'][0]),
+            {'nom', 'divergence_pct'},
+        )
         divergent = {
             item['nom']: item['divergence_pct']
             for item in alignement.json()['membres']
@@ -294,6 +340,10 @@ class ChefDashboardApiTests(APITestCase):
         self.assertGreater(divergent['Taster Two'], 0)
 
         self.assertEqual(classifications.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            set(classifications.json()[0]),
+            {'label', 'extra_vierge', 'vierge', 'lampante'},
+        )
         self.assertEqual(classifications.json()[0]['extra_vierge'], 3)
 
     def test_presence_and_activity_are_paginated_and_do_not_include_drafts(self):
@@ -337,15 +387,30 @@ class ChefDashboardApiTests(APITestCase):
         )
         self.authenticate(self.chef)
 
-        presence = self.client.get('/api/chef/dashboard/presence/')
+        date_fin = timezone.now().date().isoformat()
+        presence = self.client.get(
+            f'/api/chef/dashboard/presence/?date_fin={date_fin}'
+        )
         activity = self.client.get('/api/chef/dashboard/activite/?offset=0&limit=2')
 
         self.assertEqual(presence.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            set(presence.json()),
+            {
+                'present', 'manquee', 'prochaine_titre', 'prochaine_date',
+                'prochaine_lieu', 'prochaine_countdown',
+            },
+        )
         self.assertEqual(presence.json()['present'], 1)
         self.assertEqual(presence.json()['manquee'], 1)
         self.assertEqual(presence.json()['prochaine_titre'], future.titre)
 
         self.assertEqual(activity.status_code, status.HTTP_200_OK)
+        self.assertEqual(set(activity.json()), {'count', 'results'})
+        self.assertEqual(
+            set(activity.json()['results'][0]),
+            {'id', 'type', 'date', 'horodatage', 'description', 'action'},
+        )
         self.assertEqual(activity.json()['count'], 4)
         self.assertEqual(len(activity.json()['results']), 2)
         self.assertIn('action', activity.json()['results'][0])

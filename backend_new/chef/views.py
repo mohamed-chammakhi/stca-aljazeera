@@ -354,13 +354,21 @@ class ChefDashboardPresenceView(APIView):
         date_fin = request.query_params.get('date_fin')
         today = timezone.now().date()
 
-        qs = sessions_for_user(request.user)
+        all_sessions = sessions_for_user(request.user)
+        qs = all_sessions
         if date_debut:
             qs = qs.filter(date__gte=date_debut)
         if date_fin:
             qs = qs.filter(date__lte=date_fin)
 
-        return Response(presence_summary(qs, request.user, today))
+        return Response(
+            presence_summary(
+                qs,
+                request.user,
+                today,
+                upcoming_sessions=all_sessions,
+            )
+        )
 
 
 class ChefDashboardUrgentesCeoView(APIView):
