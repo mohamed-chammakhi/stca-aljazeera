@@ -12,7 +12,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'filtre_chip.dart';
+import 'package:project3/core/widgets/filtre_chip.dart';
 import '../../widgets/chef_colors.dart';
 
 const Color _oliveGreen = Color(0xFF6B8143);

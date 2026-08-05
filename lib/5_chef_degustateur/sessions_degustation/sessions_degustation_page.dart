@@ -10,7 +10,7 @@ import 'services/sessions_chef_service.dart';
 import '../widgets/statut_chip.dart';
 import 'widgets/session_card.dart';
 import 'widgets/dialogs/formulaire_session_dialog.dart';
-import 'widgets/dialogs/suppression_session_dialog.dart';
+import 'package:project3/core/widgets/dialogs/suppression_session_dialog.dart';
 
 import '../gestion_echantillons/widgets/search_filter_bar.dart'
     show DateFilterSheet;

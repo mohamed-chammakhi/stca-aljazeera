@@ -21,7 +21,7 @@ import 'package:project3/core/models/session_degustation.dart';
 import 'services/sessions_service.dart';
 import 'widgets/session_card.dart';
 import 'widgets/dialogs/formulaire_session_dialog.dart';
-import 'widgets/dialogs/suppression_session_dialog.dart';
+import 'package:project3/core/widgets/dialogs/suppression_session_dialog.dart';
 
 // ── Shared date filter ────────────────────────────────────────────────────────
 import '../../../core/widgets/search_filter_bar.dart' show DateFilterSheet;

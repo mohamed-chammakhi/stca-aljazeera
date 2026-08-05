@@ -1,23 +1,17 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// FILE : gestion_echantillons/dialogs/suppression_dialog.dart
-// PURPOSE : delete confirmation popup
-// receives : context, echantillon to delete, onConfirmer callback
-// setState is triggered in the PAGE via onConfirmer, not here
-// ─────────────────────────────────────────────────────────────────────────────
-
 import 'package:flutter/material.dart';
-import '../../../../core/models/echantillon.dart';
-import '../../../widgets/chef_colors.dart';
+import 'package:project3/core/models/echantillon.dart';
+
+const Color _green = Color(0xFF38835A);
+const Color _darkText = Color(0xFF1A2E1F);
 
 void showSuppressionDialog(
   BuildContext context, {
   required Echantillon echantillon,
-  required VoidCallback onConfirmer, // page calls setState inside this
+  required VoidCallback onConfirmer,
 }) {
   showDialog(
     context: context,
     builder: (context) => AlertDialog(
-      // ── TITLE ──
       title: Row(
         children: [
           Icon(
@@ -32,41 +26,36 @@ void showSuppressionDialog(
           ),
         ],
       ),
-
-      // ── CONTENT ──
-      // RichText = multiple styles in the same text block
       content: RichText(
         text: TextSpan(
-          style: const TextStyle(fontSize: 14, color: chefDark),
+          style: const TextStyle(fontSize: 14, color: _darkText),
           children: [
             const TextSpan(text: 'Êtes-vous sûr de supprimer l\'échantillon '),
             TextSpan(
-              text: echantillon.id, // green bold ID
+              text: echantillon.id,
               style: const TextStyle(
                 fontWeight: FontWeight.w700,
-                color: chefGreen,
+                color: _green,
               ),
             ),
             const TextSpan(text: ' de '),
             TextSpan(
-              text: echantillon.codeFournisseur, // bold supplier name
+              text: echantillon.codeFournisseur,
               style: const TextStyle(fontWeight: FontWeight.w700),
             ),
             const TextSpan(text: ' ?\n\nCette action est irréversible.'),
           ],
         ),
       ),
-
-      // ── ACTIONS ──
       actions: [
         TextButton(
-          onPressed: () => Navigator.pop(context), // close without deleting
+          onPressed: () => Navigator.pop(context),
           child: const Text('Annuler'),
         ),
         ElevatedButton.icon(
           onPressed: () {
-            Navigator.pop(context); // close dialog first
-            onConfirmer(); // then trigger delete in the page
+            Navigator.pop(context);
+            onConfirmer();
           },
           icon: const Icon(Icons.delete_outline, size: 16),
           label: const Text('Supprimer'),

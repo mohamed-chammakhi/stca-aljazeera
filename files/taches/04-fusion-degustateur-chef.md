@@ -325,3 +325,82 @@ La suite Django n'a pas été exécutée : l'étape 1 ne modifie ni route ni ser
 - T5 reste ouvert : le destinataire d'une notification lorsqu'un dégustateur ajoute un échantillon manqué par le collecteur n'est pas décidé.
 - `test/widget_test.dart` reste le seul test Flutter en échec : il cherche le texte de compteur `"0"` absent de l'application actuelle. Il n'a pas été modifié.
 - Les 51 diagnostics de l'analyse (warnings et infos, sans erreur) sont antérieurs ou extérieurs aux six modèles fusionnés ; ils n'ont pas été corrigés.
+
+### Étape 2 — petits éléments d'affichage
+
+#### Fait
+
+- **Créé — `lib/core/widgets/filtre_chip.dart`** : les deux rôles affichent désormais le même bouton de filtre, avec exactement le même vert, les mêmes espacements et les mêmes états sélectionné/non sélectionné.
+- **Modifié — `lib/core/widgets/search_filter_bar.dart`** : la barre de recherche partagée utilise le chip commun ; aucun changement visuel pour le dégustateur.
+- **Modifié — `lib/5_chef_degustateur/gestion_echantillons/widgets/search_filter_bar.dart`** : la barre chef utilise le chip commun ; aucun changement visuel, car `chefGreen` et le vert partagé valent tous deux `0xFF38835A`.
+- **Supprimé — `lib/3_degustateur/gestion_echantillons/widgets/filtre_chip.dart`** : la copie du rôle est remplacée par le widget partagé.
+- **Supprimé — `lib/5_chef_degustateur/gestion_echantillons/widgets/filtre_chip.dart`** : la copie du rôle est remplacée par le widget partagé ; son ancien `withOpacity(0.2)` est remplacé par le `withValues(alpha: 0.2)` commun, sans changement visuel attendu.
+
+- **Créé — `lib/core/widgets/dialogs/suppression_session_dialog.dart`** : le même dialogue de confirmation de suppression de session est utilisé par les deux rôles, avec les textes et actions existants inchangés.
+- **Modifié — `lib/3_degustateur/sessions_degustation/sessions_degustation_page.dart`** : la page ouvre désormais le dialogue partagé, sans changement du parcours de suppression.
+- **Modifié — `lib/5_chef_degustateur/sessions_degustation/sessions_degustation_page.dart`** : la page chef ouvre désormais le même dialogue partagé, sans changement du parcours de suppression.
+- **Supprimé — `lib/3_degustateur/sessions_degustation/widgets/dialogs/suppression_session_dialog.dart`** : la copie locale est remplacée par le dialogue partagé.
+- **Supprimé — `lib/5_chef_degustateur/sessions_degustation/widgets/dialogs/suppression_session_dialog.dart`** : la copie locale est remplacée par le dialogue partagé ; l'import inutilisé de `chef_colors.dart` disparaît avec elle.
+
+- **Créé — `lib/core/widgets/dialogs/suppression_dialog.dart`** : le dialogue de suppression d'échantillon est centralisé en conservant la même question, la même référence fournisseur et les mêmes boutons.
+- **Supprimé — `lib/3_degustateur/gestion_echantillons/widgets/dialogs/suppression_dialog.dart`** : la copie locale est remplacée par la source partagée.
+- **Supprimé — `lib/5_chef_degustateur/gestion_echantillons/widgets/dialogs/suppression_dialog.dart`** : la copie locale est remplacée par la source partagée ; les couleurs chef avaient les mêmes valeurs que les constantes conservées.
+- **Modifié — `files/taches/04-fusion-degustateur-chef.md`** : le présent compte rendu documente l'étape 2 ; ce fichier ne change pas l'application.
+
+La recherche globale n'a trouvé aucun import ni appel actuel de `showSuppressionDialog` en dehors des deux anciennes définitions. Le dialogue partagé a été conservé, et non supprimé, puisque sa fusion est explicitement demandée et que les pages seront traitées à l'étape 5.
+
+#### Vérifié
+
+Après **chacun des trois fichiers fusionnés**, les commandes réellement exécutées ont été :
+
+```powershell
+$env:CI='true'; flutter analyze lib test --no-pub
+$env:CI='true'; flutter test --no-pub
+```
+
+| Fichier fusionné | `flutter analyze lib test --no-pub` | `flutter test --no-pub` |
+|---|---:|---:|
+| `filtre_chip.dart` | 50 diagnostics, **0 error** | **95 réussis, 1 échec** |
+| `suppression_session_dialog.dart` | 50 diagnostics, **0 error** | **95 réussis, 1 échec** |
+| `suppression_dialog.dart` | 50 diagnostics, **0 error** | **95 réussis, 1 échec** |
+
+Le passage de 51 à 50 diagnostics vient de la suppression du `withOpacity` déprécié présent uniquement dans l'ancienne copie chef du chip. L'échec est identique aux trois passages et reste le test connu :
+
+```text
+test/widget_test.dart: Counter increments smoke test
+Expected: exactly one matching candidate
+Actual: _TextWidgetFinder:<Found 0 widgets with text "0": []>
+```
+
+La première commande combinant formatage et analyse du chip n'a produit aucune sortie pendant environ une minute et a été interrompue ; ce silence n'a pas été compté comme un résultat. Le formatage avait entre-temps reformatté toute la barre de recherche chef, qui ne fait pas partie des fichiers fusionnés à cette étape. Cette réécriture a été intégralement retirée avant la validation : son diff final est exactement `1 insertion, 1 suppression`, correspondant uniquement au nouvel import.
+
+Contrôles finaux réellement exécutés :
+
+```powershell
+$oldPaths | ForEach-Object { "$_ = $(Test-Path -LiteralPath $_)" }
+rg -n "core/widgets/filtre_chip\.dart|core/widgets/dialogs/suppression_session_dialog\.dart|core/widgets/dialogs/suppression_dialog\.dart|import 'filtre_chip\.dart'" lib test
+git diff --check
+git diff --cached --name-only
+```
+
+Résultats :
+
+- les **6 anciens chemins** ont chacun renvoyé `False` ;
+- les consommateurs actifs du chip et du dialogue de session pointent vers `lib/core/` ;
+- aucun consommateur actuel du dialogue de suppression d'échantillon n'existe ;
+- `git diff --check = OK` ;
+- `git diff --cached --name-only` n'a rien renvoyé : aucun fichier indexé.
+
+La suite Django n'a pas été exécutée : aucune route ni aucun serializer n'a été modifié.
+
+#### Non fait
+
+- Les étapes 3 à 5 n'ont pas été commencées, conformément au découpage imposant un arrêt pour relecture après chaque étape.
+- Les tests manuels sous les deux rôles n'ont pas été effectués ; ils sont réservés au propriétaire après les cinq étapes.
+- Aucun commit, push ou changement de remote n'a été effectué.
+
+#### HORS PÉRIMÈTRE
+
+- `test/widget_test.dart` reste le seul test Flutter en échec et n'a pas été modifié.
+- Les 50 diagnostics restants de l'analyse sont extérieurs aux trois composants fusionnés et n'ont pas été corrigés.
+- La décoche de « reçu physiquement » sans notification et la décision T5 restent inchangées, conformément à la section hors périmètre de la tâche.

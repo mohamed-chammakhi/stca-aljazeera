@@ -1,14 +1,5 @@
-// ═════════════════════════════════════════════════════════════════════════════
-// FILE    : sessions_degustation/widgets/dialogs/suppression_session_dialog.dart
-// PURPOSE : confirmation dialog before deleting a session
-// USAGE   : showSuppressionSessionDialog(context, session: s, onConfirmer: ...)
-// ═════════════════════════════════════════════════════════════════════════════
-
 import 'package:flutter/material.dart';
 import 'package:project3/core/models/session_degustation.dart';
-
-const Color _green = Color(0xFF38835A);
-const Color _darkText = Color(0xFF1A2E1F);
 
 Future<void> showSuppressionSessionDialog(
   BuildContext context, {
@@ -39,7 +30,6 @@ Future<void> showSuppressionSessionDialog(
         style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
       ),
       actions: [
-        // Annuler
         TextButton(
           onPressed: () => Navigator.pop(ctx),
           child: Text(
@@ -50,7 +40,6 @@ Future<void> showSuppressionSessionDialog(
             ),
           ),
         ),
-        // Confirmer
         ElevatedButton(
           onPressed: () {
             Navigator.pop(ctx);
