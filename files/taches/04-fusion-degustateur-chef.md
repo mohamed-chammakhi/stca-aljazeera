@@ -31,13 +31,14 @@ Claude relit et commite lui-même, un commit par fichier fusionné. La phrase «
 fichier » décrit **son** travail de relecture, pas le tien — c'est une consigne mal formulée
 au départ, corrigée ici.
 
-**Ce que ça change concrètement pour toi : tu travailles étape par étape.** Tu fais **une
-seule étape** (parmi les 5 ci-dessous), tu la vérifies, tu écris ton rapport, et tu
-t'arrêtes. Tu ne commences pas l'étape suivante. Claude relit, commite fichier par fichier,
-puis te relance pour l'étape d'après.
+**Ce que ça change concrètement pour toi : tu t'arrêtes à des points précis, pas après
+chaque étape.** Les étapes 1 à 3 sont faites et déjà relues. **Fais l'étape 4 en entier
+sans t'arrêter entre ses fichiers**, vérifie, écris ton rapport, puis **arrête-toi avant
+l'étape 5**. L'étape 5 est la plus grosse et la plus risqué — les différences de droits
+et de boutons visibles y sont les plus nombreuses — elle garde sa propre pause.
 
 C'est cette découpe qui donne la sécurité recherchée : si une fusion casse quelque chose, on
-revient en arrière sur ce fichier-là sans perdre le reste.
+revient en arrière sans avoir à démêler l'étape 4 de l'étape 5.
 
 **Destination :** `lib/core/`, dans un sous-dossier qui reflète la fonction (`models/`,
 `widgets/`, `services/`), à l'image de ce qui existe déjà pour `lib/core/utilisateurs/` et
