@@ -19,12 +19,12 @@ import '../../validation_achats/validation_achats_ceo_page.dart';
 import '../../analyse_laboratoire/analyse_laboratoire_ceo_page.dart';
 import '../../analyse_organoleptique/analyse_organoleptique_ceo_page.dart';
 import '../../profil_ceo_page.dart';
-import '../../utilisateurs/models/mock_data_patch.dart';
 import '../../utilisateurs/services/utilisateurs_ceo_service.dart';
 import '../../../../core/models/user_profile.dart';
 import '../../../../core/models/enums.dart';
 import 'user_card.dart';
 import 'user_created_dialog.dart';
+import '../../../../core/widgets/bandeau_demonstration.dart';
 
 // ── Local aliases — keep page code unchanged while using core types ────────────
 typedef UserRole = RoleUtilisateur;
@@ -51,10 +51,11 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage>
   };
 
   // ── Data ──────────────────────────────────────────────────────────────────
-  List<AppUser> _utilisateurs = List<AppUser>.from(mockUtilisateurs);
+  List<AppUser> _utilisateurs = [];
   bool _isLoading = false;
   bool _isMutating = false;
-  bool _usesMockData = true;
+  bool _usesMockData = false;
+  Object? _loadError;
 
   // ── Local UI state ─────────────────────────────────────────────────────────
   UserRole? _activeFilter;
@@ -92,19 +93,16 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage>
   Future<void> _loadUsers() async {
     setState(() => _isLoading = true);
     try {
-      final users = await utilisateursCeoService.fetchUsers();
+      final resultat = await utilisateursCeoService.fetchUsers();
       if (!mounted) return;
       setState(() {
-        _utilisateurs = users;
-        _usesMockData = false;
+        _utilisateurs = resultat.donnees;
+        _usesMockData = resultat.estDemonstration;
+        _loadError = null;
       });
     } catch (error) {
       if (!mounted) return;
-      setState(() {
-        _utilisateurs = List<AppUser>.from(mockUtilisateurs);
-        _usesMockData = true;
-      });
-      _showError(utilisateursCeoService.messageFor(error));
+      setState(() => _loadError = error);
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -145,7 +143,7 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage>
         iconTheme: const IconThemeData(color: kDark),
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: _isLoading ? null : _showAddUserSheet,
+        onPressed: _isLoading || _usesMockData ? null : _showAddUserSheet,
         backgroundColor: const Color.fromARGB(255, 197, 206, 201),
         elevation: 2,
         icon: const Icon(Icons.person_add_outlined, color: kDark),
@@ -154,87 +152,103 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage>
           style: GoogleFonts.domine(color: kDark, fontWeight: FontWeight.w700),
         ),
       ),
-      body: Column(
-        children: [
-          // ── Unified header zone ──────────────────────────────────────
-          Container(
-            color: kHeaderBg,
-            padding: const EdgeInsets.fromLTRB(16, 10, 16, 14),
-            child: Column(
-              children: [
-                TextField(
-                  controller: _searchController,
-                  onChanged: (v) => setState(() => _searchQuery = v.trim()),
-                  style: const TextStyle(fontSize: 14, color: kDark),
-                  decoration: InputDecoration(
-                    hintText: 'Rechercher par nom, email, rôle…',
-                    hintStyle: const TextStyle(
-                      color: Color(0xFF6B8E7A),
-                      fontSize: 13,
-                    ),
-                    prefixIcon: const Icon(
-                      Icons.search,
-                      color: Color(0xFF6B8E7A),
-                      size: 20,
-                    ),
-                    suffixIcon: _searchQuery.isNotEmpty
-                        ? IconButton(
-                            icon: const Icon(
-                              Icons.close,
-                              size: 17,
+      body: _isLoading && _utilisateurs.isEmpty
+          ? const Center(child: CircularProgressIndicator())
+          : VueResultatService(
+              estDemonstration: _usesMockData,
+              erreur: _loadError,
+              onReessayer: _loadUsers,
+              child: Column(
+                children: [
+                  // ── Unified header zone ──────────────────────────────────────
+                  Container(
+                    color: kHeaderBg,
+                    padding: const EdgeInsets.fromLTRB(16, 10, 16, 14),
+                    child: Column(
+                      children: [
+                        TextField(
+                          controller: _searchController,
+                          onChanged: (v) =>
+                              setState(() => _searchQuery = v.trim()),
+                          style: const TextStyle(fontSize: 14, color: kDark),
+                          decoration: InputDecoration(
+                            hintText: 'Rechercher par nom, email, rôle…',
+                            hintStyle: const TextStyle(
                               color: Color(0xFF6B8E7A),
+                              fontSize: 13,
                             ),
-                            onPressed: () => setState(() {
-                              _searchQuery = '';
-                              _searchController.clear();
-                            }),
-                          )
-                        : null,
-                    filled: true,
-                    fillColor: Colors.white,
-                    contentPadding: const EdgeInsets.symmetric(
-                      vertical: 11,
-                      horizontal: 16,
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: kGreen, width: 1.5),
+                            prefixIcon: const Icon(
+                              Icons.search,
+                              color: Color(0xFF6B8E7A),
+                              size: 20,
+                            ),
+                            suffixIcon: _searchQuery.isNotEmpty
+                                ? IconButton(
+                                    icon: const Icon(
+                                      Icons.close,
+                                      size: 17,
+                                      color: Color(0xFF6B8E7A),
+                                    ),
+                                    onPressed: () => setState(() {
+                                      _searchQuery = '';
+                                      _searchController.clear();
+                                    }),
+                                  )
+                                : null,
+                            filled: true,
+                            fillColor: Colors.white,
+                            contentPadding: const EdgeInsets.symmetric(
+                              vertical: 11,
+                              horizontal: 16,
+                            ),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide.none,
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide.none,
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(
+                                color: kGreen,
+                                width: 1.5,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 11),
+                        SizedBox(height: 34, child: _buildFilterChips()),
+                      ],
                     ),
                   ),
-                ),
-                const SizedBox(height: 11),
-                SizedBox(height: 34, child: _buildFilterChips()),
-              ],
+                  Container(
+                    height: 1,
+                    color: Colors.black.withValues(alpha: 0.06),
+                  ),
+                  Expanded(
+                    child: filtered.isEmpty
+                        ? _buildEmpty()
+                        : ListView.builder(
+                            padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
+                            itemCount: filtered.length,
+                            itemBuilder: (_, i) => UserCard(
+                              user: filtered[i],
+                              green: kGreen,
+                              darkText: kDark,
+                              roleColors: _roleColors,
+                              onToggleStatus: () =>
+                                  _confirmToggleStatus(filtered[i]),
+                              onDelete: () => _confirmDelete(filtered[i]),
+                              onViewProfile: () =>
+                                  _showUserProfile(filtered[i]),
+                            ),
+                          ),
+                  ),
+                ],
+              ),
             ),
-          ),
-          Container(height: 1, color: Colors.black.withValues(alpha: 0.06)),
-          Expanded(
-            child: filtered.isEmpty
-                ? _buildEmpty()
-                : ListView.builder(
-                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
-                    itemCount: filtered.length,
-                    itemBuilder: (_, i) => UserCard(
-                      user: filtered[i],
-                      green: kGreen,
-                      darkText: kDark,
-                      roleColors: _roleColors,
-                      onToggleStatus: () => _confirmToggleStatus(filtered[i]),
-                      onDelete: () => _confirmDelete(filtered[i]),
-                      onViewProfile: () => _showUserProfile(filtered[i]),
-                    ),
-                  ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -432,24 +446,8 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage>
   Future<void> _toggleUserStatus(AppUser user) async {
     if (_isMutating) return;
     if (_usesMockData) {
-      final updated = UserProfile(
-        id: user.id,
-        email: user.email,
-        role: user.role,
-        nom: user.nom,
-        prenom: user.prenom,
-        telephone: user.telephone,
-        dateCreation: user.dateCreation,
-        isActive: !user.isActive,
-      );
-      setState(() {
-        final idx = _utilisateurs.indexWhere((u) => u.id == user.id);
-        if (idx != -1) _utilisateurs[idx] = updated;
-      });
-      _showSuccess(
-        updated.isActive
-            ? '${updated.nomComplet} réactivé'
-            : '${updated.nomComplet} désactivé',
+      _showError(
+        'Action indisponible avec les données de démonstration. Réessayez lorsque le serveur répond.',
       );
       return;
     }
@@ -478,8 +476,9 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage>
   Future<void> _deleteUser(AppUser user) async {
     if (_isMutating) return;
     if (_usesMockData) {
-      setState(() => _utilisateurs.removeWhere((u) => u.id == user.id));
-      _showSuccess('${user.nomComplet} supprimé');
+      _showError(
+        'Action indisponible avec les données de démonstration. Réessayez lorsque le serveur répond.',
+      );
       return;
     }
 
@@ -884,27 +883,6 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage>
                                 return;
                               }
                               setSheet(() => isSaving = true);
-                              if (_usesMockData) {
-                                final newUser = UserProfile(
-                                  id: DateTime.now().millisecondsSinceEpoch
-                                      .toString(),
-                                  email: emailCtrl.text.trim(),
-                                  role: selectedRole,
-                                  nom: nomCtrl.text.trim(),
-                                  prenom: prenomCtrl.text.trim(),
-                                  telephone: telCtrl.text.trim(),
-                                  dateCreation: _todayFormatted(),
-                                );
-                                setState(() => _utilisateurs.add(newUser));
-                                if (ctx.mounted) Navigator.pop(ctx);
-                                _showUserCreatedDialog(
-                                  newUser.prenom,
-                                  newUser.nom,
-                                  newUser.email,
-                                );
-                                return;
-                              }
-
                               try {
                                 final newUser = await utilisateursCeoService
                                     .createUser(

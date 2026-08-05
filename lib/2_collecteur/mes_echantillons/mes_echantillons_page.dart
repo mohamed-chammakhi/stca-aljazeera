@@ -24,6 +24,7 @@ import '../../../main.dart';
 import '../profilcom.dart';
 import '../carte_geo/carte_geo_page.dart';
 import '../carte_geo/services/geo_service.dart';
+import '../../core/widgets/bandeau_demonstration.dart';
 
 class MesEchantillonsPage extends StatefulWidget {
   const MesEchantillonsPage({super.key});
@@ -39,12 +40,17 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
 
   List<EchantillonCollecteur> _echantillons = [];
   bool _loading = true;
+  bool _demoEchantillons = false;
+  bool _demoNotifications = false;
+  Object? _erreurChargement;
   String _recherche = '';
   StatutCollecteur? _filtreStatut;
   DateTime? _dateDebut;
   DateTime? _dateFin;
   DateFilterType _dateFilterType = DateFilterType.enregistrement;
   int _unreadNotifCount = 0;
+
+  bool get _estDemonstration => _demoEchantillons || _demoNotifications;
 
   bool get _dateFilterActive => _dateDebut != null || _dateFin != null;
   bool get _anyFilter =>
@@ -61,18 +67,42 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
   }
 
   Future<void> _loadEchantillons() async {
-    final data = await _service.fetchEchantillons();
-    if (!mounted) return;
-    setState(() {
-      _echantillons = data;
-      _loading = false;
-    });
-    _rebuildMap();
+    if (mounted) setState(() => _loading = true);
+    try {
+      final resultat = await _service.fetchEchantillons();
+      if (!mounted) return;
+      setState(() {
+        _echantillons = resultat.donnees;
+        _demoEchantillons = resultat.estDemonstration;
+        _erreurChargement = null;
+        _loading = false;
+      });
+      _rebuildMap();
+    } catch (erreur) {
+      if (!mounted) return;
+      setState(() {
+        _erreurChargement = erreur;
+        _loading = false;
+      });
+    }
   }
 
   Future<void> _loadUnreadCount() async {
-    final count = await _notifService.fetchUnreadCount();
-    if (mounted) setState(() => _unreadNotifCount = count);
+    try {
+      final resultat = await _notifService.fetchUnreadCount();
+      if (!mounted) return;
+      setState(() {
+        _unreadNotifCount = resultat.donnees;
+        _demoNotifications = resultat.estDemonstration;
+      });
+    } catch (erreur) {
+      if (mounted) setState(() => _erreurChargement = erreur);
+    }
+  }
+
+  void _reessayer() {
+    _loadEchantillons();
+    _loadUnreadCount();
   }
 
   void _openNotifications() async {
@@ -721,241 +751,269 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
           style: TextStyle(color: colDark, fontWeight: FontWeight.w700),
         ),
       ),
-      body: Column(
-        children: [
-          // ── Header zone ──────────────────────────────────────────────────
-          Container(
-            color: colHeaderBg,
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
-            child: Column(
-              children: [
-                // Search bar
-                TextField(
-                  controller: _searchCtrl,
-                  onChanged: (v) => setState(() => _recherche = v.trim()),
-                  style: const TextStyle(fontSize: 14, color: colDark),
-                  decoration: InputDecoration(
-                    hintText: 'Rechercher réf, fournisseur, gouvernorat…',
-                    hintStyle: const TextStyle(
-                      color: Color(0xFF6B8E7A),
-                      fontSize: 13,
-                    ),
-                    prefixIcon: const Icon(
-                      Icons.search,
-                      color: Color(0xFF6B8E7A),
-                      size: 20,
-                    ),
-                    suffixIcon: _recherche.isNotEmpty
-                        ? IconButton(
-                            icon: const Icon(
-                              Icons.close,
-                              size: 17,
-                              color: Color(0xFF6B8E7A),
-                            ),
-                            onPressed: () => setState(() {
-                              _recherche = '';
-                              _searchCtrl.clear();
-                            }),
-                          )
-                        : null,
-                    filled: true,
-                    fillColor: Colors.white,
-                    contentPadding: const EdgeInsets.symmetric(
-                      vertical: 11,
-                      horizontal: 16,
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: colGreen, width: 1.5),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 11),
-                // Filter chips
-                SizedBox(
-                  height: 34,
-                  child: ListView(
-                    scrollDirection: Axis.horizontal,
-                    children: [
-                      _StatutChip(
-                        label: 'Tous',
-                        activeBg: const Color(0xFF757575),
-                        activeFg: Colors.white,
-                        inactiveBg: const Color(0xFFF0F0F0),
-                        inactiveFg: const Color(0xFF9E9E9E),
-                        selected: _filtreStatut == null,
-                        onTap: () => setState(() => _filtreStatut = null),
-                      ),
-                      const SizedBox(width: 7),
-                      _StatutChip(
-                        label: 'Enregistré',
-                        activeBg: const Color(
-                          0xFF3A6EA5,
-                        ).withValues(alpha: 0.12),
-                        activeFg: const Color(0xFF3A6EA5),
-                        inactiveBg: const Color(0xFFF0F0F0),
-                        inactiveFg: const Color(0xFF9E9E9E),
-                        selected: _filtreStatut == StatutCollecteur.receptionne,
-                        onTap: () => setState(
-                          () => _filtreStatut = StatutCollecteur.receptionne,
-                        ),
-                      ),
-                      const SizedBox(width: 7),
-                      _StatutChip(
-                        label: 'Négociation',
-                        activeBg: const Color(
-                          0xFFD07B2F,
-                        ).withValues(alpha: 0.12),
-                        activeFg: const Color(0xFFD07B2F),
-                        inactiveBg: const Color(0xFFF0F0F0),
-                        inactiveFg: const Color(0xFF9E9E9E),
-                        selected:
-                            _filtreStatut == StatutCollecteur.enNegociation,
-                        onTap: () => setState(
-                          () => _filtreStatut = StatutCollecteur.enNegociation,
-                        ),
-                      ),
-                      const SizedBox(width: 7),
-                      _StatutChip(
-                        label: 'Achat conclu',
-                        activeBg: const Color(
-                          0xFF38835A,
-                        ).withValues(alpha: 0.12),
-                        activeFg: const Color(0xFF38835A),
-                        inactiveBg: const Color(0xFFF0F0F0),
-                        inactiveFg: const Color(0xFF9E9E9E),
-                        selected:
-                            _filtreStatut == StatutCollecteur.achatConfirme,
-                        onTap: () => setState(
-                          () => _filtreStatut = StatutCollecteur.achatConfirme,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Container(height: 1, color: Colors.black.withValues(alpha: 0.06)),
-
-          // ── Stats strip ──────────────────────────────────────────────────
-          Container(
-            color: colBg,
-            padding: const EdgeInsets.fromLTRB(16, 9, 16, 6),
-            child: Row(
-              children: [
-                const Icon(
-                  Icons.inventory_2_outlined,
-                  size: 13,
-                  color: Color.fromARGB(255, 156, 156, 156),
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  '$_totalFiltered échantillon${_totalFiltered > 1 ? "s" : ""}',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Color.fromARGB(255, 156, 156, 156),
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                if (_dateFilterActive) ...[
-                  const SizedBox(width: 8),
-                  Icon(
-                    Icons.filter_alt_outlined,
-                    color: Colors.grey.shade400,
-                    size: 12,
-                  ),
-                  const SizedBox(width: 4),
-                  Flexible(
-                    child: Text(
-                      _dateDebut != null &&
-                              _dateFin != null &&
-                              _dateDebut!.isAtSameMomentAs(_dateFin!)
-                          ? 'Le ${fmtDate(_dateDebut!)}'
-                          : 'Du ${fmtDate(_dateDebut!)}  →  ${fmtDate(_dateFin!)}',
-                      style: TextStyle(
-                        color: Colors.grey.shade500,
-                        fontSize: 11,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
-
-          // ── List ──────────────────────────────────────────────────────────
-          Expanded(
-            child: _loading
-                ? const Center(child: CircularProgressIndicator())
-                : items.isEmpty
-                ? Center(
+      body: _loading
+          ? const Center(child: CircularProgressIndicator(color: colGreen))
+          : VueResultatService(
+              estDemonstration: _estDemonstration,
+              erreur: _erreurChargement,
+              onReessayer: _reessayer,
+              child: Column(
+                children: [
+                  // ── Header zone ──────────────────────────────────────────────────
+                  Container(
+                    color: colHeaderBg,
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
                     child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(
-                          Icons.inventory_2_outlined,
-                          size: 52,
-                          color: Colors.grey.shade300,
+                        // Search bar
+                        TextField(
+                          controller: _searchCtrl,
+                          onChanged: (v) =>
+                              setState(() => _recherche = v.trim()),
+                          style: const TextStyle(fontSize: 14, color: colDark),
+                          decoration: InputDecoration(
+                            hintText:
+                                'Rechercher réf, fournisseur, gouvernorat…',
+                            hintStyle: const TextStyle(
+                              color: Color(0xFF6B8E7A),
+                              fontSize: 13,
+                            ),
+                            prefixIcon: const Icon(
+                              Icons.search,
+                              color: Color(0xFF6B8E7A),
+                              size: 20,
+                            ),
+                            suffixIcon: _recherche.isNotEmpty
+                                ? IconButton(
+                                    icon: const Icon(
+                                      Icons.close,
+                                      size: 17,
+                                      color: Color(0xFF6B8E7A),
+                                    ),
+                                    onPressed: () => setState(() {
+                                      _recherche = '';
+                                      _searchCtrl.clear();
+                                    }),
+                                  )
+                                : null,
+                            filled: true,
+                            fillColor: Colors.white,
+                            contentPadding: const EdgeInsets.symmetric(
+                              vertical: 11,
+                              horizontal: 16,
+                            ),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide.none,
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide.none,
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(
+                                color: colGreen,
+                                width: 1.5,
+                              ),
+                            ),
+                          ),
                         ),
-                        const SizedBox(height: 12),
-                        Text(
-                          'Aucun échantillon trouvé',
-                          style: TextStyle(
-                            color: Colors.grey.shade400,
-                            fontSize: 14,
+                        const SizedBox(height: 11),
+                        // Filter chips
+                        SizedBox(
+                          height: 34,
+                          child: ListView(
+                            scrollDirection: Axis.horizontal,
+                            children: [
+                              _StatutChip(
+                                label: 'Tous',
+                                activeBg: const Color(0xFF757575),
+                                activeFg: Colors.white,
+                                inactiveBg: const Color(0xFFF0F0F0),
+                                inactiveFg: const Color(0xFF9E9E9E),
+                                selected: _filtreStatut == null,
+                                onTap: () =>
+                                    setState(() => _filtreStatut = null),
+                              ),
+                              const SizedBox(width: 7),
+                              _StatutChip(
+                                label: 'Enregistré',
+                                activeBg: const Color(
+                                  0xFF3A6EA5,
+                                ).withValues(alpha: 0.12),
+                                activeFg: const Color(0xFF3A6EA5),
+                                inactiveBg: const Color(0xFFF0F0F0),
+                                inactiveFg: const Color(0xFF9E9E9E),
+                                selected:
+                                    _filtreStatut ==
+                                    StatutCollecteur.receptionne,
+                                onTap: () => setState(
+                                  () => _filtreStatut =
+                                      StatutCollecteur.receptionne,
+                                ),
+                              ),
+                              const SizedBox(width: 7),
+                              _StatutChip(
+                                label: 'Négociation',
+                                activeBg: const Color(
+                                  0xFFD07B2F,
+                                ).withValues(alpha: 0.12),
+                                activeFg: const Color(0xFFD07B2F),
+                                inactiveBg: const Color(0xFFF0F0F0),
+                                inactiveFg: const Color(0xFF9E9E9E),
+                                selected:
+                                    _filtreStatut ==
+                                    StatutCollecteur.enNegociation,
+                                onTap: () => setState(
+                                  () => _filtreStatut =
+                                      StatutCollecteur.enNegociation,
+                                ),
+                              ),
+                              const SizedBox(width: 7),
+                              _StatutChip(
+                                label: 'Achat conclu',
+                                activeBg: const Color(
+                                  0xFF38835A,
+                                ).withValues(alpha: 0.12),
+                                activeFg: const Color(0xFF38835A),
+                                inactiveBg: const Color(0xFFF0F0F0),
+                                inactiveFg: const Color(0xFF9E9E9E),
+                                selected:
+                                    _filtreStatut ==
+                                    StatutCollecteur.achatConfirme,
+                                onTap: () => setState(
+                                  () => _filtreStatut =
+                                      StatutCollecteur.achatConfirme,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
                     ),
-                  )
-                : Theme(
-                    data: Theme.of(context).copyWith(
-                      scrollbarTheme: ScrollbarThemeData(
-                        thumbColor: WidgetStateProperty.all(colGray),
-                      ),
-                    ),
-                    child: Scrollbar(
-                      thumbVisibility: true,
-                      child: ListView.builder(
-                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
-                        itemCount: items.length,
-                        itemBuilder: (_, i) {
-                          final e = items[i];
-                          return EchantillonComCard(
-                            echantillon: e,
-                            onModifier: e.canModify
-                                ? () => _onModifier(e)
-                                : null,
-                            onSupprimer: e.canDelete
-                                ? () => _onSupprimer(e)
-                                : null,
-                            onConfirmerAchat: e.canConfirm
-                                ? () => _onConfirmerAchat(e)
-                                : null,
-                            onPlanifierLivraison: e.canPlanifier
-                                ? () => _onPlanifierLivraison(e)
-                                : null,
-                            onScheduleArrivee: e.canScheduleArrivee
-                                ? () => _onScheduleArrivee(e)
-                                : null,
-                          );
-                        },
-                      ),
+                  ),
+                  Container(
+                    height: 1,
+                    color: Colors.black.withValues(alpha: 0.06),
+                  ),
+
+                  // ── Stats strip ──────────────────────────────────────────────────
+                  Container(
+                    color: colBg,
+                    padding: const EdgeInsets.fromLTRB(16, 9, 16, 6),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.inventory_2_outlined,
+                          size: 13,
+                          color: Color.fromARGB(255, 156, 156, 156),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          '$_totalFiltered échantillon${_totalFiltered > 1 ? "s" : ""}',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Color.fromARGB(255, 156, 156, 156),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        if (_dateFilterActive) ...[
+                          const SizedBox(width: 8),
+                          Icon(
+                            Icons.filter_alt_outlined,
+                            color: Colors.grey.shade400,
+                            size: 12,
+                          ),
+                          const SizedBox(width: 4),
+                          Flexible(
+                            child: Text(
+                              _dateDebut != null &&
+                                      _dateFin != null &&
+                                      _dateDebut!.isAtSameMomentAs(_dateFin!)
+                                  ? 'Le ${fmtDate(_dateDebut!)}'
+                                  : 'Du ${fmtDate(_dateDebut!)}  →  ${fmtDate(_dateFin!)}',
+                              style: TextStyle(
+                                color: Colors.grey.shade500,
+                                fontSize: 11,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                   ),
-          ),
-        ],
-      ),
+
+                  // ── List ──────────────────────────────────────────────────────────
+                  Expanded(
+                    child: _loading
+                        ? const Center(child: CircularProgressIndicator())
+                        : items.isEmpty
+                        ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.inventory_2_outlined,
+                                  size: 52,
+                                  color: Colors.grey.shade300,
+                                ),
+                                const SizedBox(height: 12),
+                                Text(
+                                  'Aucun échantillon trouvé',
+                                  style: TextStyle(
+                                    color: Colors.grey.shade400,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        : Theme(
+                            data: Theme.of(context).copyWith(
+                              scrollbarTheme: ScrollbarThemeData(
+                                thumbColor: WidgetStateProperty.all(colGray),
+                              ),
+                            ),
+                            child: Scrollbar(
+                              thumbVisibility: true,
+                              child: ListView.builder(
+                                padding: const EdgeInsets.fromLTRB(
+                                  16,
+                                  8,
+                                  16,
+                                  100,
+                                ),
+                                itemCount: items.length,
+                                itemBuilder: (_, i) {
+                                  final e = items[i];
+                                  return EchantillonComCard(
+                                    echantillon: e,
+                                    onModifier: e.canModify
+                                        ? () => _onModifier(e)
+                                        : null,
+                                    onSupprimer: e.canDelete
+                                        ? () => _onSupprimer(e)
+                                        : null,
+                                    onConfirmerAchat: e.canConfirm
+                                        ? () => _onConfirmerAchat(e)
+                                        : null,
+                                    onPlanifierLivraison: e.canPlanifier
+                                        ? () => _onPlanifierLivraison(e)
+                                        : null,
+                                    onScheduleArrivee: e.canScheduleArrivee
+                                        ? () => _onScheduleArrivee(e)
+                                        : null,
+                                  );
+                                },
+                              ),
+                            ),
+                          ),
+                  ),
+                ],
+              ),
+            ),
     );
   }
 }

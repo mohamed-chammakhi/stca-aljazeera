@@ -1,10 +1,11 @@
-﻿// ═════════════════════════════════════════════════════════════════════════════
+// ═════════════════════════════════════════════════════════════════════════════
 // FILE : 1_ceo/echantillons/echantillons_ceo_page.dart
 // ═════════════════════════════════════════════════════════════════════════════
 
 import 'package:flutter/material.dart';
 import 'package:project3/core/theme/app_colors.dart';
 import 'package:project3/core/utils/date_utils.dart';
+import 'package:project3/core/widgets/bandeau_demonstration.dart';
 import 'models/collecteur_group.dart';
 import '../widgets/ceo_nav_mixin.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -26,7 +27,6 @@ import '../widgets/sample_card_echantillon.dart';
 import 'widgets/collecteur_section.dart';
 import 'services/echantillon_ceo_service.dart';
 
-
 String _initials(String name) {
   final parts = name.trim().split(' ').where((s) => s.isNotEmpty).toList();
   if (parts.isEmpty) return '?';
@@ -43,7 +43,8 @@ class EchantillonsCeoPage extends StatefulWidget {
   State<EchantillonsCeoPage> createState() => _EchantillonsCeoPageState();
 }
 
-class _EchantillonsCeoPageState extends State<EchantillonsCeoPage> with CeoNavMixin {
+class _EchantillonsCeoPageState extends State<EchantillonsCeoPage>
+    with CeoNavMixin {
   DateTime? _dateDebut;
   DateTime? _dateFin;
   DateFilterType _dateType = DateFilterType.enregistrement;
@@ -54,7 +55,10 @@ class _EchantillonsCeoPageState extends State<EchantillonsCeoPage> with CeoNavMi
   final Set<String> _expandedSamples = {};
 
   final _service = EchantillonCeoService();
-  List<EchantillonCeoView> _allEchantillons = List.of(mockEchantillons);
+  List<EchantillonCeoView> _allEchantillons = [];
+  bool _chargement = true;
+  bool _estDemonstration = false;
+  Object? _erreurChargement;
 
   @override
   void initState() {
@@ -63,11 +67,24 @@ class _EchantillonsCeoPageState extends State<EchantillonsCeoPage> with CeoNavMi
   }
 
   Future<void> _loadEchantillons() async {
+    if (mounted) setState(() => _chargement = true);
     try {
-      final data = await _service.fetchCeoViews();
-      if (mounted) setState(() => _allEchantillons = data);
-    } catch (_) {
-      if (mounted) setState(() => _allEchantillons = List.of(mockEchantillons));
+      final resultat = await _service.fetchCeoViews(
+        () => List.of(mockEchantillons),
+      );
+      if (!mounted) return;
+      setState(() {
+        _allEchantillons = resultat.donnees;
+        _estDemonstration = resultat.estDemonstration;
+        _erreurChargement = null;
+        _chargement = false;
+      });
+    } catch (erreur) {
+      if (!mounted) return;
+      setState(() {
+        _erreurChargement = erreur;
+        _chargement = false;
+      });
     }
   }
 
@@ -190,7 +207,6 @@ class _EchantillonsCeoPageState extends State<EchantillonsCeoPage> with CeoNavMi
     );
   }
 
-
   int get _totalFiltered =>
       _groups.fold(0, (sum, g) => sum + g.echantillons.length);
 
@@ -263,149 +279,160 @@ class _EchantillonsCeoPageState extends State<EchantillonsCeoPage> with CeoNavMi
           const SizedBox(width: 6),
         ],
       ),
-      body: Column(
-        children: [
-          // ── Unified header zone ──────────────────────────────────────
-          Container(
-            color: kHeaderBg,
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
-            child: TextField(
-              controller: _searchController,
-              onChanged: (v) => setState(() => _searchQuery = v.trim()),
-              style: const TextStyle(fontSize: 14, color: kDark),
-              decoration: InputDecoration(
-                hintText:
-                    'Réf, fournisseur, gouvernorat, variété, collecteur…',
-                hintStyle: const TextStyle(
-                  color: Color(0xFF6B8E7A),
-                  fontSize: 11,
-                ),
-                prefixIcon: const Icon(
-                  Icons.search,
-                  color: Color(0xFF6B8E7A),
-                  size: 20,
-                ),
-                suffixIcon: _searchQuery.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(
-                          Icons.close,
-                          size: 17,
+      body: _chargement
+          ? const Center(child: CircularProgressIndicator(color: kGreen))
+          : VueResultatService(
+              estDemonstration: _estDemonstration,
+              erreur: _erreurChargement,
+              onReessayer: _loadEchantillons,
+              child: Column(
+                children: [
+                  // ── Unified header zone ──────────────────────────────────────
+                  Container(
+                    color: kHeaderBg,
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
+                    child: TextField(
+                      controller: _searchController,
+                      onChanged: (v) => setState(() => _searchQuery = v.trim()),
+                      style: const TextStyle(fontSize: 14, color: kDark),
+                      decoration: InputDecoration(
+                        hintText:
+                            'Réf, fournisseur, gouvernorat, variété, collecteur…',
+                        hintStyle: const TextStyle(
                           color: Color(0xFF6B8E7A),
+                          fontSize: 11,
                         ),
-                        onPressed: () => setState(() {
-                          _searchQuery = '';
-                          _searchController.clear();
-                        }),
-                      )
-                    : null,
-                filled: true,
-                fillColor: Colors.white,
-                contentPadding: const EdgeInsets.symmetric(
-                  vertical: 11,
-                  horizontal: 16,
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: kGreen, width: 1.5),
-                ),
-              ),
-            ),
-          ),
-          Container(height: 1, color: Colors.black.withValues(alpha: 0.06)),
-
-          // ── Stats strip ──────────────────────────────────────────────
-          Container(
-            color: kBg,
-            padding: const EdgeInsets.fromLTRB(16, 9, 16, 6),
-            child: Row(
-              children: [
-                const Icon(
-                  Icons.inventory_2_outlined,
-                  size: 13,
-                  color: Color.fromARGB(255, 156, 156, 156),
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  '$_totalFiltered échantillon${_totalFiltered > 1 ? "s" : ""}'
-                  ' — ${groups.length} collecteur${groups.length > 1 ? "s" : ""}',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Color.fromARGB(255, 156, 156, 156),
-                    fontWeight: FontWeight.w500,
+                        prefixIcon: const Icon(
+                          Icons.search,
+                          color: Color(0xFF6B8E7A),
+                          size: 20,
+                        ),
+                        suffixIcon: _searchQuery.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(
+                                  Icons.close,
+                                  size: 17,
+                                  color: Color(0xFF6B8E7A),
+                                ),
+                                onPressed: () => setState(() {
+                                  _searchQuery = '';
+                                  _searchController.clear();
+                                }),
+                              )
+                            : null,
+                        filled: true,
+                        fillColor: Colors.white,
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: 11,
+                          horizontal: 16,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(
+                            color: kGreen,
+                            width: 1.5,
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-              ],
-            ),
-          ),
+                  Container(
+                    height: 1,
+                    color: Colors.black.withValues(alpha: 0.06),
+                  ),
 
-          // ── List ─────────────────────────────────────────────────────
-          Expanded(
-            child: groups.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                  // ── Stats strip ──────────────────────────────────────────────
+                  Container(
+                    color: kBg,
+                    padding: const EdgeInsets.fromLTRB(16, 9, 16, 6),
+                    child: Row(
                       children: [
-                        Icon(
-                          Icons.search_off_rounded,
-                          size: 48,
-                          color: Colors.grey.shade300,
+                        const Icon(
+                          Icons.inventory_2_outlined,
+                          size: 13,
+                          color: Color.fromARGB(255, 156, 156, 156),
                         ),
-                        const SizedBox(height: 10),
+                        const SizedBox(width: 6),
                         Text(
-                          'Aucun échantillon trouvé',
-                          style: TextStyle(
-                            color: Colors.grey.shade400,
-                            fontSize: 14,
+                          '$_totalFiltered échantillon${_totalFiltered > 1 ? "s" : ""}'
+                          ' — ${groups.length} collecteur${groups.length > 1 ? "s" : ""}',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Color.fromARGB(255, 156, 156, 156),
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                       ],
                     ),
-                  )
-                : ListView.builder(
-                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 30),
-                    itemCount: groups.length,
-                    itemBuilder: (_, i) => CollecteurSection(
-                      group: groups[i],
-                      isExpanded: _expandedCollecteurs.contains(
-                        groups[i].displayName,
-                      ),
-                      expandedSamples: _expandedSamples,
-                      onToggleCollecteur: () => setState(() {
-                        final key = groups[i].displayName;
-                        _expandedCollecteurs.contains(key)
-                            ? _expandedCollecteurs.remove(key)
-                            : _expandedCollecteurs.add(key);
-                      }),
-                      onToggleSample: (id) => setState(() {
-                        _expandedSamples.contains(id)
-                            ? _expandedSamples.remove(id)
-                            : _expandedSamples.add(id);
-                      }),
-                      onViewMap: groups[i].isInterne
-                          ? null
-                          : () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => CarteGeoPlaceholder(
-                                  collecteurNom: groups[i].displayName,
-                                ),
-                              ),
-                            ),
-                    ),
                   ),
-          ),
-        ],
-      ),
+
+                  // ── List ─────────────────────────────────────────────────────
+                  Expanded(
+                    child: groups.isEmpty
+                        ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.search_off_rounded,
+                                  size: 48,
+                                  color: Colors.grey.shade300,
+                                ),
+                                const SizedBox(height: 10),
+                                Text(
+                                  'Aucun échantillon trouvé',
+                                  style: TextStyle(
+                                    color: Colors.grey.shade400,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        : ListView.builder(
+                            padding: const EdgeInsets.fromLTRB(16, 12, 16, 30),
+                            itemCount: groups.length,
+                            itemBuilder: (_, i) => CollecteurSection(
+                              group: groups[i],
+                              isExpanded: _expandedCollecteurs.contains(
+                                groups[i].displayName,
+                              ),
+                              expandedSamples: _expandedSamples,
+                              onToggleCollecteur: () => setState(() {
+                                final key = groups[i].displayName;
+                                _expandedCollecteurs.contains(key)
+                                    ? _expandedCollecteurs.remove(key)
+                                    : _expandedCollecteurs.add(key);
+                              }),
+                              onToggleSample: (id) => setState(() {
+                                _expandedSamples.contains(id)
+                                    ? _expandedSamples.remove(id)
+                                    : _expandedSamples.add(id);
+                              }),
+                              onViewMap: groups[i].isInterne
+                                  ? null
+                                  : () => Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => CarteGeoPlaceholder(
+                                          collecteurNom: groups[i].displayName,
+                                        ),
+                                      ),
+                                    ),
+                            ),
+                          ),
+                  ),
+                ],
+              ),
+            ),
     );
   }
 }
-
-

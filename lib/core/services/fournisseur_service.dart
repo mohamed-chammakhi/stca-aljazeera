@@ -13,6 +13,7 @@
 
 import '../api_client.dart';
 import '../models/fournisseur.dart';
+import 'resultat_service.dart';
 
 class FournisseurService {
   FournisseurService._();
@@ -22,20 +23,25 @@ class FournisseurService {
   bool get usingMockData => _usingMockData;
 
   /// Cached so typing in the form does not fire a request per keystroke.
-  List<Fournisseur>? _cache;
+  Resultat<List<Fournisseur>>? _cache;
 
-  Future<List<Fournisseur>> fetchAll({bool forceRefresh = false}) async {
+  Future<Resultat<List<Fournisseur>>> fetchAll({
+    bool forceRefresh = false,
+  }) async {
     if (!forceRefresh && _cache != null) return _cache!;
-    try {
-      final items = await apiClient.getList('/api/fournisseurs/');
-      _usingMockData = false;
-      _cache = items
-          .map((e) => Fournisseur.fromJson(e as Map<String, dynamic>))
-          .toList();
-    } catch (_) {
-      _usingMockData = true;
-      _cache = _mockFournisseurs();
-    }
+    _cache = await avecSecours(
+      () async {
+        final items = await apiClient.getList('/api/fournisseurs/');
+        _usingMockData = false;
+        return items
+            .map((e) => Fournisseur.fromJson(e as Map<String, dynamic>))
+            .toList();
+      },
+      () {
+        _usingMockData = true;
+        return _mockFournisseurs();
+      },
+    );
     return _cache!;
   }
 
@@ -43,14 +49,17 @@ class FournisseurService {
   ///
   /// An empty query returns nothing rather than the whole list: a suggestion
   /// panel that opens before the user types anything is in the way, not helpful.
-  Future<List<Fournisseur>> suggest(String saisie, {int limite = 6}) async {
+  Future<Resultat<List<Fournisseur>>> suggest(
+    String saisie, {
+    int limite = 6,
+  }) async {
     final q = _normaliser(saisie);
-    if (q.isEmpty) return const [];
-    final tous = await fetchAll();
+    if (q.isEmpty) return const Resultat([]);
+    final resultat = await fetchAll();
 
     final debut = <Fournisseur>[];
     final ailleurs = <Fournisseur>[];
-    for (final f in tous) {
+    for (final f in resultat.donnees) {
       final n = _normaliser(f.nom);
       if (n.startsWith(q)) {
         debut.add(f);
@@ -59,7 +68,11 @@ class FournisseurService {
       }
     }
     // A supplier whose name starts with what was typed is what the user meant.
-    return [...debut, ...ailleurs].take(limite).toList();
+    return Resultat(
+      [...debut, ...ailleurs].take(limite).toList(),
+      estDemonstration: resultat.estDemonstration,
+      messageErreur: resultat.messageErreur,
+    );
   }
 
   /// Suppliers close enough to [nom] that creating a new one is probably a typo.
@@ -67,12 +80,12 @@ class FournisseurService {
   /// Called just before creating, so the collector can be asked
   /// "Agricole Ben Ali already exists — is that the one?" instead of silently
   /// producing a second record for the same company.
-  Future<List<Fournisseur>> findNearDuplicates(String nom) async {
+  Future<Resultat<List<Fournisseur>>> findNearDuplicates(String nom) async {
     final cible = _normaliser(nom);
-    if (cible.isEmpty) return const [];
-    final tous = await fetchAll();
+    if (cible.isEmpty) return const Resultat([]);
+    final resultat = await fetchAll();
 
-    return tous.where((f) {
+    final proches = resultat.donnees.where((f) {
       final n = _normaliser(f.nom);
       if (n == cible) return true;
       // "Ben Ali" vs "Agricole Ben Ali" — same company, longer label.
@@ -82,6 +95,11 @@ class FournisseurService {
       final seuil = cible.length <= 6 ? 1 : 2;
       return _distance(n, cible) <= seuil;
     }).toList();
+    return Resultat(
+      proches,
+      estDemonstration: resultat.estDemonstration,
+      messageErreur: resultat.messageErreur,
+    );
   }
 
   Future<Fournisseur> create({
@@ -97,7 +115,7 @@ class FournisseurService {
     };
     final json = await apiClient.post('/api/fournisseurs/', body);
     final cree = Fournisseur.fromJson(json);
-    _cache = [...?_cache, cree];
+    _cache = Resultat([...?_cache?.donnees, cree]);
     return cree;
   }
 

@@ -25,6 +25,7 @@ import 'widgets/dialogs/suppression_session_dialog.dart';
 
 // ── Shared date filter ────────────────────────────────────────────────────────
 import '../../../core/widgets/search_filter_bar.dart' show DateFilterSheet;
+import '../../../core/widgets/bandeau_demonstration.dart';
 
 // ── App-wide imports ──────────────────────────────────────────────────────────
 import '../profil/profil_page.dart';
@@ -55,6 +56,8 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage>
   // ───────────────────────────────────────────────────────────────────────────
 
   List<SessionDegustation> _sessions = [];
+  bool _estDemonstration = false;
+  Object? _erreurChargement;
   final TextEditingController _searchController = TextEditingController();
   String _recherche = '';
   String? _filtreStatutLabel; // null = show all  |  'Planifiée' / 'Terminée'
@@ -70,8 +73,17 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage>
   }
 
   Future<void> _loadData() async {
-    final data = await _service.fetchSessions();
-    setState(() => _sessions = List.from(data));
+    try {
+      final resultat = await _service.fetchSessions();
+      if (!mounted) return;
+      setState(() {
+        _sessions = List.from(resultat.donnees);
+        _estDemonstration = resultat.estDemonstration;
+        _erreurChargement = null;
+      });
+    } catch (erreur) {
+      if (mounted) setState(() => _erreurChargement = erreur);
+    }
   }
 
   // ───────────────────────────────────────────────────────────────────────────
@@ -135,36 +147,53 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage>
   // ───────────────────────────────────────────────────────────────────────────
 
   Future<void> _onAjouter(SessionDegustation nouvelle) async {
-    final saved = await _service.createSession(nouvelle);
-    if (!mounted) return;
-    setState(() => _sessions.add(saved));
-    _showSuccess('Session créée avec succès');
+    try {
+      final saved = await _service.createSession(nouvelle);
+      if (!mounted) return;
+      setState(() => _sessions.add(saved));
+      _showSuccess('Session créée avec succès');
+    } catch (_) {
+      if (mounted) _showError();
+    }
   }
 
   Future<void> _onModifier(SessionDegustation modifiee) async {
-    final saved = await _service.updateSession(modifiee);
-    if (!mounted) return;
-    setState(() {
-      final index = _sessions.indexWhere((s) => s.id == modifiee.id);
-      if (index != -1) _sessions[index] = saved;
-    });
-    _showSuccess('Session modifiée avec succès');
+    try {
+      final saved = await _service.updateSession(modifiee);
+      if (!mounted) return;
+      setState(() {
+        final index = _sessions.indexWhere((s) => s.id == modifiee.id);
+        if (index != -1) _sessions[index] = saved;
+      });
+      _showSuccess('Session modifiée avec succès');
+    } catch (_) {
+      if (mounted) _showError();
+    }
   }
 
   Future<void> _onSupprimer(SessionDegustation s) async {
-    await _service.deleteSession(s.id);
-    if (!mounted) return;
-    setState(() => _sessions.remove(s));
-    _showSuccess('Session "${s.titre}" supprimée');
+    try {
+      await _service.deleteSession(s.id);
+      if (!mounted) return;
+      setState(() => _sessions.remove(s));
+      _showSuccess('Session "${s.titre}" supprimée');
+    } catch (_) {
+      if (mounted) _showError();
+    }
   }
 
   Future<void> _onConfirmerPresence(SessionDegustation s) async {
-    final updated = await _service.confirmerPresence(s.id);
-    if (!mounted || updated == null) return;
-    setState(() {
-      final index = _sessions.indexWhere((item) => item.id == s.id);
-      if (index != -1) _sessions[index] = updated;
-    });
+    try {
+      final updated = await _service.confirmerPresence(s.id);
+      if (!mounted || updated == null) return;
+      setState(() {
+        final index = _sessions.indexWhere((item) => item.id == s.id);
+        if (index != -1) _sessions[index] = updated;
+      });
+    } catch (_) {
+      if (mounted) _showError();
+      rethrow;
+    }
   }
 
   Future<void> _showDateFilter() async {
@@ -203,6 +232,12 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage>
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         margin: const EdgeInsets.all(20),
       ),
+    );
+  }
+
+  void _showError() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('L’action n’a pas pu être enregistrée.')),
     );
   }
 
@@ -301,189 +336,196 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage>
         ),
       ),
 
-      body: Column(
-        children: [
-          // ── UNIFIED HEADER ZONE ─────────────────────────────────────────
-          Container(
-            color: kHeaderBg,
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
-            child: Column(
-              children: [
-                // Search bar
-                TextField(
-                  controller: _searchController,
-                  onChanged: (v) => setState(() => _recherche = v.trim()),
-                  style: const TextStyle(fontSize: 14, color: kDark),
-                  decoration: InputDecoration(
-                    hintText: 'Titre · lieu · réf · organisateur…',
-                    hintStyle: const TextStyle(
-                      color: Color(0xFF6B8E7A),
-                      fontSize: 11,
-                    ),
-                    prefixIcon: const Icon(
-                      Icons.search,
-                      color: Color(0xFF6B8E7A),
-                      size: 20,
-                    ),
-                    suffixIcon: _recherche.isNotEmpty
-                        ? IconButton(
-                            icon: const Icon(
-                              Icons.close,
-                              size: 17,
-                              color: Color(0xFF6B8E7A),
-                            ),
-                            onPressed: () => setState(() {
-                              _recherche = '';
-                              _searchController.clear();
-                            }),
-                          )
-                        : null,
-                    filled: true,
-                    fillColor: Colors.white,
-                    contentPadding: const EdgeInsets.symmetric(
-                      vertical: 11,
-                      horizontal: 16,
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: kGreen, width: 1.5),
+      body: VueResultatService(
+        estDemonstration: _estDemonstration,
+        erreur: _erreurChargement,
+        onReessayer: _loadData,
+        child: Column(
+          children: [
+            // ── UNIFIED HEADER ZONE ─────────────────────────────────────────
+            Container(
+              color: kHeaderBg,
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
+              child: Column(
+                children: [
+                  // Search bar
+                  TextField(
+                    controller: _searchController,
+                    onChanged: (v) => setState(() => _recherche = v.trim()),
+                    style: const TextStyle(fontSize: 14, color: kDark),
+                    decoration: InputDecoration(
+                      hintText: 'Titre · lieu · réf · organisateur…',
+                      hintStyle: const TextStyle(
+                        color: Color(0xFF6B8E7A),
+                        fontSize: 11,
+                      ),
+                      prefixIcon: const Icon(
+                        Icons.search,
+                        color: Color(0xFF6B8E7A),
+                        size: 20,
+                      ),
+                      suffixIcon: _recherche.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(
+                                Icons.close,
+                                size: 17,
+                                color: Color(0xFF6B8E7A),
+                              ),
+                              onPressed: () => setState(() {
+                                _recherche = '';
+                                _searchController.clear();
+                              }),
+                            )
+                          : null,
+                      filled: true,
+                      fillColor: Colors.white,
+                      contentPadding: const EdgeInsets.symmetric(
+                        vertical: 11,
+                        horizontal: 16,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: kGreen, width: 1.5),
+                      ),
                     ),
                   ),
-                ),
 
-                const SizedBox(height: 11),
+                  const SizedBox(height: 11),
 
-                // ── Statut filter chips ─────────────────────────────────
-                SizedBox(
-                  height: 34,
-                  child: ListView(
-                    scrollDirection: Axis.horizontal,
-                    children: [
-                      StatutChip(
-                        label: 'Tous',
-                        activeColor: const Color(0xFF616161),
-                        inactiveColor: const Color(0xFFF0F0F0),
-                        inactiveTextColor: const Color(0xFF757575),
-                        selected: _filtreStatutLabel == null,
-                        onTap: () => setState(() => _filtreStatutLabel = null),
-                      ),
-                      const SizedBox(width: 7),
-                      StatutChip(
-                        label: 'Planifiée',
-                        activeColor: const Color(0xFFD07B2F),
-                        inactiveColor: const Color(0xFFFEF3E8),
-                        inactiveTextColor: const Color(0xFFD07B2F),
-                        selected: _filtreStatutLabel == 'Planifiée',
-                        onTap: () =>
-                            setState(() => _filtreStatutLabel = 'Planifiée'),
-                      ),
-                      const SizedBox(width: 7),
-                      StatutChip(
-                        label: 'Terminée',
-                        activeColor: const Color(0xFF38835A),
-                        inactiveColor: const Color(0xFFE6F4ED),
-                        inactiveTextColor: const Color(0xFF38835A),
-                        selected: _filtreStatutLabel == 'Terminée',
-                        onTap: () =>
-                            setState(() => _filtreStatutLabel = 'Terminée'),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // Thin separator shadow
-          Container(height: 1, color: Colors.black.withValues(alpha: 0.06)),
-
-          // ── STATS STRIP ───────────────────────────────────────────────────
-          Container(
-            color: kBg,
-            padding: const EdgeInsets.fromLTRB(16, 9, 16, 6),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.event_note_outlined,
-                  size: 13,
-                  color: const Color.fromARGB(255, 156, 156, 156),
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  '${items.length} session${items.length > 1 ? "s" : ""}',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Color.fromARGB(255, 156, 156, 156),
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // ── LIST ─────────────────────────────────────────────────────────
-          Expanded(
-            child: items.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                  // ── Statut filter chips ─────────────────────────────────
+                  SizedBox(
+                    height: 34,
+                    child: ListView(
+                      scrollDirection: Axis.horizontal,
                       children: [
-                        Icon(
-                          Icons.event_busy_outlined,
-                          size: 52,
-                          color: Colors.grey.shade300,
+                        StatutChip(
+                          label: 'Tous',
+                          activeColor: const Color(0xFF616161),
+                          inactiveColor: const Color(0xFFF0F0F0),
+                          inactiveTextColor: const Color(0xFF757575),
+                          selected: _filtreStatutLabel == null,
+                          onTap: () =>
+                              setState(() => _filtreStatutLabel = null),
                         ),
-                        const SizedBox(height: 12),
-                        Text(
-                          'Aucune session trouvée',
-                          style: TextStyle(
-                            color: Colors.grey.shade400,
-                            fontSize: 14,
-                          ),
+                        const SizedBox(width: 7),
+                        StatutChip(
+                          label: 'Planifiée',
+                          activeColor: const Color(0xFFD07B2F),
+                          inactiveColor: const Color(0xFFFEF3E8),
+                          inactiveTextColor: const Color(0xFFD07B2F),
+                          selected: _filtreStatutLabel == 'Planifiée',
+                          onTap: () =>
+                              setState(() => _filtreStatutLabel = 'Planifiée'),
+                        ),
+                        const SizedBox(width: 7),
+                        StatutChip(
+                          label: 'Terminée',
+                          activeColor: const Color(0xFF38835A),
+                          inactiveColor: const Color(0xFFE6F4ED),
+                          inactiveTextColor: const Color(0xFF38835A),
+                          selected: _filtreStatutLabel == 'Terminée',
+                          onTap: () =>
+                              setState(() => _filtreStatutLabel = 'Terminée'),
                         ),
                       ],
                     ),
-                  )
-                : Scrollbar(
-                    thumbVisibility: true,
-                    child: ListView.builder(
-                      padding: const EdgeInsets.fromLTRB(16, 10, 16, 100),
-                      itemCount: items.length,
-                      itemBuilder: (context, i) {
-                        final s = items[i];
-                        final isPlanifiee = s.statut == StatutSession.planifiee;
-                        return SessionCard(
-                          session: s,
-                          onConfirmerPresence: () => _onConfirmerPresence(s),
-                          onModifier: isPlanifiee
-                              ? null
-                              : () => showFormulaireSessionDialog(
-                                  context,
-                                  session: s,
-                                  prochainNumero: _prochainNumero,
-                                  onSave: _onModifier,
-                                ),
-                          onSupprimer: isPlanifiee
-                              ? null
-                              : () => showSuppressionSessionDialog(
-                                  context,
-                                  session: s,
-                                  onConfirmer: () => _onSupprimer(s),
-                                ),
-                        );
-                      },
+                  ),
+                ],
+              ),
+            ),
+
+            // Thin separator shadow
+            Container(height: 1, color: Colors.black.withValues(alpha: 0.06)),
+
+            // ── STATS STRIP ───────────────────────────────────────────────────
+            Container(
+              color: kBg,
+              padding: const EdgeInsets.fromLTRB(16, 9, 16, 6),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.event_note_outlined,
+                    size: 13,
+                    color: const Color.fromARGB(255, 156, 156, 156),
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    '${items.length} session${items.length > 1 ? "s" : ""}',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Color.fromARGB(255, 156, 156, 156),
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
-          ),
-        ],
+                ],
+              ),
+            ),
+
+            // ── LIST ─────────────────────────────────────────────────────────
+            Expanded(
+              child: items.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.event_busy_outlined,
+                            size: 52,
+                            color: Colors.grey.shade300,
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            'Aucune session trouvée',
+                            style: TextStyle(
+                              color: Colors.grey.shade400,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  : Scrollbar(
+                      thumbVisibility: true,
+                      child: ListView.builder(
+                        padding: const EdgeInsets.fromLTRB(16, 10, 16, 100),
+                        itemCount: items.length,
+                        itemBuilder: (context, i) {
+                          final s = items[i];
+                          final isPlanifiee =
+                              s.statut == StatutSession.planifiee;
+                          return SessionCard(
+                            session: s,
+                            onConfirmerPresence: () => _onConfirmerPresence(s),
+                            onModifier: isPlanifiee
+                                ? null
+                                : () => showFormulaireSessionDialog(
+                                    context,
+                                    session: s,
+                                    prochainNumero: _prochainNumero,
+                                    onSave: _onModifier,
+                                  ),
+                            onSupprimer: isPlanifiee
+                                ? null
+                                : () => showSuppressionSessionDialog(
+                                    context,
+                                    session: s,
+                                    onConfirmer: () => _onSupprimer(s),
+                                  ),
+                          );
+                        },
+                      ),
+                    ),
+            ),
+          ],
+        ),
       ),
     );
   }

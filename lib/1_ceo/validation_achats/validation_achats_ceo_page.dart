@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:project3/core/theme/app_colors.dart';
 import 'package:project3/core/utils/date_utils.dart';
+import 'package:project3/core/widgets/bandeau_demonstration.dart';
 import '../widgets/ceo_nav_mixin.dart';
 import '../widgets/ceo_drawer.dart';
 import '../widgets/search_date_filter_bar.dart';
@@ -56,10 +57,13 @@ class _ValidationAchatsCeoPageState extends State<ValidationAchatsCeoPage>
   final _service = EchantillonCeoService();
 
   /// Propositions en attente de décision — statut « en négociation ».
-  List<EchantillonCeoView> _enAttente = List.of(mockPropositionsEnAttente);
+  List<EchantillonCeoView> _enAttente = [];
 
   /// Propositions déjà tranchées — achat confirmé ou refusé.
-  List<EchantillonCeoView> _decidees = List.of(mockPropositionsDecidees);
+  List<EchantillonCeoView> _decidees = [];
+  bool _chargement = true;
+  bool _estDemonstration = false;
+  Object? _erreurChargement;
 
   @override
   void initState() {
@@ -72,26 +76,32 @@ class _ValidationAchatsCeoPageState extends State<ValidationAchatsCeoPage>
   /// chargement, l'écran affichait des propositions codées en dur et le
   /// directeur ne voyait jamais les vraies.
   Future<void> _loadPropositions() async {
+    if (mounted) setState(() => _chargement = true);
     try {
-      final data = await _service.fetchCeoViews();
+      final resultat = await _service.fetchCeoViews(
+        () => [...mockPropositionsEnAttente, ...mockPropositionsDecidees],
+      );
       if (!mounted) return;
       setState(() {
-        _enAttente = data
+        _enAttente = resultat.donnees
             .where((e) => e.statut == StatutCeo.enNegociation)
             .toList();
-        _decidees = data
+        _decidees = resultat.donnees
             .where(
               (e) =>
                   e.statut == StatutCeo.achatConfirme ||
                   e.statut == StatutCeo.refuse,
             )
             .toList();
+        _estDemonstration = resultat.estDemonstration;
+        _erreurChargement = null;
+        _chargement = false;
       });
-    } catch (_) {
+    } catch (erreur) {
       if (!mounted) return;
       setState(() {
-        _enAttente = List.of(mockPropositionsEnAttente);
-        _decidees = List.of(mockPropositionsDecidees);
+        _erreurChargement = erreur;
+        _chargement = false;
       });
     }
   }
@@ -120,8 +130,11 @@ class _ValidationAchatsCeoPageState extends State<ValidationAchatsCeoPage>
         final d = DegDateUtils.parseDate(e.dateAjout);
         if (d == null) return false;
         final day = DateTime(d.year, d.month, d.day);
-        final debut =
-            DateTime(_dateDebut!.year, _dateDebut!.month, _dateDebut!.day);
+        final debut = DateTime(
+          _dateDebut!.year,
+          _dateDebut!.month,
+          _dateDebut!.day,
+        );
         if (_dateFin != null) {
           final fin = DateTime(_dateFin!.year, _dateFin!.month, _dateFin!.day);
           return !day.isBefore(debut) && !day.isAfter(fin);
@@ -132,13 +145,15 @@ class _ValidationAchatsCeoPageState extends State<ValidationAchatsCeoPage>
     if (_searchQuery.isNotEmpty) {
       final q = _searchQuery.toLowerCase();
       result = result
-          .where((e) =>
-              e.referenceBouteille.toLowerCase().contains(q) ||
-              e.id.toLowerCase().contains(q) ||
-              e.codeFournisseur.toLowerCase().contains(q) ||
-              e.gouvernorat.toLowerCase().contains(q) ||
-              (e.variete?.toLowerCase().contains(q) ?? false) ||
-              (e.collecteurNom?.toLowerCase().contains(q) ?? false))
+          .where(
+            (e) =>
+                e.referenceBouteille.toLowerCase().contains(q) ||
+                e.id.toLowerCase().contains(q) ||
+                e.codeFournisseur.toLowerCase().contains(q) ||
+                e.gouvernorat.toLowerCase().contains(q) ||
+                (e.variete?.toLowerCase().contains(q) ?? false) ||
+                (e.collecteurNom?.toLowerCase().contains(q) ?? false),
+          )
           .toList();
     }
     return result;
@@ -270,8 +285,9 @@ class _ValidationAchatsCeoPageState extends State<ValidationAchatsCeoPage>
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        backgroundColor:
-            decision.definitif ? const Color(0xFFB71C1C) : _orangeActive,
+        backgroundColor: decision.definitif
+            ? const Color(0xFFB71C1C)
+            : _orangeActive,
         content: Text(
           decision.definitif
               ? 'Proposition refusée — ${e.referenceBouteille}.'
@@ -307,8 +323,7 @@ class _ValidationAchatsCeoPageState extends State<ValidationAchatsCeoPage>
         onAnalyseLaboratoire: () => goToPage(const AnalyseLaboratoireCeoPage()),
         onValidationAchats: () => Navigator.pop(context),
         onAchatsConfirmes: () => goToPage(const AchatsConfirmesCeoPage()),
-        onTableauDeBord: () =>
-            Navigator.popUntil(context, (r) => r.isFirst),
+        onTableauDeBord: () => Navigator.popUntil(context, (r) => r.isFirst),
         onProfil: () => goToPage(const ProfilceoPage()),
         onutilisiateurs: () => goToPage(const UtilisateursCeoPage()),
         onDeconnexion: () => goToPage(LoginPage()),
@@ -360,188 +375,212 @@ class _ValidationAchatsCeoPageState extends State<ValidationAchatsCeoPage>
           const SizedBox(width: 6),
         ],
       ),
-      body: Column(
-        children: [
-          Container(
-            color: kHeaderBg,
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
-            child: TextField(
-              controller: _searchController,
-              onChanged: (v) => setState(() => _searchQuery = v.trim()),
-              style: const TextStyle(fontSize: 14, color: kDark),
-              decoration: InputDecoration(
-                hintText: 'Réf, fournisseur, gouvernorat, variété, collecteur…',
-                hintStyle: const TextStyle(
-                  color: Color(0xFF6B8E7A),
-                  fontSize: 11,
-                ),
-                prefixIcon: const Icon(
-                  Icons.search,
-                  color: Color(0xFF6B8E7A),
-                  size: 20,
-                ),
-                suffixIcon: _searchQuery.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(
-                          Icons.close,
-                          size: 17,
+      body: _chargement
+          ? const Center(child: CircularProgressIndicator(color: kGreen))
+          : VueResultatService(
+              estDemonstration: _estDemonstration,
+              erreur: _erreurChargement,
+              onReessayer: _loadPropositions,
+              child: Column(
+                children: [
+                  Container(
+                    color: kHeaderBg,
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
+                    child: TextField(
+                      controller: _searchController,
+                      onChanged: (v) => setState(() => _searchQuery = v.trim()),
+                      style: const TextStyle(fontSize: 14, color: kDark),
+                      decoration: InputDecoration(
+                        hintText:
+                            'Réf, fournisseur, gouvernorat, variété, collecteur…',
+                        hintStyle: const TextStyle(
                           color: Color(0xFF6B8E7A),
+                          fontSize: 11,
                         ),
-                        onPressed: () => setState(() {
-                          _searchQuery = '';
-                          _searchController.clear();
-                        }),
-                      )
-                    : null,
-                filled: true,
-                fillColor: Colors.white,
-                contentPadding: const EdgeInsets.symmetric(
-                  vertical: 11,
-                  horizontal: 16,
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: kGreen, width: 1.5),
-                ),
-              ),
-            ),
-          ),
-          Container(height: 1, color: Colors.black.withValues(alpha: 0.06)),
-          Container(
-            color: kBg,
-            padding: const EdgeInsets.fromLTRB(16, 9, 16, 6),
-            child: Row(
-              children: [
-                StatusFilterChip(
-                  label: 'À valider',
-                  isActive: _activeFilter == 'a_valider',
-                  activeBg: _orangeActive.withValues(alpha: 0.12),
-                  activeFg: _orangeActive,
-                  onTap: () => setState(() => _activeFilter = 'a_valider'),
-                ),
-                const SizedBox(width: 8),
-                StatusFilterChip(
-                  label: 'Décidées',
-                  isActive: _activeFilter == 'decidees',
-                  activeBg: kGreen.withValues(alpha: 0.12),
-                  activeFg: kGreen,
-                  onTap: () => setState(() => _activeFilter = 'decidees'),
-                ),
-                const SizedBox(width: 8),
-                StatusFilterChip(
-                  label: 'Tout',
-                  isActive: _activeFilter == 'tout',
-                  activeBg: const Color(0xFF757575),
-                  activeFg: Colors.white,
-                  onTap: () => setState(() => _activeFilter = 'tout'),
-                ),
-                const Spacer(),
-                Text(
-                  '${items.length}',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey.shade500,
-                    fontWeight: FontWeight.w600,
+                        prefixIcon: const Icon(
+                          Icons.search,
+                          color: Color(0xFF6B8E7A),
+                          size: 20,
+                        ),
+                        suffixIcon: _searchQuery.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(
+                                  Icons.close,
+                                  size: 17,
+                                  color: Color(0xFF6B8E7A),
+                                ),
+                                onPressed: () => setState(() {
+                                  _searchQuery = '';
+                                  _searchController.clear();
+                                }),
+                              )
+                            : null,
+                        filled: true,
+                        fillColor: Colors.white,
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: 11,
+                          horizontal: 16,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(
+                            color: kGreen,
+                            width: 1.5,
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: items.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                  Container(
+                    height: 1,
+                    color: Colors.black.withValues(alpha: 0.06),
+                  ),
+                  Container(
+                    color: kBg,
+                    padding: const EdgeInsets.fromLTRB(16, 9, 16, 6),
+                    child: Row(
                       children: [
-                        Icon(
-                          Icons.fact_check_outlined,
-                          size: 52,
-                          color: Colors.grey.shade300,
+                        StatusFilterChip(
+                          label: 'À valider',
+                          isActive: _activeFilter == 'a_valider',
+                          activeBg: _orangeActive.withValues(alpha: 0.12),
+                          activeFg: _orangeActive,
+                          onTap: () =>
+                              setState(() => _activeFilter = 'a_valider'),
                         ),
-                        const SizedBox(height: 12),
+                        const SizedBox(width: 8),
+                        StatusFilterChip(
+                          label: 'Décidées',
+                          isActive: _activeFilter == 'decidees',
+                          activeBg: kGreen.withValues(alpha: 0.12),
+                          activeFg: kGreen,
+                          onTap: () =>
+                              setState(() => _activeFilter = 'decidees'),
+                        ),
+                        const SizedBox(width: 8),
+                        StatusFilterChip(
+                          label: 'Tout',
+                          isActive: _activeFilter == 'tout',
+                          activeBg: const Color(0xFF757575),
+                          activeFg: Colors.white,
+                          onTap: () => setState(() => _activeFilter = 'tout'),
+                        ),
+                        const Spacer(),
                         Text(
-                          _activeFilter == 'a_valider'
-                              ? 'Aucune proposition à valider'
-                              : _activeFilter == 'decidees'
-                                  ? 'Aucune décision enregistrée'
-                                  : 'Aucune proposition',
+                          '${items.length}',
                           style: TextStyle(
-                            color: Colors.grey.shade400,
-                            fontSize: 14,
+                            fontSize: 12,
+                            color: Colors.grey.shade500,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ],
                     ),
-                  )
-                : ListView.builder(
-                    padding: const EdgeInsets.fromLTRB(14, 14, 14, 30),
-                    itemCount: items.length,
-                    itemBuilder: (_, i) {
-                      final e = items[i];
-                      final (accent, tint) = _colorsFor(e);
-                      final isOpen = _expanded.contains(e.id);
-
-                      return BaseSampleCard(
-                        referenceBouteille: e.referenceBouteille,
-                        id: e.id,
-                        tintColor: tint,
-                        accentColor: accent,
-                        badge: CardBadgeRow(
-                          badges: [
-                            if (e.quantiteCibleT != null)
-                              CardBadge(
-                                label: 'Qté : ${e.quantiteCibleT}T',
-                                color: kOlive,
-                              ),
-                            // Sans plafond au nombre de tours, ce compteur est
-                            // le seul signal qu'un dossier s'enlise.
-                            if (e.nbRenegociations > 0)
-                              MarqueurRenegocie(nombre: e.nbRenegociations),
-                            // The price is not repeated here: it already has a
-                            // line in the proposal details just below, and the
-                            // header only needs what tells two cards apart.
-                          ],
-                        ),
-                        detailItems: [
-                          DetailItem('N° échantillon', e.id),
-                          DetailItem('Ref. bouteille', e.referenceBouteille),
-                          DetailItem(
-                            'Gouvernorat',
-                            '${e.gouvernorat}${e.delegation != null ? " — ${e.delegation}" : ""}',
-                          ),
-                          DetailItem('Fournisseur', e.codeFournisseur),
-                          if (e.variete != null)
-                            DetailItem('Variété', e.variete!),
-                          if (e.collecteurNom != null)
-                            DetailItem('Collecteur', e.collecteurNom!),
-                          DetailItem('Date enregistrement', e.dateAjout),
-                        ],
-                        bottomSection: PropositionSection(
-                          echantillon: e,
-                          accentColor: accent,
-                          isExpanded: isOpen,
-                          onToggle: () => setState(
-                            () => isOpen
-                                ? _expanded.remove(e.id)
-                                : _expanded.add(e.id),
-                          ),
-                          onConfirmer: () => _confirmer(e),
-                          onRefuser: () => _refuser(e),
-                        ),
-                      );
-                    },
                   ),
-          ),
-        ],
-      ),
+                  Expanded(
+                    child: items.isEmpty
+                        ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.fact_check_outlined,
+                                  size: 52,
+                                  color: Colors.grey.shade300,
+                                ),
+                                const SizedBox(height: 12),
+                                Text(
+                                  _activeFilter == 'a_valider'
+                                      ? 'Aucune proposition à valider'
+                                      : _activeFilter == 'decidees'
+                                      ? 'Aucune décision enregistrée'
+                                      : 'Aucune proposition',
+                                  style: TextStyle(
+                                    color: Colors.grey.shade400,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        : ListView.builder(
+                            padding: const EdgeInsets.fromLTRB(14, 14, 14, 30),
+                            itemCount: items.length,
+                            itemBuilder: (_, i) {
+                              final e = items[i];
+                              final (accent, tint) = _colorsFor(e);
+                              final isOpen = _expanded.contains(e.id);
+
+                              return BaseSampleCard(
+                                referenceBouteille: e.referenceBouteille,
+                                id: e.id,
+                                tintColor: tint,
+                                accentColor: accent,
+                                badge: CardBadgeRow(
+                                  badges: [
+                                    if (e.quantiteCibleT != null)
+                                      CardBadge(
+                                        label: 'Qté : ${e.quantiteCibleT}T',
+                                        color: kOlive,
+                                      ),
+                                    // Sans plafond au nombre de tours, ce compteur est
+                                    // le seul signal qu'un dossier s'enlise.
+                                    if (e.nbRenegociations > 0)
+                                      MarqueurRenegocie(
+                                        nombre: e.nbRenegociations,
+                                      ),
+                                    // The price is not repeated here: it already has a
+                                    // line in the proposal details just below, and the
+                                    // header only needs what tells two cards apart.
+                                  ],
+                                ),
+                                detailItems: [
+                                  DetailItem('N° échantillon', e.id),
+                                  DetailItem(
+                                    'Ref. bouteille',
+                                    e.referenceBouteille,
+                                  ),
+                                  DetailItem(
+                                    'Gouvernorat',
+                                    '${e.gouvernorat}${e.delegation != null ? " — ${e.delegation}" : ""}',
+                                  ),
+                                  DetailItem('Fournisseur', e.codeFournisseur),
+                                  if (e.variete != null)
+                                    DetailItem('Variété', e.variete!),
+                                  if (e.collecteurNom != null)
+                                    DetailItem('Collecteur', e.collecteurNom!),
+                                  DetailItem(
+                                    'Date enregistrement',
+                                    e.dateAjout,
+                                  ),
+                                ],
+                                bottomSection: PropositionSection(
+                                  echantillon: e,
+                                  accentColor: accent,
+                                  isExpanded: isOpen,
+                                  onToggle: () => setState(
+                                    () => isOpen
+                                        ? _expanded.remove(e.id)
+                                        : _expanded.add(e.id),
+                                  ),
+                                  onConfirmer: () => _confirmer(e),
+                                  onRefuser: () => _refuser(e),
+                                ),
+                              );
+                            },
+                          ),
+                  ),
+                ],
+              ),
+            ),
     );
   }
 }

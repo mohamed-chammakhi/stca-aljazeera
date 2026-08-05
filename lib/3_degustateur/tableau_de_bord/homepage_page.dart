@@ -17,6 +17,7 @@ import '../widgets/degustateur_nav_mixin.dart';
 import '../profil/profil_page.dart';
 import '../notifications/models/notification_degustateur.dart';
 import '../notifications/services/notification_degustateur_service.dart';
+import '../../../core/widgets/bandeau_demonstration.dart';
 import '../notifications/notifications_degustateur_page.dart';
 
 import '../../../main.dart';
@@ -28,6 +29,7 @@ import '../analyse_labo/analyse_laboratoire_page.dart';
 
 const Color _headerBg = Color.fromARGB(255, 220, 233, 226);
 const Color _dark = Color(0xFF1A2E1F);
+
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -39,6 +41,8 @@ class _HomePageState extends State<HomePage> with DegustateurNavMixin {
   // ── Notifications ─────────────────────────────────────────────────────────
   final _notifService = NotificationDegustateurService();
   int _unreadCount = 0;
+  bool _estDemonstration = false;
+  Object? _erreurChargement;
 
   @override
   void initState() {
@@ -47,8 +51,17 @@ class _HomePageState extends State<HomePage> with DegustateurNavMixin {
   }
 
   Future<void> _loadUnreadCount() async {
-    final count = await _notifService.fetchUnreadCount();
-    if (mounted) setState(() => _unreadCount = count);
+    try {
+      final resultat = await _notifService.fetchUnreadCount();
+      if (!mounted) return;
+      setState(() {
+        _unreadCount = resultat.donnees;
+        _estDemonstration = resultat.estDemonstration;
+        _erreurChargement = null;
+      });
+    } catch (erreur) {
+      if (mounted) setState(() => _erreurChargement = erreur);
+    }
   }
 
   // ── ACTIONS ───────────────────────────────────────────────────────────────
@@ -150,14 +163,20 @@ class _HomePageState extends State<HomePage> with DegustateurNavMixin {
         ],
       ),
 
-      body: const HomeBody(),
+      body: VueResultatService(
+        estDemonstration: _estDemonstration,
+        erreur: _erreurChargement,
+        onReessayer: _loadUnreadCount,
+        child: const HomeBody(),
+      ),
       drawer: AppDrawer(
         onaccueil: () => Navigator.pop(context),
         onEvaluationEchantillons: () =>
             goToPage(const EvaluationEchantillonsPage()),
         onGestionEchantillons: () => goToPage(const GestionEchantillonsPage()),
         onAnalyseLaboratoire: () => goToPage(const AnalyseLaboratoirePage()),
-        onSessionsDegustationPage: () => goToPage(const SessionsDegustationPage()),
+        onSessionsDegustationPage: () =>
+            goToPage(const SessionsDegustationPage()),
         onMembredupanel: () => goToPage(const MembresPanelPage()),
         onProfil: () => goToPage(const ProfilePage()),
         onDeconnexion: goToLogin,

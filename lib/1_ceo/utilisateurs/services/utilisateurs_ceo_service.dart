@@ -1,16 +1,18 @@
 import '../../../../core/api_client.dart';
 import '../../../../core/models/enums.dart';
 import '../../../../core/models/user_profile.dart';
+import '../../../../core/services/resultat_service.dart';
+import '../models/mock_data_patch.dart';
 
 class UtilisateursCeoService {
   const UtilisateursCeoService();
 
-  Future<List<UserProfile>> fetchUsers() async {
+  Future<Resultat<List<UserProfile>>> fetchUsers() => avecSecours(() async {
     final items = await apiClient.getList('/api/users/');
     return items
         .map((item) => UserProfile.fromJson(item as Map<String, dynamic>))
         .toList();
-  }
+  }, () => List<UserProfile>.from(mockUtilisateurs));
 
   Future<UserProfile> createUser({
     required String nom,
@@ -47,7 +49,7 @@ class UtilisateursCeoService {
       }
       return error.message;
     }
-    return 'Impossible de joindre le serveur. Les données de démonstration restent affichées.';
+    return "Impossible de joindre le serveur. Aucune modification n'a été enregistrée.";
   }
 }
 

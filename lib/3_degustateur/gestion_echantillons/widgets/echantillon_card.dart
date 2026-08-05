@@ -33,15 +33,15 @@ Color _statusColor(StatutDegustateur? s) {
 // ─────────────────────────────────────────────────────────────────────────────
 class EchantillonCard extends StatefulWidget {
   final Echantillon echantillon;
-  final VoidCallback onModifier;
-  final VoidCallback onSupprimer;
-  final VoidCallback onToggleRecu;
+  final VoidCallback? onModifier;
+  final VoidCallback? onSupprimer;
+  final Future<bool> Function() onToggleRecu;
 
   const EchantillonCard({
     super.key,
     required this.echantillon,
-    required this.onModifier,
-    required this.onSupprimer,
+    this.onModifier,
+    this.onSupprimer,
     required this.onToggleRecu,
   });
 
@@ -75,7 +75,8 @@ class _EchantillonCardState extends State<EchantillonCard> {
     if (confirmed != true) return;
 
     _msgTimer?.cancel();
-    widget.onToggleRecu();
+    final succeeded = await widget.onToggleRecu();
+    if (!mounted || !succeeded) return;
     if (willBeReceived) {
       setState(() => _showRecuMsg = true);
       _msgTimer = Timer(const Duration(seconds: 6), () {
@@ -269,24 +270,28 @@ class _EchantillonCardState extends State<EchantillonCard> {
                                           ),
                                         ),
                                       ),
-                                      const SizedBox(width: 2),
-                                      Tooltip(
-                                        message: 'Modifier',
-                                        child: _SmallIconBtn(
-                                          icon: Icons.edit_outlined,
-                                          color: _olive,
-                                          onTap: widget.onModifier,
+                                      if (widget.onModifier != null) ...[
+                                        const SizedBox(width: 2),
+                                        Tooltip(
+                                          message: 'Modifier',
+                                          child: _SmallIconBtn(
+                                            icon: Icons.edit_outlined,
+                                            color: _olive,
+                                            onTap: widget.onModifier!,
+                                          ),
                                         ),
-                                      ),
-                                      const SizedBox(width: 2),
-                                      Tooltip(
-                                        message: 'Supprimer',
-                                        child: _SmallIconBtn(
-                                          icon: Icons.delete_outline,
-                                          color: Colors.red.shade300,
-                                          onTap: widget.onSupprimer,
+                                      ],
+                                      if (widget.onSupprimer != null) ...[
+                                        const SizedBox(width: 2),
+                                        Tooltip(
+                                          message: 'Supprimer',
+                                          child: _SmallIconBtn(
+                                            icon: Icons.delete_outline,
+                                            color: Colors.red.shade300,
+                                            onTap: widget.onSupprimer!,
+                                          ),
                                         ),
-                                      ),
+                                      ],
                                     ],
                                   ],
                                 ),

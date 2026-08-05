@@ -1,10 +1,11 @@
-﻿// ═════════════════════════════════════════════════════════════════════════════
+// ═════════════════════════════════════════════════════════════════════════════
 // FILE : 1_ceo/analyse_organoleptique/analyse_organoleptique_ceo_page.dart
 // ═════════════════════════════════════════════════════════════════════════════
 
 import 'package:flutter/material.dart';
 import 'package:project3/core/theme/app_colors.dart';
 import 'package:project3/core/utils/date_utils.dart';
+import 'package:project3/core/widgets/bandeau_demonstration.dart';
 import 'models/sample_status.dart';
 import '../widgets/ceo_nav_mixin.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -78,7 +79,8 @@ class AnalyseOrganoleptiqueCeoPage extends StatefulWidget {
 }
 
 class _AnalyseOrganoleptiqueCeoPageState
-    extends State<AnalyseOrganoleptiqueCeoPage> with CeoNavMixin {
+    extends State<AnalyseOrganoleptiqueCeoPage>
+    with CeoNavMixin {
   final Set<String> _expandedPanel = {};
   final Set<String> _urgentSent = {};
 
@@ -88,9 +90,10 @@ class _AnalyseOrganoleptiqueCeoPageState
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
   final _service = EchantillonCeoService();
-  List<EchantillonCeoView> _allEchantillons = List.of(
-    mockEchantillonsOrganoleptique,
-  );
+  List<EchantillonCeoView> _allEchantillons = [];
+  bool _chargement = true;
+  bool _estDemonstration = false;
+  Object? _erreurChargement;
 
   @override
   void initState() {
@@ -99,15 +102,24 @@ class _AnalyseOrganoleptiqueCeoPageState
   }
 
   Future<void> _loadEchantillons() async {
+    if (mounted) setState(() => _chargement = true);
     try {
-      final data = await _service.fetchCeoViews();
-      if (mounted) setState(() => _allEchantillons = data);
-    } catch (_) {
-      if (mounted) {
-        setState(
-          () => _allEchantillons = List.of(mockEchantillonsOrganoleptique),
-        );
-      }
+      final resultat = await _service.fetchCeoViews(
+        () => List.of(mockEchantillonsOrganoleptique),
+      );
+      if (!mounted) return;
+      setState(() {
+        _allEchantillons = resultat.donnees;
+        _estDemonstration = resultat.estDemonstration;
+        _erreurChargement = null;
+        _chargement = false;
+      });
+    } catch (erreur) {
+      if (!mounted) return;
+      setState(() {
+        _erreurChargement = erreur;
+        _chargement = false;
+      });
     }
   }
 
@@ -195,7 +207,6 @@ class _AnalyseOrganoleptiqueCeoPageState
       ),
     );
   }
-
 
   SampleStatus _statusOf(EchantillonCeoView e) {
     if (e.evaluations.isEmpty) return SampleStatus.none;
@@ -548,181 +559,200 @@ class _AnalyseOrganoleptiqueCeoPageState
           const SizedBox(width: 6),
         ],
       ),
-      body: Column(
-        children: [
-          // ── Unified header zone ──────────────────────────────────────
-          Container(
-            color: kHeaderBg,
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
-            child: TextField(
-              controller: _searchController,
-              onChanged: (v) => setState(() => _searchQuery = v.trim()),
-              style: const TextStyle(fontSize: 14, color: kDark),
-              decoration: InputDecoration(
-                hintText: 'Réf, fournisseur, gouvernorat, variété, collecteur…',
-                hintStyle: const TextStyle(
-                  color: Color(0xFF6B8E7A),
-                  fontSize: 11,
-                ),
-                prefixIcon: const Icon(
-                  Icons.search,
-                  color: Color(0xFF6B8E7A),
-                  size: 20,
-                ),
-                suffixIcon: _searchQuery.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(
-                          Icons.close,
-                          size: 17,
+      body: _chargement
+          ? const Center(child: CircularProgressIndicator(color: kGreen))
+          : VueResultatService(
+              estDemonstration: _estDemonstration,
+              erreur: _erreurChargement,
+              onReessayer: _loadEchantillons,
+              child: Column(
+                children: [
+                  // ── Unified header zone ──────────────────────────────────────
+                  Container(
+                    color: kHeaderBg,
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
+                    child: TextField(
+                      controller: _searchController,
+                      onChanged: (v) => setState(() => _searchQuery = v.trim()),
+                      style: const TextStyle(fontSize: 14, color: kDark),
+                      decoration: InputDecoration(
+                        hintText:
+                            'Réf, fournisseur, gouvernorat, variété, collecteur…',
+                        hintStyle: const TextStyle(
                           color: Color(0xFF6B8E7A),
+                          fontSize: 11,
                         ),
-                        onPressed: () => setState(() {
-                          _searchQuery = '';
-                          _searchController.clear();
-                        }),
-                      )
-                    : null,
-                filled: true,
-                fillColor: Colors.white,
-                contentPadding: const EdgeInsets.symmetric(
-                  vertical: 11,
-                  horizontal: 16,
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: kGreen, width: 1.5),
-                ),
-              ),
-            ),
-          ),
-          Container(height: 1, color: Colors.black.withValues(alpha: 0.06)),
-          // Stats strip
-          Container(
-            color: kBg,
-            padding: const EdgeInsets.fromLTRB(16, 9, 16, 6),
-            child: Row(
-              children: [
-                const Icon(
-                  Icons.science_outlined,
-                  size: 13,
-                  color: Color.fromARGB(255, 156, 156, 156),
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  '${echantillons.length} échantillon${echantillons.length > 1 ? "s" : ""}',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Color.fromARGB(255, 156, 156, 156),
-                    fontWeight: FontWeight.w500,
+                        prefixIcon: const Icon(
+                          Icons.search,
+                          color: Color(0xFF6B8E7A),
+                          size: 20,
+                        ),
+                        suffixIcon: _searchQuery.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(
+                                  Icons.close,
+                                  size: 17,
+                                  color: Color(0xFF6B8E7A),
+                                ),
+                                onPressed: () => setState(() {
+                                  _searchQuery = '';
+                                  _searchController.clear();
+                                }),
+                              )
+                            : null,
+                        filled: true,
+                        fillColor: Colors.white,
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: 11,
+                          horizontal: 16,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(
+                            color: kGreen,
+                            width: 1.5,
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-              ],
-            ),
-          ),
-          // List
-          Expanded(
-            child: echantillons.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                  Container(
+                    height: 1,
+                    color: Colors.black.withValues(alpha: 0.06),
+                  ),
+                  // Stats strip
+                  Container(
+                    color: kBg,
+                    padding: const EdgeInsets.fromLTRB(16, 9, 16, 6),
+                    child: Row(
                       children: [
-                        Icon(
-                          Icons.search_off_rounded,
-                          size: 48,
-                          color: Colors.grey.shade300,
+                        const Icon(
+                          Icons.science_outlined,
+                          size: 13,
+                          color: Color.fromARGB(255, 156, 156, 156),
                         ),
-                        const SizedBox(height: 10),
+                        const SizedBox(width: 6),
                         Text(
-                          'Aucun échantillon trouvé',
-                          style: TextStyle(
-                            color: Colors.grey.shade400,
-                            fontSize: 14,
+                          '${echantillons.length} échantillon${echantillons.length > 1 ? "s" : ""}',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Color.fromARGB(255, 156, 156, 156),
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                       ],
                     ),
-                  )
-                : ListView.builder(
-                    padding: const EdgeInsets.fromLTRB(14, 14, 14, 30),
-                    itemCount: echantillons.length,
-                    itemBuilder: (_, i) {
-                      final e = echantillons[i];
-                      final panelExp = _expandedPanel.contains(e.id);
-
-                      return BaseSampleCard(
-                        referenceBouteille: e.referenceBouteille,
-                        id: e.id,
-                        tintColor: Colors.white,
-                        accentColor: _cardAccent(e),
-                        badge: CardBadgeRow(
-                          badges: [
-                            if (e.quantiteEstimee != null)
-                              CardBadge(
-                                label: 'Qté : ${e.quantiteEstimee}T',
-                                color: kOlive,
-                              ),
-                            RecuPhysiqueIndicator(
-                              recuPhysiquement: e.recuPhysiquement,
-                            ),
-                          ],
-                        ),
-                        detailItems: [
-                          DetailItem('N° échantillon', e.id),
-                          DetailItem('Ref. bouteille', e.referenceBouteille),
-                          DetailItem(
-                            'Gouvernorat',
-                            '${e.gouvernorat}${e.delegation != null ? " — ${e.delegation}" : ""}',
-                          ),
-                          DetailItem('Fournisseur', e.codeFournisseur),
-                          if (e.variete != null)
-                            DetailItem('Variété', e.variete!),
-                          if (e.quantiteEstimee != null)
-                            DetailItem('Quantité', '${e.quantiteEstimee} T'),
-                          DetailItem('Date ajout', e.dateAjout),
-                          if (e.collecteurNom != null)
-                            DetailItem('Collecteur', e.collecteurNom!),
-                          DetailItem(
-                            'Reçu physiquement',
-                            e.recuPhysiquement ? 'Oui' : 'Non',
-                          ),
-                        ],
-                        deliveryWidget: SampleDeliveryIndicator(e: e),
-                        bottomSection: PanelSection(
-                          echantillon: e,
-                          isExpanded: panelExp,
-                          onToggle: () => setState(
-                            () => panelExp
-                                ? _expandedPanel.remove(e.id)
-                                : _expandedPanel.add(e.id),
-                          ),
-                          onViewForm: (ev) => showEvaluationFormSheet(
-                            context,
-                            evaluation: ev,
-                            sampleRef: e.id,
-                          ),
-                          onApprouver: () => _showApprouverDialog(e),
-                          onRefuser: () => _showRefuserDialog(e),
-                          isUrgent: _urgentSent.contains(e.id),
-                          onUrgent: () => _confirmSendUrgent(e),
-                        ),
-                      );
-                    },
                   ),
-          ),
-        ],
-      ),
+                  // List
+                  Expanded(
+                    child: echantillons.isEmpty
+                        ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.search_off_rounded,
+                                  size: 48,
+                                  color: Colors.grey.shade300,
+                                ),
+                                const SizedBox(height: 10),
+                                Text(
+                                  'Aucun échantillon trouvé',
+                                  style: TextStyle(
+                                    color: Colors.grey.shade400,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        : ListView.builder(
+                            padding: const EdgeInsets.fromLTRB(14, 14, 14, 30),
+                            itemCount: echantillons.length,
+                            itemBuilder: (_, i) {
+                              final e = echantillons[i];
+                              final panelExp = _expandedPanel.contains(e.id);
+
+                              return BaseSampleCard(
+                                referenceBouteille: e.referenceBouteille,
+                                id: e.id,
+                                tintColor: Colors.white,
+                                accentColor: _cardAccent(e),
+                                badge: CardBadgeRow(
+                                  badges: [
+                                    if (e.quantiteEstimee != null)
+                                      CardBadge(
+                                        label: 'Qté : ${e.quantiteEstimee}T',
+                                        color: kOlive,
+                                      ),
+                                    RecuPhysiqueIndicator(
+                                      recuPhysiquement: e.recuPhysiquement,
+                                    ),
+                                  ],
+                                ),
+                                detailItems: [
+                                  DetailItem('N° échantillon', e.id),
+                                  DetailItem(
+                                    'Ref. bouteille',
+                                    e.referenceBouteille,
+                                  ),
+                                  DetailItem(
+                                    'Gouvernorat',
+                                    '${e.gouvernorat}${e.delegation != null ? " — ${e.delegation}" : ""}',
+                                  ),
+                                  DetailItem('Fournisseur', e.codeFournisseur),
+                                  if (e.variete != null)
+                                    DetailItem('Variété', e.variete!),
+                                  if (e.quantiteEstimee != null)
+                                    DetailItem(
+                                      'Quantité',
+                                      '${e.quantiteEstimee} T',
+                                    ),
+                                  DetailItem('Date ajout', e.dateAjout),
+                                  if (e.collecteurNom != null)
+                                    DetailItem('Collecteur', e.collecteurNom!),
+                                  DetailItem(
+                                    'Reçu physiquement',
+                                    e.recuPhysiquement ? 'Oui' : 'Non',
+                                  ),
+                                ],
+                                deliveryWidget: SampleDeliveryIndicator(e: e),
+                                bottomSection: PanelSection(
+                                  echantillon: e,
+                                  isExpanded: panelExp,
+                                  onToggle: () => setState(
+                                    () => panelExp
+                                        ? _expandedPanel.remove(e.id)
+                                        : _expandedPanel.add(e.id),
+                                  ),
+                                  onViewForm: (ev) => showEvaluationFormSheet(
+                                    context,
+                                    evaluation: ev,
+                                    sampleRef: e.id,
+                                  ),
+                                  onApprouver: () => _showApprouverDialog(e),
+                                  onRefuser: () => _showRefuserDialog(e),
+                                  isUrgent: _urgentSent.contains(e.id),
+                                  onUrgent: () => _confirmSendUrgent(e),
+                                ),
+                              );
+                            },
+                          ),
+                  ),
+                ],
+              ),
+            ),
     );
   }
 }
-
 
 // Small pill-shaped decision button
 class _DecisionButton extends StatelessWidget {
@@ -911,7 +941,9 @@ class _RecuPhysiqueIndicator extends StatelessWidget {
   Widget build(BuildContext context) {
     const green = Color(0xFF38835A);
     return Tooltip(
-      message: recuPhysiquement ? 'Présent dans la société' : 'Non encore livré',
+      message: recuPhysiquement
+          ? 'Présent dans la société'
+          : 'Non encore livré',
       child: Icon(
         recuPhysiquement ? Icons.check_circle : Icons.check_circle_outline,
         size: 20,

@@ -1,32 +1,28 @@
 import '../models/notification_labo.dart';
+import '../../../core/api_client.dart';
+import '../../../core/services/resultat_service.dart';
 
 class NotificationLaboService {
-  // TODO: inject ApiClient here when backend is ready
-  // final ApiClient _api;
-
-  Future<List<NotificationLabo>> fetchNotifications() async {
-    // TODO: replace with: final data = await _api.get('/api/notifications/');
-    // TODO: return (data['results'] as List).map((e) => NotificationLabo.fromJson(e)).toList();
-    await Future.delayed(const Duration(milliseconds: 300));
-    return _mockNotifications(); // TODO: remove when backend is ready
-  }
+  Future<Resultat<List<NotificationLabo>>> fetchNotifications() =>
+      avecSecours(() async {
+        final data = await apiClient.getList('/api/notifications/');
+        return data
+            .map((e) => NotificationLabo.fromJson(e as Map<String, dynamic>))
+            .toList();
+      }, _mockNotifications);
 
   Future<void> markAsRead(String id) async {
-    // TODO: replace with: await _api.patch('/api/notifications/$id/', {'is_read': true});
-    await Future.delayed(const Duration(milliseconds: 100));
+    await apiClient.patch('/api/notifications/$id/lire/', {});
   }
 
   Future<void> markAllAsRead() async {
-    // TODO: replace with: await _api.post('/api/notifications/read-all/', {});
-    await Future.delayed(const Duration(milliseconds: 100));
+    await apiClient.post('/api/notifications/lire-tout/', {});
   }
 
-  Future<int> fetchUnreadCount() async {
-    // TODO: replace with: final data = await _api.get('/api/notifications/unread-count/');
-    // TODO: return data['count'] as int;
-    await Future.delayed(const Duration(milliseconds: 100));
-    return _mockNotifications().where((n) => !n.isRead).length;
-  }
+  Future<Resultat<int>> fetchUnreadCount() => avecSecours(() async {
+    final data = await apiClient.get('/api/notifications/unread-count/');
+    return data['count'] as int;
+  }, () => _mockNotifications().where((n) => !n.isRead).length);
 
   // TODO: remove when backend is ready
   List<NotificationLabo> _mockNotifications() {

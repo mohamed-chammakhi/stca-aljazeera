@@ -1,10 +1,11 @@
-﻿// ═════════════════════════════════════════════════════════════════════════════
+// ═════════════════════════════════════════════════════════════════════════════
 // FILE : 1_ceo/achats_confirmes/achats_confirmes_ceo_page.dart
 // ═════════════════════════════════════════════════════════════════════════════
 
 import 'package:flutter/material.dart';
 import 'package:project3/core/theme/app_colors.dart';
 import 'package:project3/core/utils/date_utils.dart';
+import 'package:project3/core/widgets/bandeau_demonstration.dart';
 import '../widgets/ceo_nav_mixin.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../widgets/ceo_drawer.dart';
@@ -25,7 +26,6 @@ import '../validation_achats/validation_achats_ceo_page.dart';
 import '../echantillons/services/echantillon_ceo_service.dart';
 import '../../core/widgets/grille_details.dart';
 
-
 // ─────────────────────────────────────────────────────────────────────────────
 class AchatsConfirmesCeoPage extends StatefulWidget {
   const AchatsConfirmesCeoPage({super.key});
@@ -33,7 +33,8 @@ class AchatsConfirmesCeoPage extends StatefulWidget {
   State<AchatsConfirmesCeoPage> createState() => _AchatsConfirmesCeoPageState();
 }
 
-class _AchatsConfirmesCeoPageState extends State<AchatsConfirmesCeoPage> with CeoNavMixin {
+class _AchatsConfirmesCeoPageState extends State<AchatsConfirmesCeoPage>
+    with CeoNavMixin {
   final Set<String> _expandedAchat = {};
 
   String _activeFilter = 'tout';
@@ -45,7 +46,10 @@ class _AchatsConfirmesCeoPageState extends State<AchatsConfirmesCeoPage> with Ce
   final TextEditingController _searchController = TextEditingController();
 
   final _service = EchantillonCeoService();
-  List<EchantillonCeoView> _allAchats = List.of(mockAchatsConfirmes);
+  List<EchantillonCeoView> _allAchats = [];
+  bool _chargement = true;
+  bool _estDemonstration = false;
+  Object? _erreurChargement;
 
   @override
   void initState() {
@@ -54,17 +58,26 @@ class _AchatsConfirmesCeoPageState extends State<AchatsConfirmesCeoPage> with Ce
   }
 
   Future<void> _loadAchats() async {
+    if (mounted) setState(() => _chargement = true);
     try {
-      final data = await _service.fetchCeoViews();
-      if (mounted) {
-        setState(
-          () => _allAchats = data
-              .where((e) => e.statut == StatutCeo.achatConfirme)
-              .toList(),
-        );
-      }
-    } catch (_) {
-      if (mounted) setState(() => _allAchats = List.of(mockAchatsConfirmes));
+      final resultat = await _service.fetchCeoViews(
+        () => List.of(mockAchatsConfirmes),
+      );
+      if (!mounted) return;
+      setState(() {
+        _allAchats = resultat.donnees
+            .where((e) => e.statut == StatutCeo.achatConfirme)
+            .toList();
+        _estDemonstration = resultat.estDemonstration;
+        _erreurChargement = null;
+        _chargement = false;
+      });
+    } catch (erreur) {
+      if (!mounted) return;
+      setState(() {
+        _erreurChargement = erreur;
+        _chargement = false;
+      });
     }
   }
 
@@ -128,7 +141,6 @@ class _AchatsConfirmesCeoPageState extends State<AchatsConfirmesCeoPage> with Ce
     return result;
   }
 
-
   Future<void> _showDateFilter() async {
     await showModalBottomSheet(
       context: context,
@@ -158,7 +170,6 @@ class _AchatsConfirmesCeoPageState extends State<AchatsConfirmesCeoPage> with Ce
       ),
     );
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -227,176 +238,198 @@ class _AchatsConfirmesCeoPageState extends State<AchatsConfirmesCeoPage> with Ce
           const SizedBox(width: 6),
         ],
       ),
-      body: Column(
-        children: [
-          // ── Unified header zone ──────────────────────────────────────
-          Container(
-            color: kHeaderBg,
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
-            child: TextField(
-              controller: _searchController,
-              onChanged: (v) => setState(() => _searchQuery = v.trim()),
-              style: const TextStyle(fontSize: 14, color: kDark),
-              decoration: InputDecoration(
-                hintText: 'Réf, fournisseur, gouvernorat, variété, collecteur…',
-                hintStyle: const TextStyle(
-                  color: Color(0xFF6B8E7A),
-                  fontSize: 11,
-                ),
-                prefixIcon: const Icon(
-                  Icons.search,
-                  color: Color(0xFF6B8E7A),
-                  size: 20,
-                ),
-                suffixIcon: _searchQuery.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(
-                          Icons.close,
-                          size: 17,
+      body: _chargement
+          ? const Center(child: CircularProgressIndicator(color: kGreen))
+          : VueResultatService(
+              estDemonstration: _estDemonstration,
+              erreur: _erreurChargement,
+              onReessayer: _loadAchats,
+              child: Column(
+                children: [
+                  // ── Unified header zone ──────────────────────────────────────
+                  Container(
+                    color: kHeaderBg,
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
+                    child: TextField(
+                      controller: _searchController,
+                      onChanged: (v) => setState(() => _searchQuery = v.trim()),
+                      style: const TextStyle(fontSize: 14, color: kDark),
+                      decoration: InputDecoration(
+                        hintText:
+                            'Réf, fournisseur, gouvernorat, variété, collecteur…',
+                        hintStyle: const TextStyle(
                           color: Color(0xFF6B8E7A),
+                          fontSize: 11,
                         ),
-                        onPressed: () => setState(() {
-                          _searchQuery = '';
-                          _searchController.clear();
-                        }),
-                      )
-                    : null,
-                filled: true,
-                fillColor: Colors.white,
-                contentPadding: const EdgeInsets.symmetric(
-                  vertical: 11,
-                  horizontal: 16,
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: kGreen, width: 1.5),
-                ),
-              ),
-            ),
-          ),
-          Container(height: 1, color: Colors.black.withValues(alpha: 0.06)),
-          Container(
-            color: kBg,
-            padding: const EdgeInsets.fromLTRB(16, 9, 16, 6),
-            child: Row(
-              children: [
-                // ── CHANGED: use _FilterChip for consistent active/inactive states ──
-                StatusFilterChip(
-                  label: 'Tout',
-                  isActive: _activeFilter == 'tout',
-                  activeBg: const Color(0xFF757575),
-                  activeFg: Colors.white,
-                  onTap: () => setState(() => _activeFilter = 'tout'),
-                ),
-                const SizedBox(width: 8),
-                StatusFilterChip(
-                  label: 'Stock arrivé',
-                  isActive: _activeFilter == 'arrive',
-                  activeBg: kGreen.withValues(alpha: 0.12),
-                  activeFg: kGreen,
-                  onTap: () => setState(() => _activeFilter = 'arrive'),
-                ),
-                const SizedBox(width: 8),
-                StatusFilterChip(
-                  label: 'En transit',
-                  isActive: _activeFilter == 'transit',
-                  activeBg: Colors.orange.shade700.withValues(alpha: 0.12),
-                  activeFg: Colors.orange.shade700,
-                  onTap: () => setState(() => _activeFilter = 'transit'),
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: achats.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.handshake_outlined,
-                          size: 52,
-                          color: Colors.grey.shade300,
+                        prefixIcon: const Icon(
+                          Icons.search,
+                          color: Color(0xFF6B8E7A),
+                          size: 20,
                         ),
-                        const SizedBox(height: 12),
-                        Text(
-                          'Aucun achat confirmé',
-                          style: TextStyle(
-                            color: Colors.grey.shade400,
-                            fontSize: 14,
+                        suffixIcon: _searchQuery.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(
+                                  Icons.close,
+                                  size: 17,
+                                  color: Color(0xFF6B8E7A),
+                                ),
+                                onPressed: () => setState(() {
+                                  _searchQuery = '';
+                                  _searchController.clear();
+                                }),
+                              )
+                            : null,
+                        filled: true,
+                        fillColor: Colors.white,
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: 11,
+                          horizontal: 16,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(
+                            color: kGreen,
+                            width: 1.5,
                           ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Container(
+                    height: 1,
+                    color: Colors.black.withValues(alpha: 0.06),
+                  ),
+                  Container(
+                    color: kBg,
+                    padding: const EdgeInsets.fromLTRB(16, 9, 16, 6),
+                    child: Row(
+                      children: [
+                        // ── CHANGED: use _FilterChip for consistent active/inactive states ──
+                        StatusFilterChip(
+                          label: 'Tout',
+                          isActive: _activeFilter == 'tout',
+                          activeBg: const Color(0xFF757575),
+                          activeFg: Colors.white,
+                          onTap: () => setState(() => _activeFilter = 'tout'),
+                        ),
+                        const SizedBox(width: 8),
+                        StatusFilterChip(
+                          label: 'Stock arrivé',
+                          isActive: _activeFilter == 'arrive',
+                          activeBg: kGreen.withValues(alpha: 0.12),
+                          activeFg: kGreen,
+                          onTap: () => setState(() => _activeFilter = 'arrive'),
+                        ),
+                        const SizedBox(width: 8),
+                        StatusFilterChip(
+                          label: 'En transit',
+                          isActive: _activeFilter == 'transit',
+                          activeBg: Colors.orange.shade700.withValues(
+                            alpha: 0.12,
+                          ),
+                          activeFg: Colors.orange.shade700,
+                          onTap: () =>
+                              setState(() => _activeFilter = 'transit'),
                         ),
                       ],
                     ),
-                  )
-                : ListView.builder(
-                    padding: const EdgeInsets.fromLTRB(14, 14, 14, 30),
-                    itemCount: achats.length,
-                    itemBuilder: (_, i) {
-                      final e = achats[i];
-                      final accentColor = e.stockArrive
-                          ? kGreen
-                          : Colors.orange.shade700;
-                      final tintColor = e.stockArrive
-                          ? const Color(0xFFEAF4EE)
-                          : const Color(0xFFFFF3E0);
-
-                      final achatExp = _expandedAchat.contains(e.id);
-
-                      return BaseSampleCard(
-                        referenceBouteille: e.referenceBouteille,
-                        id: e.id,
-                        tintColor: tintColor,
-                        accentColor: accentColor,
-                        badge: CardBadgeRow(
-                          badges: [
-                            if (e.quantiteCibleT != null)
-                              CardBadge(
-                                label: 'Qté : ${e.quantiteCibleT}T',
-                                color: kOlive,
-                              ),
-                          ],
-                        ),
-                        detailItems: [
-                          DetailItem('N° échantillon', e.id),
-                          DetailItem('Ref. bouteille', e.referenceBouteille),
-                          DetailItem(
-                            'Gouvernorat',
-                            '${e.gouvernorat}${e.delegation != null ? " — ${e.delegation}" : ""}',
-                          ),
-                          DetailItem('Fournisseur', e.codeFournisseur),
-                          if (e.variete != null)
-                            DetailItem('Variété', e.variete!),
-                          if (e.collecteurNom != null)
-                            DetailItem('Collecteur', e.collecteurNom!),
-                          DetailItem('Date enregistrement', e.dateAjout),
-                        ],
-                        deliveryWidget: SampleDeliveryIndicator(e: e),
-                        bottomSection: AchatSection(
-                          echantillon: e,
-                          accentColor: accentColor,
-                          isExpanded: achatExp,
-                          onToggle: () => setState(
-                            () => achatExp
-                                ? _expandedAchat.remove(e.id)
-                                : _expandedAchat.add(e.id),
-                          ),
-                        ),
-                      );
-                    },
                   ),
-          ),
-        ],
-      ),
+                  Expanded(
+                    child: achats.isEmpty
+                        ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.handshake_outlined,
+                                  size: 52,
+                                  color: Colors.grey.shade300,
+                                ),
+                                const SizedBox(height: 12),
+                                Text(
+                                  'Aucun achat confirmé',
+                                  style: TextStyle(
+                                    color: Colors.grey.shade400,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        : ListView.builder(
+                            padding: const EdgeInsets.fromLTRB(14, 14, 14, 30),
+                            itemCount: achats.length,
+                            itemBuilder: (_, i) {
+                              final e = achats[i];
+                              final accentColor = e.stockArrive
+                                  ? kGreen
+                                  : Colors.orange.shade700;
+                              final tintColor = e.stockArrive
+                                  ? const Color(0xFFEAF4EE)
+                                  : const Color(0xFFFFF3E0);
+
+                              final achatExp = _expandedAchat.contains(e.id);
+
+                              return BaseSampleCard(
+                                referenceBouteille: e.referenceBouteille,
+                                id: e.id,
+                                tintColor: tintColor,
+                                accentColor: accentColor,
+                                badge: CardBadgeRow(
+                                  badges: [
+                                    if (e.quantiteCibleT != null)
+                                      CardBadge(
+                                        label: 'Qté : ${e.quantiteCibleT}T',
+                                        color: kOlive,
+                                      ),
+                                  ],
+                                ),
+                                detailItems: [
+                                  DetailItem('N° échantillon', e.id),
+                                  DetailItem(
+                                    'Ref. bouteille',
+                                    e.referenceBouteille,
+                                  ),
+                                  DetailItem(
+                                    'Gouvernorat',
+                                    '${e.gouvernorat}${e.delegation != null ? " — ${e.delegation}" : ""}',
+                                  ),
+                                  DetailItem('Fournisseur', e.codeFournisseur),
+                                  if (e.variete != null)
+                                    DetailItem('Variété', e.variete!),
+                                  if (e.collecteurNom != null)
+                                    DetailItem('Collecteur', e.collecteurNom!),
+                                  DetailItem(
+                                    'Date enregistrement',
+                                    e.dateAjout,
+                                  ),
+                                ],
+                                deliveryWidget: SampleDeliveryIndicator(e: e),
+                                bottomSection: AchatSection(
+                                  echantillon: e,
+                                  accentColor: accentColor,
+                                  isExpanded: achatExp,
+                                  onToggle: () => setState(
+                                    () => achatExp
+                                        ? _expandedAchat.remove(e.id)
+                                        : _expandedAchat.add(e.id),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                  ),
+                ],
+              ),
+            ),
     );
   }
 }
-

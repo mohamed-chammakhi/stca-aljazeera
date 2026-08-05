@@ -9,6 +9,7 @@ import 'models/membre_panel.dart';
 import 'services/membres_panel_service.dart';
 import 'widgets/membre_card.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/bandeau_demonstration.dart';
 import '../widgets/degustateur_nav_mixin.dart';
 import '../gestion_echantillons/gestion_echantillons_page.dart';
 import '../evaluation_echantillons/evaluation_echantillons_page.dart';
@@ -36,6 +37,8 @@ class _MembresPanelPageState extends State<MembresPanelPage>
   final TextEditingController _searchCtrl = TextEditingController();
   String _recherche = '';
   List<MembrePanel> _membres = [];
+  bool _estDemonstration = false;
+  Object? _erreurChargement;
 
   @override
   void initState() {
@@ -44,8 +47,18 @@ class _MembresPanelPageState extends State<MembresPanelPage>
   }
 
   Future<void> _loadData() async {
-    final data = await _service.fetchMembres();
-    setState(() => _membres = data);
+    try {
+      final resultat = await _service.fetchMembres();
+      if (!mounted) return;
+      setState(() {
+        _membres = resultat.donnees;
+        _estDemonstration = resultat.estDemonstration;
+        _erreurChargement = null;
+      });
+    } catch (erreur) {
+      if (!mounted) return;
+      setState(() => _erreurChargement = erreur);
+    }
   }
 
   // ── FILTERED LIST based on search ─────────────────────────────────────────
@@ -84,95 +97,105 @@ class _MembresPanelPageState extends State<MembresPanelPage>
         iconTheme: const IconThemeData(color: kDark),
       ),
 
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            // ── SEARCH BAR ─────────────────────────────────────────────────
-            TextField(
-              controller: _searchCtrl,
-              onChanged: (v) => setState(() => _recherche = v),
-              style: const TextStyle(fontSize: 14, color: kDark),
-              decoration: InputDecoration(
-                hintText: 'Rechercher un membre...',
-                hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 13),
-                prefixIcon: const Icon(Icons.search, color: kGreen, size: 20),
-                suffixIcon: _recherche.isNotEmpty
-                    ? IconButton(
-                        icon: Icon(
-                          Icons.close,
-                          size: 18,
-                          color: Colors.grey.shade400,
-                        ),
-                        onPressed: () => setState(() {
-                          _recherche = '';
-                          _searchCtrl.clear();
-                        }),
-                      )
-                    : null,
-                filled: true,
-                fillColor: Colors.white,
-                contentPadding: const EdgeInsets.symmetric(
-                  vertical: 12,
-                  horizontal: 16,
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey.shade200),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey.shade200),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: kGreen, width: 1.8),
+      body: VueResultatService(
+        estDemonstration: _estDemonstration,
+        erreur: _erreurChargement,
+        onReessayer: _loadData,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              // ── SEARCH BAR ─────────────────────────────────────────────────
+              TextField(
+                controller: _searchCtrl,
+                onChanged: (v) => setState(() => _recherche = v),
+                style: const TextStyle(fontSize: 14, color: kDark),
+                decoration: InputDecoration(
+                  hintText: 'Rechercher un membre...',
+                  hintStyle: TextStyle(
+                    color: Colors.grey.shade400,
+                    fontSize: 13,
+                  ),
+                  prefixIcon: const Icon(Icons.search, color: kGreen, size: 20),
+                  suffixIcon: _recherche.isNotEmpty
+                      ? IconButton(
+                          icon: Icon(
+                            Icons.close,
+                            size: 18,
+                            color: Colors.grey.shade400,
+                          ),
+                          onPressed: () => setState(() {
+                            _recherche = '';
+                            _searchCtrl.clear();
+                          }),
+                        )
+                      : null,
+                  filled: true,
+                  fillColor: Colors.white,
+                  contentPadding: const EdgeInsets.symmetric(
+                    vertical: 12,
+                    horizontal: 16,
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey.shade200),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey.shade200),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: kGreen, width: 1.8),
+                  ),
                 ),
               ),
-            ),
 
-            const SizedBox(height: 16),
+              const SizedBox(height: 16),
 
-            // ── LIST ───────────────────────────────────────────────────────
-            Expanded(
-              child: _membresFiltres.isEmpty
-                  ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.search_off,
-                            size: 48,
-                            color: Colors.grey.shade300,
-                          ),
-                          const SizedBox(height: 12),
-                          Text(
-                            'Aucun membre trouvé',
-                            style: TextStyle(
-                              color: Colors.grey.shade400,
-                              fontSize: 14,
+              // ── LIST ───────────────────────────────────────────────────────
+              Expanded(
+                child: _membresFiltres.isEmpty
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.search_off,
+                              size: 48,
+                              color: Colors.grey.shade300,
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              'Aucun membre trouvé',
+                              style: TextStyle(
+                                color: Colors.grey.shade400,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    : Theme(
+                        data: Theme.of(context).copyWith(
+                          scrollbarTheme: ScrollbarThemeData(
+                            thumbColor: WidgetStateProperty.all(
+                              const Color.fromARGB(255, 81, 82, 81),
                             ),
                           ),
-                        ],
-                      ),
-                    )
-                  : Theme(
-                      data: Theme.of(context).copyWith(
-                        scrollbarTheme: ScrollbarThemeData(
-                          thumbColor: WidgetStateProperty.all(const Color.fromARGB(255, 81, 82, 81)),
+                        ),
+                        child: Scrollbar(
+                          thumbVisibility: true,
+                          child: ListView.builder(
+                            itemCount: _membresFiltres.length,
+                            itemBuilder: (context, index) =>
+                                MembreCard(membre: _membresFiltres[index]),
+                          ),
                         ),
                       ),
-                      child: Scrollbar(
-                        thumbVisibility: true,
-                        child: ListView.builder(
-                          itemCount: _membresFiltres.length,
-                          itemBuilder: (context, index) =>
-                              MembreCard(membre: _membresFiltres[index]),
-                        ),
-                      ),
-                    ),
-            ),
-          ],
+              ),
+            ],
+          ),
         ),
       ),
       drawer: AppDrawer(
@@ -182,7 +205,8 @@ class _MembresPanelPageState extends State<MembresPanelPage>
             goToPage(const EvaluationEchantillonsPage()),
         onGestionEchantillons: () => goToPage(const GestionEchantillonsPage()),
         onAnalyseLaboratoire: () => goToPage(const AnalyseLaboratoirePage()),
-        onSessionsDegustationPage: () => goToPage(const SessionsDegustationPage()),
+        onSessionsDegustationPage: () =>
+            goToPage(const SessionsDegustationPage()),
         onMembredupanel: () => goToPage(const MembresPanelPage()),
         onProfil: () => goToPage(const ProfilePage()),
 

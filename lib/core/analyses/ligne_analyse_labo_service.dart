@@ -1,28 +1,24 @@
 import '../api_client.dart';
+import '../services/resultat_service.dart';
 import 'ligne_analyse_labo.dart';
 import 'rapport_labo.dart';
 
 class LigneAnalyseLaboService {
-  Future<List<LigneAnalyseLabo>> fetchAnalyses() async {
-    try {
+  Future<Resultat<List<LigneAnalyseLabo>>> fetchAnalyses() => avecSecours(
+    () async {
       final data = await apiClient.getList('/api/analyses/echantillons/');
       return data.map((e) => ligneFromApi(e as Map<String, dynamic>)).toList();
-    } catch (_) {
-      return _analysesDemonstration;
-    }
-  }
+    },
+    () => List.of(_analysesDemonstration),
+  );
 
   Future<void> sendUrgentAnalyseLabo(
     String echantillonId,
     String echantillonNom,
   ) async {
-    try {
-      await apiClient.post('/api/notifications/analyse-urgente/', {
-        'echantillon': echantillonId,
-      });
-    } catch (_) {
-      return;
-    }
+    await apiClient.post('/api/notifications/analyse-urgente/', {
+      'echantillon': echantillonId,
+    });
   }
 
   /// Transforme l'échantillon imbriqué renvoyé par

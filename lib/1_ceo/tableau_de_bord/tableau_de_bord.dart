@@ -14,6 +14,7 @@ import '../notifications/models/notification_ceo.dart';
 import '../notifications/services/notification_ceo_service.dart';
 import '../notifications/notifications_ceo_page.dart';
 import '../../core/widgets/search_filter_bar.dart';
+import '../../core/widgets/bandeau_demonstration.dart';
 import 'models/dashboard_models.dart';
 import 'services/dashboard_ceo_service.dart';
 import 'widgets/kpi_grid_card.dart';
@@ -39,15 +40,25 @@ class HomePageCeo extends StatefulWidget {
   State<HomePageCeo> createState() => _HomePageCeoState();
 }
 
-class _HomePageCeoState extends State<HomePageCeo> with TickerProviderStateMixin {
+class _HomePageCeoState extends State<HomePageCeo>
+    with TickerProviderStateMixin {
   // ── Animations ──────────────────────────────────────────────────────────────
   late AnimationController _ctrl;
   late List<Animation<double>> _anims;
 
   // ── Per-card date ranges ───────────────────────────────────────────────────
-  CardDateRange _collectorRange = CardDateRange(DateTime(2025, 11, 1), DateTime(2026, 4, 30));
-  CardDateRange _classRange    = CardDateRange(DateTime(2025, 11, 1), DateTime(2026, 4, 30));
-  CardDateRange _salesRange    = CardDateRange(DateTime(2025, 10, 1), DateTime(2026, 4, 30));
+  CardDateRange _collectorRange = CardDateRange(
+    DateTime(2025, 11, 1),
+    DateTime(2026, 4, 30),
+  );
+  CardDateRange _classRange = CardDateRange(
+    DateTime(2025, 11, 1),
+    DateTime(2026, 4, 30),
+  );
+  CardDateRange _salesRange = CardDateRange(
+    DateTime(2025, 10, 1),
+    DateTime(2026, 4, 30),
+  );
 
   // ── Collector metric: 0=Valeur 1=Échantillons 2=Approbation ───────────────
   int _collectorMetric = 0;
@@ -57,17 +68,30 @@ class _HomePageCeoState extends State<HomePageCeo> with TickerProviderStateMixin
   final _dashboardService = DashboardCeoService();
   DashboardCeoSnapshot _dashboard = DashboardCeoSnapshot.mock();
   int _unreadCount = 0;
+  bool _chargementDashboard = true;
+  bool _demoDashboard = false;
+  bool _demoNotifications = false;
+  Object? _erreurChargement;
+
+  bool get _estDemonstration => _demoDashboard || _demoNotifications;
 
   // ── Lifecycle ──────────────────────────────────────────────────────────────
   @override
   void initState() {
     super.initState();
-    _ctrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 1400));
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1400),
+    );
     _anims = List.generate(
       12,
       (i) => CurvedAnimation(
         parent: _ctrl,
-        curve: Interval(i * 0.06, (i * 0.06 + 0.45).clamp(0.0, 1.0), curve: Curves.easeOutCubic),
+        curve: Interval(
+          i * 0.06,
+          (i * 0.06 + 0.45).clamp(0.0, 1.0),
+          curve: Curves.easeOutCubic,
+        ),
       ),
     );
     _ctrl.forward();
@@ -76,13 +100,41 @@ class _HomePageCeoState extends State<HomePageCeo> with TickerProviderStateMixin
   }
 
   Future<void> _loadUnreadCount() async {
-    final count = await _notifService.fetchUnreadCount();
-    if (mounted) setState(() => _unreadCount = count);
+    try {
+      final resultat = await _notifService.fetchUnreadCount();
+      if (!mounted) return;
+      setState(() {
+        _unreadCount = resultat.donnees;
+        _demoNotifications = resultat.estDemonstration;
+      });
+    } catch (erreur) {
+      if (mounted) setState(() => _erreurChargement = erreur);
+    }
   }
 
   Future<void> _loadDashboard() async {
-    final snapshot = await _dashboardService.fetchDashboard();
-    if (mounted) setState(() => _dashboard = snapshot);
+    if (mounted) setState(() => _chargementDashboard = true);
+    try {
+      final resultat = await _dashboardService.fetchDashboard();
+      if (!mounted) return;
+      setState(() {
+        _dashboard = resultat.donnees;
+        _demoDashboard = resultat.estDemonstration;
+        _erreurChargement = null;
+        _chargementDashboard = false;
+      });
+    } catch (erreur) {
+      if (!mounted) return;
+      setState(() {
+        _erreurChargement = erreur;
+        _chargementDashboard = false;
+      });
+    }
+  }
+
+  void _reessayer() {
+    _loadUnreadCount();
+    _loadDashboard();
   }
 
   @override
@@ -113,11 +165,21 @@ class _HomePageCeoState extends State<HomePageCeo> with TickerProviderStateMixin
       return;
     }
     switch (n.section) {
-      case 'EVALUATIONS':        _goTo(const AnalyseOrganoleptiqueCeoPage()); break;
-      case 'ANALYSES':           _goTo(const AnalyseLaboratoireCeoPage());    break;
-      case 'ACHATS_VALIDATION':  _goTo(const ValidationAchatsCeoPage());      break;
-      case 'ACHATS':             _goTo(const AchatsConfirmesCeoPage());       break;
-      default:                   _goTo(const EchantillonsCeoPage());          break;
+      case 'EVALUATIONS':
+        _goTo(const AnalyseOrganoleptiqueCeoPage());
+        break;
+      case 'ANALYSES':
+        _goTo(const AnalyseLaboratoireCeoPage());
+        break;
+      case 'ACHATS_VALIDATION':
+        _goTo(const ValidationAchatsCeoPage());
+        break;
+      case 'ACHATS':
+        _goTo(const AchatsConfirmesCeoPage());
+        break;
+      default:
+        _goTo(const EchantillonsCeoPage());
+        break;
     }
   }
 
@@ -128,13 +190,19 @@ class _HomePageCeoState extends State<HomePageCeo> with TickerProviderStateMixin
     animation: _anims[i],
     builder: (_, c) => Opacity(
       opacity: _anims[i].value,
-      child: Transform.translate(offset: Offset(0, 18 * (1 - _anims[i].value)), child: c),
+      child: Transform.translate(
+        offset: Offset(0, 18 * (1 - _anims[i].value)),
+        child: c,
+      ),
     ),
     child: child,
   );
 
   /// Shows the date-range bottom sheet and calls [onApply] with the result.
-  Future<void> _pickRange(CardDateRange current, void Function(CardDateRange) onApply) async {
+  Future<void> _pickRange(
+    CardDateRange current,
+    void Function(CardDateRange) onApply,
+  ) async {
     await showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -142,8 +210,13 @@ class _HomePageCeoState extends State<HomePageCeo> with TickerProviderStateMixin
       builder: (_) => DateFilterSheet(
         dateDebut: current.from,
         dateFin: current.to,
-        onApply: (debut, fin) => setState(() => onApply(CardDateRange(debut, fin ?? debut))),
-        onClear: () => setState(() => onApply(CardDateRange(DateTime(2025, 11, 1), DateTime(2026, 4, 30)))),
+        onApply: (debut, fin) =>
+            setState(() => onApply(CardDateRange(debut, fin ?? debut))),
+        onClear: () => setState(
+          () => onApply(
+            CardDateRange(DateTime(2025, 11, 1), DateTime(2026, 4, 30)),
+          ),
+        ),
       ),
     );
   }
@@ -164,9 +237,20 @@ class _HomePageCeoState extends State<HomePageCeo> with TickerProviderStateMixin
           children: [
             const Icon(Icons.calendar_today_outlined, size: 11, color: kGreen),
             const SizedBox(width: 5),
-            Text(range.label, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: _dark)),
+            Text(
+              range.label,
+              style: const TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w700,
+                color: _dark,
+              ),
+            ),
             const SizedBox(width: 4),
-            const Icon(Icons.keyboard_arrow_down_rounded, size: 13, color: _green),
+            const Icon(
+              Icons.keyboard_arrow_down_rounded,
+              size: 13,
+              color: _green,
+            ),
           ],
         ),
       ),
@@ -179,15 +263,16 @@ class _HomePageCeoState extends State<HomePageCeo> with TickerProviderStateMixin
     return Scaffold(
       backgroundColor: _pageBg,
       drawer: CeoDrawer(
-        onEchantillons:         () => _goTo(const EchantillonsCeoPage()),
-        onAnalyseOrganoleptique: () => _goTo(const AnalyseOrganoleptiqueCeoPage()),
-        onAnalyseLaboratoire:   () => _goTo(const AnalyseLaboratoireCeoPage()),
-        onValidationAchats:     () => _goTo(const ValidationAchatsCeoPage()),
-        onAchatsConfirmes:      () => _goTo(const AchatsConfirmesCeoPage()),
-        onTableauDeBord:        () => Navigator.pop(context),
-        onProfil:               () => _goTo(const ProfilceoPage()),
-        onutilisiateurs:        () => _goTo(const UtilisateursCeoPage()),
-        onDeconnexion:          () => _goTo(const LoginPage()),
+        onEchantillons: () => _goTo(const EchantillonsCeoPage()),
+        onAnalyseOrganoleptique: () =>
+            _goTo(const AnalyseOrganoleptiqueCeoPage()),
+        onAnalyseLaboratoire: () => _goTo(const AnalyseLaboratoireCeoPage()),
+        onValidationAchats: () => _goTo(const ValidationAchatsCeoPage()),
+        onAchatsConfirmes: () => _goTo(const AchatsConfirmesCeoPage()),
+        onTableauDeBord: () => Navigator.pop(context),
+        onProfil: () => _goTo(const ProfilceoPage()),
+        onutilisiateurs: () => _goTo(const UtilisateursCeoPage()),
+        onDeconnexion: () => _goTo(const LoginPage()),
       ),
       appBar: AppBar(
         backgroundColor: kHeaderBg,
@@ -195,7 +280,11 @@ class _HomePageCeoState extends State<HomePageCeo> with TickerProviderStateMixin
         toolbarHeight: 65,
         title: Text(
           'Tableau de Bord',
-          style: GoogleFonts.domine(fontSize: 18, fontWeight: FontWeight.w700, color: _dark),
+          style: GoogleFonts.domine(
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+            color: _dark,
+          ),
         ),
         iconTheme: const IconThemeData(color: kDark),
         actions: [
@@ -207,7 +296,8 @@ class _HomePageCeoState extends State<HomePageCeo> with TickerProviderStateMixin
               ),
               if (_unreadCount > 0)
                 Positioned(
-                  top: 8, right: 8,
+                  top: 8,
+                  right: 8,
                   child: Container(
                     width: _unreadCount > 9 ? 18 : 14,
                     height: 14,
@@ -218,7 +308,11 @@ class _HomePageCeoState extends State<HomePageCeo> with TickerProviderStateMixin
                     alignment: Alignment.center,
                     child: Text(
                       _unreadCount > 9 ? '9+' : '$_unreadCount',
-                      style: const TextStyle(fontSize: 8, color: Colors.white, fontWeight: FontWeight.w800),
+                      style: const TextStyle(
+                        fontSize: 8,
+                        color: Colors.white,
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
                   ),
                 ),
@@ -227,87 +321,140 @@ class _HomePageCeoState extends State<HomePageCeo> with TickerProviderStateMixin
           const SizedBox(width: 4),
         ],
       ),
-      body: Column(
-        children: [
-          Container(height: 1, color: Colors.black.withValues(alpha: 0.07)),
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.fromLTRB(14, 16, 14, 52),
-              children: [
-                _fs(0, KpiGridCard(
-                  totalInvestment: _dashboard.totalInvestment,
-                  confirmedPurchases: _dashboard.confirmedPurchases,
-                  submittedAnalyses: _dashboard.submittedAnalyses,
-                )),
-                const SizedBox(height: 12),
-                _fs(1, PipelineCard(counts: [
-                  _dashboard.pipelineReceptionne,
-                  _dashboard.pipelineRecu,
-                  _dashboard.pipelineNegotiation,
-                  _dashboard.pipelineConfirmed,
-                ])),
-                const SizedBox(height: 12),
-                if (_dashboard.urgentItems.isNotEmpty) ...[
-                  _fs(2, UrgentPanel(
-                    items: _dashboard.urgentItems,
-                    onTap: () => _goTo(const AnalyseOrganoleptiqueCeoPage()),
-                  )),
-                  const SizedBox(height: 12),
+      body: _chargementDashboard
+          ? const Center(child: CircularProgressIndicator(color: kGreen))
+          : VueResultatService(
+              estDemonstration: _estDemonstration,
+              erreur: _erreurChargement,
+              onReessayer: _reessayer,
+              child: Column(
+                children: [
+                  Container(
+                    height: 1,
+                    color: Colors.black.withValues(alpha: 0.07),
+                  ),
+                  Expanded(
+                    child: ListView(
+                      padding: const EdgeInsets.fromLTRB(14, 16, 14, 52),
+                      children: [
+                        _fs(
+                          0,
+                          KpiGridCard(
+                            totalInvestment: _dashboard.totalInvestment,
+                            confirmedPurchases: _dashboard.confirmedPurchases,
+                            submittedAnalyses: _dashboard.submittedAnalyses,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        _fs(
+                          1,
+                          PipelineCard(
+                            counts: [
+                              _dashboard.pipelineReceptionne,
+                              _dashboard.pipelineRecu,
+                              _dashboard.pipelineNegotiation,
+                              _dashboard.pipelineConfirmed,
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        if (_dashboard.urgentItems.isNotEmpty) ...[
+                          _fs(
+                            2,
+                            UrgentPanel(
+                              items: _dashboard.urgentItems,
+                              onTap: () =>
+                                  _goTo(const AnalyseOrganoleptiqueCeoPage()),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                        ],
+                        _fs(
+                          3,
+                          CollectorSection(
+                            collectors: _dashboard.collectors,
+                            selectedMetric: _collectorMetric,
+                            dateRange: _collectorRange,
+                            onMetricChanged: (m) =>
+                                setState(() => _collectorMetric = m),
+                            dateChipBuilder: (range, _) => _dateChip(
+                              range,
+                              () => _pickRange(
+                                _collectorRange,
+                                (r) => _collectorRange = r,
+                              ),
+                            ),
+                            onRangeChanged: (r) =>
+                                setState(() => _collectorRange = r),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        _fs(
+                          4,
+                          SalesEvolutionCard(
+                            dateRange: _salesRange,
+                            points: _dashboard.purchaseEvolution,
+                            dateChipBuilder: (range, _) => _dateChip(
+                              range,
+                              () => _pickRange(
+                                _salesRange,
+                                (r) => setState(() => _salesRange = r),
+                              ),
+                            ),
+                            onRangeChanged: (r) =>
+                                setState(() => _salesRange = r),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        _fs(
+                          5,
+                          ClassificationCard(
+                            dateRange: _classRange,
+                            values: _dashboard.classifications,
+                            dateChipBuilder: (range, _) => _dateChip(
+                              range,
+                              () => _pickRange(
+                                _classRange,
+                                (r) => setState(() => _classRange = r),
+                              ),
+                            ),
+                            onRangeChanged: (r) =>
+                                setState(() => _classRange = r),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        _fs(
+                          6,
+                          SupplierFrequencyCard(
+                            suppliers: _dashboard.suppliers,
+                            dateRange: _salesRange,
+                            dateChipBuilder: (range, _) => _dateChip(
+                              range,
+                              () => _pickRange(
+                                _salesRange,
+                                (r) => setState(() => _salesRange = r),
+                              ),
+                            ),
+                            onRangeChanged: (r) =>
+                                setState(() => _salesRange = r),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        _fs(
+                          7,
+                          StockDonutCard(
+                            transitLots: _dashboard.stockTransit,
+                            receivedLots: _dashboard.stockReceived,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        _fs(8, const MapCtaCard()),
+                      ],
+                    ),
+                  ),
                 ],
-                _fs(3, CollectorSection(
-                  collectors: _dashboard.collectors,
-                  selectedMetric: _collectorMetric,
-                  dateRange: _collectorRange,
-                  onMetricChanged: (m) => setState(() => _collectorMetric = m),
-                  dateChipBuilder: (range, _) => _dateChip(
-                    range,
-                    () => _pickRange(_collectorRange, (r) => _collectorRange = r),
-                  ),
-                  onRangeChanged: (r) => setState(() => _collectorRange = r),
-                )),
-                const SizedBox(height: 12),
-                _fs(4, SalesEvolutionCard(
-                  dateRange: _salesRange,
-                  points: _dashboard.purchaseEvolution,
-                  dateChipBuilder: (range, _) => _dateChip(
-                    range,
-                    () => _pickRange(_salesRange, (r) => setState(() => _salesRange = r)),
-                  ),
-                  onRangeChanged: (r) => setState(() => _salesRange = r),
-                )),
-                const SizedBox(height: 12),
-                _fs(5, ClassificationCard(
-                  dateRange: _classRange,
-                  values: _dashboard.classifications,
-                  dateChipBuilder: (range, _) => _dateChip(
-                    range,
-                    () => _pickRange(_classRange, (r) => setState(() => _classRange = r)),
-                  ),
-                  onRangeChanged: (r) => setState(() => _classRange = r),
-                )),
-                const SizedBox(height: 12),
-                _fs(6, SupplierFrequencyCard(
-                  suppliers: _dashboard.suppliers,
-                  dateRange: _salesRange,
-                  dateChipBuilder: (range, _) => _dateChip(
-                    range,
-                    () => _pickRange(_salesRange, (r) => setState(() => _salesRange = r)),
-                  ),
-                  onRangeChanged: (r) => setState(() => _salesRange = r),
-                )),
-                const SizedBox(height: 12),
-                _fs(7, StockDonutCard(
-                  transitLots: _dashboard.stockTransit,
-                  receivedLots: _dashboard.stockReceived,
-                )),
-                const SizedBox(height: 12),
-                _fs(8, const MapCtaCard()),
-              ],
+              ),
             ),
-          ),
-        ],
-      ),
     );
   }
 }
-

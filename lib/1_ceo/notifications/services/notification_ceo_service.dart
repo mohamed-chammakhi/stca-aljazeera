@@ -1,4 +1,5 @@
 import '../../../core/api_client.dart';
+import '../../../core/services/resultat_service.dart';
 import '../models/notification_ceo.dart';
 
 class NotificationCeoService {
@@ -18,7 +19,8 @@ class NotificationCeoService {
       id: 'n-ceo-002',
       type: 'analyse_soumise',
       titre: 'Analyse laboratoire disponible',
-      message: 'L\'analyse chimique de OUESLATI-C2 est disponible. Acidité : 0.55 %.',
+      message:
+          'L\'analyse chimique de OUESLATI-C2 est disponible. Acidité : 0.55 %.',
       echantillonId: '2026/0005',
       echantillonReference: 'OUESLATI-C2',
       section: 'ANALYSES',
@@ -29,7 +31,8 @@ class NotificationCeoService {
       id: 'n-ceo-003',
       type: 'achat_confirme',
       titre: 'Achat confirmé',
-      message: 'L\'achat du lot CHETOUI-C5 (18 T) a été confirmé. Camion TRK-007 réservé.',
+      message:
+          'L\'achat du lot CHETOUI-C5 (18 T) a été confirmé. Camion TRK-007 réservé.',
       echantillonId: '2026/0008',
       echantillonReference: 'CHETOUI-C5',
       section: 'ACHATS',
@@ -40,7 +43,8 @@ class NotificationCeoService {
       id: 'n-ceo-004',
       type: 'stock_arrive',
       titre: 'Stock arrivé',
-      message: 'Le stock du lot CHEMLALI-C8 (25 T) est arrivé. Livraison confirmée.',
+      message:
+          'Le stock du lot CHEMLALI-C8 (25 T) est arrivé. Livraison confirmée.',
       echantillonId: '2026/0007',
       echantillonReference: 'CHEMLALI-C8',
       section: 'ACHATS',
@@ -51,7 +55,8 @@ class NotificationCeoService {
       id: 'n-ceo-005',
       type: 'echantillon_recu',
       titre: 'Échantillon reçu physiquement',
-      message: 'L\'échantillon CHEMLALI-C9 a été reçu physiquement au laboratoire.',
+      message:
+          'L\'échantillon CHEMLALI-C9 a été reçu physiquement au laboratoire.',
       echantillonId: '2026/0010',
       echantillonReference: 'CHEMLALI-C9',
       section: 'ECHANTILLONS',
@@ -62,7 +67,8 @@ class NotificationCeoService {
       id: 'n-ceo-006',
       type: 'evaluation_urgente',
       titre: 'Évaluation urgente requise',
-      message: 'OUESLATI-C2 attend une évaluation depuis 14 jours. Veuillez accélérer le processus.',
+      message:
+          'OUESLATI-C2 attend une évaluation depuis 14 jours. Veuillez accélérer le processus.',
       echantillonId: '2026/0004',
       echantillonReference: 'OUESLATI-C2',
       section: 'EVALUATIONS',
@@ -84,7 +90,8 @@ class NotificationCeoService {
       id: 'n-ceo-008',
       type: 'proposition_achat_attente',
       titre: "Proposition d'achat en attente",
-      message: "CHEMLALI-K7 (40 T) : Ahmed Dridi propose 8.20 TND/L. À valider.",
+      message:
+          "CHEMLALI-K7 (40 T) : Ahmed Dridi propose 8.20 TND/L. À valider.",
       echantillonId: '2026/0012',
       echantillonReference: 'CHEMLALI-K7',
       section: 'ACHATS_VALIDATION',
@@ -106,7 +113,8 @@ class NotificationCeoService {
       id: 'n-ceo-010',
       type: 'proposition_achat_attente',
       titre: "Proposition d'achat en attente",
-      message: "OUESLATI-M1 (15 T) : Mounir Zouaghi propose 8.50 TND/L. À valider.",
+      message:
+          "OUESLATI-M1 (15 T) : Mounir Zouaghi propose 8.50 TND/L. À valider.",
       echantillonId: '2026/0014',
       echantillonReference: 'OUESLATI-M1',
       section: 'ACHATS_VALIDATION',
@@ -115,42 +123,24 @@ class NotificationCeoService {
     ),
   ];
 
-  Future<List<NotificationCeo>> fetchNotifications() async {
-    try {
-      final data = await apiClient.getList('/api/notifications/');
-      return data
-          .map((e) => NotificationCeo.fromJson(e as Map<String, dynamic>))
-          .toList();
-    } catch (_) {
-      return List.of(_mock);
-    }
-  }
+  Future<Resultat<List<NotificationCeo>>> fetchNotifications() =>
+      avecSecours(() async {
+        final data = await apiClient.getList('/api/notifications/');
+        return data
+            .map((e) => NotificationCeo.fromJson(e as Map<String, dynamic>))
+            .toList();
+      }, () => List.of(_mock));
 
   Future<void> markAsRead(String id) async {
-    try {
-      await apiClient.patch('/api/notifications/$id/lire/', {});
-    } catch (_) {
-      final idx = _mock.indexWhere((n) => n.id == id);
-      if (idx != -1) _mock[idx] = _mock[idx].copyWith(isRead: true);
-    }
+    await apiClient.patch('/api/notifications/$id/lire/', {});
   }
 
   Future<void> markAllAsRead() async {
-    try {
-      await apiClient.post('/api/notifications/lire-tout/', {});
-    } catch (_) {
-      for (var i = 0; i < _mock.length; i++) {
-        _mock[i] = _mock[i].copyWith(isRead: true);
-      }
-    }
+    await apiClient.post('/api/notifications/lire-tout/', {});
   }
 
-  Future<int> fetchUnreadCount() async {
-    try {
-      final data = await apiClient.get('/api/notifications/unread-count/');
-      return data['count'] as int;
-    } catch (_) {
-      return _mock.where((n) => !n.isRead).length;
-    }
-  }
+  Future<Resultat<int>> fetchUnreadCount() => avecSecours(() async {
+    final data = await apiClient.get('/api/notifications/unread-count/');
+    return data['count'] as int;
+  }, () => _mock.where((n) => !n.isRead).length);
 }

@@ -18,6 +18,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../theme/app_colors.dart';
+import '../services/resultat_service.dart';
+import 'bandeau_demonstration.dart';
 
 class ChampAutocomplete<T> extends StatefulWidget {
   final TextEditingController controller;
@@ -25,7 +27,7 @@ class ChampAutocomplete<T> extends StatefulWidget {
   final String? hint;
 
   /// Returns what to propose for the text typed so far.
-  final Future<List<T>> Function(String saisie) chercher;
+  final Future<Resultat<List<T>>> Function(String saisie) chercher;
 
   /// What the user reads in the list, and what lands in the field when picked.
   final String Function(T valeur) libelle;
@@ -66,6 +68,8 @@ class _ChampAutocompleteState<T> extends State<ChampAutocomplete<T>> {
   List<T> _suggestions = const [];
   Timer? _debounce;
   bool _choixEnCours = false;
+  bool _estDemonstration = false;
+  Object? _erreur;
 
   @override
   void initState() {
@@ -95,9 +99,21 @@ class _ChampAutocompleteState<T> extends State<ChampAutocomplete<T>> {
 
   Future<void> _rechercher() async {
     final saisie = widget.controller.text;
-    final resultats = await widget.chercher(saisie);
-    if (!mounted) return;
-    setState(() => _suggestions = resultats);
+    try {
+      final resultat = await widget.chercher(saisie);
+      if (!mounted) return;
+      setState(() {
+        _suggestions = resultat.donnees;
+        _estDemonstration = resultat.estDemonstration;
+        _erreur = null;
+      });
+    } catch (erreur) {
+      if (!mounted) return;
+      setState(() {
+        _suggestions = const [];
+        _erreur = erreur;
+      });
+    }
   }
 
   void _choisir(T valeur) {
@@ -115,8 +131,7 @@ class _ChampAutocompleteState<T> extends State<ChampAutocomplete<T>> {
 
   @override
   Widget build(BuildContext context) {
-    final ouvert =
-        _focus.hasFocus && _suggestions.isNotEmpty && widget.enabled;
+    final ouvert = _focus.hasFocus && _suggestions.isNotEmpty && widget.enabled;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -154,6 +169,27 @@ class _ChampAutocompleteState<T> extends State<ChampAutocomplete<T>> {
             ),
           ),
         ),
+        if (_estDemonstration) ...[
+          const SizedBox(height: 4),
+          BandeauDemonstration(onReessayer: _rechercher),
+        ],
+        if (_erreur != null) ...[
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              const Expanded(
+                child: Text(
+                  'Suggestions indisponibles.',
+                  style: TextStyle(color: kRed, fontSize: 12),
+                ),
+              ),
+              TextButton(
+                onPressed: _rechercher,
+                child: const Text('Réessayer'),
+              ),
+            ],
+          ),
+        ],
         // Inline rather than floating: the field lives inside a scrolling form,
         // and an overlay would drift away from it as the form scrolls.
         if (ouvert)

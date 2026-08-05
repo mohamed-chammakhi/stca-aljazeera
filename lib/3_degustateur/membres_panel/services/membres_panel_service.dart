@@ -1,17 +1,14 @@
 import '../../../core/api_client.dart';
+import '../../../core/services/resultat_service.dart';
 import '../models/membre_panel.dart';
 
 class MembresPanelService {
-  Future<List<MembrePanel>> fetchMembres() async {
-    try {
-      final data = await apiClient.getList('/api/users/panel-members/');
-      return data
-          .map((e) => MembrePanel.fromJson(e as Map<String, dynamic>))
-          .toList();
-    } catch (_) {
-      return _mockMembres();
-    }
-  }
+  Future<Resultat<List<MembrePanel>>> fetchMembres() => avecSecours(() async {
+    final data = await apiClient.getList('/api/users/panel-members/');
+    return data
+        .map((e) => MembrePanel.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }, _mockMembres);
 
   List<MembrePanel> _mockMembres() => const [
     MembrePanel(

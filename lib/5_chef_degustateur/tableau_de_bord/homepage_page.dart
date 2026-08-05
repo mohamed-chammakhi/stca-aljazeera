@@ -15,6 +15,7 @@ import 'widgets/home_body.dart';
 import '../profil.dart';
 import '../notifications/models/notification_degustateur.dart';
 import '../notifications/services/notification_degustateur_service.dart';
+import '../../../core/widgets/bandeau_demonstration.dart';
 import '../notifications/notifications_degustateur_page.dart';
 
 import '../../../main.dart';
@@ -42,6 +43,8 @@ class _HomePageState extends State<HomePage> {
   // ── Notifications ─────────────────────────────────────────────────────────
   final _notifService = NotificationDegustateurService();
   int _unreadCount = 0;
+  bool _estDemonstration = false;
+  Object? _erreurChargement;
 
   @override
   void initState() {
@@ -50,8 +53,17 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _loadUnreadCount() async {
-    final count = await _notifService.fetchUnreadCount();
-    if (mounted) setState(() => _unreadCount = count);
+    try {
+      final resultat = await _notifService.fetchUnreadCount();
+      if (!mounted) return;
+      setState(() {
+        _unreadCount = resultat.donnees;
+        _estDemonstration = resultat.estDemonstration;
+        _erreurChargement = null;
+      });
+    } catch (erreur) {
+      if (mounted) setState(() => _erreurChargement = erreur);
+    }
   }
 
   // ── ACTIONS ───────────────────────────────────────────────────────────────
@@ -169,7 +181,12 @@ class _HomePageState extends State<HomePage> {
         ],
       ),
 
-      body: HomeBody(onSimulerNotification: () {}),
+      body: VueResultatService(
+        estDemonstration: _estDemonstration,
+        erreur: _erreurChargement,
+        onReessayer: _loadUnreadCount,
+        child: HomeBody(onSimulerNotification: () {}),
+      ),
       drawer: AppDrawer(
         onaccueil: () => Navigator.pop(context),
         onEvaluationEchantillons: () =>

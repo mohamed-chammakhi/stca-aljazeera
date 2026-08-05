@@ -208,12 +208,12 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  // ── Forgot password — TODO: replace with real reset screen ───────────────
+  // Le backend ne propose pas encore de réinitialisation autonome.
   void _forgotPassword() {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: const Text(
-          'Password reset link sent!',
+          'Contactez votre administrateur pour réinitialiser votre mot de passe.',
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
         ),
         backgroundColor: oliveGreen,

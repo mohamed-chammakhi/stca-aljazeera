@@ -1,13 +1,14 @@
 import '../../../core/api_client.dart';
 import '../../../core/models/echantillon_evaluation.dart';
+import '../../../core/services/resultat_service.dart';
 import '../navigation/models/mock_echantillons.dart';
 
 class EvaluationService {
   bool _usingMockData = false;
   final Map<String, Map<String, dynamic>> _cachedEvaluationsBySample = {};
 
-  Future<List<Echantillon>> fetchEchantillons() async {
-    try {
+  Future<Resultat<List<Echantillon>>> fetchEchantillons() => avecSecours(
+    () async {
       final sampleItems = await apiClient.getList('/api/echantillons/');
       final evaluationItems = await apiClient.getList('/api/evaluations/');
       _usingMockData = false;
@@ -26,41 +27,48 @@ class EvaluationService {
             ),
           )
           .toList();
-    } catch (_) {
+    },
+    () {
       _usingMockData = true;
       _cachedEvaluationsBySample.clear();
       return List.of(mockEchantillonsEvaluation);
-    }
-  }
+    },
+  );
 
-  Future<Map<String, dynamic>?> fetchEvaluation(String echantillonId) async {
-    if (_usingMockData) return _cachedEvaluationsBySample[echantillonId];
-    final cached = _cachedEvaluationsBySample[echantillonId];
-    if (cached != null) return cached;
-    try {
-      final items = await apiClient.getList(
-        '/api/evaluations/?echantillon=$echantillonId',
+  Future<Resultat<Map<String, dynamic>?>> fetchEvaluation(
+    String echantillonId,
+  ) async {
+    if (_usingMockData) {
+      return Resultat(
+        _cachedEvaluationsBySample[echantillonId],
+        estDemonstration: true,
+        messageErreur: 'Le chargement des échantillons a utilisé le secours.',
       );
-      if (items.isEmpty) return null;
-      final evaluation = items.first as Map<String, dynamic>;
-      _cachedEvaluationsBySample[echantillonId] = evaluation;
-      return evaluation;
-    } catch (_) {
-      _usingMockData = true;
-      return null;
     }
+    final cached = _cachedEvaluationsBySample[echantillonId];
+    if (cached != null) return Resultat(cached);
+    return avecSecours(
+      () async {
+        final items = await apiClient.getList(
+          '/api/evaluations/?echantillon=$echantillonId',
+        );
+        if (items.isEmpty) return null;
+        final evaluation = items.first as Map<String, dynamic>;
+        _cachedEvaluationsBySample[echantillonId] = evaluation;
+        return evaluation;
+      },
+      () {
+        _usingMockData = true;
+        return null;
+      },
+    );
   }
 
   Future<Map<String, dynamic>> createEvaluation(
     Map<String, dynamic> data,
   ) async {
     if (_usingMockData) {
-      final saved = {
-        'id': 'mock-eval-${DateTime.now().millisecondsSinceEpoch}',
-        ...data,
-      };
-      _cachedEvaluationsBySample[data['echantillon'] as String] = saved;
-      return saved;
+      throw StateError('Enregistrement indisponible avec les données de démonstration.');
     }
     final saved = await apiClient.post('/api/evaluations/', data);
     _cachedEvaluationsBySample[saved['echantillon'] as String] = saved;
@@ -72,9 +80,7 @@ class EvaluationService {
     Map<String, dynamic> data,
   ) async {
     if (_usingMockData) {
-      final saved = {'id': id, ...data};
-      _cachedEvaluationsBySample[data['echantillon'] as String] = saved;
-      return saved;
+      throw StateError('Modification indisponible avec les données de démonstration.');
     }
     final saved = await apiClient.patch('/api/evaluations/$id/', data);
     _cachedEvaluationsBySample[saved['echantillon'] as String] = saved;
@@ -83,12 +89,7 @@ class EvaluationService {
 
   Future<Map<String, dynamic>> soumettre(String evaluationId) async {
     if (_usingMockData) {
-      final saved = {
-        'id': evaluationId,
-        'statut': 'soumis',
-        'soumis_le': DateTime.now().toIso8601String(),
-      };
-      return saved;
+      throw StateError('Soumission indisponible avec les données de démonstration.');
     }
     final saved = await apiClient.post(
       '/api/evaluations/$evaluationId/soumettre/',

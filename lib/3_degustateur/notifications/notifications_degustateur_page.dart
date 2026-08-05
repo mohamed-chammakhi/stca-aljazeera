@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'models/notification_degustateur.dart';
 import 'services/notification_degustateur_service.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/bandeau_demonstration.dart';
 
 class NotificationsDegustateurPage extends StatefulWidget {
   final NotificationDegustateurService service;
@@ -23,6 +24,8 @@ class _NotificationsDegustateurPageState
     extends State<NotificationsDegustateurPage> {
   List<NotificationDegustateur> _all = [];
   bool _loading = true;
+  bool _estDemonstration = false;
+  Object? _erreurChargement;
   String _filter = 'tous';
 
   @override
@@ -32,10 +35,20 @@ class _NotificationsDegustateurPageState
   }
 
   Future<void> _load() async {
-    final data = await widget.service.fetchNotifications();
-    if (mounted) {
+    if (mounted) setState(() => _loading = true);
+    try {
+      final resultat = await widget.service.fetchNotifications();
+      if (!mounted) return;
       setState(() {
-        _all = data;
+        _all = resultat.donnees;
+        _estDemonstration = resultat.estDemonstration;
+        _erreurChargement = null;
+        _loading = false;
+      });
+    } catch (erreur) {
+      if (!mounted) return;
+      setState(() {
+        _erreurChargement = erreur;
         _loading = false;
       });
     }
@@ -46,24 +59,42 @@ class _NotificationsDegustateurPageState
 
   int get _unreadCount => _all.where((n) => !n.isRead).length;
 
-  Future<void> _markRead(NotificationDegustateur n) async {
-    if (n.isRead) return;
-    await widget.service.markAsRead(n.id);
-    setState(() {
-      final i = _all.indexWhere((x) => x.id == n.id);
-      if (i != -1) _all[i] = n.copyWith(isRead: true);
-    });
+  Future<bool> _markRead(NotificationDegustateur n) async {
+    if (n.isRead) return true;
+    try {
+      await widget.service.markAsRead(n.id);
+      if (!mounted) return false;
+      setState(() {
+        final i = _all.indexWhere((x) => x.id == n.id);
+        if (i != -1) _all[i] = n.copyWith(isRead: true);
+      });
+      return true;
+    } catch (_) {
+      if (mounted) _signalerErreur();
+      return false;
+    }
   }
 
   Future<void> _markAllRead() async {
-    await widget.service.markAllAsRead();
-    setState(() => _all = _all.map((n) => n.copyWith(isRead: true)).toList());
+    try {
+      await widget.service.markAllAsRead();
+      if (!mounted) return;
+      setState(() => _all = _all.map((n) => n.copyWith(isRead: true)).toList());
+    } catch (_) {
+      if (mounted) _signalerErreur();
+    }
   }
 
-  void _onTap(NotificationDegustateur n) {
-    _markRead(n);
+  Future<void> _onTap(NotificationDegustateur n) async {
+    if (!await _markRead(n) || !mounted) return;
     widget.onNavigate(n);
     Navigator.pop(context);
+  }
+
+  void _signalerErreur() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('La notification n’a pas pu être mise à jour.')),
+    );
   }
 
   @override
@@ -102,61 +133,66 @@ class _NotificationsDegustateurPageState
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator(color: kGreen))
-          : Column(
-              children: [
-                Container(
-                  color: kHeaderBg,
-                  padding: const EdgeInsets.fromLTRB(16, 4, 16, 14),
-                  child: Row(
-                    children: [
-                      _FilterChip(
-                        label: 'Tous',
-                        active: _filter == 'tous',
-                        onTap: () => setState(() => _filter = 'tous'),
-                      ),
-                      const SizedBox(width: 8),
-                      _FilterChip(
-                        label: _unreadCount > 0
-                            ? 'Non lus ($_unreadCount)'
-                            : 'Non lus',
-                        active: _filter == 'non_lus',
-                        onTap: () => setState(() => _filter = 'non_lus'),
-                      ),
-                    ],
-                  ),
-                ),
-                Container(
-                  height: 1,
-                  color: Colors.black.withValues(alpha: 0.06),
-                ),
-                Container(
-                  color: kBg,
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 6),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.notifications_outlined,
-                        size: 13,
-                        color: Colors.grey.shade400,
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        '${_filtered.length} notification${_filtered.length != 1 ? 's' : ''}',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey.shade400,
-                          fontWeight: FontWeight.w500,
+          : VueResultatService(
+              estDemonstration: _estDemonstration,
+              erreur: _erreurChargement,
+              onReessayer: _load,
+              child: Column(
+                children: [
+                  Container(
+                    color: kHeaderBg,
+                    padding: const EdgeInsets.fromLTRB(16, 4, 16, 14),
+                    child: Row(
+                      children: [
+                        _FilterChip(
+                          label: 'Tous',
+                          active: _filter == 'tous',
+                          onTap: () => setState(() => _filter = 'tous'),
                         ),
-                      ),
-                    ],
+                        const SizedBox(width: 8),
+                        _FilterChip(
+                          label: _unreadCount > 0
+                              ? 'Non lus ($_unreadCount)'
+                              : 'Non lus',
+                          active: _filter == 'non_lus',
+                          onTap: () => setState(() => _filter = 'non_lus'),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                Expanded(
-                  child: _filtered.isEmpty
-                      ? _buildEmpty()
-                      : _buildGroupedList(),
-                ),
-              ],
+                  Container(
+                    height: 1,
+                    color: Colors.black.withValues(alpha: 0.06),
+                  ),
+                  Container(
+                    color: kBg,
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 6),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.notifications_outlined,
+                          size: 13,
+                          color: Colors.grey.shade400,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          '${_filtered.length} notification${_filtered.length != 1 ? 's' : ''}',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey.shade400,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                    child: _filtered.isEmpty
+                        ? _buildEmpty()
+                        : _buildGroupedList(),
+                  ),
+                ],
+              ),
             ),
     );
   }

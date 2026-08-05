@@ -58,6 +58,9 @@ class _SessionCardState extends State<SessionCard> {
   }
 
   Future<void> _togglePresence() async {
+    await widget.onConfirmerPresence?.call();
+    if (!mounted) return;
+
     _msgTimer?.cancel();
     if (_presenceConfirmed) {
       setState(() {
@@ -73,9 +76,6 @@ class _SessionCardState extends State<SessionCard> {
         if (mounted) setState(() => _showPresenceMsg = false);
       });
     }
-    try {
-      await widget.onConfirmerPresence?.call();
-    } catch (_) {}
   }
 
   @override

@@ -32,6 +32,8 @@ import '../../../main.dart';
 import '../widgets/chef_colors.dart';
 import '../../../core/api_client.dart';
 import '../../core/widgets/grille_details.dart';
+import '../../core/services/resultat_service.dart';
+import '../../core/widgets/bandeau_demonstration.dart';
 
 const Color _olive = Color(0xFF6B8143);
 
@@ -197,7 +199,10 @@ class _VueEnsembleEvaluationsPageState
   DateTime? _dateDebut;
   DateTime? _dateFin;
   final Set<String> _expandedPanel = {};
-  List<_SampleEvalGroup> _groups = List.of(_mockGroups);
+  List<_SampleEvalGroup> _groups = [];
+  bool _chargement = true;
+  bool _estDemonstration = false;
+  Object? _erreurChargement;
 
   @override
   void initState() {
@@ -206,17 +211,27 @@ class _VueEnsembleEvaluationsPageState
   }
 
   Future<void> _loadGroups() async {
+    if (mounted) setState(() => _chargement = true);
     try {
-      final data = await apiClient.getList('/api/chef/evaluations/');
-      if (mounted) {
-        setState(
-          () => _groups = data
-              .map((e) => _groupFromApi(e as Map<String, dynamic>))
-              .toList(),
-        );
-      }
-    } catch (_) {
-      if (mounted) setState(() => _groups = List.of(_mockGroups));
+      final resultat = await avecSecours(() async {
+        final data = await apiClient.getList('/api/chef/evaluations/');
+        return data
+            .map((e) => _groupFromApi(e as Map<String, dynamic>))
+            .toList();
+      }, () => List.of(_mockGroups));
+      if (!mounted) return;
+      setState(() {
+        _groups = resultat.donnees;
+        _estDemonstration = resultat.estDemonstration;
+        _erreurChargement = null;
+        _chargement = false;
+      });
+    } catch (erreur) {
+      if (!mounted) return;
+      setState(() {
+        _erreurChargement = erreur;
+        _chargement = false;
+      });
     }
   }
 
@@ -286,9 +301,12 @@ class _VueEnsembleEvaluationsPageState
 
   _SampleEvalGroup _groupFromApi(Map<String, dynamic> json) {
     return _SampleEvalGroup(
-      sampleId: json['sample_id'] as String? ?? json['echantillon_id'] as String,
+      sampleId:
+          json['sample_id'] as String? ?? json['echantillon_id'] as String,
       referenceBouteille:
-          json['reference_bouteille'] as String? ?? json['numero'] as String? ?? '',
+          json['reference_bouteille'] as String? ??
+          json['numero'] as String? ??
+          '',
       gouvernorat: json['gouvernorat'] as String? ?? '',
       variete: json['variete'] as String? ?? '',
       dateAjout: _formatDate(json['date_ajout']),
@@ -304,7 +322,9 @@ class _VueEnsembleEvaluationsPageState
     final submitted = json['statut'] == 'soumis';
     return _TasterEval(
       tasterName:
-          json['taster_name'] as String? ?? json['degustateur_nom'] as String? ?? '',
+          json['taster_name'] as String? ??
+          json['degustateur_nom'] as String? ??
+          '',
       statut: submitted ? 'Soumis' : 'En attente',
       dateEval: _formatDate(json['soumis_le'] ?? json['date_eval']),
       classification: _classificationLabel(json['classification'] as String?),
@@ -320,7 +340,10 @@ class _VueEnsembleEvaluationsPageState
           .where((score) => score['score'] != null)
           .map(
             (score) => _EvalEntry(
-              _scoreLabel(score['key'] as String?, score['attribut'] as String?),
+              _scoreLabel(
+                score['key'] as String?,
+                score['attribut'] as String?,
+              ),
               _double(score['score']),
             ),
           )
@@ -328,9 +351,12 @@ class _VueEnsembleEvaluationsPageState
     }
 
     return [
-      if (json['fruite'] != null) _EvalEntry(_attrs[0], _double(json['fruite'])),
-      if (json['amertume'] != null) _EvalEntry(_attrs[1], _double(json['amertume'])),
-      if (json['piquant'] != null) _EvalEntry(_attrs[2], _double(json['piquant'])),
+      if (json['fruite'] != null)
+        _EvalEntry(_attrs[0], _double(json['fruite'])),
+      if (json['amertume'] != null)
+        _EvalEntry(_attrs[1], _double(json['amertume'])),
+      if (json['piquant'] != null)
+        _EvalEntry(_attrs[2], _double(json['piquant'])),
     ];
   }
 
@@ -530,7 +556,9 @@ class _VueEnsembleEvaluationsPageState
                 icon: Icon(
                   Icons.calendar_today_outlined,
                   size: 20,
-                  color: _dateFilterActive ? chefGreen : const Color(0xFF6B8E7A),
+                  color: _dateFilterActive
+                      ? chefGreen
+                      : const Color(0xFF6B8E7A),
                 ),
                 onPressed: _showDateFilter,
                 tooltip: 'Filtrer par date de réception physique',
@@ -553,169 +581,188 @@ class _VueEnsembleEvaluationsPageState
           const SizedBox(width: 6),
         ],
       ),
-      body: Column(
-        children: [
-          // ── Search bar ────────────────────────────────────────────────────
-          Container(
-            color: chefHeaderBg,
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
-            child: TextField(
-              controller: _searchController,
-              onChanged: (v) => setState(() => _searchQuery = v.trim()),
-              style: const TextStyle(fontSize: 14, color: chefDark),
-              decoration: InputDecoration(
-                hintText: 'Rechercher échantillon, variété, gouvernorat…',
-                hintStyle: const TextStyle(
-                  color: Color(0xFF6B8E7A),
-                  fontSize: 13,
-                ),
-                prefixIcon: const Icon(
-                  Icons.search,
-                  color: Color(0xFF6B8E7A),
-                  size: 20,
-                ),
-                suffixIcon: _searchQuery.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(
-                          Icons.close,
-                          size: 17,
+      body: _chargement
+          ? const Center(child: CircularProgressIndicator(color: chefGreen))
+          : VueResultatService(
+              estDemonstration: _estDemonstration,
+              erreur: _erreurChargement,
+              onReessayer: _loadGroups,
+              child: Column(
+                children: [
+                  // ── Search bar ────────────────────────────────────────────────────
+                  Container(
+                    color: chefHeaderBg,
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
+                    child: TextField(
+                      controller: _searchController,
+                      onChanged: (v) => setState(() => _searchQuery = v.trim()),
+                      style: const TextStyle(fontSize: 14, color: chefDark),
+                      decoration: InputDecoration(
+                        hintText:
+                            'Rechercher échantillon, variété, gouvernorat…',
+                        hintStyle: const TextStyle(
                           color: Color(0xFF6B8E7A),
+                          fontSize: 13,
                         ),
-                        onPressed: () => setState(() {
-                          _searchQuery = '';
-                          _searchController.clear();
-                        }),
-                      )
-                    : null,
-                filled: true,
-                fillColor: Colors.white,
-                contentPadding: const EdgeInsets.symmetric(
-                  vertical: 11,
-                  horizontal: 16,
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: chefGreen, width: 1.5),
-                ),
-              ),
-            ),
-          ),
-          Container(height: 1, color: Colors.black.withValues(alpha: 0.06)),
-
-          // ── Stats strip ───────────────────────────────────────────────────
-          Container(
-            color: chefBg,
-            padding: const EdgeInsets.fromLTRB(16, 9, 16, 6),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.assessment_outlined,
-                  size: 13,
-                  color: Colors.grey.shade400,
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  '${groups.length} échantillon${groups.length > 1 ? "s" : ""}',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey.shade400,
-                    fontWeight: FontWeight.w500,
+                        prefixIcon: const Icon(
+                          Icons.search,
+                          color: Color(0xFF6B8E7A),
+                          size: 20,
+                        ),
+                        suffixIcon: _searchQuery.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(
+                                  Icons.close,
+                                  size: 17,
+                                  color: Color(0xFF6B8E7A),
+                                ),
+                                onPressed: () => setState(() {
+                                  _searchQuery = '';
+                                  _searchController.clear();
+                                }),
+                              )
+                            : null,
+                        filled: true,
+                        fillColor: Colors.white,
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: 11,
+                          horizontal: 16,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(
+                            color: chefGreen,
+                            width: 1.5,
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-              ],
-            ),
-          ),
+                  Container(
+                    height: 1,
+                    color: Colors.black.withValues(alpha: 0.06),
+                  ),
 
-          // ── List ──────────────────────────────────────────────────────────
-          Expanded(
-            child: groups.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                  // ── Stats strip ───────────────────────────────────────────────────
+                  Container(
+                    color: chefBg,
+                    padding: const EdgeInsets.fromLTRB(16, 9, 16, 6),
+                    child: Row(
                       children: [
                         Icon(
                           Icons.assessment_outlined,
-                          size: 52,
-                          color: Colors.grey.shade300,
+                          size: 13,
+                          color: Colors.grey.shade400,
                         ),
-                        const SizedBox(height: 12),
+                        const SizedBox(width: 6),
                         Text(
-                          'Aucun échantillon trouvé',
+                          '${groups.length} échantillon${groups.length > 1 ? "s" : ""}',
                           style: TextStyle(
+                            fontSize: 12,
                             color: Colors.grey.shade400,
-                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                       ],
                     ),
-                  )
-                : ListView.builder(
-                    padding: const EdgeInsets.fromLTRB(14, 14, 14, 30),
-                    itemCount: groups.length,
-                    itemBuilder: (_, i) {
-                      final g = groups[i];
-                      // Meme carte que l'ecran Analyse organoleptique de la
-                      // direction : le chef consulte les memes donnees, il n'y
-                      // a aucune raison que les deux ecrans se ressemblent de
-                      // loin plutot que d'etre identiques.
-                      final vue = _vueDepuisGroupe(g);
-                      return BaseSampleCard(
-                        referenceBouteille: g.referenceBouteille,
-                        id: g.sampleId,
-                        tintColor: Colors.white,
-                        accentColor: g.isComplete ? chefGreen : _olive,
-                        badge: CardBadgeRow(
-                          badges: [
-                            CardBadge(
-                              label: '${g.submitted} / ${g.total}',
-                              color: g.isComplete ? chefGreen : _olive,
-                            ),
-                            RecuPhysiqueIndicator(
-                              recuPhysiquement: g.recuPhysiquement,
-                            ),
-                          ],
-                        ),
-                        detailItems: [
-                          DetailItem('N° échantillon', g.sampleId),
-                          DetailItem('Réf. bouteille', g.referenceBouteille),
-                          DetailItem('Gouvernorat', g.gouvernorat),
-                          DetailItem('Variété', g.variete),
-                          DetailItem('Date ajout', g.dateAjout),
-                          DetailItem(
-                            'Évaluations',
-                            '${g.submitted} / ${g.total} soumises',
-                          ),
-                        ],
-                        bottomSection: PanelSection(
-                          echantillon: vue,
-                          isExpanded: _expandedPanel.contains(g.sampleId),
-                          onToggle: () => setState(() {
-                            _expandedPanel.contains(g.sampleId)
-                                ? _expandedPanel.remove(g.sampleId)
-                                : _expandedPanel.add(g.sampleId);
-                          }),
-                          // Le chef consulte, il ne decide pas de l'achat.
-                          showDecisions: false,
-                          onViewForm: (ev) => showEvaluationFormSheet(
-                            context,
-                            evaluation: ev,
-                            sampleRef: g.referenceBouteille,
-                          ),
-                        ),
-                      );
-                    },
                   ),
-          ),
-        ],
-      ),
+
+                  // ── List ──────────────────────────────────────────────────────────
+                  Expanded(
+                    child: groups.isEmpty
+                        ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.assessment_outlined,
+                                  size: 52,
+                                  color: Colors.grey.shade300,
+                                ),
+                                const SizedBox(height: 12),
+                                Text(
+                                  'Aucun échantillon trouvé',
+                                  style: TextStyle(
+                                    color: Colors.grey.shade400,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        : ListView.builder(
+                            padding: const EdgeInsets.fromLTRB(14, 14, 14, 30),
+                            itemCount: groups.length,
+                            itemBuilder: (_, i) {
+                              final g = groups[i];
+                              // Meme carte que l'ecran Analyse organoleptique de la
+                              // direction : le chef consulte les memes donnees, il n'y
+                              // a aucune raison que les deux ecrans se ressemblent de
+                              // loin plutot que d'etre identiques.
+                              final vue = _vueDepuisGroupe(g);
+                              return BaseSampleCard(
+                                referenceBouteille: g.referenceBouteille,
+                                id: g.sampleId,
+                                tintColor: Colors.white,
+                                accentColor: g.isComplete ? chefGreen : _olive,
+                                badge: CardBadgeRow(
+                                  badges: [
+                                    CardBadge(
+                                      label: '${g.submitted} / ${g.total}',
+                                      color: g.isComplete ? chefGreen : _olive,
+                                    ),
+                                    RecuPhysiqueIndicator(
+                                      recuPhysiquement: g.recuPhysiquement,
+                                    ),
+                                  ],
+                                ),
+                                detailItems: [
+                                  DetailItem('N° échantillon', g.sampleId),
+                                  DetailItem(
+                                    'Réf. bouteille',
+                                    g.referenceBouteille,
+                                  ),
+                                  DetailItem('Gouvernorat', g.gouvernorat),
+                                  DetailItem('Variété', g.variete),
+                                  DetailItem('Date ajout', g.dateAjout),
+                                  DetailItem(
+                                    'Évaluations',
+                                    '${g.submitted} / ${g.total} soumises',
+                                  ),
+                                ],
+                                bottomSection: PanelSection(
+                                  echantillon: vue,
+                                  isExpanded: _expandedPanel.contains(
+                                    g.sampleId,
+                                  ),
+                                  onToggle: () => setState(() {
+                                    _expandedPanel.contains(g.sampleId)
+                                        ? _expandedPanel.remove(g.sampleId)
+                                        : _expandedPanel.add(g.sampleId);
+                                  }),
+                                  // Le chef consulte, il ne decide pas de l'achat.
+                                  showDecisions: false,
+                                  onViewForm: (ev) => showEvaluationFormSheet(
+                                    context,
+                                    evaluation: ev,
+                                    sampleRef: g.referenceBouteille,
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                  ),
+                ],
+              ),
+            ),
     );
   }
 }

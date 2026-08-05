@@ -1,5 +1,6 @@
 import '../../../core/api_client.dart';
 import '../../../core/models/echantillon.dart';
+import '../../../core/services/resultat_service.dart';
 import '../models/mock_echantillons.dart';
 
 class GestionEchantillonsChefService {
@@ -40,33 +41,18 @@ class GestionEchantillonsChefService {
     };
   }
 
-  Future<List<Echantillon>> fetchEchantillons() async {
-    try {
+  Future<Resultat<List<Echantillon>>> fetchEchantillons() => avecSecours(
+    () async {
       final items = await apiClient.getList('/api/echantillons/');
       return items
-          .map((e) => Echantillon.fromJson(_toFlutterMap(e as Map<String, dynamic>)))
+          .map(
+            (e) =>
+                Echantillon.fromJson(_toFlutterMap(e as Map<String, dynamic>)),
+          )
           .toList();
-    } catch (_) {
-      return _mockEchantillons();
-    }
-  }
-
-  Future<Echantillon> createEchantillon(Echantillon e) async {
-    final response = await apiClient.post('/api/echantillons/', e.toJson());
-    return Echantillon.fromJson(_toFlutterMap(response));
-  }
-
-  Future<Echantillon> updateEchantillon(Echantillon e) async {
-    final response = await apiClient.patch(
-      '/api/echantillons/${e.id}/',
-      e.toJson(),
-    );
-    return Echantillon.fromJson(_toFlutterMap(response));
-  }
-
-  Future<void> deleteEchantillon(String id) async {
-    await apiClient.delete('/api/echantillons/$id/');
-  }
+    },
+    _mockEchantillons,
+  );
 
   Future<void> toggleRecuPhysiquement(String id, bool value) async {
     await apiClient.patch('/api/echantillons/$id/confirmer-reception/', {});

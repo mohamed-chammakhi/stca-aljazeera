@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../core/classification/classification_interne.dart';
 import '../../core/models/enums.dart';
 import '../../core/widgets/carte_classification.dart';
+import '../../core/widgets/bandeau_demonstration.dart';
 import 'services/evaluation_service.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -52,6 +53,9 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
 
   // ── Soumis → verrouille tout ──────────────────────────────────────────────
   late bool _estSoumis;
+  bool _chargement = true;
+  bool _estDemonstration = false;
+  Object? _erreurChargement;
   final EvaluationService _service = EvaluationService();
   String? _evaluationId;
   bool _saving = false;
@@ -125,11 +129,21 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
 
   Future<void> _loadExistingEvaluation() async {
     try {
-      final evaluation = await _service.fetchEvaluation(widget.echantillonId);
-      if (evaluation == null || !mounted) return;
-      setState(() => _applyEvaluation(evaluation));
-    } catch (_) {
-      // Keep the existing mock/default form usable when the backend is offline.
+      final resultat = await _service.fetchEvaluation(widget.echantillonId);
+      if (!mounted) return;
+      setState(() {
+        final evaluation = resultat.donnees;
+        if (evaluation != null) _applyEvaluation(evaluation);
+        _estDemonstration = resultat.estDemonstration;
+        _erreurChargement = null;
+        _chargement = false;
+      });
+    } catch (erreur) {
+      if (!mounted) return;
+      setState(() {
+        _erreurChargement = erreur;
+        _chargement = false;
+      });
     }
   }
 
@@ -167,25 +181,25 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
   Map<String, dynamic> _evaluationPayload() {
     final resultat = _resultat;
     return {
-    'echantillon': widget.echantillonId,
-    'statut': 'en_cours',
-    'classification': resultat.coi?.toJson ?? '',
-    'classe_interne': resultat.classeRetenue?.toJson ?? '',
-    'classe_interne_manuelle': resultat.estManuelle,
-    'classe_interne_motif': resultat.estManuelle ? _motifCourant() : '',
-    'profil_non_harmonieux': _profilNonHarmonieux,
-    'fruite': _fruite,
-    'type_fruite': _typeFruite.toJson,
-    'amertume': _amer,
-    'piquant': _piquant,
-    'chome': _chome,
-    'moisi': _moisi,
-    'vinaigre': _vinaigre,
-    'rance': _rance,
-    'gele': _gele,
-    'autres_defaut': _autresDefaut,
-    'autres_defaut_nom': _autresDefautNomController.text.trim(),
-    'commentaire': _notesController.text.trim(),
+      'echantillon': widget.echantillonId,
+      'statut': 'en_cours',
+      'classification': resultat.coi?.toJson ?? '',
+      'classe_interne': resultat.classeRetenue?.toJson ?? '',
+      'classe_interne_manuelle': resultat.estManuelle,
+      'classe_interne_motif': resultat.estManuelle ? _motifCourant() : '',
+      'profil_non_harmonieux': _profilNonHarmonieux,
+      'fruite': _fruite,
+      'type_fruite': _typeFruite.toJson,
+      'amertume': _amer,
+      'piquant': _piquant,
+      'chome': _chome,
+      'moisi': _moisi,
+      'vinaigre': _vinaigre,
+      'rance': _rance,
+      'gele': _gele,
+      'autres_defaut': _autresDefaut,
+      'autres_defaut_nom': _autresDefautNomController.text.trim(),
+      'commentaire': _notesController.text.trim(),
     };
   }
 
@@ -284,391 +298,435 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
         ],
       ),
 
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // ══════════════════════════════════════════════════════════════
-            // SECTION 1 — INFORMATIONS DE L'ÉCHANTILLON
-            // ══════════════════════════════════════════════════════════════
-            _buildSectionCard(
-              title: '📋 Informations de l\'Échantillon',
-              child: Column(
-                children: [
-                  // Photo + infos côte à côte
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // ── Photo ──
-                      Container(
-                        width: 80,
-                        height: 80,
-                        decoration: BoxDecoration(
-                          color: _headerBg.withValues(alpha: 0.5),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.grey.shade200),
-                        ),
-                        child: widget.photoUrl != null
-                            ? ClipRRect(
-                                borderRadius: BorderRadius.circular(11),
-                                child: Image.network(
-                                  widget.photoUrl!,
-                                  fit: BoxFit.cover,
-                                ),
-                              )
-                            : Icon(
-                                Icons.image_outlined,
-                                size: 36,
-                                color: Colors.grey.shade400,
-                              ),
-                      ),
-
-                      const SizedBox(width: 14),
-
-                      // ── Infos ──
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              widget.echantillonId,
-                              style: GoogleFonts.domine(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w700,
-                                color: darkText,
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            _infoRow(Icons.store_outlined, widget.fournisseur),
-                            _infoRow(Icons.eco_outlined, widget.variete),
-                            _infoRow(
-                              Icons.location_on_outlined,
-                              widget.origine,
-                            ),
-                            _infoRow(
-                              Icons.calendar_today_outlined,
-                              widget.dateArrivee,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 16),
-
-            // ══════════════════════════════════════════════════════════════
-            // SECTION 2 — CLASSIFICATION EN TEMPS RÉEL
-            // ══════════════════════════════════════════════════════════════
-            _buildClassificationCard(),
-
-            const SizedBox(height: 16),
-
-            // ══════════════════════════════════════════════════════════════
-            // SECTION 4 — ATTRIBUTS POSITIFS
-            // ══════════════════════════════════════════════════════════════
-            _buildSectionCard(
-              title: '✅ Attributs Positifs',
-              subtitle: 'Tous les champs sont optionnels',
-              child: Column(
-                children: [
-                  // ── Fruité avec toggle Vert / Mûr ──
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildSlider(
-                        label: 'Fruité',
-                        description: 'Sensations olfactives caractéristiques',
-                        value: _fruite,
-                        onChanged: (v) => setState(() => _fruite = v),
-                        isPositif: true,
-                      ),
-                      // ── Type de fruité — 3 valeurs (PR-48 §5 et §8) ──
-                      // « Vert-mûr » est ce qui sépare Extra B d'Extra B−.
-                      if (_fruite > 0.0) ...[
-                        const SizedBox(height: 8),
-                        const Text(
-                          'Type de fruité :',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: oliveGreen,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            for (final type in TypeFruite.values) ...[
-                              Expanded(child: _chipTypeFruite(type)),
-                              if (type != TypeFruite.values.last)
-                                const SizedBox(width: 6),
-                            ],
-                          ],
-                        ),
-                      ],
-                    ],
-                  ),
-
-                  _buildSlider(
-                    label: 'Amertume',
-                    description: 'Goût primaire — olives vertes ou en véraison',
-                    value: _amer,
-                    onChanged: (v) => setState(() => _amer = v),
-                    isPositif: true,
-                  ),
-                  _buildSlider(
-                    label: 'Piquant',
-                    description:
-                        'Sensation tactile — olives en début de campagne',
-                    value: _piquant,
-                    onChanged: (v) => setState(() => _piquant = v),
-                    isPositif: true,
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 16),
-
-            // ══════════════════════════════════════════════════════════════
-            // SECTION 3 — ATTRIBUTS NÉGATIFS (DÉFAUTS)
-            // ══════════════════════════════════════════════════════════════
-            _buildSectionCard(
-              title: '⚠️ Attributs Négatifs — Défauts',
-              subtitle: 'Tous les champs sont optionnels',
-              child: Column(
-                children: [
-                  _buildSlider(
-                    label: 'Chômé / Lie de boue',
-                    description: 'Huile d\'olives en fermentation anaérobie',
-                    value: _chome,
-                    onChanged: (v) => setState(() => _chome = v),
-                  ),
-                  _buildSlider(
-                    label: 'Moisi / Humide / Terreux',
-                    description: 'Olives stockées en conditions humides',
-                    value: _moisi,
-                    onChanged: (v) => setState(() => _moisi = v),
-                  ),
-                  _buildSlider(
-                    label: 'Vinaigré / Acide-Aigre',
-                    description: 'Fermentation aérobie — acide acétique',
-                    value: _vinaigre,
-                    onChanged: (v) => setState(() => _vinaigre = v),
-                  ),
-                  _buildSlider(
-                    label: 'Gelé (Bois Mouillé)',
-                    description: 'Olives blessées par le gel',
-                    value: _gele,
-                    onChanged: (v) => setState(() => _gele = v),
-                  ),
-                  _buildSlider(
-                    label: 'Rance',
-                    description: 'Processus d\'oxydation intense',
-                    value: _rance,
-                    onChanged: (v) => setState(() => _rance = v),
-                  ),
-
-                  // ── Autres défauts avec nom libre ──
-                  const SizedBox(height: 8),
-                  TextField(
-                    controller: _autresDefautNomController,
-                    enabled: !_estSoumis,
-                    style: const TextStyle(fontSize: 13, color: darkText),
-                    decoration: InputDecoration(
-                      hintText: 'Autre défaut (Métallique, Grillé, Esparto...)',
-                      hintStyle: TextStyle(
-                        color: Colors.grey.shade400,
-                        fontSize: 12,
-                      ),
-                      prefixIcon: const Icon(
-                        Icons.add_circle_outline,
-                        color: oliveGreen,
-                        size: 18,
-                      ),
-                      filled: true,
-                      fillColor: Colors.grey.shade50,
-                      contentPadding: const EdgeInsets.symmetric(
-                        vertical: 10,
-                        horizontal: 12,
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide(color: Colors.grey.shade200),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide(color: Colors.grey.shade200),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: const BorderSide(color: green, width: 1.5),
-                      ),
-                    ),
-                  ),
-                  if (_autresDefautNomController.text.isNotEmpty) ...[
-                    const SizedBox(height: 8),
-                    _buildSlider(
-                      label: 'Intensité — Autre défaut',
-                      description: _autresDefautNomController.text,
-                      value: _autresDefaut,
-                      onChanged: (v) => setState(() => _autresDefaut = v),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 16),
-
-            // ══════════════════════════════════════════════════════════════
-            // SECTION 5 — NOTES LIBRES
-            // ══════════════════════════════════════════════════════════════
-            _buildSectionCard(
-              title: '📝 Notes du Dégustateur',
-              subtitle: 'Observations, remarques, impressions générales',
-              child: TextField(
-                controller: _notesController,
-                enabled: !_estSoumis,
-                maxLines: 5,
-                style: const TextStyle(fontSize: 14, color: darkText),
-                decoration: InputDecoration(
-                  hintText:
-                      'Ex: Profil aromatique dominé par des notes vertes (herbe coupée, artichaut). Bonne cohérence entre fruité et piquant...',
-                  hintStyle: TextStyle(
-                    color: Colors.grey.shade400,
-                    fontSize: 13,
-                    height: 1.5,
-                  ),
-                  filled: true,
-                  fillColor: Colors.grey.shade50,
-                  contentPadding: const EdgeInsets.all(14),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.grey.shade200),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.grey.shade200),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: green, width: 1.8),
-                  ),
-                  disabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.grey.shade200),
-                  ),
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 24),
-
-            // ══════════════════════════════════════════════════════════════
-            // SECTION 6 — ACTIONS
-            // ══════════════════════════════════════════════════════════════
-            if (!_estSoumis) ...[
-              // ── Enregistrer brouillon ──
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton.icon(
-                  onPressed: _saving ? null : _enregistrerBrouillon,
-                  icon: const Icon(Icons.save_outlined, size: 18),
-                  label: const Text('Enregistrer le brouillon'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: green,
-                    side: const BorderSide(color: green, width: 1.5),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 12),
-
-              // ── Soumettre et verrouiller ──
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: _saving ? null : _confirmerSoumission,
-                  icon: const Icon(Icons.lock_outline, size: 18),
-                  label: const Text(
-                    'Soumettre & Verrouiller',
-                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: green,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 15),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    elevation: 0,
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 8),
-
-              Center(
-                child: Text(
-                  'Une fois soumis, la fiche ne peut plus être modifiée',
-                  style: TextStyle(fontSize: 11, color: Colors.grey.shade400),
-                ),
-              ),
-            ],
-
-            // ── Message si déjà soumis ──
-            if (_estSoumis)
-              Container(
-                width: double.infinity,
+      body: _chargement
+          ? const Center(child: CircularProgressIndicator(color: green))
+          : VueResultatService(
+              estDemonstration: _estDemonstration,
+              erreur: _erreurChargement,
+              onReessayer: _loadExistingEvaluation,
+              child: SingleChildScrollView(
                 padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: green.withValues(alpha: 0.06),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: green.withValues(alpha: 0.28)),
-                ),
-                child: Row(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(Icons.check_circle, color: green, size: 24),
-                    const SizedBox(width: 12),
-                    Expanded(
+                    // ══════════════════════════════════════════════════════════════
+                    // SECTION 1 — INFORMATIONS DE L'ÉCHANTILLON
+                    // ══════════════════════════════════════════════════════════════
+                    _buildSectionCard(
+                      title: '📋 Informations de l\'Échantillon',
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            'Évaluation soumise et verrouillée',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
-                              color: darkText,
-                            ),
-                          ),
-                          Text(
-                            'Cette fiche est en lecture seule',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey.shade600,
-                            ),
+                          // Photo + infos côte à côte
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // ── Photo ──
+                              Container(
+                                width: 80,
+                                height: 80,
+                                decoration: BoxDecoration(
+                                  color: _headerBg.withValues(alpha: 0.5),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: Colors.grey.shade200,
+                                  ),
+                                ),
+                                child: widget.photoUrl != null
+                                    ? ClipRRect(
+                                        borderRadius: BorderRadius.circular(11),
+                                        child: Image.network(
+                                          widget.photoUrl!,
+                                          fit: BoxFit.cover,
+                                        ),
+                                      )
+                                    : Icon(
+                                        Icons.image_outlined,
+                                        size: 36,
+                                        color: Colors.grey.shade400,
+                                      ),
+                              ),
+
+                              const SizedBox(width: 14),
+
+                              // ── Infos ──
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      widget.echantillonId,
+                                      style: GoogleFonts.domine(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w700,
+                                        color: darkText,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 6),
+                                    _infoRow(
+                                      Icons.store_outlined,
+                                      widget.fournisseur,
+                                    ),
+                                    _infoRow(
+                                      Icons.eco_outlined,
+                                      widget.variete,
+                                    ),
+                                    _infoRow(
+                                      Icons.location_on_outlined,
+                                      widget.origine,
+                                    ),
+                                    _infoRow(
+                                      Icons.calendar_today_outlined,
+                                      widget.dateArrivee,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
                     ),
+
+                    const SizedBox(height: 16),
+
+                    // ══════════════════════════════════════════════════════════════
+                    // SECTION 2 — CLASSIFICATION EN TEMPS RÉEL
+                    // ══════════════════════════════════════════════════════════════
+                    _buildClassificationCard(),
+
+                    const SizedBox(height: 16),
+
+                    // ══════════════════════════════════════════════════════════════
+                    // SECTION 4 — ATTRIBUTS POSITIFS
+                    // ══════════════════════════════════════════════════════════════
+                    _buildSectionCard(
+                      title: '✅ Attributs Positifs',
+                      subtitle: 'Tous les champs sont optionnels',
+                      child: Column(
+                        children: [
+                          // ── Fruité avec toggle Vert / Mûr ──
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildSlider(
+                                label: 'Fruité',
+                                description:
+                                    'Sensations olfactives caractéristiques',
+                                value: _fruite,
+                                onChanged: (v) => setState(() => _fruite = v),
+                                isPositif: true,
+                              ),
+                              // ── Type de fruité — 3 valeurs (PR-48 §5 et §8) ──
+                              // « Vert-mûr » est ce qui sépare Extra B d'Extra B−.
+                              if (_fruite > 0.0) ...[
+                                const SizedBox(height: 8),
+                                const Text(
+                                  'Type de fruité :',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: oliveGreen,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Row(
+                                  children: [
+                                    for (final type in TypeFruite.values) ...[
+                                      Expanded(child: _chipTypeFruite(type)),
+                                      if (type != TypeFruite.values.last)
+                                        const SizedBox(width: 6),
+                                    ],
+                                  ],
+                                ),
+                              ],
+                            ],
+                          ),
+
+                          _buildSlider(
+                            label: 'Amertume',
+                            description:
+                                'Goût primaire — olives vertes ou en véraison',
+                            value: _amer,
+                            onChanged: (v) => setState(() => _amer = v),
+                            isPositif: true,
+                          ),
+                          _buildSlider(
+                            label: 'Piquant',
+                            description:
+                                'Sensation tactile — olives en début de campagne',
+                            value: _piquant,
+                            onChanged: (v) => setState(() => _piquant = v),
+                            isPositif: true,
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    // ══════════════════════════════════════════════════════════════
+                    // SECTION 3 — ATTRIBUTS NÉGATIFS (DÉFAUTS)
+                    // ══════════════════════════════════════════════════════════════
+                    _buildSectionCard(
+                      title: '⚠️ Attributs Négatifs — Défauts',
+                      subtitle: 'Tous les champs sont optionnels',
+                      child: Column(
+                        children: [
+                          _buildSlider(
+                            label: 'Chômé / Lie de boue',
+                            description:
+                                'Huile d\'olives en fermentation anaérobie',
+                            value: _chome,
+                            onChanged: (v) => setState(() => _chome = v),
+                          ),
+                          _buildSlider(
+                            label: 'Moisi / Humide / Terreux',
+                            description:
+                                'Olives stockées en conditions humides',
+                            value: _moisi,
+                            onChanged: (v) => setState(() => _moisi = v),
+                          ),
+                          _buildSlider(
+                            label: 'Vinaigré / Acide-Aigre',
+                            description:
+                                'Fermentation aérobie — acide acétique',
+                            value: _vinaigre,
+                            onChanged: (v) => setState(() => _vinaigre = v),
+                          ),
+                          _buildSlider(
+                            label: 'Gelé (Bois Mouillé)',
+                            description: 'Olives blessées par le gel',
+                            value: _gele,
+                            onChanged: (v) => setState(() => _gele = v),
+                          ),
+                          _buildSlider(
+                            label: 'Rance',
+                            description: 'Processus d\'oxydation intense',
+                            value: _rance,
+                            onChanged: (v) => setState(() => _rance = v),
+                          ),
+
+                          // ── Autres défauts avec nom libre ──
+                          const SizedBox(height: 8),
+                          TextField(
+                            controller: _autresDefautNomController,
+                            enabled: !_estSoumis,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: darkText,
+                            ),
+                            decoration: InputDecoration(
+                              hintText:
+                                  'Autre défaut (Métallique, Grillé, Esparto...)',
+                              hintStyle: TextStyle(
+                                color: Colors.grey.shade400,
+                                fontSize: 12,
+                              ),
+                              prefixIcon: const Icon(
+                                Icons.add_circle_outline,
+                                color: oliveGreen,
+                                size: 18,
+                              ),
+                              filled: true,
+                              fillColor: Colors.grey.shade50,
+                              contentPadding: const EdgeInsets.symmetric(
+                                vertical: 10,
+                                horizontal: 12,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                borderSide: BorderSide(
+                                  color: Colors.grey.shade200,
+                                ),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                borderSide: BorderSide(
+                                  color: Colors.grey.shade200,
+                                ),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                borderSide: const BorderSide(
+                                  color: green,
+                                  width: 1.5,
+                                ),
+                              ),
+                            ),
+                          ),
+                          if (_autresDefautNomController.text.isNotEmpty) ...[
+                            const SizedBox(height: 8),
+                            _buildSlider(
+                              label: 'Intensité — Autre défaut',
+                              description: _autresDefautNomController.text,
+                              value: _autresDefaut,
+                              onChanged: (v) =>
+                                  setState(() => _autresDefaut = v),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    // ══════════════════════════════════════════════════════════════
+                    // SECTION 5 — NOTES LIBRES
+                    // ══════════════════════════════════════════════════════════════
+                    _buildSectionCard(
+                      title: '📝 Notes du Dégustateur',
+                      subtitle:
+                          'Observations, remarques, impressions générales',
+                      child: TextField(
+                        controller: _notesController,
+                        enabled: !_estSoumis,
+                        maxLines: 5,
+                        style: const TextStyle(fontSize: 14, color: darkText),
+                        decoration: InputDecoration(
+                          hintText:
+                              'Ex: Profil aromatique dominé par des notes vertes (herbe coupée, artichaut). Bonne cohérence entre fruité et piquant...',
+                          hintStyle: TextStyle(
+                            color: Colors.grey.shade400,
+                            fontSize: 13,
+                            height: 1.5,
+                          ),
+                          filled: true,
+                          fillColor: Colors.grey.shade50,
+                          contentPadding: const EdgeInsets.all(14),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: Colors.grey.shade200),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: Colors.grey.shade200),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(
+                              color: green,
+                              width: 1.8,
+                            ),
+                          ),
+                          disabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: Colors.grey.shade200),
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // ══════════════════════════════════════════════════════════════
+                    // SECTION 6 — ACTIONS
+                    // ══════════════════════════════════════════════════════════════
+                    if (!_estSoumis) ...[
+                      // ── Enregistrer brouillon ──
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton.icon(
+                          onPressed: _saving ? null : _enregistrerBrouillon,
+                          icon: const Icon(Icons.save_outlined, size: 18),
+                          label: const Text('Enregistrer le brouillon'),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: green,
+                            side: const BorderSide(color: green, width: 1.5),
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      // ── Soumettre et verrouiller ──
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          onPressed: _saving ? null : _confirmerSoumission,
+                          icon: const Icon(Icons.lock_outline, size: 18),
+                          label: const Text(
+                            'Soumettre & Verrouiller',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: green,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 15),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            elevation: 0,
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 8),
+
+                      Center(
+                        child: Text(
+                          'Une fois soumis, la fiche ne peut plus être modifiée',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Colors.grey.shade400,
+                          ),
+                        ),
+                      ),
+                    ],
+
+                    // ── Message si déjà soumis ──
+                    if (_estSoumis)
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: green.withValues(alpha: 0.06),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: green.withValues(alpha: 0.28),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.check_circle, color: green, size: 24),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Évaluation soumise et verrouillée',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w700,
+                                      color: darkText,
+                                    ),
+                                  ),
+                                  Text(
+                                    'Cette fiche est en lecture seule',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey.shade600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                    const SizedBox(height: 30),
                   ],
                 ),
               ),
-
-            const SizedBox(height: 30),
-          ],
-        ),
-      ),
+            ),
     );
   }
 

@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'models/notification_collecteur.dart';
 import 'services/notification_collecteur_service.dart';
 import '../widgets/col_colors.dart';
+import '../../core/widgets/bandeau_demonstration.dart';
 
 class NotificationsCollecteurPage extends StatefulWidget {
   final NotificationCollecteurService service;
@@ -23,6 +24,8 @@ class _NotificationsCollecteurPageState
     extends State<NotificationsCollecteurPage> {
   List<NotificationCollecteur> _all = [];
   bool _loading = true;
+  bool _estDemonstration = false;
+  Object? _erreurChargement;
   String _filter = 'tous';
 
   @override
@@ -32,8 +35,23 @@ class _NotificationsCollecteurPageState
   }
 
   Future<void> _load() async {
-    final data = await widget.service.fetchNotifications();
-    if (mounted) setState(() { _all = data; _loading = false; });
+    if (mounted) setState(() => _loading = true);
+    try {
+      final resultat = await widget.service.fetchNotifications();
+      if (!mounted) return;
+      setState(() {
+        _all = resultat.donnees;
+        _estDemonstration = resultat.estDemonstration;
+        _erreurChargement = null;
+        _loading = false;
+      });
+    } catch (erreur) {
+      if (!mounted) return;
+      setState(() {
+        _erreurChargement = erreur;
+        _loading = false;
+      });
+    }
   }
 
   List<NotificationCollecteur> get _filtered =>
@@ -41,24 +59,42 @@ class _NotificationsCollecteurPageState
 
   int get _unreadCount => _all.where((n) => !n.isRead).length;
 
-  Future<void> _markRead(NotificationCollecteur n) async {
-    if (n.isRead) return;
-    await widget.service.markAsRead(n.id);
-    setState(() {
-      final i = _all.indexWhere((x) => x.id == n.id);
-      if (i != -1) _all[i] = n.copyWith(isRead: true);
-    });
+  Future<bool> _markRead(NotificationCollecteur n) async {
+    if (n.isRead) return true;
+    try {
+      await widget.service.markAsRead(n.id);
+      if (!mounted) return false;
+      setState(() {
+        final i = _all.indexWhere((x) => x.id == n.id);
+        if (i != -1) _all[i] = n.copyWith(isRead: true);
+      });
+      return true;
+    } catch (_) {
+      if (mounted) _signalerErreur();
+      return false;
+    }
   }
 
   Future<void> _markAllRead() async {
-    await widget.service.markAllAsRead();
-    setState(() => _all = _all.map((n) => n.copyWith(isRead: true)).toList());
+    try {
+      await widget.service.markAllAsRead();
+      if (!mounted) return;
+      setState(() => _all = _all.map((n) => n.copyWith(isRead: true)).toList());
+    } catch (_) {
+      if (mounted) _signalerErreur();
+    }
   }
 
-  void _onTap(NotificationCollecteur n) {
-    _markRead(n);
+  Future<void> _onTap(NotificationCollecteur n) async {
+    if (!await _markRead(n) || !mounted) return;
     widget.onNavigate(n);
     Navigator.pop(context);
+  }
+
+  void _signalerErreur() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('La notification n’a pas pu être mise à jour.')),
+    );
   }
 
   @override
@@ -73,7 +109,9 @@ class _NotificationsCollecteurPageState
         title: Text(
           'Notifications',
           style: GoogleFonts.domine(
-            fontSize: 18, fontWeight: FontWeight.w700, color: colDark,
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+            color: colDark,
           ),
         ),
         iconTheme: const IconThemeData(color: colDark),
@@ -84,7 +122,9 @@ class _NotificationsCollecteurPageState
               child: Text(
                 'Tout marquer lu',
                 style: TextStyle(
-                  fontSize: 12, color: colGreen, fontWeight: FontWeight.w600,
+                  fontSize: 12,
+                  color: colGreen,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ),
@@ -93,53 +133,70 @@ class _NotificationsCollecteurPageState
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator(color: colGreen))
-          : Column(children: [
-              // ── Filter chips ────────────────────────────────────────────────
-              Container(
-                color: colHeaderBg,
-                padding: const EdgeInsets.fromLTRB(16, 4, 16, 14),
-                child: Row(children: [
-                  _FilterChip(
-                    label: 'Tous',
-                    active: _filter == 'tous',
-                    onTap: () => setState(() => _filter = 'tous'),
-                  ),
-                  const SizedBox(width: 8),
-                  _FilterChip(
-                    label: _unreadCount > 0
-                        ? 'Non lus ($_unreadCount)'
-                        : 'Non lus',
-                    active: _filter == 'non_lus',
-                    onTap: () => setState(() => _filter = 'non_lus'),
-                  ),
-                ]),
-              ),
-              Container(height: 1, color: Colors.black.withValues(alpha: 0.06)),
-              // ── Count strip ─────────────────────────────────────────────────
-              Container(
-                color: colBg,
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 6),
-                child: Row(children: [
-                  Icon(Icons.notifications_outlined,
-                      size: 13, color: Colors.grey.shade400),
-                  const SizedBox(width: 6),
-                  Text(
-                    '${_filtered.length} notification'
-                    '${_filtered.length != 1 ? 's' : ''}',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey.shade400,
-                      fontWeight: FontWeight.w500,
+          : VueResultatService(
+              estDemonstration: _estDemonstration,
+              erreur: _erreurChargement,
+              onReessayer: _load,
+              child: Column(
+                children: [
+                  // ── Filter chips ────────────────────────────────────────────────
+                  Container(
+                    color: colHeaderBg,
+                    padding: const EdgeInsets.fromLTRB(16, 4, 16, 14),
+                    child: Row(
+                      children: [
+                        _FilterChip(
+                          label: 'Tous',
+                          active: _filter == 'tous',
+                          onTap: () => setState(() => _filter = 'tous'),
+                        ),
+                        const SizedBox(width: 8),
+                        _FilterChip(
+                          label: _unreadCount > 0
+                              ? 'Non lus ($_unreadCount)'
+                              : 'Non lus',
+                          active: _filter == 'non_lus',
+                          onTap: () => setState(() => _filter = 'non_lus'),
+                        ),
+                      ],
                     ),
                   ),
-                ]),
+                  Container(
+                    height: 1,
+                    color: Colors.black.withValues(alpha: 0.06),
+                  ),
+                  // ── Count strip ─────────────────────────────────────────────────
+                  Container(
+                    color: colBg,
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 6),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.notifications_outlined,
+                          size: 13,
+                          color: Colors.grey.shade400,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          '${_filtered.length} notification'
+                          '${_filtered.length != 1 ? 's' : ''}',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey.shade400,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                    child: _filtered.isEmpty
+                        ? _buildEmpty()
+                        : _buildGroupedList(),
+                  ),
+                ],
               ),
-              Expanded(
-                child: _filtered.isEmpty
-                    ? _buildEmpty()
-                    : _buildGroupedList(),
-              ),
-            ]),
+            ),
     );
   }
 
@@ -167,13 +224,15 @@ class _NotificationsCollecteurPageState
           if (grouped.containsKey(group)) ...[
             _GroupHeader(group),
             const SizedBox(height: 8),
-            ...grouped[group]!.map((n) => Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: _NotificationCard(
-                notification: n,
-                onTap: () => _onTap(n),
+            ...grouped[group]!.map(
+              (n) => Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: _NotificationCard(
+                  notification: n,
+                  onTap: () => _onTap(n),
+                ),
               ),
-            )),
+            ),
             const SizedBox(height: 4),
           ],
       ],
@@ -181,22 +240,30 @@ class _NotificationsCollecteurPageState
   }
 
   Widget _buildEmpty() => Center(
-    child: Column(mainAxisSize: MainAxisSize.min, children: [
-      Icon(Icons.notifications_off_outlined,
-          size: 52, color: Colors.grey.shade300),
-      const SizedBox(height: 12),
-      Text(
-        'Aucune notification',
-        style: TextStyle(
-          fontSize: 15, color: Colors.grey.shade400, fontWeight: FontWeight.w600,
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          Icons.notifications_off_outlined,
+          size: 52,
+          color: Colors.grey.shade300,
         ),
-      ),
-      const SizedBox(height: 4),
-      Text(
-        'Tout est à jour.',
-        style: TextStyle(fontSize: 13, color: Colors.grey.shade400),
-      ),
-    ]),
+        const SizedBox(height: 12),
+        Text(
+          'Aucune notification',
+          style: TextStyle(
+            fontSize: 15,
+            color: Colors.grey.shade400,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          'Tout est à jour.',
+          style: TextStyle(fontSize: 13, color: Colors.grey.shade400),
+        ),
+      ],
+    ),
   );
 }
 
@@ -211,8 +278,10 @@ class _GroupHeader extends StatelessWidget {
     child: Text(
       label,
       style: TextStyle(
-        fontSize: 11, fontWeight: FontWeight.w700,
-        color: Colors.grey.shade500, letterSpacing: 0.5,
+        fontSize: 11,
+        fontWeight: FontWeight.w700,
+        color: Colors.grey.shade500,
+        letterSpacing: 0.5,
       ),
     ),
   );
@@ -240,11 +309,13 @@ class _FilterChip extends StatelessWidget {
           color: active ? colGreen : Colors.white.withValues(alpha: 0.7),
           borderRadius: BorderRadius.circular(20),
           boxShadow: active
-              ? [BoxShadow(
-                  color: colGreen.withValues(alpha: 0.25),
-                  blurRadius: 6,
-                  offset: const Offset(0, 2),
-                )]
+              ? [
+                  BoxShadow(
+                    color: colGreen.withValues(alpha: 0.25),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
               : [],
         ),
         child: Text(
@@ -286,8 +357,8 @@ class _NotificationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cfg   = _typeConfig[notification.type];
-    final icon  = cfg?.$1 ?? Icons.notifications_outlined;
+    final cfg = _typeConfig[notification.type];
+    final icon = cfg?.$1 ?? Icons.notifications_outlined;
     final color = cfg?.$2 ?? colGreen;
     final bgCol = cfg?.$3 ?? const Color(0xFFE6F4ED);
 
@@ -312,125 +383,140 @@ class _NotificationCard extends StatelessWidget {
         ),
         clipBehavior: Clip.hardEdge,
         child: IntrinsicHeight(
-          child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            if (!notification.isRead) Container(width: 4, color: color),
-            Expanded(
-              child: Padding(
-                padding: EdgeInsets.fromLTRB(
-                  notification.isRead ? 14 : 10, 14, 14, 14,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // ── Header row ─────────────────────────────────────────
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          width: 40, height: 40,
-                          decoration: BoxDecoration(
-                            color: bgCol,
-                            borderRadius: BorderRadius.circular(12),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (!notification.isRead) Container(width: 4, color: color),
+              Expanded(
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(
+                    notification.isRead ? 14 : 10,
+                    14,
+                    14,
+                    14,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // ── Header row ─────────────────────────────────────────
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: bgCol,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Icon(icon, color: color, size: 20),
                           ),
-                          child: Icon(icon, color: color, size: 20),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(children: [
-                                Expanded(
-                                  child: Text(
-                                    notification.titre,
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: notification.isRead
-                                          ? FontWeight.w500
-                                          : FontWeight.w700,
-                                      color: colDark,
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        notification.titre,
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: notification.isRead
+                                              ? FontWeight.w500
+                                              : FontWeight.w700,
+                                          color: colDark,
+                                        ),
+                                      ),
                                     ),
+                                    if (!notification.isRead)
+                                      Container(
+                                        width: 8,
+                                        height: 8,
+                                        decoration: BoxDecoration(
+                                          color: color,
+                                          shape: BoxShape.circle,
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  notification.message,
+                                  maxLines: 3,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey.shade600,
+                                    height: 1.4,
                                   ),
                                 ),
-                                if (!notification.isRead)
-                                  Container(
-                                    width: 8, height: 8,
-                                    decoration: BoxDecoration(
-                                      color: color,
-                                      shape: BoxShape.circle,
-                                    ),
-                                  ),
-                              ]),
-                              const SizedBox(height: 4),
-                              Text(
-                                notification.message,
-                                maxLines: 3,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey.shade600,
-                                  height: 1.4,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    // ── Negotiation detail panel (APPROUVE only) ───────────
-                    if (notification.type == 'ECHANTILLON_APPROUVE' &&
-                        notification.budgetNegociation != null) ...[
-                      const SizedBox(height: 10),
-                      _NegotiationPanel(
-                        budget: notification.budgetNegociation!,
-                        dateSouhaitee: notification.dateLivraisonStockSouhaitee,
-                        color: color,
-                        bgCol: bgCol,
-                      ),
-                    ],
-
-                    // ── Footer row ─────────────────────────────────────────
-                    const SizedBox(height: 8),
-                    Row(children: [
-                      if (notification.echantillonReference != null) ...[
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 7, vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: color.withValues(alpha: 0.08),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Text(
-                            notification.echantillonReference!,
-                            style: TextStyle(
-                              fontSize: 10,
-                              color: color,
-                              fontWeight: FontWeight.w700,
+                              ],
                             ),
                           ),
+                        ],
+                      ),
+
+                      // ── Negotiation detail panel (APPROUVE only) ───────────
+                      if (notification.type == 'ECHANTILLON_APPROUVE' &&
+                          notification.budgetNegociation != null) ...[
+                        const SizedBox(height: 10),
+                        _NegotiationPanel(
+                          budget: notification.budgetNegociation!,
+                          dateSouhaitee:
+                              notification.dateLivraisonStockSouhaitee,
+                          color: color,
+                          bgCol: bgCol,
                         ),
-                        const SizedBox(width: 6),
                       ],
-                      Text(
-                        _relativeTime(notification.dateCreation),
-                        style: TextStyle(
-                          fontSize: 11, color: Colors.grey.shade400,
-                        ),
+
+                      // ── Footer row ─────────────────────────────────────────
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          if (notification.echantillonReference != null) ...[
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 7,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: color.withValues(alpha: 0.08),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                notification.echantillonReference!,
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: color,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                          ],
+                          Text(
+                            _relativeTime(notification.dateCreation),
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: Colors.grey.shade400,
+                            ),
+                          ),
+                          const Spacer(),
+                          Icon(
+                            Icons.arrow_forward_ios_rounded,
+                            size: 10,
+                            color: Colors.grey.shade300,
+                          ),
+                        ],
                       ),
-                      const Spacer(),
-                      Icon(
-                        Icons.arrow_forward_ios_rounded,
-                        size: 10,
-                        color: Colors.grey.shade300,
-                      ),
-                    ]),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ]),
+            ],
+          ),
         ),
       ),
     );
@@ -485,8 +571,7 @@ class _NegotiationPanel extends StatelessWidget {
           _DetailRow(
             icon: Icons.payments_outlined,
             label: 'Budget alloué',
-            value:
-                '${budget.toStringAsFixed(2)} TND/L',
+            value: '${budget.toStringAsFixed(2)} TND/L',
             color: color,
           ),
           if (dateSouhaitee != null) ...[
@@ -499,20 +584,26 @@ class _NegotiationPanel extends StatelessWidget {
             ),
           ],
           const SizedBox(height: 10),
-          Row(children: [
-            Icon(Icons.info_outline, size: 12, color: color.withValues(alpha: 0.7)),
-            const SizedBox(width: 5),
-            Expanded(
-              child: Text(
-                'Ouvrez votre liste d\'échantillons pour confirmer l\'achat.',
-                style: TextStyle(
-                  fontSize: 11,
-                  color: color.withValues(alpha: 0.8),
-                  fontStyle: FontStyle.italic,
+          Row(
+            children: [
+              Icon(
+                Icons.info_outline,
+                size: 12,
+                color: color.withValues(alpha: 0.7),
+              ),
+              const SizedBox(width: 5),
+              Expanded(
+                child: Text(
+                  'Ouvrez votre liste d\'échantillons pour confirmer l\'achat.',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: color.withValues(alpha: 0.8),
+                    fontStyle: FontStyle.italic,
+                  ),
                 ),
               ),
-            ),
-          ]),
+            ],
+          ),
         ],
       ),
     );

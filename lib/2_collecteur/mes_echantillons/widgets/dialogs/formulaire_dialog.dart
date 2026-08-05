@@ -104,9 +104,9 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
   Uint8List? _photoBytes;
   String? _photoName;
 
-  Future<void> _importEtiquetteImage() async {
+  Future<void> _pickPhoto(ImageSource source) async {
     final XFile? file = await _picker.pickImage(
-      source: ImageSource.gallery,
+      source: source,
       maxWidth: 2000,
       imageQuality: 90,
     );
@@ -121,6 +121,8 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
       _photoName = file.name;
     });
   }
+
+  Future<void> _importEtiquetteImage() => _pickPhoto(ImageSource.gallery);
 
   // Reuses the first empty row rather than always creating a new one.
   BouteilleRow _targetRowForPhoto() {
@@ -140,8 +142,6 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
       b.varieteCtrl.text.trim().isEmpty &&
       b.numCiterneCtrl.text.trim().isEmpty &&
       b.qteCtrl.text.trim().isEmpty;
-
-  Future<void> _pickPhoto(ImageSource source) => _importEtiquetteImage();
 
   void _removePhoto() => setState(() {
     _photoBytes = null;
@@ -347,7 +347,21 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
       return _fournisseurChoisi!.id;
     }
 
-    final proches = await FournisseurService.instance.findNearDuplicates(saisi);
+    final resultatProches = await FournisseurService.instance
+        .findNearDuplicates(saisi);
+    if (resultatProches.estDemonstration) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Référentiel fournisseur en démonstration : le nom saisi sera conservé sans rapprochement.',
+            ),
+          ),
+        );
+      }
+      return null;
+    }
+    final proches = resultatProches.donnees;
     if (proches.isNotEmpty && mounted) {
       final choisi = await DialogDoublonFournisseur.afficher(
         context,

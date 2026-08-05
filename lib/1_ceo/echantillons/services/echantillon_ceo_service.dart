@@ -1,4 +1,5 @@
 import '../../../core/api_client.dart';
+import '../../../core/services/resultat_service.dart';
 import '../../utilisateurs/models/echantillon_ceo_view.dart';
 
 class EchantillonCeoService {
@@ -81,7 +82,9 @@ class EchantillonCeoService {
     return await apiClient.getList('/api/echantillons/');
   }
 
-  Future<List<EchantillonCeoView>> fetchCeoViews() async {
+  Future<Resultat<List<EchantillonCeoView>>> fetchCeoViews(
+    List<EchantillonCeoView> Function() secours,
+  ) => avecSecours(() async {
     final samples = await apiClient.getList('/api/echantillons/');
     final evaluations = await _fetchEvaluationsBySample();
     final analyses = await _fetchAnalysesBySample();
@@ -97,48 +100,36 @@ class EchantillonCeoService {
           ),
         )
         .toList();
-  }
+  }, secours);
 
   Future<Map<String, List<EvaluationOrganoleptique>>>
   _fetchEvaluationsBySample() async {
-    try {
-      final items = await apiClient.getList('/api/evaluations/');
-      final grouped = <String, List<EvaluationOrganoleptique>>{};
-      for (final item in items) {
-        final evaluation = item as Map<String, dynamic>;
-        if (evaluation['classification'] == null) continue;
-        if (evaluation['statut'] != 'soumis') continue;
-        final sampleId = evaluation['echantillon'] as String;
-        grouped
-            .putIfAbsent(sampleId, () => [])
-            .add(_evaluationFromApi(evaluation));
-      }
-      return grouped;
-    } catch (_) {
-      return {};
+    final items = await apiClient.getList('/api/evaluations/');
+    final grouped = <String, List<EvaluationOrganoleptique>>{};
+    for (final item in items) {
+      final evaluation = item as Map<String, dynamic>;
+      if (evaluation['classification'] == null) continue;
+      if (evaluation['statut'] != 'soumis') continue;
+      final sampleId = evaluation['echantillon'] as String;
+      grouped
+          .putIfAbsent(sampleId, () => [])
+          .add(_evaluationFromApi(evaluation));
     }
+    return grouped;
   }
 
   Future<Map<String, RapportLabo>> _fetchAnalysesBySample() async {
-    try {
-      final items = await apiClient.getList('/api/analyses/');
-      return {
-        for (final item in items)
-          if ((item as Map<String, dynamic>)['echantillon_id'] != null)
-            item['echantillon_id'] as String: _analyseFromApi(item),
-      };
-    } catch (_) {
-      return {};
-    }
+    final items = await apiClient.getList('/api/analyses/');
+    return {
+      for (final item in items)
+        if ((item as Map<String, dynamic>)['echantillon_id'] != null)
+          item['echantillon_id'] as String: _analyseFromApi(item),
+    };
   }
 
   Future<int> _fetchPanelCount() async {
-    try {
-      final panel = await apiClient.getList('/api/users/panel-members/');
-      return panel.length;
-    } catch (_) {
-      return 0;
-    }
+    final panel = await apiClient.getList('/api/users/panel-members/');
+    return panel.length;
   }
 
   EchantillonCeoView _toCeoView(

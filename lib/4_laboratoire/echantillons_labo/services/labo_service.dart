@@ -1,5 +1,6 @@
 import '../../../core/analyses/normes_coi.dart';
 import '../../../core/api_client.dart';
+import '../../../core/services/resultat_service.dart';
 import '../../../core/models/enums.dart' show StatutLaboX;
 import '../models/echantillon_labo.dart';
 import '../models/mock_echantillons_labo.dart';
@@ -9,20 +10,21 @@ class LaboService {
   bool _usingMockData = false;
   List<EchantillonLabo> _lastFetched = [];
 
-  Future<List<EchantillonLabo>> fetchEchantillons() async {
-    try {
+  Future<Resultat<List<EchantillonLabo>>> fetchEchantillons() => avecSecours(
+    () async {
       final items = await apiClient.getList('/api/analyses/echantillons/');
       _usingMockData = false;
       _lastFetched = items
           .map((item) => EchantillonLabo.fromJson(item as Map<String, dynamic>))
           .toList();
       return _lastFetched;
-    } catch (_) {
+    },
+    () {
       _usingMockData = true;
       _lastFetched = List.of(mockEchantillonsLabo);
       return _lastFetched;
-    }
-  }
+    },
+  );
 
   Future<AnalyseLabo> saveAnalyse(
     String echantillonId,
@@ -31,10 +33,7 @@ class LaboService {
     String? photoName,
   }) async {
     if (_usingMockData) {
-      final idx = mockEchantillonsLabo.indexWhere((e) => e.id == echantillonId);
-      if (idx != -1) mockEchantillonsLabo[idx].analyse = analyse;
-      _replaceCachedAnalysis(echantillonId, analyse);
-      return analyse;
+      throw StateError('Enregistrement indisponible avec les données de démonstration.');
     }
 
     final existing = _findCached(echantillonId)?.analyse;
@@ -77,10 +76,7 @@ class LaboService {
 
   Future<void> deleteAnalyse(String echantillonId) async {
     if (_usingMockData) {
-      final idx = mockEchantillonsLabo.indexWhere((e) => e.id == echantillonId);
-      if (idx != -1) mockEchantillonsLabo[idx].analyse = null;
-      _replaceCachedAnalysis(echantillonId, null);
-      return;
+      throw StateError('Suppression indisponible avec les données de démonstration.');
     }
 
     final analyseId = _findCached(echantillonId)?.analyse?.id;
@@ -93,14 +89,7 @@ class LaboService {
 
   Future<AnalyseLabo?> soumettre(String analyseId) async {
     if (_usingMockData) {
-      for (final e in mockEchantillonsLabo) {
-        if (e.analyse?.id == analyseId) {
-          e.analyse!.statut = StatutAnalyse.soumis;
-          _replaceCachedAnalysis(e.id, e.analyse);
-          return e.analyse;
-        }
-      }
-      return null;
+      throw StateError('Soumission indisponible avec les données de démonstration.');
     }
 
     final data = await apiClient.post(

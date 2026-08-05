@@ -6,11 +6,9 @@ import '../../../core/models/echantillon.dart';
 import '../../../core/models/enums.dart';
 import '../../../core/utils/date_utils.dart';
 import 'services/gestion_echantillons_service.dart';
-import 'models/mock_echantillons.dart';
 import 'widgets/echantillon_card.dart';
 import '../../../core/widgets/empty_state.dart';
 import 'widgets/dialogs/formulaire_dialog.dart';
-import 'widgets/dialogs/suppression_dialog.dart';
 import '../../../core/widgets/search_filter_bar.dart';
 import '../evaluation_echantillons/evaluation_echantillons_page.dart';
 import '../profil/profil_page.dart';
@@ -20,6 +18,7 @@ import '../sessions_degustation/sessions_degustation_page.dart';
 import '../analyse_labo/analyse_laboratoire_page.dart';
 import '../../../core/widgets/statut_chip.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/bandeau_demonstration.dart';
 import '../widgets/degustateur_nav_mixin.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -53,6 +52,8 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage>
   // ───────────────────────────────────────────────────────────────────────────
 
   List<Echantillon> _echantillons = [];
+  bool _estDemonstration = false;
+  Object? _erreurChargement;
 
   @override
   void initState() {
@@ -62,11 +63,15 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage>
 
   Future<void> _loadData() async {
     try {
-      final data = await _service.fetchEchantillons();
+      final resultat = await _service.fetchEchantillons();
       if (!mounted) return;
-      setState(() => _echantillons = data);
-    } catch (_) {
-      setState(() => _echantillons = List.of(mockEchantillonsGestion));
+      setState(() {
+        _echantillons = resultat.donnees;
+        _estDemonstration = resultat.estDemonstration;
+        _erreurChargement = null;
+      });
+    } catch (erreur) {
+      if (mounted) setState(() => _erreurChargement = erreur);
     }
   }
 
@@ -125,39 +130,57 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage>
   // 6. ACTIONS
   // ───────────────────────────────────────────────────────────────────────────
 
-  void _onAjouter(List<Echantillon> nouveaux) {
-    setState(() => _echantillons.addAll(nouveaux));
-    final label = nouveaux.length == 1
-        ? 'Échantillon ajouté avec succès'
-        : '${nouveaux.length} échantillons ajoutés';
-    _showSuccess(label);
+  Future<void> _onModifier(List<Echantillon> modifies) async {
+    try {
+      final updated = await _service.updateEchantillon(modifies.single);
+      if (!mounted) return;
+      setState(() {
+        final index = _echantillons.indexWhere((e) => e.id == updated.id);
+        if (index != -1) _echantillons[index] = updated;
+      });
+      _showSuccess('Échantillon modifié avec succès');
+    } catch (error) {
+      await _loadData();
+      if (mounted) _showError('Modification impossible : $error');
+    }
   }
 
-  void _onModifier(List<Echantillon> modifies) {
-    setState(() {});
-    _showSuccess('Échantillon modifié avec succès');
-  }
-
-  void _onSupprimer(Echantillon e) {
-    setState(() => _echantillons.remove(e));
-    _showSuccess('Échantillon ${e.id} supprimé');
-  }
-
-  Future<void> _onToggleRecu(Echantillon e) async {
+  Future<bool> _onToggleRecu(Echantillon e) async {
     if (e.recuPhysiquement) {
-      _showSuccess('Reception physique deja confirmee');
+      _showError('Une réception confirmée ne peut pas être annulée.');
+      return false;
+    }
+    if (_estDemonstration) {
+      _showError(
+        'Action indisponible avec les données de démonstration. Réessayez lorsque le serveur répond.',
+      );
+      return false;
+    }
+    try {
+      await _service.toggleRecuPhysiquement(e.id, true);
+      if (!mounted) return false;
+      setState(() => e.recuPhysiquement = true);
+      _showSuccess('Reception physique confirmee');
+      return true;
+    } catch (error) {
+      if (mounted) _showError('Confirmation impossible : $error');
+      return false;
+    }
+  }
+
+  void _ouvrirModification(Echantillon e) {
+    if (_estDemonstration) {
+      _showError(
+        'Modification indisponible avec les données de démonstration. Réessayez lorsque le serveur répond.',
+      );
       return;
     }
-    final previous = e.recuPhysiquement;
-    setState(() => e.recuPhysiquement = !e.recuPhysiquement);
-    try {
-      await _service.toggleRecuPhysiquement(e.id, e.recuPhysiquement);
-      _showSuccess('Reception physique confirmee');
-    } catch (_) {
-      if (!mounted) return;
-      setState(() => e.recuPhysiquement = previous);
-      _showSuccess('Action conservee en mode demonstration');
-    }
+    showFormulaireDialog(
+      context,
+      echantillon: e,
+      prochainNumero: _prochainNumero,
+      onSaveMultiple: _onModifier,
+    );
   }
 
   void _showSuccess(String msg) {
@@ -175,6 +198,12 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage>
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         margin: const EdgeInsets.all(20),
       ),
+    );
+  }
+
+  void _showError(String msg) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(msg), backgroundColor: Colors.red.shade700),
     );
   }
 
@@ -284,194 +313,172 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage>
         ],
       ),
 
-      // ── FAB ────────────────────────────────────────────────────────────────
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => showFormulaireDialog(
-          context,
-          echantillon: null,
-          prochainNumero: _prochainNumero,
-          onSaveMultiple: _onAjouter,
-        ),
-        backgroundColor: const Color.fromARGB(255, 197, 206, 201),
-        elevation: 2,
-        icon: const Icon(Icons.add, color: kDark),
-        label: const Text(
-          'Ajouter',
-          style: TextStyle(color: kDark, fontWeight: FontWeight.w700),
-        ),
-      ),
-
-      body: Column(
-        children: [
-          // ── UNIFIED HEADER ZONE ─────────────────────────────────────────
-          Container(
-            color: kHeaderBg,
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
-            child: Column(
-              children: [
-                // Search bar
-                TextField(
-                  controller: _searchController,
-                  onChanged: (v) => setState(() => _recherche = v.trim()),
-                  style: const TextStyle(fontSize: 14, color: kDark),
-                  decoration: InputDecoration(
-                    hintText: 'Réf · fournisseur · gouvernorat · collecteur…',
-                    hintStyle: const TextStyle(
-                      color: Color(0xFF6B8E7A),
-                      fontSize: 11,
-                    ),
-                    prefixIcon: const Icon(
-                      Icons.search,
-                      color: Color(0xFF6B8E7A),
-                      size: 20,
-                    ),
-                    suffixIcon: _recherche.isNotEmpty
-                        ? IconButton(
-                            icon: const Icon(
-                              Icons.close,
-                              size: 17,
-                              color: Color(0xFF6B8E7A),
-                            ),
-                            onPressed: () => setState(() {
-                              _recherche = '';
-                              _searchController.clear();
-                            }),
-                          )
-                        : null,
-                    filled: true,
-                    fillColor: Colors.white,
-                    contentPadding: const EdgeInsets.symmetric(
-                      vertical: 11,
-                      horizontal: 16,
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: kGreen, width: 1.5),
+      body: VueResultatService(
+        estDemonstration: _estDemonstration,
+        erreur: _erreurChargement,
+        onReessayer: _loadData,
+        child: Column(
+          children: [
+            // ── UNIFIED HEADER ZONE ─────────────────────────────────────────
+            Container(
+              color: kHeaderBg,
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
+              child: Column(
+                children: [
+                  // Search bar
+                  TextField(
+                    controller: _searchController,
+                    onChanged: (v) => setState(() => _recherche = v.trim()),
+                    style: const TextStyle(fontSize: 14, color: kDark),
+                    decoration: InputDecoration(
+                      hintText: 'Réf · fournisseur · gouvernorat · collecteur…',
+                      hintStyle: const TextStyle(
+                        color: Color(0xFF6B8E7A),
+                        fontSize: 11,
+                      ),
+                      prefixIcon: const Icon(
+                        Icons.search,
+                        color: Color(0xFF6B8E7A),
+                        size: 20,
+                      ),
+                      suffixIcon: _recherche.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(
+                                Icons.close,
+                                size: 17,
+                                color: Color(0xFF6B8E7A),
+                              ),
+                              onPressed: () => setState(() {
+                                _recherche = '';
+                                _searchController.clear();
+                              }),
+                            )
+                          : null,
+                      filled: true,
+                      fillColor: Colors.white,
+                      contentPadding: const EdgeInsets.symmetric(
+                        vertical: 11,
+                        horizontal: 16,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: kGreen, width: 1.5),
+                      ),
                     ),
                   ),
-                ),
 
-                const SizedBox(height: 11),
+                  const SizedBox(height: 11),
 
-                // ── Statut filter chips ─────────────────────────────────
-                SizedBox(
-                  height: 34,
-                  child: ListView(
-                    scrollDirection: Axis.horizontal,
-                    children: [
-                      StatutChip(
-                        label: 'Tous',
-                        activeColor: const Color(0xFF616161),
-                        inactiveColor: const Color(0xFFF0F0F0),
-                        inactiveTextColor: const Color(0xFF757575),
-                        selected: _filtreStatut == null,
-                        onTap: () => setState(() => _filtreStatut = null),
-                      ),
-                      const SizedBox(width: 7),
-                      StatutChip(
-                        label: 'Non évaluée',
-                        activeColor: const Color(0xFF3A6EA5),
-                        inactiveColor: const Color(0xFFE8F1FB),
-                        inactiveTextColor: const Color(0xFF3A6EA5),
-                        selected: _filtreStatut == 'Non évaluée',
-                        onTap: () =>
-                            setState(() => _filtreStatut = 'Non évaluée'),
-                      ),
-                      const SizedBox(width: 7),
-                      StatutChip(
-                        label: 'Évaluation en cours',
-                        activeColor: const Color(0xFFD07B2F),
-                        inactiveColor: const Color(0xFFFEF3E8),
-                        inactiveTextColor: const Color(0xFFD07B2F),
-                        selected: _filtreStatut == 'Évaluation en cours',
-                        onTap: () => setState(
-                          () => _filtreStatut = 'Évaluation en cours',
+                  // ── Statut filter chips ─────────────────────────────────
+                  SizedBox(
+                    height: 34,
+                    child: ListView(
+                      scrollDirection: Axis.horizontal,
+                      children: [
+                        StatutChip(
+                          label: 'Tous',
+                          activeColor: const Color(0xFF616161),
+                          inactiveColor: const Color(0xFFF0F0F0),
+                          inactiveTextColor: const Color(0xFF757575),
+                          selected: _filtreStatut == null,
+                          onTap: () => setState(() => _filtreStatut = null),
                         ),
-                      ),
-                      const SizedBox(width: 7),
-                      StatutChip(
-                        label: 'Évaluation soumise',
-                        activeColor: const Color(0xFF38835A),
-                        inactiveColor: const Color(0xFFE6F4ED),
-                        inactiveTextColor: const Color(0xFF38835A),
-                        selected: _filtreStatut == 'Évaluation soumise',
-                        onTap: () => setState(
-                          () => _filtreStatut = 'Évaluation soumise',
+                        const SizedBox(width: 7),
+                        StatutChip(
+                          label: 'Non évaluée',
+                          activeColor: const Color(0xFF3A6EA5),
+                          inactiveColor: const Color(0xFFE8F1FB),
+                          inactiveTextColor: const Color(0xFF3A6EA5),
+                          selected: _filtreStatut == 'Non évaluée',
+                          onTap: () =>
+                              setState(() => _filtreStatut = 'Non évaluée'),
                         ),
-                      ),
-                    ],
+                        const SizedBox(width: 7),
+                        StatutChip(
+                          label: 'Évaluation en cours',
+                          activeColor: const Color(0xFFD07B2F),
+                          inactiveColor: const Color(0xFFFEF3E8),
+                          inactiveTextColor: const Color(0xFFD07B2F),
+                          selected: _filtreStatut == 'Évaluation en cours',
+                          onTap: () => setState(
+                            () => _filtreStatut = 'Évaluation en cours',
+                          ),
+                        ),
+                        const SizedBox(width: 7),
+                        StatutChip(
+                          label: 'Évaluation soumise',
+                          activeColor: const Color(0xFF38835A),
+                          inactiveColor: const Color(0xFFE6F4ED),
+                          inactiveTextColor: const Color(0xFF38835A),
+                          selected: _filtreStatut == 'Évaluation soumise',
+                          onTap: () => setState(
+                            () => _filtreStatut = 'Évaluation soumise',
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
 
-          // Thin separator shadow
-          Container(height: 1, color: Colors.black.withValues(alpha: 0.06)),
+            // Thin separator shadow
+            Container(height: 1, color: Colors.black.withValues(alpha: 0.06)),
 
-          // ── STATS STRIP ───────────────────────────────────────────────────
-          Container(
-            color: kBg,
-            padding: const EdgeInsets.fromLTRB(16, 9, 16, 6),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.inventory_2_outlined,
-                  size: 13,
-                  color: const Color.fromARGB(255, 156, 156, 156),
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  '${items.length} échantillon${items.length > 1 ? "s" : ""}',
-                  style: TextStyle(
-                    fontSize: 12,
+            // ── STATS STRIP ───────────────────────────────────────────────────
+            Container(
+              color: kBg,
+              padding: const EdgeInsets.fromLTRB(16, 9, 16, 6),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.inventory_2_outlined,
+                    size: 13,
                     color: const Color.fromARGB(255, 156, 156, 156),
-                    fontWeight: FontWeight.w500,
                   ),
-                ),
-              ],
-            ),
-          ),
-
-          // ── FLAT LIST ─────────────────────────────────────────────────────
-          Expanded(
-            child: items.isEmpty
-                ? const EmptyState()
-                : Scrollbar(
-                    thumbVisibility: true,
-                    child: ListView.builder(
-                      padding: const EdgeInsets.fromLTRB(16, 10, 16, 100),
-                      itemCount: items.length,
-                      itemBuilder: (context, i) {
-                        final e = items[i];
-                        return EchantillonCard(
-                          echantillon: e,
-                          onModifier: () => showFormulaireDialog(
-                            context,
-                            echantillon: e,
-                            prochainNumero: _prochainNumero,
-                            onSaveMultiple: _onModifier,
-                          ),
-                          onSupprimer: () => showSuppressionDialog(
-                            context,
-                            echantillon: e,
-                            onConfirmer: () => _onSupprimer(e),
-                          ),
-                          onToggleRecu: () => _onToggleRecu(e),
-                        );
-                      },
+                  const SizedBox(width: 6),
+                  Text(
+                    '${items.length} échantillon${items.length > 1 ? "s" : ""}',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: const Color.fromARGB(255, 156, 156, 156),
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
-          ),
-        ],
+                ],
+              ),
+            ),
+
+            // ── FLAT LIST ─────────────────────────────────────────────────────
+            Expanded(
+              child: items.isEmpty
+                  ? const EmptyState()
+                  : Scrollbar(
+                      thumbVisibility: true,
+                      child: ListView.builder(
+                        padding: const EdgeInsets.fromLTRB(16, 10, 16, 100),
+                        itemCount: items.length,
+                        itemBuilder: (context, i) {
+                          final e = items[i];
+                          return EchantillonCard(
+                            echantillon: e,
+                            onModifier: () => _ouvrirModification(e),
+                            onToggleRecu: () => _onToggleRecu(e),
+                          );
+                        },
+                      ),
+                    ),
+            ),
+          ],
+        ),
       ),
     );
   }

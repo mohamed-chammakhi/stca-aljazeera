@@ -11,6 +11,7 @@ import '../profil_labo_page.dart';
 import '../widgets/labo_nav_mixin.dart';
 import '../../main.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/widgets/bandeau_demonstration.dart';
 
 // Scrollbar thumb — neutral dark not in the global palette.
 const Color _gray = Color.fromARGB(255, 81, 82, 81);
@@ -29,6 +30,9 @@ class _EchantillonsLaboPageState extends State<EchantillonsLaboPage>
   String _recherche = '';
   StatutAnalyse? _filtreStatut;
   List<EchantillonLabo> _echantillons = [];
+  bool _chargement = true;
+  bool _estDemonstration = false;
+  Object? _erreurChargement;
 
   @override
   void initState() {
@@ -37,8 +41,23 @@ class _EchantillonsLaboPageState extends State<EchantillonsLaboPage>
   }
 
   Future<void> _loadEchantillons() async {
-    final list = await _service.fetchEchantillons();
-    if (mounted) setState(() => _echantillons = list);
+    if (mounted) setState(() => _chargement = true);
+    try {
+      final resultat = await _service.fetchEchantillons();
+      if (!mounted) return;
+      setState(() {
+        _echantillons = resultat.donnees;
+        _estDemonstration = resultat.estDemonstration;
+        _erreurChargement = null;
+        _chargement = false;
+      });
+    } catch (erreur) {
+      if (!mounted) return;
+      setState(() {
+        _erreurChargement = erreur;
+        _chargement = false;
+      });
+    }
   }
 
   // ── Filter logic ───────────────────────────────────────────────────────────
@@ -221,200 +240,222 @@ class _EchantillonsLaboPageState extends State<EchantillonsLaboPage>
           ),
         ],
       ),
-      body: Column(
-        children: [
-          // ── Header zone ──────────────────────────────────────────────────
-          Container(
-            color: kHeaderBg,
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
-            child: Column(
-              children: [
-                // Search bar
-                TextField(
-                  controller: _searchCtrl,
-                  onChanged: (v) => setState(() => _recherche = v),
-                  style: const TextStyle(fontSize: 14, color: kDark),
-                  decoration: InputDecoration(
-                    hintText: 'Rechercher réf, fournisseur, gouvernorat…',
-                    hintStyle: const TextStyle(
-                      color: Color(0xFF6B8E7A),
-                      fontSize: 13,
-                    ),
-                    prefixIcon: const Icon(
-                      Icons.search,
-                      color: Color(0xFF6B8E7A),
-                      size: 20,
-                    ),
-                    suffixIcon: _recherche.isNotEmpty
-                        ? IconButton(
-                            icon: const Icon(
-                              Icons.close,
-                              size: 17,
-                              color: Color(0xFF6B8E7A),
-                            ),
-                            onPressed: () => setState(() {
-                              _recherche = '';
-                              _searchCtrl.clear();
-                            }),
-                          )
-                        : null,
-                    filled: true,
-                    fillColor: Colors.white,
-                    contentPadding: const EdgeInsets.symmetric(
-                      vertical: 11,
-                      horizontal: 16,
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: kGreen, width: 1.5),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 11),
-                // Filter chips
-                SizedBox(
-                  height: 34,
-                  child: ListView(
-                    scrollDirection: Axis.horizontal,
-                    children: [
-                      _StatutChip(
-                        label: 'Tous',
-                        inactiveColor: const Color(0xFFF0F0F0),
-                        inactiveTextColor: const Color(0xFF757575),
-                        selected: _filtreStatut == null,
-                        onTap: () => setState(() => _filtreStatut = null),
-                      ),
-                      const SizedBox(width: 7),
-                      _StatutChip(
-                        label: 'Analyse en attente',
-                        inactiveColor: const Color(0xFFE8F1FB),
-                        inactiveTextColor: const Color(0xFF3A6EA5),
-                        selected: _filtreStatut == StatutAnalyse.enAttente,
-                        onTap: () => setState(
-                          () => _filtreStatut = StatutAnalyse.enAttente,
-                        ),
-                      ),
-                      const SizedBox(width: 7),
-                      _StatutChip(
-                        label: 'Analyse en cours',
-                        inactiveColor: const Color(0xFFFEF3E8),
-                        inactiveTextColor: const Color(0xFFD07B2F),
-                        selected: _filtreStatut == StatutAnalyse.enCours,
-                        onTap: () => setState(
-                          () => _filtreStatut = StatutAnalyse.enCours,
-                        ),
-                      ),
-                      const SizedBox(width: 7),
-                      _StatutChip(
-                        label: 'Analyse soumise',
-                        inactiveColor: const Color(0xFFE6F4ED),
-                        inactiveTextColor: const Color(0xFF38835A),
-                        selected: _filtreStatut == StatutAnalyse.soumis,
-                        onTap: () => setState(
-                          () => _filtreStatut = StatutAnalyse.soumis,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Container(height: 1, color: Colors.black.withValues(alpha: 0.06)),
-
-          // ── Stats strip ──────────────────────────────────────────────────
-          Container(
-            color: kBg,
-            padding: const EdgeInsets.fromLTRB(16, 9, 16, 6),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.science_outlined,
-                  size: 13,
-                  color: const Color.fromARGB(255, 156, 156, 156),
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  '${items.length} échantillon${items.length > 1 ? "s" : ""}',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Color.fromARGB(255, 156, 156, 156),
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // ── List ──────────────────────────────────────────────────────────
-          Expanded(
-            child: items.isEmpty
-                ? Center(
+      body: _chargement
+          ? const Center(child: CircularProgressIndicator(color: kGreen))
+          : VueResultatService(
+              estDemonstration: _estDemonstration,
+              erreur: _erreurChargement,
+              onReessayer: _loadEchantillons,
+              child: Column(
+                children: [
+                  // ── Header zone ──────────────────────────────────────────────────
+                  Container(
+                    color: kHeaderBg,
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
                     child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(
-                          Icons.science_outlined,
-                          size: 52,
-                          color: Colors.grey.shade300,
+                        // Search bar
+                        TextField(
+                          controller: _searchCtrl,
+                          onChanged: (v) => setState(() => _recherche = v),
+                          style: const TextStyle(fontSize: 14, color: kDark),
+                          decoration: InputDecoration(
+                            hintText:
+                                'Rechercher réf, fournisseur, gouvernorat…',
+                            hintStyle: const TextStyle(
+                              color: Color(0xFF6B8E7A),
+                              fontSize: 13,
+                            ),
+                            prefixIcon: const Icon(
+                              Icons.search,
+                              color: Color(0xFF6B8E7A),
+                              size: 20,
+                            ),
+                            suffixIcon: _recherche.isNotEmpty
+                                ? IconButton(
+                                    icon: const Icon(
+                                      Icons.close,
+                                      size: 17,
+                                      color: Color(0xFF6B8E7A),
+                                    ),
+                                    onPressed: () => setState(() {
+                                      _recherche = '';
+                                      _searchCtrl.clear();
+                                    }),
+                                  )
+                                : null,
+                            filled: true,
+                            fillColor: Colors.white,
+                            contentPadding: const EdgeInsets.symmetric(
+                              vertical: 11,
+                              horizontal: 16,
+                            ),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide.none,
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide.none,
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(
+                                color: kGreen,
+                                width: 1.5,
+                              ),
+                            ),
+                          ),
                         ),
-                        const SizedBox(height: 12),
-                        Text(
-                          'Aucun échantillon trouvé',
-                          style: TextStyle(
-                            color: Colors.grey.shade400,
-                            fontSize: 14,
+                        const SizedBox(height: 11),
+                        // Filter chips
+                        SizedBox(
+                          height: 34,
+                          child: ListView(
+                            scrollDirection: Axis.horizontal,
+                            children: [
+                              _StatutChip(
+                                label: 'Tous',
+                                inactiveColor: const Color(0xFFF0F0F0),
+                                inactiveTextColor: const Color(0xFF757575),
+                                selected: _filtreStatut == null,
+                                onTap: () =>
+                                    setState(() => _filtreStatut = null),
+                              ),
+                              const SizedBox(width: 7),
+                              _StatutChip(
+                                label: 'Analyse en attente',
+                                inactiveColor: const Color(0xFFE8F1FB),
+                                inactiveTextColor: const Color(0xFF3A6EA5),
+                                selected:
+                                    _filtreStatut == StatutAnalyse.enAttente,
+                                onTap: () => setState(
+                                  () => _filtreStatut = StatutAnalyse.enAttente,
+                                ),
+                              ),
+                              const SizedBox(width: 7),
+                              _StatutChip(
+                                label: 'Analyse en cours',
+                                inactiveColor: const Color(0xFFFEF3E8),
+                                inactiveTextColor: const Color(0xFFD07B2F),
+                                selected:
+                                    _filtreStatut == StatutAnalyse.enCours,
+                                onTap: () => setState(
+                                  () => _filtreStatut = StatutAnalyse.enCours,
+                                ),
+                              ),
+                              const SizedBox(width: 7),
+                              _StatutChip(
+                                label: 'Analyse soumise',
+                                inactiveColor: const Color(0xFFE6F4ED),
+                                inactiveTextColor: const Color(0xFF38835A),
+                                selected: _filtreStatut == StatutAnalyse.soumis,
+                                onTap: () => setState(
+                                  () => _filtreStatut = StatutAnalyse.soumis,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
                     ),
-                  )
-                : Theme(
-                    data: Theme.of(context).copyWith(
-                      scrollbarTheme: ScrollbarThemeData(
-                        thumbColor: WidgetStateProperty.all(_gray),
-                      ),
-                    ),
-                    child: Scrollbar(
-                      thumbVisibility: true,
-                      child: ListView.builder(
-                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
-                        itemCount: items.length,
-                        itemBuilder: (_, i) {
-                          final e = items[i];
-                          final canEdit =
-                              e.analyse != null &&
-                              e.analyse!.statut != StatutAnalyse.soumis;
-                          return EchantillonLaboCard(
-                            echantillon: e,
-                            onAjouterAnalyse: e.analyse == null
-                                ? () => _onAjouterAnalyse(e)
-                                : null,
-                            onVoirAnalyse: e.analyse != null
-                                ? () => _showAnalyseReadOnly(e)
-                                : null,
-                            onModifierAnalyse: canEdit
-                                ? () => _onModifierAnalyse(e)
-                                : null,
-                            onSupprimerAnalyse: canEdit
-                                ? () => _onSupprimerAnalyse(e)
-                                : null,
-                          );
-                        },
-                      ),
+                  ),
+                  Container(
+                    height: 1,
+                    color: Colors.black.withValues(alpha: 0.06),
+                  ),
+
+                  // ── Stats strip ──────────────────────────────────────────────────
+                  Container(
+                    color: kBg,
+                    padding: const EdgeInsets.fromLTRB(16, 9, 16, 6),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.science_outlined,
+                          size: 13,
+                          color: const Color.fromARGB(255, 156, 156, 156),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          '${items.length} échantillon${items.length > 1 ? "s" : ""}',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Color.fromARGB(255, 156, 156, 156),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-          ),
-        ],
-      ),
+
+                  // ── List ──────────────────────────────────────────────────────────
+                  Expanded(
+                    child: items.isEmpty
+                        ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.science_outlined,
+                                  size: 52,
+                                  color: Colors.grey.shade300,
+                                ),
+                                const SizedBox(height: 12),
+                                Text(
+                                  'Aucun échantillon trouvé',
+                                  style: TextStyle(
+                                    color: Colors.grey.shade400,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        : Theme(
+                            data: Theme.of(context).copyWith(
+                              scrollbarTheme: ScrollbarThemeData(
+                                thumbColor: WidgetStateProperty.all(_gray),
+                              ),
+                            ),
+                            child: Scrollbar(
+                              thumbVisibility: true,
+                              child: ListView.builder(
+                                padding: const EdgeInsets.fromLTRB(
+                                  16,
+                                  8,
+                                  16,
+                                  100,
+                                ),
+                                itemCount: items.length,
+                                itemBuilder: (_, i) {
+                                  final e = items[i];
+                                  final canEdit =
+                                      e.analyse != null &&
+                                      e.analyse!.statut != StatutAnalyse.soumis;
+                                  return EchantillonLaboCard(
+                                    echantillon: e,
+                                    onAjouterAnalyse: e.analyse == null
+                                        ? () => _onAjouterAnalyse(e)
+                                        : null,
+                                    onVoirAnalyse: e.analyse != null
+                                        ? () => _showAnalyseReadOnly(e)
+                                        : null,
+                                    onModifierAnalyse: canEdit
+                                        ? () => _onModifierAnalyse(e)
+                                        : null,
+                                    onSupprimerAnalyse: canEdit
+                                        ? () => _onSupprimerAnalyse(e)
+                                        : null,
+                                  );
+                                },
+                              ),
+                            ),
+                          ),
+                  ),
+                ],
+              ),
+            ),
     );
   }
 }

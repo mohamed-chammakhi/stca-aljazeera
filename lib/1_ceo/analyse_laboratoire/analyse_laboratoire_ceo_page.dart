@@ -1,10 +1,11 @@
-﻿// ═════════════════════════════════════════════════════════════════════════════
+// ═════════════════════════════════════════════════════════════════════════════
 // FILE : 1_ceo/analyse_laboratoire/analyse_laboratoire_ceo_page.dart
 // ═════════════════════════════════════════════════════════════════════════════
 
 import 'package:flutter/material.dart';
 import 'package:project3/core/theme/app_colors.dart';
 import 'package:project3/core/utils/date_utils.dart';
+import 'package:project3/core/widgets/bandeau_demonstration.dart';
 import 'models/lab_row.dart';
 import '../widgets/ceo_nav_mixin.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -37,7 +38,8 @@ class AnalyseLaboratoireCeoPage extends StatefulWidget {
       _AnalyseLaboratoireCeoPageState();
 }
 
-class _AnalyseLaboratoireCeoPageState extends State<AnalyseLaboratoireCeoPage> with CeoNavMixin {
+class _AnalyseLaboratoireCeoPageState extends State<AnalyseLaboratoireCeoPage>
+    with CeoNavMixin {
   final Set<String> _expandedRapport = {};
 
   // ── ADDED: active filter state (mirrors achats confirmes pattern) ──────────
@@ -50,7 +52,10 @@ class _AnalyseLaboratoireCeoPageState extends State<AnalyseLaboratoireCeoPage> w
   final TextEditingController _searchController = TextEditingController();
 
   final _service = EchantillonCeoService();
-  List<EchantillonCeoView> _allSamples = List.of(mockEchantillonsLabo);
+  List<EchantillonCeoView> _allSamples = [];
+  bool _chargement = true;
+  bool _estDemonstration = false;
+  Object? _erreurChargement;
 
   @override
   void initState() {
@@ -59,11 +64,24 @@ class _AnalyseLaboratoireCeoPageState extends State<AnalyseLaboratoireCeoPage> w
   }
 
   Future<void> _loadSamples() async {
+    if (mounted) setState(() => _chargement = true);
     try {
-      final data = await _service.fetchCeoViews();
-      if (mounted) setState(() => _allSamples = data);
-    } catch (_) {
-      if (mounted) setState(() => _allSamples = List.of(mockEchantillonsLabo));
+      final resultat = await _service.fetchCeoViews(
+        () => List.of(mockEchantillonsLabo),
+      );
+      if (!mounted) return;
+      setState(() {
+        _allSamples = resultat.donnees;
+        _estDemonstration = resultat.estDemonstration;
+        _erreurChargement = null;
+        _chargement = false;
+      });
+    } catch (erreur) {
+      if (!mounted) return;
+      setState(() {
+        _erreurChargement = erreur;
+        _chargement = false;
+      });
     }
   }
 
@@ -130,7 +148,6 @@ class _AnalyseLaboratoireCeoPageState extends State<AnalyseLaboratoireCeoPage> w
     return result;
   }
 
-
   Future<void> _showDateFilter() async {
     await showModalBottomSheet(
       context: context,
@@ -160,7 +177,6 @@ class _AnalyseLaboratoireCeoPageState extends State<AnalyseLaboratoireCeoPage> w
       ),
     );
   }
-
 
   Color _classifColor(String c) {
     if (c == 'Extra Vierge') return kGreen;
@@ -243,183 +259,208 @@ class _AnalyseLaboratoireCeoPageState extends State<AnalyseLaboratoireCeoPage> w
           const SizedBox(width: 6),
         ],
       ),
-      body: Column(
-        children: [
-          // ── Unified header zone ──────────────────────────────────────
-          Container(
-            color: kHeaderBg,
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
-            child: TextField(
-              controller: _searchController,
-              onChanged: (v) => setState(() => _searchQuery = v.trim()),
-              style: const TextStyle(fontSize: 14, color: kDark),
-              decoration: InputDecoration(
-                hintText: 'Réf, fournisseur, gouvernorat, variété, collecteur…',
-                hintStyle: const TextStyle(
-                  color: Color(0xFF6B8E7A),
-                  fontSize: 11,
-                ),
-                prefixIcon: const Icon(
-                  Icons.search,
-                  color: Color(0xFF6B8E7A),
-                  size: 20,
-                ),
-                suffixIcon: _searchQuery.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(
-                          Icons.close,
-                          size: 17,
+      body: _chargement
+          ? const Center(child: CircularProgressIndicator(color: kGreen))
+          : VueResultatService(
+              estDemonstration: _estDemonstration,
+              erreur: _erreurChargement,
+              onReessayer: _loadSamples,
+              child: Column(
+                children: [
+                  // ── Unified header zone ──────────────────────────────────────
+                  Container(
+                    color: kHeaderBg,
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
+                    child: TextField(
+                      controller: _searchController,
+                      onChanged: (v) => setState(() => _searchQuery = v.trim()),
+                      style: const TextStyle(fontSize: 14, color: kDark),
+                      decoration: InputDecoration(
+                        hintText:
+                            'Réf, fournisseur, gouvernorat, variété, collecteur…',
+                        hintStyle: const TextStyle(
                           color: Color(0xFF6B8E7A),
+                          fontSize: 11,
                         ),
-                        onPressed: () => setState(() {
-                          _searchQuery = '';
-                          _searchController.clear();
-                        }),
-                      )
-                    : null,
-                filled: true,
-                fillColor: Colors.white,
-                contentPadding: const EdgeInsets.symmetric(
-                  vertical: 11,
-                  horizontal: 16,
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: kGreen, width: 1.5),
-                ),
-              ),
-            ),
-          ),
-          Container(height: 1, color: Colors.black.withValues(alpha: 0.06)),
+                        prefixIcon: const Icon(
+                          Icons.search,
+                          color: Color(0xFF6B8E7A),
+                          size: 20,
+                        ),
+                        suffixIcon: _searchQuery.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(
+                                  Icons.close,
+                                  size: 17,
+                                  color: Color(0xFF6B8E7A),
+                                ),
+                                onPressed: () => setState(() {
+                                  _searchQuery = '';
+                                  _searchController.clear();
+                                }),
+                              )
+                            : null,
+                        filled: true,
+                        fillColor: Colors.white,
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: 11,
+                          horizontal: 16,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(
+                            color: kGreen,
+                            width: 1.5,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Container(
+                    height: 1,
+                    color: Colors.black.withValues(alpha: 0.06),
+                  ),
 
-          // ── CHANGED: filter chips strip (replaces old stats strip) ───────────
-          Container(
-            color: kBg,
-            padding: const EdgeInsets.fromLTRB(16, 9, 16, 6),
-            child: Row(
-              children: [
-                StatusFilterChip(
-                  label: 'Tout',
-                  isActive: _activeFilter == 'tout',
-                  activeBg: const Color(0xFF757575),
-                  activeFg: Colors.white,
-                  onTap: () => setState(() => _activeFilter = 'tout'),
-                ),
-                const SizedBox(width: 8),
-                StatusFilterChip(
-                  label: 'Analyse soumise',
-                  isActive: _activeFilter == 'Analyse soumise',
-                  activeBg: kGreen.withValues(alpha: 0.12),
-                  activeFg: kGreen,
-                  onTap: () =>
-                      setState(() => _activeFilter = 'Analyse soumise'),
-                ),
-                const SizedBox(width: 8),
-                StatusFilterChip(
-                  label: 'Analyse en attente',
-                  isActive: _activeFilter == 'Analyse en attente',
-                  activeBg: Colors.orange.shade700.withValues(alpha: 0.12),
-                  activeFg: Colors.orange.shade700,
-                  onTap: () =>
-                      setState(() => _activeFilter = 'Analyse en attente'),
-                ),
-              ],
-            ),
-          ),
-
-          // List
-          Expanded(
-            child: samples.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                  // ── CHANGED: filter chips strip (replaces old stats strip) ───────────
+                  Container(
+                    color: kBg,
+                    padding: const EdgeInsets.fromLTRB(16, 9, 16, 6),
+                    child: Row(
                       children: [
-                        Icon(
-                          Icons.search_off_rounded,
-                          size: 48,
-                          color: Colors.grey.shade300,
+                        StatusFilterChip(
+                          label: 'Tout',
+                          isActive: _activeFilter == 'tout',
+                          activeBg: const Color(0xFF757575),
+                          activeFg: Colors.white,
+                          onTap: () => setState(() => _activeFilter = 'tout'),
                         ),
-                        const SizedBox(height: 10),
-                        Text(
-                          'Aucun échantillon trouvé',
-                          style: TextStyle(
-                            color: Colors.grey.shade400,
-                            fontSize: 14,
+                        const SizedBox(width: 8),
+                        StatusFilterChip(
+                          label: 'Analyse soumise',
+                          isActive: _activeFilter == 'Analyse soumise',
+                          activeBg: kGreen.withValues(alpha: 0.12),
+                          activeFg: kGreen,
+                          onTap: () =>
+                              setState(() => _activeFilter = 'Analyse soumise'),
+                        ),
+                        const SizedBox(width: 8),
+                        StatusFilterChip(
+                          label: 'Analyse en attente',
+                          isActive: _activeFilter == 'Analyse en attente',
+                          activeBg: Colors.orange.shade700.withValues(
+                            alpha: 0.12,
+                          ),
+                          activeFg: Colors.orange.shade700,
+                          onTap: () => setState(
+                            () => _activeFilter = 'Analyse en attente',
                           ),
                         ),
                       ],
                     ),
-                  )
-                : ListView.builder(
-                    padding: const EdgeInsets.fromLTRB(14, 14, 14, 30),
-                    itemCount: samples.length,
-                    itemBuilder: (_, i) {
-                      final e = samples[i];
-                      final hasAnalyse = e.analyse != null;
-                      final classif = e.analyse?.classificationAuto ?? '—';
-                      final classifColor = _classifColor(classif);
-                      final rapportExp = _expandedRapport.contains(e.id);
-
-                      return BaseSampleCard(
-                        referenceBouteille: e.referenceBouteille,
-                        id: e.id,
-                        tintColor: _headerTint(hasAnalyse, classif),
-                        accentColor: _teal,
-                        badge: CardBadgeRow(
-                          badges: [
-                            if (e.quantiteEstimee != null)
-                              CardBadge(
-                                label: 'Qté : ${e.quantiteEstimee}T',
-                                color: kOlive,
-                              ),
-                          ],
-                        ),
-                        detailItems: [
-                          DetailItem('N° échantillon', e.id),
-                          DetailItem('Ref. bouteille', e.referenceBouteille),
-                          DetailItem(
-                            'Gouvernorat',
-                            '${e.gouvernorat}${e.delegation != null ? " — ${e.delegation}" : ""}',
-                          ),
-                          DetailItem('Fournisseur', e.codeFournisseur),
-                          if (e.variete != null)
-                            DetailItem('Variété', e.variete!),
-                          if (e.quantiteEstimee != null)
-                            DetailItem('Quantité', '${e.quantiteEstimee} T'),
-                          DetailItem('Date ajout', e.dateAjout),
-                          if (e.collecteurNom != null)
-                            DetailItem('Collecteur', e.collecteurNom!),
-                          DetailItem(
-                            'Reçu physiquement',
-                            e.recuPhysiquement ? 'Oui' : 'Non',
-                          ),
-                        ],
-                        deliveryWidget: SampleDeliveryIndicator(e: e),
-                        bottomSection: RapportSection(
-                          echantillon: e,
-                          hasAnalyse: hasAnalyse,
-                          isExpanded: rapportExp,
-                          onToggle: () => setState(
-                            () => rapportExp
-                                ? _expandedRapport.remove(e.id)
-                                : _expandedRapport.add(e.id),
-                          ),
-                        ),
-                      );
-                    },
                   ),
-          ),
-        ],
-      ),
+
+                  // List
+                  Expanded(
+                    child: samples.isEmpty
+                        ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.search_off_rounded,
+                                  size: 48,
+                                  color: Colors.grey.shade300,
+                                ),
+                                const SizedBox(height: 10),
+                                Text(
+                                  'Aucun échantillon trouvé',
+                                  style: TextStyle(
+                                    color: Colors.grey.shade400,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        : ListView.builder(
+                            padding: const EdgeInsets.fromLTRB(14, 14, 14, 30),
+                            itemCount: samples.length,
+                            itemBuilder: (_, i) {
+                              final e = samples[i];
+                              final hasAnalyse = e.analyse != null;
+                              final classif =
+                                  e.analyse?.classificationAuto ?? '—';
+                              final classifColor = _classifColor(classif);
+                              final rapportExp = _expandedRapport.contains(
+                                e.id,
+                              );
+
+                              return BaseSampleCard(
+                                referenceBouteille: e.referenceBouteille,
+                                id: e.id,
+                                tintColor: _headerTint(hasAnalyse, classif),
+                                accentColor: _teal,
+                                badge: CardBadgeRow(
+                                  badges: [
+                                    if (e.quantiteEstimee != null)
+                                      CardBadge(
+                                        label: 'Qté : ${e.quantiteEstimee}T',
+                                        color: kOlive,
+                                      ),
+                                  ],
+                                ),
+                                detailItems: [
+                                  DetailItem('N° échantillon', e.id),
+                                  DetailItem(
+                                    'Ref. bouteille',
+                                    e.referenceBouteille,
+                                  ),
+                                  DetailItem(
+                                    'Gouvernorat',
+                                    '${e.gouvernorat}${e.delegation != null ? " — ${e.delegation}" : ""}',
+                                  ),
+                                  DetailItem('Fournisseur', e.codeFournisseur),
+                                  if (e.variete != null)
+                                    DetailItem('Variété', e.variete!),
+                                  if (e.quantiteEstimee != null)
+                                    DetailItem(
+                                      'Quantité',
+                                      '${e.quantiteEstimee} T',
+                                    ),
+                                  DetailItem('Date ajout', e.dateAjout),
+                                  if (e.collecteurNom != null)
+                                    DetailItem('Collecteur', e.collecteurNom!),
+                                  DetailItem(
+                                    'Reçu physiquement',
+                                    e.recuPhysiquement ? 'Oui' : 'Non',
+                                  ),
+                                ],
+                                deliveryWidget: SampleDeliveryIndicator(e: e),
+                                bottomSection: RapportSection(
+                                  echantillon: e,
+                                  hasAnalyse: hasAnalyse,
+                                  isExpanded: rapportExp,
+                                  onToggle: () => setState(
+                                    () => rapportExp
+                                        ? _expandedRapport.remove(e.id)
+                                        : _expandedRapport.add(e.id),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                  ),
+                ],
+              ),
+            ),
     );
   }
 }
-

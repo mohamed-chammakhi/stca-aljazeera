@@ -1,32 +1,25 @@
 import '../../../core/api_client.dart';
+import '../../../core/services/resultat_service.dart';
 import '../models/notification_degustateur.dart';
 
 class NotificationDegustateurService {
-  Future<List<NotificationDegustateur>> fetchNotifications() async {
-    try {
-      final data = await apiClient.getList('/api/notifications/');
-      return data
-          .map((e) => NotificationDegustateur.fromJson(e as Map<String, dynamic>))
-          .toList();
-    } catch (_) {
-      return _mockNotifications();
-    }
-  }
+  Future<Resultat<List<NotificationDegustateur>>> fetchNotifications() =>
+      avecSecours(() async {
+        final data = await apiClient.getList('/api/notifications/');
+        return data
+            .map(
+              (e) =>
+                  NotificationDegustateur.fromJson(e as Map<String, dynamic>),
+            )
+            .toList();
+      }, _mockNotifications);
 
   Future<void> markAsRead(String id) async {
-    try {
-      await apiClient.patch('/api/notifications/$id/lire/', {});
-    } catch (_) {
-      return;
-    }
+    await apiClient.patch('/api/notifications/$id/lire/', {});
   }
 
   Future<void> markAllAsRead() async {
-    try {
-      await apiClient.post('/api/notifications/lire-tout/', {});
-    } catch (_) {
-      return;
-    }
+    await apiClient.post('/api/notifications/lire-tout/', {});
   }
 
   Future<void> sendUrgentDegustation(
@@ -42,14 +35,10 @@ class NotificationDegustateurService {
     ); // TODO: remove when backend is ready
   }
 
-  Future<int> fetchUnreadCount() async {
-    try {
-      final data = await apiClient.get('/api/notifications/unread-count/');
-      return data['count'] as int;
-    } catch (_) {
-      return _mockNotifications().where((n) => !n.isRead).length;
-    }
-  }
+  Future<Resultat<int>> fetchUnreadCount() => avecSecours(() async {
+    final data = await apiClient.get('/api/notifications/unread-count/');
+    return data['count'] as int;
+  }, () => _mockNotifications().where((n) => !n.isRead).length);
 
   List<NotificationDegustateur> _mockNotifications() {
     final now = DateTime.now();

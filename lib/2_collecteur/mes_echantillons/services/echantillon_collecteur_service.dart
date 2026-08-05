@@ -5,6 +5,7 @@
 import '../models/echantillon_collecteur.dart';
 import '../../../../core/api_client.dart';
 import '../../../../core/models/enums.dart' show StatutCollecteurX;
+import '../../../../core/services/resultat_service.dart';
 import 'echantillon_mock_data.dart';
 
 class EchantillonCollecteurService {
@@ -119,11 +120,11 @@ class EchantillonCollecteurService {
   /// Optional filters:
   ///   [statut] — Django snake_case value ('receptionne', 'en_negociation', 'achat_confirme')
   ///   [search] — free-text search string
-  Future<List<EchantillonCollecteur>> fetchEchantillons({
+  Future<Resultat<List<EchantillonCollecteur>>> fetchEchantillons({
     String? statut,
     String? search,
-  }) async {
-    try {
+  }) => avecSecours(
+    () async {
       final params = <String, String>{};
       if (statut != null && statut.isNotEmpty) params['statut'] = statut;
       if (search != null && search.isNotEmpty) params['search'] = search;
@@ -141,7 +142,8 @@ class EchantillonCollecteurService {
             ),
           )
           .toList();
-    } catch (_) {
+    },
+    () {
       _usingMockData = true;
       final all = mockEchantillons();
       return all.where((e) {
@@ -159,16 +161,15 @@ class EchantillonCollecteurService {
         }
         return true;
       }).toList();
-    }
-  }
+    },
+  );
 
   /// Creates a new echantillon and returns the saved record from the server.
   Future<EchantillonCollecteur> createEchantillon(
     EchantillonCollecteur e,
   ) async {
     if (_usingMockData) {
-      await Future.delayed(const Duration(milliseconds: 300));
-      return e;
+      throw StateError('Création indisponible avec les données de démonstration.');
     }
     final response = await apiClient.post(
       '/api/echantillons/',
@@ -185,8 +186,7 @@ class EchantillonCollecteurService {
     required String filename,
   }) async {
     if (_usingMockData) {
-      await Future.delayed(const Duration(milliseconds: 300));
-      return e;
+      throw StateError('Création indisponible avec les données de démonstration.');
     }
     final dj = _toDjangoMap(e);
     final fields = <String, String>{};
@@ -207,8 +207,7 @@ class EchantillonCollecteurService {
     EchantillonCollecteur e,
   ) async {
     if (_usingMockData) {
-      await Future.delayed(const Duration(milliseconds: 300));
-      return e;
+      throw StateError('Modification indisponible avec les données de démonstration.');
     }
     final response = await apiClient.patch(
       '/api/echantillons/${e.id}/',
@@ -220,8 +219,7 @@ class EchantillonCollecteurService {
   /// Deletes an echantillon by ID.
   Future<void> deleteEchantillon(String id) async {
     if (_usingMockData) {
-      await Future.delayed(const Duration(milliseconds: 300));
-      return;
+      throw StateError('Suppression indisponible avec les données de démonstration.');
     }
     await apiClient.delete('/api/echantillons/$id/');
   }
@@ -236,9 +234,7 @@ class EchantillonCollecteurService {
     String? camionLivraison,
   }) async {
     if (_usingMockData) {
-      await Future.delayed(const Duration(milliseconds: 300));
-      final all = mockEchantillons();
-      return all.firstWhere((e) => e.id == id, orElse: () => all.first);
+      throw StateError('Confirmation indisponible avec les données de démonstration.');
     }
     final body = <String, dynamic>{};
     if (prixFinal != null) body['prix_final'] = prixFinal;

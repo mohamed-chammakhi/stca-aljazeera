@@ -10,6 +10,8 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../models/session_degustation.dart';
 import '../../../membres_panel/models/membre_panel.dart';
 import '../../../membres_panel/services/membres_panel_service.dart';
+import '../../../../../core/widgets/bandeau_demonstration.dart';
+import '../../../../../core/services/resultat_service.dart';
 
 const Color _green = Color(0xFF38835A);
 const Color _dark = Color(0xFF1A2E1F);
@@ -294,8 +296,33 @@ Future<void> showFormulaireSessionDialog(
   required int prochainNumero,
   required ValueChanged<SessionDegustation> onSave,
 }) async {
-  final membres = await MembresPanelService().fetchMembres();
+  final membresService = MembresPanelService();
+  late final Resultat<List<MembrePanel>> resultatInitial;
+  try {
+    resultatInitial = await membresService.fetchMembres();
+  } catch (_) {
+    if (!context.mounted) return;
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        content: ErreurChargement(
+          onReessayer: () {
+            Navigator.pop(dialogContext);
+            showFormulaireSessionDialog(
+              context,
+              session: session,
+              prochainNumero: prochainNumero,
+              onSave: onSave,
+            );
+          },
+        ),
+      ),
+    );
+    return;
+  }
   if (!context.mounted) return;
+  var membres = resultatInitial.donnees;
+  var membresEnDemonstration = resultatInitial.estDemonstration;
   final isEdit = session != null;
 
   final titreCtrl = TextEditingController(text: isEdit ? session.titre : '');
@@ -649,6 +676,31 @@ Future<void> showFormulaireSessionDialog(
                       ),
                     ],
                   ),
+
+                  if (membresEnDemonstration) ...[
+                    const SizedBox(height: 12),
+                    BandeauDemonstration(
+                      onReessayer: () async {
+                        try {
+                          final resultat = await membresService.fetchMembres();
+                          if (!ctx.mounted) return;
+                          setSheetState(() {
+                            membres = resultat.donnees;
+                            membresEnDemonstration = resultat.estDemonstration;
+                          });
+                        } catch (_) {
+                          if (!ctx.mounted) return;
+                          ScaffoldMessenger.of(ctx).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Le serveur reste injoignable. Réessayez plus tard.',
+                              ),
+                            ),
+                          );
+                        }
+                      },
+                    ),
+                  ],
 
                   const SizedBox(height: 22),
 

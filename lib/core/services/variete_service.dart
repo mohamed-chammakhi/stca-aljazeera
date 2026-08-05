@@ -13,45 +13,43 @@
 // ═════════════════════════════════════════════════════════════════════════════
 
 import '../api_client.dart';
+import 'resultat_service.dart';
 
 class VarieteService {
   VarieteService._();
   static final VarieteService instance = VarieteService._();
 
-  List<String>? _cache;
+  Resultat<List<String>>? _cache;
 
   /// Distinct varieties found on existing samples, alphabetical.
-  Future<List<String>> fetchAll({bool forceRefresh = false}) async {
+  Future<Resultat<List<String>>> fetchAll({bool forceRefresh = false}) async {
     if (!forceRefresh && _cache != null) return _cache!;
-    try {
+    _cache = await avecSecours(() async {
       final items = await apiClient.getList('/api/echantillons/');
       final vues = <String, String>{};
       for (final item in items) {
         final v = (item as Map<String, dynamic>)['variete'] as String?;
         if (v == null || v.trim().isEmpty) continue;
-        // Keyed by the normalised form so "chemlali" and "Chemlali" do not both
-        // appear in the list; the first spelling seen is the one shown.
         vues.putIfAbsent(v.trim().toLowerCase(), () => v.trim());
       }
       final liste = vues.values.toList()..sort();
-      // An empty database would otherwise leave the collector with no help at
-      // all on the very first samples, which is when he needs it most.
-      _cache = liste.isEmpty ? _varietesConnues : liste;
-    } catch (_) {
-      _cache = _varietesConnues;
-    }
+      return liste.isEmpty ? _varietesConnues : liste;
+    }, () => _varietesConnues);
     return _cache!;
   }
 
   /// Suggestions for what has been typed so far, best match first.
-  Future<List<String>> suggest(String saisie, {int limite = 6}) async {
+  Future<Resultat<List<String>>> suggest(
+    String saisie, {
+    int limite = 6,
+  }) async {
     final q = saisie.trim().toLowerCase();
-    if (q.isEmpty) return const [];
-    final toutes = await fetchAll();
+    if (q.isEmpty) return const Resultat([]);
+    final resultat = await fetchAll();
 
     final debut = <String>[];
     final ailleurs = <String>[];
-    for (final v in toutes) {
+    for (final v in resultat.donnees) {
       final n = v.toLowerCase();
       if (n == q) continue; // already typed in full — nothing to suggest
       if (n.startsWith(q)) {
@@ -60,7 +58,11 @@ class VarieteService {
         ailleurs.add(v);
       }
     }
-    return [...debut, ...ailleurs].take(limite).toList();
+    return Resultat(
+      [...debut, ...ailleurs].take(limite).toList(),
+      estDemonstration: resultat.estDemonstration,
+      messageErreur: resultat.messageErreur,
+    );
   }
 
   /// The main Tunisian olive varieties — a starting point, not a closed list.
