@@ -104,26 +104,33 @@ fusionne pas ces deux-là sans poser de question.
 ### 4. Le cas des notifications — décision prise, à appliquer
 
 Le carnet [`03_degustateur.md`](../notifications/03_degustateur.md) §2.2 documente une
-dérive entre les deux copies :
+dérive entre les deux copies : le fichier du **chef** a deux types de notification
+(`EVALUATION_SOUMISE`, `TOUTES_EVALUATIONS`) que celui du **dégustateur simple** n'a pas,
+avec une fonction `isSuperTasterOnly(type)` qui les filtre.
 
-1. Le fichier du **chef** a deux types de notification (`EVALUATION_SOUMISE`,
-   `TOUTES_EVALUATIONS`) que celui du **dégustateur simple** n'a pas, avec une fonction
-   `isSuperTasterOnly(type)` qui les filtre.
-2. Le service du **dégustateur** a une méthode (`sendUrgentDegustation`) que celui du
-   **chef n'a pas** — alors que [`04_chef_degustateur.md`](../notifications/04_chef_degustateur.md)
-   §1.4 dit explicitement que le chef réutilise le même bouton.
+**Décision du propriétaire (T1) : retire ces deux types.** Le fichier fusionné ne garde que
+les types communs aux deux copies — le chef reçoit exactement les mêmes notifications que
+le dégustateur simple, rien de plus. Retire aussi `isSuperTasterOnly()`, qui n'a plus
+d'usage une fois ces deux types absents.
 
-**Décision :** le fichier fusionné garde le **superset** — tous les types des deux copies,
-avec `isSuperTasterOnly()` conservée pour filtrer l'affichage selon le rôle connecté (comme
-elle le fait déjà côté chef). Le service fusionné garde **toutes les méthodes des deux
-copies**, y compris `sendUrgentDegustation()`, accessible aux deux rôles. Le constructeur
-injectable (`NotificationDegustateurService({ApiClient? api})`, présent côté dégustateur)
-est la version conservée — c'est elle qui permet de tester le service.
+Le constructeur injectable (`NotificationDegustateurService({ApiClient? api})`, présent
+côté dégustateur) est la version conservée — c'est elle qui permet de tester le service.
 
-Les deux autres questions du carnet (T2 : notifications de date vers le dégustateur simple ;
-T3 : confirmation de présence notifie-t-elle le créateur) restent ouvertes — **ne les
-tranche pas**, ce sont des notifications qui n'existent pas encore dans le code, donc rien
-à fusionner sur ces points précis.
+⚠️ **Ce qui n'est PAS une dérive, ne cherche pas à le "réparer" :** le bouton qui relance le
+laboratoire en urgence (page Analyse laboratoire, cloche rouge) appelle déjà, côté
+dégustateur **et** côté chef, le **même** service partagé
+`LigneAnalyseLaboService.sendUrgentAnalyseLabo()`. Il n'y a aucun manque de ce côté — vérifié
+dans les deux fichiers `analyse_laboratoire_page.dart`. Ne confonds pas cette méthode avec
+`sendUrgentDegustation()` du service de notifications : celle-ci sert au CEO à relancer tous
+les dégustateurs, appelée directement depuis `lib/1_ceo/analyse_organoleptique/`. Elle
+n'a rien à voir avec le laboratoire ; laisse-la telle quelle.
+
+**T2 et T3 sont tranchées, mais rien à fusionner ici :** les notifications de date
+(T2 — vont vers le dégustateur simple **et** le chef) et la confirmation de présence à une
+séance (T3 — notifie le créateur) n'existent pas encore dans le code, ni d'un côté ni de
+l'autre. Si un fichier que tu fusionnes touche par hasard à l'un de ces deux sujets, c'est la
+réponse ci-dessus qu'il faut suivre — pas une supposition, et pas un `## QUESTION` puisque
+c'est déjà tranché.
 
 ---
 

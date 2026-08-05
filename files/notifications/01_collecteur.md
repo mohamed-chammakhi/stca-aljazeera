@@ -479,7 +479,7 @@ officielle déjà présente dans l'app.
 | D14 | Messagerie : fil libre ou fil rattaché à un échantillon ? | archi messagerie |
 | D15 | Un message déclenche-t-il une notification ? | notif |
 | D16 | Le chef dégustateur peut-il appliquer la correction depuis le fil ? | droits |
-| D17 | CEO / dégustateur : accès en lecture au fil ? | droits |
+| ~~D17~~ | ~~CEO / dégustateur : accès en lecture au fil ?~~ → ✅ **non, aucun accès pour un tiers** — principe posé : la messagerie reste strictement entre les deux personnes qui échangent, comme Messenger (tranché via [`03_degustateur.md`](03_degustateur.md) T4) | résolu |
 
 ---
 
