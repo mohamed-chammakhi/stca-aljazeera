@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:project3/core/models/membre_panel.dart';
 import 'services/membres_panel_chef_service.dart';
-import 'widgets/membre_card.dart';
+import 'package:project3/core/widgets/membres_panel/membre_card.dart';
 import '../../../main.dart';
 import '../gestion_echantillons/gestion_echantillons_page.dart';
 import '../evaluation_echantillons/evaluation_echantillons_page.dart';

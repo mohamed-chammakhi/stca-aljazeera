@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/analyses/ligne_analyse_labo.dart';
-import '../../../core/analyses/rapport_labo.dart';
-import '../../../core/analyses/widgets/tableau_rapport_labo.dart';
-import '../../../core/widgets/grille_details.dart';
-import '../../widgets/chef_colors.dart';
+import 'package:project3/core/analyses/ligne_analyse_labo.dart';
+import 'package:project3/core/analyses/widgets/tableau_rapport_labo.dart';
+import 'package:project3/core/widgets/grille_details.dart';
+
+const Color _dark = Color(0xFF1A2E1F);
+const Color _green = Color(0xFF38835A);
 
 Color _accentColor(StatutAnalyse statut) =>
-    statut == StatutAnalyse.soumise ? chefGreen : const Color(0xFFD07B2F);
+    statut == StatutAnalyse.soumise ? _green : const Color(0xFFD07B2F);
 
 class AnalyseCard extends StatefulWidget {
   final LigneAnalyseLabo analyse;
@@ -33,6 +34,7 @@ class _AnalyseCardState extends State<AnalyseCard> {
   Widget build(BuildContext context) {
     final analyse = widget.analyse;
     final accent = _accentColor(analyse.statut);
+
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
@@ -72,7 +74,7 @@ class _AnalyseCardState extends State<AnalyseCard> {
                                   style: const TextStyle(
                                     fontSize: 15,
                                     fontWeight: FontWeight.w700,
-                                    color: chefDark,
+                                    color: _dark,
                                     letterSpacing: -0.2,
                                   ),
                                   overflow: TextOverflow.ellipsis,
@@ -237,7 +239,7 @@ class _DetailPanel extends StatelessWidget {
                           text: analyse.technicienNom,
                           style: const TextStyle(
                             fontWeight: FontWeight.w700,
-                            color: chefDark,
+                            color: _dark,
                           ),
                         ),
                         if (rapport.dateAnalyse != null)
@@ -259,7 +261,7 @@ class _DetailPanel extends StatelessWidget {
                 Icon(
                   Icons.biotech_outlined,
                   size: 13,
-                  color: rapport == null ? Colors.grey.shade300 : chefGreen,
+                  color: rapport == null ? Colors.grey.shade300 : _green,
                 ),
                 const SizedBox(width: 6),
                 Text(
@@ -267,7 +269,7 @@ class _DetailPanel extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
-                    color: rapport == null ? Colors.grey.shade300 : chefGreen,
+                    color: rapport == null ? Colors.grey.shade300 : _green,
                   ),
                 ),
                 const Spacer(),
@@ -283,7 +285,7 @@ class _DetailPanel extends StatelessWidget {
                   child: Icon(
                     Icons.keyboard_arrow_down,
                     size: 16,
-                    color: rapport == null ? Colors.grey.shade300 : chefGreen,
+                    color: rapport == null ? Colors.grey.shade300 : _green,
                   ),
                 ),
               ],
@@ -294,7 +296,7 @@ class _DetailPanel extends StatelessWidget {
           firstChild: const SizedBox.shrink(),
           secondChild: rapport == null
               ? const _EnAttenteHint()
-              : _RapportBody(rapport: rapport),
+              : _RapportBody(analyse: analyse),
           crossFadeState: rapport == null || rapportExpanded
               ? CrossFadeState.showSecond
               : CrossFadeState.showFirst,
@@ -374,50 +376,62 @@ class _InformationsEchantillon extends StatelessWidget {
 }
 
 class _RapportBody extends StatelessWidget {
-  final RapportLabo rapport;
+  final LigneAnalyseLabo analyse;
 
-  const _RapportBody({required this.rapport});
+  const _RapportBody({required this.analyse});
 
   @override
-  Widget build(BuildContext context) => Column(
-    children: [
-      Padding(
-        padding: const EdgeInsets.fromLTRB(12, 0, 12, 10),
-        child: BandeauClassification(
-          classification: rapport.classificationAuto,
-        ),
-      ),
-      if (rapport.horsNormes.isNotEmpty)
+  Widget build(BuildContext context) {
+    final rapport = analyse.rapport!;
+    return Column(
+      children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(12, 0, 12, 10),
-          child: AlerteHorsNormes(parametres: rapport.horsNormes),
-        ),
-      TableauRapportLabo(rapport: rapport, groupeParTableau: true),
-      if (rapport.notes != null && rapport.notes!.isNotEmpty)
-        Container(
-          width: double.infinity,
-          margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF7FAF8),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.grey.shade100),
-          ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Icon(Icons.notes_outlined, size: 13, color: Colors.grey.shade400),
-              const SizedBox(width: 6),
-              Expanded(
-                child: Text(
-                  rapport.notes!,
-                  style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
-                ),
-              ),
-            ],
+          child: BandeauClassification(
+            classification: rapport.classificationAuto,
           ),
         ),
-    ],
+        if (rapport.horsNormes.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 0, 12, 10),
+            child: AlerteHorsNormes(parametres: rapport.horsNormes),
+          ),
+        TableauRapportLabo(rapport: rapport, groupeParTableau: true),
+        if (rapport.notes != null && rapport.notes!.isNotEmpty)
+          _NotesTechnicien(notes: rapport.notes!),
+      ],
+    );
+  }
+}
+
+class _NotesTechnicien extends StatelessWidget {
+  final String notes;
+
+  const _NotesTechnicien({required this.notes});
+
+  @override
+  Widget build(BuildContext context) => Container(
+    width: double.infinity,
+    margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+    decoration: BoxDecoration(
+      color: const Color(0xFFF7FAF8),
+      borderRadius: BorderRadius.circular(8),
+      border: Border.all(color: Colors.grey.shade100),
+    ),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(Icons.notes_outlined, size: 13, color: Colors.grey.shade400),
+        const SizedBox(width: 6),
+        Expanded(
+          child: Text(
+            notes,
+            style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+          ),
+        ),
+      ],
+    ),
   );
 }
 

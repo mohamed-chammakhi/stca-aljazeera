@@ -19,7 +19,7 @@ import '../tableau_de_bord/homepage_page.dart';
 // ── Own model + widgets ───────────────────────────────────────────────────────
 import 'package:project3/core/models/session_degustation.dart';
 import 'services/sessions_service.dart';
-import 'widgets/session_card.dart';
+import 'package:project3/core/widgets/sessions_degustation/session_card.dart';
 import 'widgets/dialogs/formulaire_session_dialog.dart';
 import 'package:project3/core/widgets/dialogs/suppression_session_dialog.dart';
 

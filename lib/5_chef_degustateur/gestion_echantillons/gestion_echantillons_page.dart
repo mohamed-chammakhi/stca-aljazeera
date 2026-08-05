@@ -4,7 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../core/models/echantillon.dart';
 import '../../../core/models/enums.dart';
 import 'services/gestion_echantillons_chef_service.dart';
-import 'widgets/echantillon_card.dart';
+import 'package:project3/core/widgets/gestion_echantillons/echantillon_card.dart';
 import 'widgets/empty_state.dart';
 import 'widgets/search_filter_bar.dart';
 import '../evaluation_echantillons/evaluation_echantillons_page.dart';

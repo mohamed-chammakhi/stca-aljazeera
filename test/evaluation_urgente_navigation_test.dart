@@ -5,14 +5,12 @@ import 'package:project3/core/models/echantillon_evaluation.dart';
 import 'package:project3/core/services/resultat_service.dart';
 import 'package:project3/3_degustateur/evaluation_echantillons/evaluation_echantillons_page.dart'
     as degustateur;
-import 'package:project3/3_degustateur/evaluation_echantillons/navigation/widgets/echantillon_card.dart'
-    as carte_degustateur;
+import 'package:project3/core/widgets/evaluation_echantillons/echantillon_card.dart'
+    as carte_evaluation;
 import 'package:project3/3_degustateur/evaluation_echantillons/services/evaluation_service.dart';
 import 'package:project3/3_degustateur/notifications/services/notification_degustateur_service.dart';
 import 'package:project3/5_chef_degustateur/evaluation_echantillons/evaluation_echantillons_page.dart'
     as chef;
-import 'package:project3/5_chef_degustateur/evaluation_echantillons/navigation/widgets/echantillon_card.dart'
-    as carte_chef;
 import 'package:project3/5_chef_degustateur/evaluation_echantillons/services/evaluation_echantillons_chef_service.dart';
 
 List<Echantillon> _echantillons() => List.generate(
@@ -87,7 +85,7 @@ void main() {
     expect(
       find.byWidgetPredicate(
         (widget) =>
-            widget is carte_degustateur.EchantillonCard &&
+            widget is carte_evaluation.EchantillonCard &&
             widget.echantillon.id == 'ech-11' &&
             widget.isHighlighted,
       ),
@@ -111,7 +109,7 @@ void main() {
     expect(
       find.byWidgetPredicate(
         (widget) =>
-            widget is carte_chef.EchantillonCard &&
+            widget is carte_evaluation.EchantillonCard &&
             widget.echantillon.id == 'ech-11' &&
             widget.isHighlighted,
       ),

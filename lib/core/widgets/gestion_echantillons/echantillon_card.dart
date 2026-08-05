@@ -7,11 +7,11 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import '../../../../core/models/echantillon.dart';
-import '../../../../core/widgets/historique_modifications.dart';
-import '../../../../core/models/enums.dart';
-import '../../../../config.dart';
-import '../../../core/widgets/grille_details.dart';
+import 'package:project3/core/models/echantillon.dart';
+import 'package:project3/core/widgets/historique_modifications.dart';
+import 'package:project3/core/models/enums.dart';
+import 'package:project3/config.dart';
+import 'package:project3/core/widgets/grille_details.dart';
 
 const Color _dark = Color(0xFF1A2E1F);
 const Color _white = Color.fromARGB(255, 255, 255, 255);

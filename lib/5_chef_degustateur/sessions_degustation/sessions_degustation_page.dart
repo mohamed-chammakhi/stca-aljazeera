@@ -8,7 +8,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:project3/core/models/session_degustation.dart';
 import 'services/sessions_chef_service.dart';
 import '../widgets/statut_chip.dart';
-import 'widgets/session_card.dart';
+import 'package:project3/core/widgets/sessions_degustation/session_card.dart';
 import 'widgets/dialogs/formulaire_session_dialog.dart';
 import 'package:project3/core/widgets/dialogs/suppression_session_dialog.dart';
 

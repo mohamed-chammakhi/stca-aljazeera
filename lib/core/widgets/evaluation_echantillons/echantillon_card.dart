@@ -7,8 +7,8 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import 'package:flutter/material.dart';
-import '../../../../core/models/echantillon_evaluation.dart';
-import '../../../../core/widgets/grille_details.dart';
+import 'package:project3/core/models/echantillon_evaluation.dart';
+import 'package:project3/core/widgets/grille_details.dart';
 
 const Color _green = Color(0xFF38835A);
 const Color _dark = Color(0xFF1A2E1F);

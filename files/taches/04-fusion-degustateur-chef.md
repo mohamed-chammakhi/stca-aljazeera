@@ -404,3 +404,100 @@ La suite Django n'a pas été exécutée : aucune route ni aucun serializer n'a 
 - `test/widget_test.dart` reste le seul test Flutter en échec et n'a pas été modifié.
 - Les 50 diagnostics restants de l'analyse sont extérieurs aux trois composants fusionnés et n'ont pas été corrigés.
 - La décoche de « reçu physiquement » sans notification et la décision T5 restent inchangées, conformément à la section hors périmètre de la tâche.
+
+### Étape 3 — cartes
+
+#### Fait
+
+- **Créé — `lib/core/widgets/gestion_echantillons/echantillon_card.dart`** : la carte de gestion d’échantillon devient commune. La version la plus complète a été conservée, notamment la miniature de bouteille avec cache et repli visuel, l’historique des modifications et la protection contre le faux succès lors du changement de réception physique. Le chef bénéficie désormais aussi de la miniature lorsqu’une photo est disponible ; ses droits ne changent pas, car les actions restent conditionnées aux callbacks que sa page ne transmet pas.
+- **Modifié — `lib/3_degustateur/gestion_echantillons/gestion_echantillons_page.dart`** : l’import de la carte locale est remplacé par celui de la carte commune.
+- **Modifié — `lib/5_chef_degustateur/gestion_echantillons/gestion_echantillons_page.dart`** : l’import de la carte locale est remplacé par celui de la carte commune ; aucune action d’édition ou de suppression n’est ajoutée.
+- **Supprimé — `lib/3_degustateur/gestion_echantillons/widgets/echantillon_card.dart`** : la copie locale est remplacée par la source commune.
+- **Supprimé — `lib/5_chef_degustateur/gestion_echantillons/widgets/echantillon_card.dart`** : la copie locale moins complète est remplacée par la source commune.
+
+- **Créé — `lib/core/widgets/evaluation_echantillons/echantillon_card.dart`** : la carte de navigation vers une évaluation devient commune et conserve le paramètre `isHighlighted` utilisé par la navigation depuis une notification urgente.
+- **Modifié — `lib/3_degustateur/evaluation_echantillons/evaluation_echantillons_page.dart`** : la page utilise la carte d’évaluation commune.
+- **Modifié — `lib/5_chef_degustateur/evaluation_echantillons/evaluation_echantillons_page.dart`** : la page chef utilise la même carte d’évaluation commune.
+- **Modifié — `test/evaluation_urgente_navigation_test.dart`** : les deux scénarios de navigation continuent d’être vérifiés, mais ciblent désormais l’unique type `EchantillonCard` partagé.
+- **Supprimé — `lib/3_degustateur/evaluation_echantillons/navigation/widgets/echantillon_card.dart`** : la copie locale est remplacée par la source commune.
+- **Supprimé — `lib/5_chef_degustateur/evaluation_echantillons/navigation/widgets/echantillon_card.dart`** : la copie locale est remplacée par la source commune.
+
+- **Créé — `lib/core/widgets/membres_panel/membre_card.dart`** : la carte membre, dont les deux copies ne différaient que par des constantes de couleur équivalentes, devient une source unique.
+- **Modifié — `lib/3_degustateur/membres_panel/membres_panel_page.dart`** : la page utilise la carte membre commune.
+- **Modifié — `lib/5_chef_degustateur/membres_panel/membres_panel_page.dart`** : la page chef utilise la carte membre commune.
+- **Supprimé — `lib/3_degustateur/membres_panel/widgets/membre_card.dart`** : la copie locale est remplacée par la source commune.
+- **Supprimé — `lib/5_chef_degustateur/membres_panel/widgets/membre_card.dart`** : la copie locale est remplacée par la source commune.
+
+- **Créé — `lib/core/widgets/sessions_degustation/session_card.dart`** : la carte de session commune conserve le sur-ensemble chef avec les callbacks optionnels `onApprouver` et `onRefuser`. La correction de présence est préservée exactement : attente de la réponse, retour sans cocher en cas d’échec, puis mise à jour et minuterie seulement après succès. La ligne d’approbation n’apparaît que lorsque les callbacks chef sont fournis.
+- **Modifié — `lib/3_degustateur/sessions_degustation/sessions_degustation_page.dart`** : la page utilise la carte commune sans lui transmettre d’action d’approbation ou de refus.
+- **Modifié — `lib/5_chef_degustateur/sessions_degustation/sessions_degustation_page.dart`** : la page chef utilise la carte commune et conserve ses actions d’approbation/refus et ses restrictions d’édition.
+- **Modifié — `test/session_presence_card_test.dart`** : les deux cas utilisateur continuent de vérifier qu’un échec serveur ne coche pas la présence et n’affiche pas le message de confirmation, via le widget partagé.
+- **Supprimé — `lib/3_degustateur/sessions_degustation/widgets/session_card.dart`** : la copie locale est remplacée par la source commune.
+- **Supprimé — `lib/5_chef_degustateur/sessions_degustation/widgets/session_card.dart`** : la copie locale est remplacée par la source commune ; ses capacités supplémentaires ont été conservées dans le widget partagé.
+
+- **Créé — `lib/core/widgets/analyse_labo/analyse_card.dart`** : la carte d’analyse laboratoire devient commune. L’affichage du rapport signé, du classement, des tableaux, des notes et de l’état « Analyse non encore soumise » reste inchangé. Les paramètres du bouton urgent (`onUrgentLabo`, `isUrgentLabo`) sont conservés sans modification de comportement.
+- **Modifié — `lib/3_degustateur/analyse_labo/analyse_laboratoire_page.dart`** : la page utilise la carte d’analyse commune ; son bouton de relance laboratoire reste branché comme avant.
+- **Modifié — `lib/5_chef_degustateur/analyse_labo/analyse_laboratoire_page.dart`** : la page chef utilise la même carte ; son bouton de relance laboratoire reste également inchangé.
+- **Supprimé — `lib/3_degustateur/analyse_labo/widgets/analyse_card.dart`** : la copie locale est remplacée par la source commune.
+- **Supprimé — `lib/5_chef_degustateur/analyse_labo/widgets/analyse_card.dart`** : la copie locale est remplacée par la source commune.
+
+- **Modifié — `files/taches/04-fusion-degustateur-chef.md`** : le présent compte rendu documente uniquement l’étape 3 ; ce fichier ne change pas l’application.
+
+#### Vérifié
+
+Après **chacun des cinq fichiers fusionnés**, les commandes suivantes ont réellement été exécutées :
+
+```powershell
+flutter analyze lib test
+flutter test
+```
+
+| Fichier fusionné | `flutter analyze lib test` | `flutter test` |
+|---|---:|---:|
+| `gestion_echantillons/widgets/echantillon_card.dart` | 50 diagnostics, **0 erreur** | **95 réussis, 1 échec** |
+| `evaluation_echantillons/navigation/widgets/echantillon_card.dart` | 50 diagnostics, **0 erreur** | **95 réussis, 1 échec** |
+| `membres_panel/widgets/membre_card.dart` | 50 diagnostics, **0 erreur** | **95 réussis, 1 échec** |
+| `sessions_degustation/widgets/session_card.dart` | 50 diagnostics, **0 erreur** | **95 réussis, 1 échec** |
+| `analyse_labo/widgets/analyse_card.dart` | 50 diagnostics, **0 erreur** | **95 réussis, 1 échec** |
+
+L’échec est identique aux cinq passages et reste le test connu :
+
+```text
+test/widget_test.dart: Counter increments smoke test
+Expected: exactly one matching candidate
+Actual: _TextWidgetFinder:<Found 0 widgets with text "0": []>
+```
+
+Contrôles finaux réellement exécutés :
+
+```powershell
+$oldPaths | ForEach-Object { "$(Test-Path -LiteralPath $_) $_" }
+rg -n "core/widgets/(gestion_echantillons|evaluation_echantillons|membres_panel|sessions_degustation|analyse_labo)" lib test
+rg -n "(3_degustateur|5_chef_degustateur)/.*(echantillon_card|membre_card|session_card|analyse_card)\.dart|import 'widgets/(echantillon_card|membre_card|session_card|analyse_card)\.dart'" lib test
+git diff --check
+git diff --cached --name-only
+```
+
+Résultats :
+
+- les **10 anciens chemins** ont chacun renvoyé `False` ;
+- les dix pages consommatrices et les deux tests concernés pointent vers les widgets de `lib/core/` ;
+- aucune référence résiduelle vers les cinq paires supprimées n’a été trouvée ;
+- `git diff --check = OK` ;
+- `git diff --cached --name-only` n’a rien renvoyé : aucun fichier indexé.
+
+La suite Django n’a pas été exécutée : aucune route ni aucun serializer n’a été modifié.
+
+#### Non fait
+
+- Les étapes 4 et 5 n’ont pas été commencées, conformément à la consigne d’arrêt après l’étape 3 pour relecture et commits fichier par fichier par Claude.
+- Les fichiers de notifications et leurs types réservés au chef n’ont pas été touchés ; ils appartiennent à l’étape 4.
+- Les gros formulaires et les pages prévus à l’étape 5 n’ont pas été modifiés.
+- Les tests manuels sous les deux rôles n’ont pas été effectués ; ils sont réservés au propriétaire après les cinq étapes.
+- Aucun commit, push ou changement de remote n’a été effectué.
+
+#### HORS PÉRIMÈTRE
+
+- `test/widget_test.dart` reste le seul test Flutter en échec et n’a pas été modifié.
+- Les 50 diagnostics restants de l’analyse sont extérieurs aux cinq cartes fusionnées et n’ont pas été corrigés.
+- La décoche de « reçu physiquement » sans notification et la décision T5 restent inchangées, conformément à la section hors périmètre de la tâche.

@@ -7,10 +7,11 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:project3/core/models/session_degustation.dart';
-import '../../widgets/chef_colors.dart';
-import '../../../core/widgets/grille_details.dart';
+import 'package:project3/core/widgets/grille_details.dart';
 
 const Color _olive = Color(0xFF6B8143);
+const Color _green = Color(0xFF38835A);
+const Color _dark = Color(0xFF1A2E1F);
 
 Color _statusColor(StatutSession s) {
   switch (s) {
@@ -21,7 +22,7 @@ Color _statusColor(StatutSession s) {
     case StatutSession.enCours:
       return const Color(0xFF3A6EA5);
     case StatutSession.terminee:
-      return chefGreen;
+      return _green;
   }
 }
 
@@ -134,7 +135,7 @@ class _SessionCardState extends State<SessionCard> {
                                   style: const TextStyle(
                                     fontSize: 15,
                                     fontWeight: FontWeight.w700,
-                                    color: chefDark,
+                                    color: _dark,
                                     letterSpacing: -0.2,
                                   ),
                                   overflow: TextOverflow.ellipsis,
@@ -152,7 +153,7 @@ class _SessionCardState extends State<SessionCard> {
                                           vertical: 3,
                                         ),
                                         decoration: BoxDecoration(
-                                          color: chefGreen,
+                                          color: _green,
                                           borderRadius: BorderRadius.circular(
                                             6,
                                           ),
@@ -203,7 +204,7 @@ class _SessionCardState extends State<SessionCard> {
                                       key: ValueKey(_presenceConfirmed),
                                       size: 20,
                                       color: _presenceConfirmed
-                                          ? chefGreen
+                                          ? _green
                                           : Colors.grey.shade400,
                                     ),
                                   ),
@@ -340,7 +341,7 @@ class _PendingActionRow extends StatelessWidget {
           if (onApprouver != null)
             _DecisionPill(
               label: 'Approuver',
-              color: chefGreen,
+              color: _green,
               onTap: onApprouver!,
             ),
           if (onApprouver != null && onRefuser != null)
@@ -531,9 +532,7 @@ class _PresenceChip extends StatelessWidget {
       color: confirmed ? const Color(0xFFE6F4ED) : const Color(0xFFF5F5F5),
       borderRadius: BorderRadius.circular(20),
       border: Border.all(
-        color: confirmed
-            ? chefGreen.withValues(alpha: 0.3)
-            : Colors.grey.shade200,
+        color: confirmed ? _green.withValues(alpha: 0.3) : Colors.grey.shade200,
       ),
     ),
     child: Row(
@@ -542,7 +541,7 @@ class _PresenceChip extends StatelessWidget {
         Icon(
           confirmed ? Icons.check_circle : Icons.radio_button_unchecked,
           size: 11,
-          color: confirmed ? chefGreen : Colors.grey.shade400,
+          color: confirmed ? _green : Colors.grey.shade400,
         ),
         const SizedBox(width: 4),
         Text(

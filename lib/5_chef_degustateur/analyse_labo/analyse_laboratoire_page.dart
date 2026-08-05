@@ -8,7 +8,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../core/analyses/ligne_analyse_labo.dart';
 import '../../../core/analyses/ligne_analyse_labo_service.dart';
 import '../widgets/statut_chip.dart';
-import 'widgets/analyse_card.dart';
+import 'package:project3/core/widgets/analyse_labo/analyse_card.dart';
 // date filter sheet + button
 import '../gestion_echantillons/widgets/search_filter_bar.dart';
 

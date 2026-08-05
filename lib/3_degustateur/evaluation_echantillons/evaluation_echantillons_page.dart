@@ -23,7 +23,7 @@ import '../../core/widgets/bandeau_demonstration.dart';
 import 'services/evaluation_service.dart';
 
 // ── Own widgets ───────────────────────────────────────────────────────────────
-import 'navigation/widgets/echantillon_card.dart';
+import 'package:project3/core/widgets/evaluation_echantillons/echantillon_card.dart';
 import '../../../core/widgets/empty_state.dart';
 import '../../../core/widgets/search_filter_bar.dart';
 import '../../../core/widgets/statut_chip.dart';

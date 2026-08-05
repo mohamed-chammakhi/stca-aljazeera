@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:project3/3_degustateur/sessions_degustation/widgets/session_card.dart'
-    as degustateur;
-import 'package:project3/5_chef_degustateur/sessions_degustation/widgets/session_card.dart'
-    as chef;
 import 'package:project3/core/models/session_degustation.dart';
+import 'package:project3/core/widgets/sessions_degustation/session_card.dart';
 
 SessionDegustation _session() => SessionDegustation(
   id: 'session-test',
@@ -38,7 +35,7 @@ void main() {
     final erreur = StateError('serveur indisponible');
     await _verifierEchec(
       tester,
-      degustateur.SessionCard(
+      SessionCard(
         session: _session(),
         onConfirmerPresence: () async => throw erreur,
       ),
@@ -51,7 +48,7 @@ void main() {
     final erreur = StateError('serveur indisponible');
     await _verifierEchec(
       tester,
-      chef.SessionCard(
+      SessionCard(
         session: _session(),
         onConfirmerPresence: () async => throw erreur,
       ),

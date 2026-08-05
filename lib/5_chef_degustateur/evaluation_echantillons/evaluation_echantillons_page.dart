@@ -29,7 +29,7 @@ import '../../core/models/echantillon_evaluation.dart';
 import 'services/evaluation_echantillons_chef_service.dart';
 
 // ── Own widgets ───────────────────────────────────────────────────────────────
-import 'navigation/widgets/echantillon_card.dart';
+import 'package:project3/core/widgets/evaluation_echantillons/echantillon_card.dart';
 import 'navigation/widgets/empty_state.dart';
 import '../gestion_echantillons/widgets/search_filter_bar.dart';
 
