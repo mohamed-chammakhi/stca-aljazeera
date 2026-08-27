@@ -20,7 +20,7 @@ import '../analyse_labo/analyse_laboratoire_page.dart';
 // ── Own model ─────────────────────────────────────────────────────────────────
 import '../../core/models/echantillon_evaluation.dart';
 import '../../core/widgets/bandeau_demonstration.dart';
-import 'services/evaluation_service.dart';
+import 'package:project3/core/services/evaluation_service.dart';
 
 // ── Own widgets ───────────────────────────────────────────────────────────────
 import 'package:project3/core/widgets/evaluation_echantillons/echantillon_card.dart';

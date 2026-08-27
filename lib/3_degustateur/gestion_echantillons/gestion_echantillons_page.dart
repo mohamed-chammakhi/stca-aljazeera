@@ -5,7 +5,7 @@ import '../tableau_de_bord/homepage_page.dart';
 import '../../../core/models/echantillon.dart';
 import '../../../core/models/enums.dart';
 import '../../../core/utils/date_utils.dart';
-import 'services/gestion_echantillons_service.dart';
+import 'package:project3/core/services/gestion_echantillons_service.dart';
 import 'package:project3/core/widgets/gestion_echantillons/echantillon_card.dart';
 import '../../../core/widgets/empty_state.dart';
 import 'widgets/dialogs/formulaire_dialog.dart';

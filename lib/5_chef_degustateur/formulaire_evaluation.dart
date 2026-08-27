@@ -5,7 +5,7 @@ import '../core/models/enums.dart';
 import '../core/widgets/carte_classification.dart';
 import '../core/widgets/bandeau_demonstration.dart';
 import 'evaluation_echantillons/widgets/evaluation_slider.dart';
-import 'evaluation_echantillons/services/evaluation_echantillons_chef_service.dart';
+import 'package:project3/core/services/evaluation_service.dart';
 
 // PAGE — Formulaire de dégustation COI (StatefulWidget — sliders + classification temps réel)
 class FormulaireEvaluationPage extends StatefulWidget {
@@ -52,8 +52,7 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
   bool _chargement = true;
   bool _estDemonstration = false;
   Object? _erreurChargement;
-  final EvaluationEchantillonsChefService _service =
-      EvaluationEchantillonsChefService();
+  final EvaluationService _service = EvaluationService();
   String? _evaluationId;
   bool _saving = false;
 

@@ -1,9 +1,13 @@
-import '../../../core/models/echantillon.dart';
-import '../../../core/api_client.dart';
-import '../../../core/services/resultat_service.dart';
-import '../../../core/models/mock_echantillons_gestion.dart';
+import 'package:project3/core/api_client.dart';
+import 'package:project3/core/models/echantillon.dart';
+import 'package:project3/core/models/mock_echantillons_gestion.dart';
+import 'package:project3/core/services/resultat_service.dart';
 
 class GestionEchantillonsService {
+  final bool uniquementRecusPhysiquement;
+
+  const GestionEchantillonsService({this.uniquementRecusPhysiquement = true});
+
   // ── Field mapping: Django API → Echantillon.fromJson ─────────────────────
   //
   // Django returns:   numero, fournisseur (UUID), collecteur (UUID), ...
@@ -51,9 +55,10 @@ class GestionEchantillonsService {
   /// Fetches all physically received echantillons visible to the degustateur.
   Future<Resultat<List<Echantillon>>> fetchEchantillons() => avecSecours(
     () async {
-      final items = await apiClient.getList(
-        '/api/echantillons/?recu_physiquement=true',
-      );
+      final path = uniquementRecusPhysiquement
+          ? '/api/echantillons/?recu_physiquement=true'
+          : '/api/echantillons/';
+      final items = await apiClient.getList(path);
       return items
           .map(
             (e) =>

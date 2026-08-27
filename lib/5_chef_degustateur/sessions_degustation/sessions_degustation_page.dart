@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'package:project3/core/models/session_degustation.dart';
-import 'services/sessions_chef_service.dart';
+import 'package:project3/core/services/sessions_service.dart';
 import '../widgets/statut_chip.dart';
 import 'package:project3/core/widgets/sessions_degustation/session_card.dart';
 import 'widgets/dialogs/formulaire_session_dialog.dart';
@@ -49,7 +49,7 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage>
   bool get _anyFilter =>
       _dateFilterActive || _recherche.isNotEmpty || _filtreStatutLabel != null;
 
-  final _service = SessionsChefService();
+  final _service = const SessionsService(peutValider: true);
   List<SessionDegustation> _sessions = [];
   bool _estDemonstration = false;
   Object? _erreurChargement;

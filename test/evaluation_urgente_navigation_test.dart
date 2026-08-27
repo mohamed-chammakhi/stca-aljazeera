@@ -7,11 +7,10 @@ import 'package:project3/3_degustateur/evaluation_echantillons/evaluation_echant
     as degustateur;
 import 'package:project3/core/widgets/evaluation_echantillons/echantillon_card.dart'
     as carte_evaluation;
-import 'package:project3/3_degustateur/evaluation_echantillons/services/evaluation_service.dart';
+import 'package:project3/core/services/evaluation_service.dart';
 import 'package:project3/3_degustateur/notifications/services/notification_degustateur_service.dart';
 import 'package:project3/5_chef_degustateur/evaluation_echantillons/evaluation_echantillons_page.dart'
     as chef;
-import 'package:project3/5_chef_degustateur/evaluation_echantillons/services/evaluation_echantillons_chef_service.dart';
 
 List<Echantillon> _echantillons() => List.generate(
   12,
@@ -34,7 +33,7 @@ class _EvaluationServiceFaux extends EvaluationService {
       Resultat(donnees);
 }
 
-class _EvaluationChefServiceFaux extends EvaluationEchantillonsChefService {
+class _EvaluationChefServiceFaux extends EvaluationService {
   final List<Echantillon> donnees;
   _EvaluationChefServiceFaux(this.donnees);
 

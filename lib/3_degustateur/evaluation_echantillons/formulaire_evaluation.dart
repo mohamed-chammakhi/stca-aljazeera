@@ -5,7 +5,7 @@ import '../../core/classification/classification_interne.dart';
 import '../../core/models/enums.dart';
 import '../../core/widgets/carte_classification.dart';
 import '../../core/widgets/bandeau_demonstration.dart';
-import 'services/evaluation_service.dart';
+import 'package:project3/core/services/evaluation_service.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PAGE — FormulaireEvaluationPage

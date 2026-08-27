@@ -26,7 +26,7 @@ import '../../../core/widgets/bandeau_demonstration.dart';
 
 // ── Own model ─────────────────────────────────────────────────────────────────
 import '../../core/models/echantillon_evaluation.dart';
-import 'services/evaluation_echantillons_chef_service.dart';
+import 'package:project3/core/services/evaluation_service.dart';
 
 // ── Own widgets ───────────────────────────────────────────────────────────────
 import 'package:project3/core/widgets/evaluation_echantillons/echantillon_card.dart';
@@ -35,7 +35,7 @@ import '../gestion_echantillons/widgets/search_filter_bar.dart';
 
 class EvaluationEchantillonsPage extends StatefulWidget {
   final String? echantillonCible;
-  final EvaluationEchantillonsChefService? service;
+  final EvaluationService? service;
 
   const EvaluationEchantillonsPage({
     super.key,
@@ -65,7 +65,7 @@ class _EvaluationEchantillonsPageState extends State<EvaluationEchantillonsPage>
       _dateFilterActive || _recherche.isNotEmpty || _filtreStatutLabel != null;
 
   // ── DATA ──────────────────────────────────────────────────────────────────────
-  late final EvaluationEchantillonsChefService _service;
+  late final EvaluationService _service;
   List<Echantillon> _echantillons = [];
   bool _estDemonstration = false;
   Object? _erreurChargement;
@@ -73,7 +73,7 @@ class _EvaluationEchantillonsPageState extends State<EvaluationEchantillonsPage>
   @override
   void initState() {
     super.initState();
-    _service = widget.service ?? EvaluationEchantillonsChefService();
+    _service = widget.service ?? EvaluationService();
     _loadData();
   }
 

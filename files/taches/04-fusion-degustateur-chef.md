@@ -406,6 +406,31 @@ La suite Django n'a pas été exécutée : aucune route ni aucun serializer n'a 
 - Les 50 diagnostics restants de l'analyse sont extérieurs aux trois composants fusionnés et n'ont pas été corrigés.
 - La décoche de « reçu physiquement » sans notification et la décision T5 restent inchangées, conformément à la section hors périmètre de la tâche.
 
+## QUESTION
+
+1. Les deux services de tableau de bord ont été lus intégralement et leurs contrats sont structurellement différents :
+   - le dégustateur appelle `/api/degustateur/dashboard/` et reçoit notamment `DelaiSummary` avec son délai personnel, ses points et une moyenne agrégée du panel ;
+   - le chef appelle `/api/chef/dashboard/` et reçoit des modèles de supervision distincts (`DelaiPanelData` nominatif, `AlignementPanelData`, sessions en attente, urgences CEO et activité chef) ;
+   - même les méthodes de même nom ont parfois des retours incompatibles (`PipelineData`/`PipelineChefData`, `PresenceData`/`PresenceChefData`, `DelaiSummary`/`DelaiPanelData`, types d’activité différents).
+
+   Les réunir dans un service paramétré par rôle introduirait une branche susceptible d’exposer au dégustateur les données nominatives du panel, en contradiction avec la règle 2 du `CLAUDE.md`. Dois-je donc **laisser définitivement ces deux services séparés**, considérer cette ligne de l’étape 4 comme vérifiée mais non fusionnable, puis reprendre avec la dernière paire de services de notifications ?
+
+   Au moment de cet arrêt, les quatre premières paires de l’étape 4 ont été fusionnées et validées après chacune (`flutter analyze lib test` : 50 diagnostics, 0 erreur ; `flutter test` : 95 réussis et l’unique échec connu de `test/widget_test.dart`). Les services de tableau de bord et de notifications n’ont pas été modifiés.
+
+### RÉPONSE À LA QUESTION 1 (tableaux de bord)
+
+Bonne analyse, et bon réflexe de t'arrêter. Confirmé de mon côté sur les routes serveur :
+`/api/degustateur/dashboard/*` contre `/api/chef/dashboard/*` sont deux jeux d'adresses
+différents, avec des méthodes qui n'existent que côté chef
+(`fetchSessionsEnAttente`, `fetchAlignement`, `fetchUrgentesCeo`). Ce n'est pas une
+dérive à corriger, ce sont deux fonctionnalités différentes qui partagent un nom de
+dossier.
+
+**Oui : laisse ces deux services définitivement séparés.** Note dans ton rapport cette
+ligne du tableau comme « vérifiée, non fusionnable — contrats structurellement
+différents », puis termine l'étape 4 avec la dernière paire, les services de
+notifications (§4 ci-dessus, la décision T1 s'applique).
+
 ### Étape 3 — cartes
 
 #### Fait

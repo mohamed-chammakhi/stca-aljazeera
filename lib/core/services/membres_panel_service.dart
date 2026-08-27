@@ -1,6 +1,6 @@
-import '../../../core/api_client.dart';
-import '../../../core/services/resultat_service.dart';
+import 'package:project3/core/api_client.dart';
 import 'package:project3/core/models/membre_panel.dart';
+import 'package:project3/core/services/resultat_service.dart';
 
 class MembresPanelService {
   Future<Resultat<List<MembrePanel>>> fetchMembres() => avecSecours(() async {

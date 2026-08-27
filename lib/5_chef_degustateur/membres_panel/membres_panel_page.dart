@@ -6,7 +6,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:project3/core/models/membre_panel.dart';
-import 'services/membres_panel_chef_service.dart';
+import 'package:project3/core/services/membres_panel_service.dart';
 import 'package:project3/core/widgets/membres_panel/membre_card.dart';
 import '../../../main.dart';
 import '../gestion_echantillons/gestion_echantillons_page.dart';
@@ -38,7 +38,7 @@ class _MembresPanelPageState extends State<MembresPanelPage> with ChefNavMixin {
   final TextEditingController _searchCtrl = TextEditingController();
   String _recherche = '';
 
-  final _service = MembresPanelChefService();
+  final _service = MembresPanelService();
   List<MembrePanel> _membres = [];
   bool _estDemonstration = false;
   Object? _erreurChargement;

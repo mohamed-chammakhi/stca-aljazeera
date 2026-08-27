@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/models/echantillon.dart';
 import '../../../core/models/enums.dart';
-import 'services/gestion_echantillons_chef_service.dart';
+import 'package:project3/core/services/gestion_echantillons_service.dart';
 import 'package:project3/core/widgets/gestion_echantillons/echantillon_card.dart';
 import 'widgets/empty_state.dart';
 import 'widgets/search_filter_bar.dart';
@@ -53,7 +53,9 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage>
   // 4. DATA
   // ───────────────────────────────────────────────────────────────────────────
 
-  final _service = GestionEchantillonsChefService();
+  final _service = const GestionEchantillonsService(
+    uniquementRecusPhysiquement: false,
+  );
   List<Echantillon> _echantillons = [];
   bool _estDemonstration = false;
   Object? _erreurChargement;

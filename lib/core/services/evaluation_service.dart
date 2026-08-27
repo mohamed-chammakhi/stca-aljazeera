@@ -1,9 +1,9 @@
-import '../../../core/api_client.dart';
-import '../../../core/models/echantillon_evaluation.dart';
-import '../../../core/services/resultat_service.dart';
-import '../../../core/models/mock_echantillons_evaluation.dart';
+import 'package:project3/core/api_client.dart';
+import 'package:project3/core/models/echantillon_evaluation.dart';
+import 'package:project3/core/models/mock_echantillons_evaluation.dart';
+import 'package:project3/core/services/resultat_service.dart';
 
-class EvaluationEchantillonsChefService {
+class EvaluationService {
   bool _usingMockData = false;
   final Map<String, Map<String, dynamic>> _cachedEvaluationsBySample = {};
 
@@ -68,7 +68,9 @@ class EvaluationEchantillonsChefService {
     Map<String, dynamic> data,
   ) async {
     if (_usingMockData) {
-      throw StateError('Enregistrement indisponible avec les données de démonstration.');
+      throw StateError(
+        'Enregistrement indisponible avec les données de démonstration.',
+      );
     }
     final saved = await apiClient.post('/api/evaluations/', data);
     _cachedEvaluationsBySample[saved['echantillon'] as String] = saved;
@@ -80,7 +82,9 @@ class EvaluationEchantillonsChefService {
     Map<String, dynamic> data,
   ) async {
     if (_usingMockData) {
-      throw StateError('Modification indisponible avec les données de démonstration.');
+      throw StateError(
+        'Modification indisponible avec les données de démonstration.',
+      );
     }
     final saved = await apiClient.patch('/api/evaluations/$id/', data);
     _cachedEvaluationsBySample[saved['echantillon'] as String] = saved;
@@ -89,7 +93,9 @@ class EvaluationEchantillonsChefService {
 
   Future<Map<String, dynamic>> soumettre(String evaluationId) async {
     if (_usingMockData) {
-      throw StateError('Soumission indisponible avec les données de démonstration.');
+      throw StateError(
+        'Soumission indisponible avec les données de démonstration.',
+      );
     }
     final saved = await apiClient.post(
       '/api/evaluations/$evaluationId/soumettre/',
@@ -102,13 +108,6 @@ class EvaluationEchantillonsChefService {
   String messageFor(Object error) {
     if (error is ApiException) return error.message;
     return 'Impossible de joindre le serveur. Les donnees de demonstration restent affichees.';
-  }
-
-  Future<void> submitEvaluation(String id, String classification) async {
-    throw UnimplementedError(
-      'submitEvaluation is not implemented for the chef de dégustation. '
-      'Use SessionsChefService.approuverSession / refuserSession instead.',
-    );
   }
 
   Map<String, dynamic> _toFlutterSampleMap(Map<String, dynamic> api) {
