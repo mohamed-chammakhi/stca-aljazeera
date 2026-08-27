@@ -8,17 +8,20 @@ Tu n'exécutes qu'**une seule tâche à la fois**, et tu ne commites jamais.
 
 ---
 
-## État du dépôt — à lire avant de toucher à quoi que ce soit
+## État du dépôt
 
-Le dépôt contient aujourd'hui des **modifications non commitées** appartenant à la tâche 04
-(fusion dégustateur / chef dégustateur, étape 4 : les services). Elles sont volontaires et
-attendent la relecture du propriétaire.
+L'arbre de travail est **propre** au moment où cette série commence. Tu pars d'une base
+relue et testée : `flutter analyze lib test` → 50 diagnostics, 0 erreur ;
+`flutter test` → 95 réussis, un seul échec, `test/widget_test.dart`.
 
-**Tu ne les annules pas, tu ne les commites pas, tu ne les corriges pas.**
-Si `git status` te surprend, c'est normal — continue ta tâche.
+**`test/widget_test.dart` échoue et c'est normal.** C'est le test modèle livré par Flutter
+(« Counter increments smoke test »), qui teste un compteur inexistant dans cette application.
+Il échouait déjà avant. Ne le corrige pas, ne le compte pas comme une régression, mais ne
+t'en sers pas non plus comme excuse si un autre test se met à échouer.
 
-La tâche 04 contient aussi une `## QUESTION` déjà répondue et une étape 5 non commencée.
-Elle ne fait pas partie de la série 05-12.
+La tâche 04 (fusion dégustateur / chef dégustateur) n'est **pas terminée** : il reste la paire
+de services de notifications et l'étape 5. Elle ne fait pas partie de la série 05-12, et tu n'y
+touches pas.
 
 ---
 
