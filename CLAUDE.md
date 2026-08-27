@@ -22,7 +22,7 @@ flutter build ios --release
 
 **Domain:** Multi-role olive oil sample evaluation and stock acquisition system for **Al Jazeera STCA** (Tunisia). UI in **French**. Production app â€” no prototype shortcuts.
 
-**Four role modules under `lib/`:**
+**Five role modules under `lib/`:**
 
 | Module | Role | French |
 |--------|------|--------|
@@ -30,6 +30,7 @@ flutter build ios --release
 | `2_collecteur/` | Sample Collector | Collecteur |
 | `3_degustateur/` | Taster | DÃ©gustateur |
 | `4_laboratoire/` | Lab Technician | Technicien Labo |
+| `5_chef_degustateur/` | Head Taster | Chef Dégustateur |
 
 Al Jazeera STCA collects olive oil samples from suppliers across Tunisia, evaluates them, and purchases the best stocks to process and sell under their own brand. The collector travels the country registering samples on-site, sometimes offline. The taster physically receives samples at the company and runs sensory evaluations. The lab technician performs chemical analysis on those same received samples. The CEO oversees everything â€” reviewing evaluations, approving purchases, and tracking stock delivery â€” but never touches a sample directly.
 
@@ -40,7 +41,14 @@ Each module: `<role>/<feature>/models/`, `widgets/`, `services/`
 **Navigation:** `Navigator.push()` / `pushReplacement()` + `MaterialPageRoute`. Each role uses a `Drawer`. No named routes.  
 **Entry point:** `lib/main.dart` â€” global theme (green `#38835A`, Google Fonts Domine/Alegreya) + login with 4 debug buttons (**remove before production**).  
 **Geospatial:** `GeoService` singleton at `lib/2_collecteur/carte_geo/services/geo_service.dart`, parses `assets/img/delegations.geojson` via `flutter_map`.  
-**Data:** All mock via service layer. No HTTP/Firebase/local DB yet.
+**Data:** Real Django REST backend in `backend_new/`, reached through `lib/core/api_client.dart`.
+`kApiBaseUrl` in `lib/config.dart` defaults to `http://127.0.0.1:8000`.
+Mock data is a **fallback, not the source**: `avecSecours()` in
+`lib/core/services/resultat_service.dart` returns a hardcoded demo list when the HTTP call
+fails, but only in debug builds (`if (kReleaseMode) rethrow`). In that state the UI shows the
+`BandeauDemonstration` banner and **write actions are refused** with "Action indisponible avec
+les données de démonstration". If buttons don't work, start the Django server — the mock is not
+a switch.
 
 ---
 
