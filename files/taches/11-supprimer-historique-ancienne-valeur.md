@@ -113,7 +113,8 @@ t'arrêter, et le dire dans ton rapport.
 ```bash
 flutter analyze lib test
 flutter test
-./backend_new/venv/Scripts/python.exe backend_new/manage.py test --keepdb
+cd backend_new
+./venv/Scripts/python.exe manage.py test --keepdb
 ```
 
 Donne aussi le résultat brut de la recherche des mots `ModificationChamp`, `historique` et
@@ -281,7 +282,8 @@ Failing tests:
 Vérification Django demandée :
 
 ```powershell
-./backend_new/venv/Scripts/python.exe backend_new/manage.py test --keepdb
+cd backend_new
+./venv/Scripts/python.exe manage.py test --keepdb
 ```
 
 Sortie brute :
@@ -294,7 +296,8 @@ Relance avec `DEBUG=True` limité au processus, pour dépasser le blocage d'envi
 
 ```powershell
 $env:DEBUG='True'
-./backend_new/venv/Scripts/python.exe backend_new/manage.py test --keepdb
+cd backend_new
+./venv/Scripts/python.exe manage.py test --keepdb
 ```
 
 Sortie chiffrée :

@@ -142,7 +142,8 @@ seul dégustateur, tous les dégustateurs, et le chef reçoit-il aussi ?
 ```bash
 flutter analyze lib test
 flutter test
-./backend_new/venv/Scripts/python.exe backend_new/manage.py test --keepdb
+cd backend_new
+./venv/Scripts/python.exe manage.py test --keepdb
 ```
 
 `backend_new/notifications/tests.py` contient déjà 15 tests (`NotificationApiTests` L13,
