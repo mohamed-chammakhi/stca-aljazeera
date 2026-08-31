@@ -177,3 +177,76 @@ flutter test
 
 Référence : **50 problèmes, 0 erreur** ; **101 tests réussis** avec le seul échec connu
 `test/widget_test.dart`.
+
+## QUESTION
+
+1. Le backend Django ne possède actuellement qu'un seul champ pour ces deux
+   notions : `Echantillon.date_arrivee_echantillon`. Le serializer expose ce
+   même champ, et l'action `confirmer-reception` le remplace par
+   `timezone.now()` lorsque la présence physique est confirmée. Il n'existe
+   donc aucun champ API distinct permettant de remplir à la fois la « Livraison
+   échantillon » prévue et la « Réception physique » constatée. Autorisez-vous
+   l'ajout d'un champ Django et d'une migration pour la date de livraison prévue ?
+   Si oui, quel nom de champ/clé JSON faut-il retenir (par exemple
+   `date_livraison_echantillon_prevue`) ? La consigne interdit de décider ce
+   changement d'API et le point 2.8 interdit aussi de changer le sens actuel des
+   dates du collecteur sans réponse de l'entreprise ; aucun code applicatif n'a
+   donc été modifié.
+
+---
+
+### RÉPONSE À LA QUESTION — deux dates pour l'instant
+
+**Ta question est juste, et le constat est même plus grave que tu ne le dis.**
+Vérifié : `backend_new/echantillons/views.py:199` **écrase** `date_arrivee_echantillon` avec
+`timezone.now()` au moment de la confirmation de réception. La date prévue par le collecteur
+n'est donc pas seulement absente d'un champ dédié : elle est **détruite** dès l'arrivée.
+
+C'est une vraie question métier, encore ouverte dans
+`docs/retours-utilisation-et-questions.md`, section 7, question 5. Le propriétaire ne veut pas
+la trancher maintenant.
+
+**Décision : on construit le filtre avec deux dates seulement. Aucune migration, aucun
+changement Django.**
+
+### Ce que tu fais
+
+1. **Un seul `DateFilterSheet`**, dans `lib/core/`. Le critère chiffré ne change pas : à la
+   fin, `grep -rl "class DateFilterSheet" lib --include=*.dart | wc -l` doit renvoyer **1**.
+
+2. **Sur les six pages du dégustateur et du chef dégustateur, propose exactement deux
+   choix :**
+
+   | Choix | Champ lu |
+   |---|---|
+   | « Date d'enregistrement » | la date de saisie dans l'application |
+   | « Réception physique » | `date_arrivee_echantillon`, qui porte aujourd'hui la date réelle |
+
+   **N'offre pas « Livraison échantillon » sur ces pages.** Ce serait un filtre qui ment :
+   le champ est écrasé à la réception.
+
+3. **Ne casse pas la direction ni le collecteur.** Leurs pages utilisent déjà les autres
+   valeurs de l'enum (`livraisonEchantillon`, `arriveeStock`). Garde ces valeurs dans l'enum
+   commun et laisse chaque page choisir ce qu'elle propose, comme le fait déjà
+   `availableTypes`. Vérifie explicitement que le filtre du collecteur
+   (`mes_echantillons_page.dart`) fonctionne comme avant.
+
+4. **Le point 6 de la consigne d'origine est annulé.** Tu ne corriges pas le mapping de
+   `dateArriveeEchantillon` : il dépend de la même décision métier, qui n'est pas prise.
+   Signale-le simplement sous `## HORS PÉRIMÈTRE`.
+
+5. **Supprime les deux copies** du filtre, comme prévu. Avant de supprimer, prouve avec `grep`
+   que plus personne ne les importe et donne le résultat brut.
+
+### Vérification
+
+```bash
+flutter analyze lib test
+flutter test
+```
+
+Référence : **50 problèmes, 0 erreur** ; **101 tests réussis** avec le seul échec connu
+`test/widget_test.dart`.
+
+Si `flutter` refuse de s'exécuter chez toi, dis-le et ne revendique aucun chiffre. Donne en
+revanche le résultat brut du `grep` du critère chiffré, lui ne dépend d'aucun outil.
