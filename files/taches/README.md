@@ -8,6 +8,14 @@ Tu n'exécutes qu'**une seule tâche à la fois**, et tu ne commites jamais.
 
 ---
 
+## Où en est-on ?
+
+**[`ETAT.md`](ETAT.md) répond à cette question.** Il dit quelle tâche est faite, laquelle
+attend, et quelles décisions sont déjà prises. Regarde-le avant de demander quoi que ce soit.
+C'est Claude qui le tient à jour.
+
+---
+
 ## État du dépôt
 
 L'arbre de travail est **propre** au moment où cette série commence. Tu pars d'une base

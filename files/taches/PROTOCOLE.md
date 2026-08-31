@@ -7,11 +7,17 @@ règles qui valent pour toutes les tâches, sans exception.
 
 ## 1. Comment se déroule une tâche
 
-1. Tu reçois un fichier `files/taches/NN-titre.md`. Il contient une section `## CONSIGNE`.
-2. Tu lis `CLAUDE.md` à la racine du projet. Ses deux règles priment sur tout le reste.
-3. Tu exécutes **uniquement** ce que la consigne demande.
-4. Tu écris ton compte rendu **dans le même fichier**, sous `## RAPPORT`.
-5. Tu ne commites jamais. Claude relit le diff et commite lui-même.
+1. Tu reçois un nom de fichier, `files/taches/NN-titre.md`. **Le message qui te l'envoie ne
+   contient rien d'autre. Toutes les règles sont ici, dans ce fichier. Lis-le en entier.**
+2. Tu lis `files/taches/README.md` : il donne l'ordre des tâches et l'état du dépôt.
+3. Tu lis `CLAUDE.md` à la racine du projet. Ses deux règles priment sur tout le reste.
+4. Tu ouvres le fichier de tâche et tu le lis **en entier avant d'écrire une ligne de code**.
+   S'il contient déjà un `## RAPPORT` et une section `### RÉPONSE À LA QUESTION`, c'est une
+   **reprise** : la réponse t'était destinée, lis-la, et ajoute une section `### Reprise` à
+   ton rapport au lieu d'écraser ce qui est écrit.
+5. Tu exécutes **uniquement** ce que la consigne demande.
+6. Tu écris ton compte rendu **dans le même fichier**, sous `## RAPPORT`.
+7. Tu ne commites jamais. Claude relit le diff et commite lui-même.
 
 ---
 
