@@ -3,7 +3,7 @@
 Ce fichier est le tableau de bord. **Claude le tient à jour, personne d'autre.**
 Il répond à une seule question : où en est-on, et qui attend quoi.
 
-Dernière mise à jour : 27/08/2026, après le commit `b1a137a`.
+Dernière mise à jour : 31/08/2026, après le commit `370ff0a`.
 
 ---
 
@@ -12,15 +12,15 @@ Dernière mise à jour : 27/08/2026, après le commit `b1a137a`.
 | # | Tâche | État | Qui doit agir |
 |---|---|---|---|
 | 05 | Texte d'aide de la recherche | **Terminée et commitée** (`8dd2e9c`) | personne |
-| 06 | Photo et remarque par bouteille | Question répondue, **à relancer** | Codex |
-| 07 | Référence bouteille automatique | Attend la 06 | Codex, après la 06 |
+| 06 | Photo et remarque par bouteille | **Terminée et commitée** (`370ff0a`) | à vérifier à l'écran |
+| 07 | Référence bouteille automatique | **Débloquée**, prête à lancer | Codex |
 | 08 | Négociation en tonnes | Parties A et B commitées (`c5e0f97`). **Partie C à relancer**, migration autorisée | Codex |
 | 09 | Filtre par dates unifié | **Jamais lancée** | Codex |
 | 10 | Carte analyses laboratoire | Attend la 09 | Codex, après la 09 |
 | 11 | Supprimer l'historique | Flutter et Django commités (`37488cc`). **Migration à relancer**, autorisée | Codex |
 | 12 | Notifications | **Jamais lancée** | Codex |
 
-Ordre conseillé : 06, 07, 08, 11, 09, 10, 12.
+Ordre conseillé : 07, 08, 11, 09, 10, 12.
 Les seules contraintes réelles sont **06 avant 07** et **09 avant 10**.
 
 ---
@@ -37,6 +37,8 @@ Les seules contraintes réelles sont **06 avant 07** et **09 avant 10**.
 | Quantité du fournisseur | Donnée dès le dépôt, pas après la dégustation |
 | Réception physique | Reste au dégustateur, le laboratoire n'intervient pas |
 | Test de la page « Mes échantillons » | Abandonné : il aurait fallu changer le constructeur de la page |
+| Photo par bouteille | Un bouton photo dans chaque carte de bouteille, avec Galerie / Appareil photo / Annuler. Plus de question « à quelle bouteille ? » |
+| Tests sur les écrans du collecteur | Abandonnés. Ces écrans vont chercher des données à l'ouverture et ne se stabilisent jamais dans un test. Vérification à l'écran |
 
 ---
 
