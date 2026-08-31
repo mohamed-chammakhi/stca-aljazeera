@@ -344,7 +344,14 @@ class ChefDashboardApiTests(APITestCase):
             set(classifications.json()[0]),
             {'label', 'extra_vierge', 'vierge', 'lampante'},
         )
-        self.assertEqual(classifications.json()[0]['extra_vierge'], 3)
+        # Somme sur tous les mois : les trois evaluations sont soumises a 24h,
+        # 48h et 72h d'intervalle, elles peuvent donc tomber a cheval sur deux
+        # mois. Lire seulement le premier groupe faisait echouer ce test les
+        # trois derniers jours de chaque mois.
+        total_extra_vierge = sum(
+            mois['extra_vierge'] for mois in classifications.json()
+        )
+        self.assertEqual(total_extra_vierge, 3)
 
     def test_presence_and_activity_are_paginated_and_do_not_include_drafts(self):
         self._submitted_eval(self.chef, self.submitted_sample, '3.0')

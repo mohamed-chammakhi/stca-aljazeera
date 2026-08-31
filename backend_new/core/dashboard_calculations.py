@@ -1,4 +1,5 @@
 from collections import defaultdict
+from datetime import date
 
 from django.db.models import Q
 
@@ -78,17 +79,23 @@ def monthly_classification_distribution(evaluations):
         'lampante': 0,
     })
     for evaluation in evaluations:
-        label = evaluation.soumis_le.strftime('%b %Y')
+        # Cle (annee, mois) et non le libelle : trier "Apr 2026" et "Jan 2026"
+        # comme du texte met avril avant janvier. Le libelle est reconstruit a
+        # la fin, une fois le tri fait sur des nombres.
+        cle = (evaluation.soumis_le.year, evaluation.soumis_le.month)
         if evaluation.classification == Echantillon.Classification.EXTRA_VIERGE:
-            monthly[label]['extra_vierge'] += 1
+            monthly[cle]['extra_vierge'] += 1
         elif evaluation.classification in (
             Echantillon.Classification.VIERGE,
             Echantillon.Classification.VIERGE_ORDINAIRE,
         ):
-            monthly[label]['vierge'] += 1
+            monthly[cle]['vierge'] += 1
         elif evaluation.classification == Echantillon.Classification.LAMPANTE:
-            monthly[label]['lampante'] += 1
-    return [{'label': label, **counts} for label, counts in sorted(monthly.items())]
+            monthly[cle]['lampante'] += 1
+    return [
+        {'label': date(annee, mois, 1).strftime('%b %Y'), **counts}
+        for (annee, mois), counts in sorted(monthly.items())
+    ]
 
 
 def presence_summary(sessions, user, today, upcoming_sessions=None):
