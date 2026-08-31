@@ -188,3 +188,46 @@ Référence : **50 problèmes, 0 erreur** ; **101 tests réussis** avec le seul 
 `test/widget_test.dart`.
 
 Si `flutter` refuse de s'exécuter chez toi, dis-le franchement et ne revendique aucun chiffre.
+
+---
+
+## CORRECTION — la référence est déjà envoyée par le serveur
+
+**La section précédente qui te disait de poser une question sur le titre est fausse. Ignore-la.**
+Le propriétaire a fait remarquer qu'un échantillon n'a qu'une seule référence, la même pour
+tous les rôles. Il a raison, et vérification faite, elle est déjà disponible ici.
+
+`backend_new/analyses/serializers.py:22` envoie déjà :
+
+```python
+echantillon_ref = serializers.CharField(source='echantillon.reference_bouteille', read_only=True)
+```
+
+Ce que la carte affiche aujourd'hui n'est **pas** une référence : c'est une étiquette fabriquée
+par Flutter en collant des morceaux, `lib/core/analyses/ligne_analyse_labo_service.dart:45` :
+
+```dart
+echantillonNom: displayParts.isEmpty ? numero : displayParts.join(' - '),
+```
+
+D'où « Chemlali - Lot A - Sfax ». Cette chaîne n'existe nulle part dans la base.
+
+### Ce que tu fais en plus, sans poser de question
+
+4. Ajoute `referenceBouteille` au modèle `LigneAnalyseLabo`
+   (`lib/core/analyses/ligne_analyse_labo.dart`), lu depuis la clé JSON **`echantillon_ref`**
+   que l'API envoie déjà. Renseigne-le aussi dans `ligneFromApi`
+   (`ligne_analyse_labo_service.dart`).
+
+5. **Le titre de la carte affiche la référence**, pas l'étiquette fabriquée. La carte du
+   dégustateur montrera alors exactement la même chose que celle de la direction, ce qui est le
+   but de la tâche.
+
+6. Si la référence est vide, garde l'étiquette actuelle comme repli — mieux vaut un titre
+   imparfait qu'un titre vide.
+
+7. Mets à jour les deux entrées de démonstration
+   (`ligne_analyse_labo_service.dart`, `_analysesDemonstration`) pour qu'elles portent une
+   référence cohérente avec ce que fait maintenant le collecteur, du style `S.T_C3_30T`.
+
+**Aucun changement Django. Aucune migration. Aucune question à poser sur ce point.**
