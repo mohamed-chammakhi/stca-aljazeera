@@ -56,8 +56,6 @@ a switch.
 
 **Collector-facing:** `RÃ©ceptionnÃ©` â†’ `RÃ©ceptionnÃ© (reÃ§u physiquement)` â†’ `En nÃ©gociation` â†’ `Achat confirmÃ©`  
 **Lab-facing:** `En attente` â†’ `En cours` â†’ `Soumis`  
-**Edit history rule:** Once `recuPhysiquement = true`, any field edit must store the previous value. All roles see old + new values.
-
 ---
 
 ## Design System

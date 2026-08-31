@@ -8,7 +8,6 @@
 // ═════════════════════════════════════════════════════════════════════════════
 
 import 'enums.dart';
-import 'modification_champ.dart';
 
 class Echantillon {
   // ── Primary key & display reference ──────────────────────────────────────────
@@ -63,13 +62,6 @@ class Echantillon {
   // ── Shared notes ──────────────────────────────────────────────────────────────
   String? remarques;
 
-  // ── Edit trail ────────────────────────────────────────────────────────────────
-  // Every edit made once `recuPhysiquement` is true, oldest first. Appended to,
-  // never overwritten — see ModificationChamp. Read-only on the client: the
-  // server owns the trail (it already diffs on save in notifications/signals.py,
-  // `echantillon_pre_save`), so it is not sent back on POST/PUT.
-  List<ModificationChamp> historique;
-
   // ── Timestamps ────────────────────────────────────────────────────────────────
   final String dateAjout; // ISO 8601 — set by the server on creation
   String? updatedAt; // ISO 8601 — updated on every save
@@ -105,15 +97,13 @@ class Echantillon {
     this.dateLivraisonStock,
     this.classification,
     this.remarques,
-    this.historique = const [],
     required this.dateAjout,
     this.updatedAt,
   });
 
   // ── Collector convenience getters ─────────────────────────────────────────────
   // Physical reception ends the collector's write rights: he can neither edit
-  // nor delete. Corrections then go through the head taster or the taster, whose
-  // edits are kept in `historique`.
+  // nor delete.
   bool get canModify =>
       statutCollecteur == StatutCollecteur.receptionne && !recuPhysiquement;
   bool get canDelete =>
@@ -163,9 +153,6 @@ class Echantillon {
         ? ClassificationHuileX.fromJson(json['classification'] as String)
         : null,
     remarques: json['remarques'] as String?,
-    historique: ModificationChamp.listFromJson(
-      json['historique'] as List<dynamic>?,
-    ),
     dateAjout: json['date_ajout'] as String,
     updatedAt: json['updated_at'] as String?,
   );

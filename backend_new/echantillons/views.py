@@ -24,14 +24,6 @@ from users.permissions import IsChefDegustation, IsDirection, IsCollecteur, IsDe
 from notifications.models import Notification
 
 
-# Fields that are tracked in the edit history once a sample is physically received.
-# Any change to these fields after recu_physiquement=True is recorded with old + new values.
-TRACKED_FIELDS = [
-    'variete', 'num_citerne', 'quantite_estimee',
-    'gouvernorat', 'delegation', 'cite', 'remarques',
-]
-
-
 def _decimal_from_display(value):
     if value in (None, ''):
         return None
@@ -159,12 +151,6 @@ class EchantillonViewSet(viewsets.ModelViewSet):
 
     def perform_update(self, serializer):
         # Called automatically when a PATCH request edits a sample.
-        #
-        # If the sample has already been physically received (recu_physiquement=True),
-        # any field change must be recorded in edit_history so all roles can see
-        # what was changed, by whom, and when.
-        #
-        # If nothing in TRACKED_FIELDS changed, we skip the history entry and just save.
         obj = serializer.instance
         requested_status = serializer.validated_data.get('statut_collecteur')
         if (
@@ -175,22 +161,6 @@ class EchantillonViewSet(viewsets.ModelViewSet):
             raise ValidationError(
                 {'statut_collecteur': ['Utilisez l action dediee pour changer le statut.']}
             )
-        if obj.recu_physiquement:
-            entry = {
-                'horodatage': timezone.now().isoformat(),  # timestamp of the edit
-                'modifie_par': str(self.request.user.id),  # who made the change
-                'modifications': {},
-            }
-            for field in TRACKED_FIELDS:
-                old_val = getattr(obj, field)
-                new_val = serializer.validated_data.get(field, old_val)
-                if old_val != new_val:
-                    entry['modifications'][field] = {'avant': old_val, 'apres': new_val}
-            if entry['modifications']:
-                history = list(obj.edit_history)
-                history.append(entry)
-                serializer.save(edit_history=history)
-                return
         serializer.save()
 
     def destroy(self, request, *args, **kwargs):
@@ -222,7 +192,7 @@ class EchantillonViewSet(viewsets.ModelViewSet):
 
     def _confirmer_reception(self, request):
         # The taster uses this to mark a sample as physically arrived at the company.
-        # This locks the sample against deletion and starts the edit history tracking.
+        # This locks the sample against deletion.
         obj = self.get_object()
         if not obj.recu_physiquement:
             obj.recu_physiquement = True

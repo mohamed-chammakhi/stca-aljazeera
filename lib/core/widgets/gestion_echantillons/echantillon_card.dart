@@ -8,7 +8,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:project3/core/models/echantillon.dart';
-import 'package:project3/core/widgets/historique_modifications.dart';
 import 'package:project3/core/models/enums.dart';
 import 'package:project3/config.dart';
 import 'package:project3/core/widgets/grille_details.dart';
@@ -428,12 +427,6 @@ class _DetailPanel extends StatelessWidget {
                   ),
                 ],
               ),
-              // Edits made after physical reception. Hidden entirely when the
-              // sample was never touched — an empty panel would only add noise.
-              if (e.historique.isNotEmpty) ...[
-                const SizedBox(height: 12),
-                HistoriqueModifications(historique: e.historique),
-              ],
             ],
           ),
         ),

@@ -11,7 +11,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/models/echantillon.dart';
-import '../../../../core/models/echantillon_historique.dart';
 import '../../../../core/models/enums.dart';
 import '../../../../core/widgets/date_input_field.dart';
 // TODO(core): move GeoService to lib/core/services/ — cross-module import from 2_collecteur
@@ -212,9 +211,6 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
 
     if (_isModification) {
       final e = widget.echantillon!;
-      // Captured before the form writes: the trail needs the values as they
-      // stood, and they are about to be overwritten.
-      final avant = e.capturerAvantModification();
       final b = _bouteilles.first;
       e.referenceBouteille = b.refCtrl.text.trim();
       e.variete = b.varieteCtrl.text.trim().isEmpty
@@ -232,8 +228,6 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
           ? null
           : _remarquesCtrl.text.trim();
       // codeFournisseur, dateAjout, collecteurNom are API-assigned — not mutated
-      // No-op until the sample is physically received.
-      e.enregistrerModifications(avant, auteurRole: 'Chef dégustateur');
       widget.onSaveMultiple([e]);
     } else {
       final now = DateTime.now();
