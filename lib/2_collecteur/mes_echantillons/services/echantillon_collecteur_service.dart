@@ -22,13 +22,11 @@ class EchantillonCollecteurService {
   //   numero                   → ref
   //   statut_collecteur        → statut  (+ value conversion to Dart enum name)
   //   collecteur               → collecteur_id
-  //   date_arrivee_echantillon → date_reception_echantillon  (actual receipt date)
   //   camion_reserve           → camion_livraison
   //   budget_negociation       → budget_negociation  (Decimal/null → String?/null)
   //   prix_final               → prix_final          (Decimal/null → String?/null)
   //
   // Fields always null (not in this endpoint):
-  //   date_arrivee_echantillon → always null  (no scheduled arrival date in backend)
   //   livraison                → always null  (planification not in this endpoint)
   // ──────────────────────────────────────────────────────────────────────────
 
@@ -72,11 +70,9 @@ class EchantillonCollecteurService {
       'variete': api['variete'],
       'achat_confirme': statutCollecteur == 'achat_confirme',
       'livraison': null,
-      // date_arrivee_echantillon (scheduled) is not in this endpoint — always null.
-      'date_arrivee_echantillon': null,
+      'date_arrivee_echantillon': api['date_arrivee_echantillon'],
       'recu_physiquement': api['recu_physiquement'] ?? false,
-      // date_arrivee_echantillon from API = actual physical reception date.
-      'date_reception_echantillon': api['date_arrivee_echantillon'],
+      'date_reception_echantillon': api['date_reception_echantillon'],
       'budget_negociation': api['budget_negociation']?.toString(),
       'quantite_cible_t': api['quantite_cible_t']?.toString(),
       'date_stock_souhaitee_debut': null,
@@ -111,6 +107,7 @@ class EchantillonCollecteurService {
       'num_citerne': json['num_citerne'],
       'quantite_estimee': json['quantite_estimee'],
       'variete': json['variete'],
+      'date_arrivee_echantillon': json['date_arrivee_echantillon'],
       'budget_negociation': json['budget_negociation'],
       'quantite_cible_t': json['quantite_cible_t'],
       'prix_final': json['prix_final'],

@@ -1,4 +1,7 @@
+from datetime import timedelta
+
 from django.utils import timezone
+from django.utils.dateparse import parse_datetime
 from rest_framework import status
 from rest_framework.test import APITestCase
 
@@ -212,7 +215,7 @@ class CollectorEchantillonApiTests(APITestCase):
         sample = self.create_sample(
             self.collector,
             recu_physiquement=True,
-            date_arrivee_echantillon=timezone.now(),
+            date_reception_echantillon=timezone.now(),
         )
         self.authenticate(self.collector)
 
@@ -394,7 +397,32 @@ class CollectorEchantillonApiTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         sample.refresh_from_db()
         self.assertTrue(sample.recu_physiquement)
-        self.assertIsNotNone(sample.date_arrivee_echantillon)
+        self.assertIsNotNone(sample.date_reception_echantillon)
+
+    def test_physical_reception_preserves_scheduled_arrival_date(self):
+        scheduled_arrival = timezone.now() + timedelta(days=3)
+        sample = self.create_sample(
+            self.collector,
+            recu_physiquement=False,
+            date_arrivee_echantillon=scheduled_arrival,
+        )
+        self.authenticate(self.degustateur)
+
+        response = self.client.post(
+            f'/api/echantillons/{sample.id}/confirmer-reception/',
+            {},
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        sample.refresh_from_db()
+        self.assertEqual(sample.date_arrivee_echantillon, scheduled_arrival)
+        self.assertIsNotNone(sample.date_reception_echantillon)
+        self.assertEqual(
+            parse_datetime(response.data['date_arrivee_echantillon']),
+            scheduled_arrival,
+        )
+        self.assertIsNotNone(response.data['date_reception_echantillon'])
 
 
 class RenvoiEnNegociationTests(APITestCase):

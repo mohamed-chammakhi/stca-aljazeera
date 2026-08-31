@@ -717,6 +717,34 @@ Deferred:
   requested to handle separately. Existing OCR-related mock/dev flows remain in
   place.
 
+### Distinct Scheduled and Physical Reception Dates
+
+Backend:
+
+- `Echantillon.date_arrivee_echantillon` now stores only the arrival date
+  announced by the collector.
+- `Echantillon.date_reception_echantillon` stores the timestamp set by the
+  Degustateur/Chef physical-reception action and is exposed read-only by the
+  sample API.
+- Migration `echantillons.0013` copies the former arrival value into the new
+  reception field for already physically received samples without clearing the
+  original value, because the historical scheduled date cannot be recovered.
+- Reception confirmation preserves the scheduled arrival date and remains
+  restricted to Degustateur/Chef.
+
+Flutter:
+
+- The collector sample service now maps and sends the scheduled arrival date
+  through `date_arrivee_echantillon` and maps the physical timestamp from
+  `date_reception_echantillon`.
+- `EchantillonCollecteur.fromJson()` parses both API fields independently.
+
+Verification:
+
+- Django migration consistency check passed with `No changes detected`.
+- The complete `echantillons` suite passed: 26 tests.
+- The full Django suite passed: 160 tests.
+
 ## Next Recommended Backend Feature
 
 ### 1. Physical Phone Smoke Test

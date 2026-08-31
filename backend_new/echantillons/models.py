@@ -77,8 +77,9 @@ class Echantillon(models.Model):
     )
 
     # Physical reception at company
-    recu_physiquement       = models.BooleanField(default=False)
-    date_arrivee_echantillon = models.DateTimeField(null=True, blank=True)
+    recu_physiquement          = models.BooleanField(default=False)
+    date_arrivee_echantillon   = models.DateTimeField(null=True, blank=True)
+    date_reception_echantillon = models.DateTimeField(null=True, blank=True)
 
     # CEO negotiation details (set when CEO approves)
     budget_negociation  = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)

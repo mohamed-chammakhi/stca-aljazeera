@@ -205,7 +205,9 @@ class EchantillonCollecteur {
             ? DateTime.parse(json['date_arrivee_echantillon'] as String)
             : null,
         recuPhysiquement: json['recu_physiquement'] as bool? ?? false,
-        dateReceptionEchantillon: null,
+        dateReceptionEchantillon: json['date_reception_echantillon'] != null
+            ? DateTime.parse(json['date_reception_echantillon'] as String)
+            : null,
         budgetNegociation: json['budget_negociation']?.toString(),
         quantiteCibleT: json['quantite_cible_t']?.toString(),
         dateStockSouhaiteeDebut: null,

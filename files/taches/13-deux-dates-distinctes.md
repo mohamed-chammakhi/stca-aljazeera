@@ -118,3 +118,146 @@ Référence : **50 problèmes, 0 erreur** ; **101 tests Flutter réussis** avec 
 
 Si `flutter` refuse de s'exécuter chez toi, dis-le et ne revendique aucun chiffre. La suite
 Django, elle, doit être lancée : c'est elle qui prouve que la migration passe.
+
+## RAPPORT
+
+### Fait
+
+- `backend_new/echantillons/models.py` — un échantillon conserve désormais séparément la date d'arrivée annoncée par le collecteur et la date de sa réception physique.
+- `backend_new/echantillons/serializers.py` — l'API renvoie les deux dates sous leurs noms distincts ; la date de réception réelle reste pilotée par l'action serveur et n'est pas modifiable directement par un client.
+- `backend_new/echantillons/views.py` — confirmer la réception renseigne uniquement `date_reception_echantillon` et ne détruit plus la date prévue.
+- `backend_new/echantillons/migrations/0013_echantillon_date_reception_echantillon.py` — le nouveau champ est créé et, pour chaque échantillon déjà reçu, l'ancienne valeur est copiée comme date réelle. `date_arrivee_echantillon` est volontairement laissée intacte : la date prévue d'origine est perdue et ne peut pas être reconstruite.
+- `backend_new/echantillons/tests.py` — la réception physique vérifie le nouveau champ et un test dédié prouve que date prévue et date réelle coexistent après confirmation.
+- `lib/2_collecteur/mes_echantillons/services/echantillon_collecteur_service.dart` — le collecteur envoie sa date prévue au serveur et reçoit désormais chaque date depuis son propre champ, sans l'ancien contournement.
+- `lib/2_collecteur/mes_echantillons/models/echantillon_collecteur.dart` — le modèle Flutter lit les deux dates indépendamment au lieu de forcer la date de réception à `null`.
+- `files/mapbackend.md` — la carte de continuité backend documente la séparation des deux dates, la migration des données et les vérifications effectuées.
+
+### Vérifié
+
+Commande de cohérence de migration, lancée depuis `backend_new` :
+
+```powershell
+.\venv\Scripts\python.exe manage.py makemigrations --check --dry-run
+```
+
+Sortie :
+
+```text
+No changes detected
+```
+
+Le premier lancement du nouveau test a atteint la base et appliqué la migration `0013`, mais l'assertion comparait deux représentations textuelles de fuseaux différents (`+01:00` contre `Z`) :
+
+```text
+Applying echantillons.0013_echantillon_date_reception_echantillon... OK
+Ran 1 test in 1.685s
+FAILED (failures=1)
+AssertionError: '2026-09-03T16:38:20.684056+01:00' != '2026-09-03T15:38:20.684056Z'
+```
+
+Après correction pour comparer les instants parsés :
+
+```powershell
+.\venv\Scripts\python.exe manage.py test echantillons.tests.CollectorEchantillonApiTests.test_physical_reception_preserves_scheduled_arrival_date --keepdb -v 2
+```
+
+```text
+Found 1 test(s).
+Ran 1 test in 1.618s
+OK
+```
+
+Suite Django demandée, depuis `backend_new` :
+
+```powershell
+.\venv\Scripts\python.exe manage.py test echantillons --keepdb
+```
+
+```text
+Found 26 test(s).
+System check identified no issues (0 silenced).
+Ran 26 tests in 45.844s
+OK
+```
+
+Suite Django complète :
+
+```powershell
+.\venv\Scripts\python.exe manage.py test --keepdb
+```
+
+```text
+Found 160 test(s).
+System check identified no issues (0 silenced).
+Ran 160 tests in 459.444s
+OK
+```
+
+L'échec Chef documenté comme préexistant ne s'est pas reproduit dans cette exécution : les 160 tests ont réussi.
+
+Formatage Dart réellement exécuté depuis la racine :
+
+```powershell
+dart format lib/2_collecteur/mes_echantillons/services/echantillon_collecteur_service.dart lib/2_collecteur/mes_echantillons/models/echantillon_collecteur.dart
+```
+
+```text
+Formatted 2 files (1 changed) in 0.01 seconds.
+```
+
+Recherche brute des écritures de production qui écraseraient encore la date prévue :
+
+```powershell
+rg -n '\.date_arrivee_echantillon\s*=|update_fields=.*date_arrivee_echantillon' backend_new --glob '!**/migrations/**' --glob '!**/tests.py'
+```
+
+```text
+Aucune sortie (code 1).
+```
+
+Recherche brute des deux commentaires de contournement devenus faux :
+
+```powershell
+rg -n 'scheduled.*not in this endpoint|from API = actual physical reception date' lib/2_collecteur/mes_echantillons/services/echantillon_collecteur_service.dart
+```
+
+```text
+Aucune sortie (code 1).
+```
+
+Contrôle du diff :
+
+```powershell
+git diff --check
+```
+
+```text
+Aucune erreur (code 0). Git affiche seulement ses avertissements de conversion LF vers CRLF pour les fichiers Python/Markdown suivis.
+```
+
+Les deux commandes Flutter demandées ont été lancées séparément :
+
+```powershell
+flutter analyze lib test
+flutter test
+```
+
+Toutes deux se sont arrêtées avant l'analyse ou la découverte des tests avec la même sortie ; aucun chiffre Flutter n'est donc revendiqué :
+
+```text
+CreateFile failed 5 (Access is denied.)
+Flutter failed to run "git -c log.showSignature=false log HEAD -n 1 --pretty=format:%ad --date=iso".
+The flutter tool cannot access the file or directory.
+```
+
+La commande Git citée fonctionne pourtant lorsqu'elle est exécutée directement dans `C:\Users\takwa\Documents\flutter` ; le refus vient du lancement interne par le processus Dart de Flutter dans cet environnement.
+
+### Non fait
+
+- Aucune analyse ni suite de tests Flutter n'a pu démarrer, car l'outil Flutter refuse de lancer sa commande Git interne avec `CreateFile failed 5`. Les commandes ont été tentées sans revendiquer de résultat.
+
+### HORS PÉRIMÈTRE
+
+- `files/backend_sprint_plan.md`, référencé par `AGENTS.md`, `CLAUDE.md` et `files/mapbackend.md`, est absent du dépôt ; il n'a pas été recréé dans cette tâche.
+- `files/taches/ETAT.md`, que seul Claude doit tenir à jour, indique encore que le sens de la date d'arrivée attend une réponse de l'entreprise, alors que la décision du 31/08/2026 figure dans cette tâche.
+- Des consommateurs hérités utilisent encore `date_arrivee_echantillon` comme date réelle, notamment dans les calculs/tableaux de bord, les vues Chef/Dégustateur/Analyses et certains modèles/services Flutter. Ils n'ont pas été modifiés ici, car la consigne interdit de toucher aux filtres de dates et annonce explicitement la tâche 09 comme étape suivante dépendante.

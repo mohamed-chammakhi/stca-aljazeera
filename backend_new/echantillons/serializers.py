@@ -21,6 +21,7 @@ class EchantillonSerializer(serializers.ModelSerializer):
             'variete', 'num_citerne', 'quantite_estimee', 'image_url',
             'statut_collecteur', 'statut_degustateur', 'statut_labo', 'statut_ceo',
             'recu_physiquement', 'date_arrivee_echantillon',
+            'date_reception_echantillon',
             'budget_negociation', 'budget_negociation_max', 'nb_renegociations',
             'quantite_cible_t', 'camion_reserve',
             'note_interne', 'raison_refus',
@@ -34,7 +35,8 @@ class EchantillonSerializer(serializers.ModelSerializer):
         # bien des tours reels et pas ce que l'app veut afficher.
         read_only_fields = [
             'id', 'numero', 'collecteur',
-            'nb_renegociations', 'date_ajout', 'updated_at',
+            'nb_renegociations', 'date_reception_echantillon',
+            'date_ajout', 'updated_at',
         ]
 
     def to_representation(self, instance):

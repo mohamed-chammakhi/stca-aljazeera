@@ -196,8 +196,8 @@ class EchantillonViewSet(viewsets.ModelViewSet):
         obj = self.get_object()
         if not obj.recu_physiquement:
             obj.recu_physiquement = True
-            obj.date_arrivee_echantillon = timezone.now()
-            obj.save(update_fields=['recu_physiquement', 'date_arrivee_echantillon', 'updated_at'])
+            obj.date_reception_echantillon = timezone.now()
+            obj.save(update_fields=['recu_physiquement', 'date_reception_echantillon', 'updated_at'])
         return Response(EchantillonSerializer(obj, context={'request': request}).data)
 
     @action(detail=True, methods=['patch', 'post'], permission_classes=[IsDegustateur | IsChefDegustation])
