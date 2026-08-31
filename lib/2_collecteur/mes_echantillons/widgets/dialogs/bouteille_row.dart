@@ -7,6 +7,7 @@ class BouteilleRow {
   final TextEditingController varieteCtrl;
   final TextEditingController numCiterneCtrl;
   final TextEditingController qteCtrl;
+  final TextEditingController remarqueCtrl;
   Uint8List? photoBytes;
   String? photoName;
 
@@ -15,6 +16,7 @@ class BouteilleRow {
     required this.varieteCtrl,
     required this.numCiterneCtrl,
     required this.qteCtrl,
+    required this.remarqueCtrl,
     this.photoBytes,
     this.photoName,
   });
@@ -24,6 +26,7 @@ class BouteilleRow {
     varieteCtrl: TextEditingController(),
     numCiterneCtrl: TextEditingController(),
     qteCtrl: TextEditingController(),
+    remarqueCtrl: TextEditingController(),
   );
 
   factory BouteilleRow.fromSample({
@@ -31,11 +34,13 @@ class BouteilleRow {
     required String variete,
     required String numCiterne,
     required String qte,
+    required String remarque,
   }) => BouteilleRow(
     refCtrl: TextEditingController(text: referenceBouteille),
     varieteCtrl: TextEditingController(text: variete),
     numCiterneCtrl: TextEditingController(text: numCiterne),
     qteCtrl: TextEditingController(text: qte),
+    remarqueCtrl: TextEditingController(text: remarque),
   );
 
   void dispose() {
@@ -43,5 +48,6 @@ class BouteilleRow {
     varieteCtrl.dispose();
     numCiterneCtrl.dispose();
     qteCtrl.dispose();
+    remarqueCtrl.dispose();
   }
 }

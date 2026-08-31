@@ -3,8 +3,6 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import 'dart:async';
-import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
@@ -34,6 +32,7 @@ typedef SaveSamplesCb =
       List<EchantillonCollecteur> samples, {
       List<SamplePhoto?>? photos,
     });
+typedef PickBottlePhoto = Future<XFile?> Function(ImageSource source);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PUBLIC ENTRY POINT
@@ -43,6 +42,7 @@ void showFormulaireDialog(
   EchantillonCollecteur? echantillon,
   required int prochainNumero,
   required SaveSamplesCb onSaveMultiple,
+  PickBottlePhoto? pickPhoto,
 }) {
   showDialog(
     context: context,
@@ -50,6 +50,7 @@ void showFormulaireDialog(
       echantillon: echantillon,
       prochainNumero: prochainNumero,
       onSaveMultiple: onSaveMultiple,
+      pickPhoto: pickPhoto,
     ),
   );
 }
@@ -61,11 +62,13 @@ class _FormulaireDialog extends StatefulWidget {
   final EchantillonCollecteur? echantillon;
   final int prochainNumero;
   final SaveSamplesCb onSaveMultiple;
+  final PickBottlePhoto? pickPhoto;
 
   const _FormulaireDialog({
     required this.echantillon,
     required this.prochainNumero,
     required this.onSaveMultiple,
+    this.pickPhoto,
   });
 
   @override
@@ -83,7 +86,6 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
   // ── Shared controllers ───────────────────────────────────────────────────
   late final TextEditingController _codeFournisseurCtrl;
   late final TextEditingController _collecteurCtrl;
-  late final TextEditingController _remarquesCtrl;
 
   // ── Date de livraison ────────────────────────────────────────────────────
   ModePlanificationUI _livMode = ModePlanificationUI.dateExacte;
@@ -98,171 +100,69 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
   // ── Per-bouteille rows ────────────────────────────────────────────────────
   final List<BouteilleRow> _bouteilles = [];
 
-  // ── Bottle photo (optional, attached to the sample) ───────────────────────
+  // ── Bottle photos (optional, one per sample) ──────────────────────────────
   final ImagePicker _picker = ImagePicker();
-  Uint8List? _photoBytes;
-  String? _photoName;
 
-  Future<void> _pickPhoto(ImageSource source) async {
-    final XFile? file = await _picker.pickImage(
-      source: source,
-      maxWidth: 2000,
-      imageQuality: 90,
-    );
+  Future<void> _pickPhoto(ImageSource source, BouteilleRow row) async {
+    final XFile? file = widget.pickPhoto != null
+        ? await widget.pickPhoto!(source)
+        : await _picker.pickImage(
+            source: source,
+            maxWidth: 2000,
+            imageQuality: 90,
+          );
     if (file == null) return;
     final bytes = await file.readAsBytes();
     if (!mounted) return;
     setState(() {
-      final row = _targetRowForPhoto();
       row.photoBytes = bytes;
       row.photoName = file.name;
-      _photoBytes = bytes;
-      _photoName = file.name;
     });
   }
 
-  Future<void> _importEtiquetteImage() => _pickPhoto(ImageSource.gallery);
-
-  // Reuses the first empty row rather than always creating a new one.
-  BouteilleRow _targetRowForPhoto() {
-    if (_isModification) return _bouteilles.first;
-    if (_bouteilles.length == 1 &&
-        _isRowEmpty(_bouteilles.first) &&
-        _bouteilles.first.photoBytes == null) {
-      return _bouteilles.first;
-    }
-    final row = BouteilleRow.empty();
-    _bouteilles.add(row);
-    return row;
-  }
-
-  bool _isRowEmpty(BouteilleRow b) =>
-      b.refCtrl.text.trim().isEmpty &&
-      b.varieteCtrl.text.trim().isEmpty &&
-      b.numCiterneCtrl.text.trim().isEmpty &&
-      b.qteCtrl.text.trim().isEmpty;
-
-  void _removePhoto() => setState(() {
-    _photoBytes = null;
-    _photoName = null;
+  void _removePhoto(BouteilleRow row) => setState(() {
+    row.photoBytes = null;
+    row.photoName = null;
   });
 
-  void _choosePhotoSource() {
+  void _choosePhotoSource(BouteilleRow row) {
     showModalBottomSheet<void>(
       context: context,
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
-      builder: (_) => SafeArea(
+      builder: (sheetContext) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: const Icon(Icons.photo_camera_outlined, color: kGreen),
-              title: const Text('Prendre une photo'),
+              key: const ValueKey('photo-source-gallery'),
+              leading: const Icon(Icons.photo_library_outlined, color: kGreen),
+              title: const Text('Galerie'),
               onTap: () {
-                Navigator.pop(context);
-                _pickPhoto(ImageSource.camera);
+                Navigator.pop(sheetContext);
+                _pickPhoto(ImageSource.gallery, row);
               },
             ),
             ListTile(
-              leading: const Icon(Icons.photo_library_outlined, color: kGreen),
-              title: const Text('Choisir depuis la galerie'),
+              key: const ValueKey('photo-source-camera'),
+              leading: const Icon(Icons.photo_camera_outlined, color: kGreen),
+              title: const Text('Appareil photo'),
               onTap: () {
-                Navigator.pop(context);
-                _pickPhoto(ImageSource.gallery);
+                Navigator.pop(sheetContext);
+                _pickPhoto(ImageSource.camera, row);
               },
+            ),
+            ListTile(
+              key: const ValueKey('photo-source-cancel'),
+              leading: const Icon(Icons.close, color: kDarkText),
+              title: const Text('Annuler'),
+              onTap: () => Navigator.pop(sheetContext),
             ),
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildPhotoZone() {
-    // ── Empty: no photo yet ─────────────────────────────────────────────
-    if (_photoBytes == null) {
-      return InkWell(
-        onTap: _importEtiquetteImage,
-        borderRadius: BorderRadius.circular(10),
-        child: Container(
-          width: double.infinity,
-          height: 64,
-          decoration: BoxDecoration(
-            color: kGreen.withValues(alpha: 0.05),
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: kGreen.withValues(alpha: 0.25)),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.photo_library_outlined,
-                color: kGreen.withValues(alpha: 0.55),
-                size: 22,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                "Importer une etiquette",
-                style: TextStyle(
-                  fontSize: 12,
-                  color: kGreen.withValues(alpha: 0.55),
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    // ── Filled: photo chosen ─────────────────────────────────────────────
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(10),
-          child: Image.memory(
-            _photoBytes!,
-            width: double.infinity,
-            height: 150,
-            fit: BoxFit.cover,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Row(
-          children: [
-            Expanded(
-              child: Text(
-                _photoName ?? 'photo.jpg',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
-              ),
-            ),
-            TextButton.icon(
-              onPressed: _choosePhotoSource,
-              icon: const Icon(Icons.refresh, size: 16, color: kGreen),
-              label: const Text(
-                'Relancer',
-                style: TextStyle(fontSize: 12, color: kGreen),
-              ),
-            ),
-            TextButton.icon(
-              onPressed: _removePhoto,
-              icon: Icon(
-                Icons.delete_outline,
-                size: 16,
-                color: Colors.red.shade400,
-              ),
-              label: Text(
-                'Retirer',
-                style: TextStyle(fontSize: 12, color: Colors.red.shade400),
-              ),
-            ),
-          ],
-        ),
-      ],
     );
   }
 
@@ -278,7 +178,6 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
       text: e?.fournisseurNom ?? e?.codeFournisseur ?? '',
     );
     _collecteurCtrl = TextEditingController(text: e?.collecteurNom ?? '');
-    _remarquesCtrl = TextEditingController(text: e?.remarques ?? '');
 
     _gouvernorat = (e?.gouvernorat != null && e!.gouvernorat.isNotEmpty)
         ? e.gouvernorat
@@ -295,6 +194,7 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
               variete: e.variete ?? '',
               numCiterne: e.numCiterne ?? '',
               qte: e.quantiteEstimee ?? '',
+              remarque: e.remarques ?? '',
             )
           : BouteilleRow.empty(),
     );
@@ -308,7 +208,6 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
   void dispose() {
     _codeFournisseurCtrl.dispose();
     _collecteurCtrl.dispose();
-    _remarquesCtrl.dispose();
     for (final b in _bouteilles) {
       b.dispose();
     }
@@ -410,9 +309,9 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
           : b.qteCtrl.text.trim();
       e.gouvernorat = gouvernorat;
       e.delegation = _delegation;
-      e.remarques = _remarquesCtrl.text.trim().isEmpty
+      e.remarques = b.remarqueCtrl.text.trim().isEmpty
           ? null
-          : _remarquesCtrl.text.trim();
+          : b.remarqueCtrl.text.trim();
       e.dateArriveeEchantillon = _livDate;
       e.fournisseurId = _fournisseurChoisi?.id ?? e.fournisseurId;
       e.fournisseurNom = fournisseurNom;
@@ -442,9 +341,9 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
               : b.numCiterneCtrl.text.trim(),
           gouvernorat: gouvernorat,
           delegation: _delegation,
-          remarques: _remarquesCtrl.text.trim().isEmpty
+          remarques: b.remarqueCtrl.text.trim().isEmpty
               ? null
-              : _remarquesCtrl.text.trim(),
+              : b.remarqueCtrl.text.trim(),
           quantiteEstimee: b.qteCtrl.text.trim().isEmpty
               ? null
               : b.qteCtrl.text.trim(),
@@ -583,6 +482,8 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
                       isModification: _isModification,
                       onAddRow: _addRow,
                       onRemoveRow: _removeRow,
+                      onPhoto: _choosePhotoSource,
+                      onRemovePhoto: _removePhoto,
                     ),
                     const SizedBox(height: 12),
 
@@ -611,77 +512,6 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
                     ),
                     const SizedBox(height: 16),
 
-                    // Photo de la bouteille (optionnelle)
-                    Row(
-                      children: [
-                        _FieldLabel(label: 'Photo de la bouteille'),
-                        const SizedBox(width: 6),
-                        Text(
-                          'optionnel',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: kGreen.withValues(alpha: 0.7),
-                            fontStyle: FontStyle.italic,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 10),
-                    _buildPhotoZone(),
-                    const SizedBox(height: 12),
-
-                    // Remarques
-                    Row(
-                      children: [
-                        const Text(
-                          'Remarques',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: kOlive,
-                          ),
-                        ),
-                        Text(
-                          ' (optionnel)',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: Colors.grey.shade400,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-                    TextField(
-                      controller: _remarquesCtrl,
-                      maxLines: 3,
-                      minLines: 2,
-                      style: const TextStyle(fontSize: 14, color: kDarkText),
-                      decoration: InputDecoration(
-                        hintText: 'Notes, observations particulières...',
-                        hintStyle: TextStyle(
-                          color: Colors.grey.shade400,
-                          fontSize: 13,
-                        ),
-                        filled: true,
-                        fillColor: kFieldFill,
-                        contentPadding: const EdgeInsets.all(12),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide(color: Colors.grey.shade200),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide(color: Colors.grey.shade200),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: const BorderSide(
-                            color: kGreen,
-                            width: 1.8,
-                          ),
-                        ),
-                      ),
-                    ),
                     const SizedBox(height: 8),
                   ],
                 ),
@@ -798,12 +628,16 @@ class _BouteillesSection extends StatelessWidget {
   final bool isModification;
   final VoidCallback onAddRow;
   final ValueChanged<int> onRemoveRow;
+  final ValueChanged<BouteilleRow> onPhoto;
+  final ValueChanged<BouteilleRow> onRemovePhoto;
 
   const _BouteillesSection({
     required this.bouteilles,
     required this.isModification,
     required this.onAddRow,
     required this.onRemoveRow,
+    required this.onPhoto,
+    required this.onRemovePhoto,
   });
 
   @override
@@ -894,6 +728,8 @@ class _BouteillesSection extends StatelessWidget {
             index: i,
             showRemove: !isModification && count > 1,
             onRemove: () => onRemoveRow(i),
+            onPhoto: () => onPhoto(bouteilles[i]),
+            onRemovePhoto: () => onRemovePhoto(bouteilles[i]),
           ),
         ),
       ],
@@ -909,12 +745,16 @@ class _BouteilleCard extends StatelessWidget {
   final int index;
   final bool showRemove;
   final VoidCallback onRemove;
+  final VoidCallback onPhoto;
+  final VoidCallback onRemovePhoto;
 
   const _BouteilleCard({
     required this.row,
     required this.index,
     required this.showRemove,
     required this.onRemove,
+    required this.onPhoto,
+    required this.onRemovePhoto,
   });
 
   InputDecoration _fieldDec(String hint, {String? suffixText}) =>
@@ -950,6 +790,7 @@ class _BouteilleCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      key: ValueKey('bouteille-card-$index'),
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -978,6 +819,21 @@ class _BouteilleCard extends StatelessWidget {
                 ),
               ),
               const Spacer(),
+              IconButton(
+                key: ValueKey('photo-bouteille-$index'),
+                onPressed: onPhoto,
+                tooltip: row.photoBytes == null
+                    ? 'Ajouter une photo'
+                    : 'Remplacer la photo',
+                visualDensity: VisualDensity.compact,
+                icon: Icon(
+                  row.photoBytes == null
+                      ? Icons.add_a_photo_outlined
+                      : Icons.photo_camera_back_outlined,
+                  size: 18,
+                  color: kGreen,
+                ),
+              ),
               if (showRemove)
                 GestureDetector(
                   onTap: onRemove,
@@ -1001,6 +857,7 @@ class _BouteilleCard extends StatelessWidget {
           _InlineLabel(label: 'Référence bouteille', required: true),
           const SizedBox(height: 5),
           TextField(
+            key: ValueKey('reference-bouteille-$index'),
             controller: row.refCtrl,
             style: const TextStyle(fontSize: 13, color: kDarkText),
             decoration: _fieldDec('Ex: CHEMLALI-C1'),
@@ -1050,6 +907,68 @@ class _BouteilleCard extends StatelessWidget {
             style: const TextStyle(fontSize: 13, color: kDarkText),
             decoration: _fieldDec('Ex: 5000', suffixText: 'T'),
           ),
+          const SizedBox(height: 8),
+
+          _InlineLabel(label: 'Remarque'),
+          const SizedBox(height: 5),
+          TextField(
+            key: ValueKey('remarque-bouteille-$index'),
+            controller: row.remarqueCtrl,
+            minLines: 2,
+            maxLines: 3,
+            style: const TextStyle(fontSize: 13, color: kDarkText),
+            decoration: _fieldDec('Notes, observations particulières...'),
+          ),
+          const SizedBox(height: 10),
+
+          _InlineLabel(label: 'Photo de la bouteille'),
+          const SizedBox(height: 5),
+          if (row.photoBytes == null)
+            Text(
+              'Aucune photo',
+              style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+            )
+          else ...[
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.memory(
+                row.photoBytes!,
+                width: double.infinity,
+                height: 130,
+                fit: BoxFit.cover,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    row.photoName ?? 'photo.jpg',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                  ),
+                ),
+                TextButton.icon(
+                  onPressed: onPhoto,
+                  icon: const Icon(Icons.refresh, size: 16),
+                  label: const Text('Remplacer'),
+                ),
+                TextButton.icon(
+                  onPressed: onRemovePhoto,
+                  icon: Icon(
+                    Icons.delete_outline,
+                    size: 16,
+                    color: Colors.red.shade400,
+                  ),
+                  label: Text(
+                    'Retirer',
+                    style: TextStyle(color: Colors.red.shade400),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ],
       ),
     );
