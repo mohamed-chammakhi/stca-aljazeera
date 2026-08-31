@@ -38,6 +38,21 @@ const Map<String, double?> _rapport188 = {
 };
 
 void main() {
+  test('LigneAnalyseLabo lit la référence bouteille envoyée par l\'API', () {
+    final ligne = LigneAnalyseLabo.fromJson({
+      'id': 'analyse-1',
+      'echantillon_id': 'sample-1',
+      'numero': '2026/0042',
+      'echantillon_ref': 'S.T_C3_30T',
+      'echantillon_nom': 'Chemlali - Sfax',
+      'technicien_nom': 'Technicien Labo',
+      'statut': 'soumise',
+    });
+
+    expect(ligne.referenceBouteille, 'S.T_C3_30T');
+    expect(ligne.toJson()['echantillon_ref'], 'S.T_C3_30T');
+  });
+
   group('RapportLabo.fromJson', () {
     test('conserve les 28 valeurs du certificat 188-2026', () {
       final rapport = RapportLabo.fromJson({
@@ -125,7 +140,27 @@ void main() {
 
     expect(ligne.rapport, isNull);
     expect(ligne.statut, StatutAnalyse.enAttente);
+    expect(ligne.numero, '2026/0042');
+    expect(ligne.referenceBouteille, 'BOUT-42');
     expect(ligne.echantillonNom, contains('BOUT-42'));
+  });
+
+  test('le service privilégie la référence envoyée avec l\'analyse', () {
+    final ligne = LigneAnalyseLaboService().ligneFromApi({
+      'id': 'sample-avec-analyse',
+      'numero': '2026/0044',
+      'reference_bouteille': 'ANCIENNE-REF',
+      'analyse': {
+        'id': 'analyse-1',
+        'echantillon_ref': 'S.T_C3_30T',
+        'statut': 'soumis',
+        'technicien_nom': 'Technicien Labo',
+      },
+    });
+
+    expect(ligne.echantillonId, 'sample-avec-analyse');
+    expect(ligne.numero, '2026/0044');
+    expect(ligne.referenceBouteille, 'S.T_C3_30T');
   });
 
   test('le service masque le rapport tant que l\'analyse est en cours', () {

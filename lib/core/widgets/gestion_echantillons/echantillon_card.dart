@@ -11,6 +11,7 @@ import 'package:project3/core/models/echantillon.dart';
 import 'package:project3/core/models/enums.dart';
 import 'package:project3/config.dart';
 import 'package:project3/core/widgets/grille_details.dart';
+import 'package:project3/core/widgets/quantity_pill.dart';
 
 const Color _dark = Color(0xFF1A2E1F);
 const Color _white = Color.fromARGB(255, 255, 255, 255);
@@ -146,7 +147,7 @@ class _EchantillonCardState extends State<EchantillonCard> {
                               ),
                               if (e.quantiteEstimee != null &&
                                   e.quantiteEstimee!.isNotEmpty) ...[
-                                _QuantityPill(quantite: e.quantiteEstimee!),
+                                QuantityPill(quantite: e.quantiteEstimee!),
                                 const SizedBox(width: 6),
                               ],
                               AnimatedRotation(
@@ -341,32 +342,6 @@ class _SmallIconBtn extends StatelessWidget {
     child: Padding(
       padding: const EdgeInsets.all(5),
       child: Icon(icon, size: 18, color: color),
-    ),
-  );
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// QUANTITY PILL
-// ─────────────────────────────────────────────────────────────────────────────
-class _QuantityPill extends StatelessWidget {
-  final String quantite;
-  const _QuantityPill({required this.quantite});
-
-  @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-    decoration: BoxDecoration(
-      color: _olive.withValues(alpha: 0.09),
-      borderRadius: BorderRadius.circular(7),
-      border: Border.all(color: _olive.withValues(alpha: 0.22)),
-    ),
-    child: Text(
-      'Qté : $quantite T',
-      style: const TextStyle(
-        fontSize: 11,
-        fontWeight: FontWeight.w700,
-        color: _olive,
-      ),
     ),
   );
 }

@@ -7,6 +7,8 @@ enum StatutAnalyse { enAttente, soumise }
 class LigneAnalyseLabo {
   final String id;
   final String echantillonId;
+  final String numero;
+  final String referenceBouteille;
   final String echantillonNom;
   final String technicienNom;
   final StatutAnalyse statut;
@@ -23,6 +25,8 @@ class LigneAnalyseLabo {
   const LigneAnalyseLabo({
     required this.id,
     required this.echantillonId,
+    required this.numero,
+    required this.referenceBouteille,
     required this.echantillonNom,
     required this.technicienNom,
     required this.statut,
@@ -42,6 +46,8 @@ class LigneAnalyseLabo {
     return LigneAnalyseLabo(
       id: json['id'] as String,
       echantillonId: json['echantillon_id'] as String,
+      numero: (json['numero'] ?? '').toString(),
+      referenceBouteille: (json['echantillon_ref'] ?? '').toString(),
       echantillonNom: json['echantillon_nom'] as String,
       technicienNom: json['technicien_nom'] as String,
       statut: json['statut'] == 'soumise'
@@ -62,6 +68,8 @@ class LigneAnalyseLabo {
   Map<String, dynamic> toJson() => {
     'id': id,
     'echantillon_id': echantillonId,
+    'numero': numero,
+    'echantillon_ref': referenceBouteille,
     'echantillon_nom': echantillonNom,
     'technicien_nom': technicienNom,
     'statut': statut == StatutAnalyse.soumise ? 'soumise' : 'en_attente',

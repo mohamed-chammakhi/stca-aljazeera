@@ -231,3 +231,34 @@ D'où « Chemlali - Lot A - Sfax ». Cette chaîne n'existe nulle part dans la b
    référence cohérente avec ce que fait maintenant le collecteur, du style `S.T_C3_30T`.
 
 **Aucun changement Django. Aucune migration. Aucune question à poser sur ce point.**
+
+## RAPPORT
+
+### Fait
+
+- `lib/core/widgets/analyse_labo/analyse_card.dart` — la carte affiche désormais la vraie référence bouteille (avec l'ancien libellé en repli), la quantité sans déplier, le numéro d'enregistrement sous la référence et le mot « Urgent » dans les deux états ; le numéro en doublon a disparu du détail.
+- `lib/core/analyses/ligne_analyse_labo.dart` — la ligne d'analyse transporte maintenant séparément l'UUID technique, le numéro d'enregistrement et la référence bouteille reçue sous `echantillon_ref`.
+- `lib/core/analyses/ligne_analyse_labo_service.dart` — les réponses API et les deux scénarios de démonstration fournissent la vraie référence bouteille et le numéro affiché par la carte.
+- `lib/core/widgets/quantity_pill.dart` — une pastille de quantité commune garantit le même rendu « Qté : … T » sur les cartes concernées.
+- `lib/core/widgets/gestion_echantillons/echantillon_card.dart` — la carte de gestion réutilise la pastille de quantité commune, sans changement de parcours utilisateur.
+- `lib/core/widgets/evaluation_echantillons/echantillon_card.dart` — la carte d'évaluation réutilise la même pastille de quantité que les autres cartes.
+- `test/rapport_labo_test.dart` — des tests de contrat couvrent la lecture de `echantillon_ref`, la conservation du numéro d'enregistrement et la priorité donnée à la référence incluse dans l'analyse.
+- `files/taches/10-carte-analyse-labo-degustateur.md` — le présent compte rendu consigne les changements et les vérifications réellement tentées.
+
+### Vérifié
+
+- `dart format lib/core/widgets/quantity_pill.dart lib/core/widgets/gestion_echantillons/echantillon_card.dart lib/core/widgets/evaluation_echantillons/echantillon_card.dart lib/core/analyses/ligne_analyse_labo.dart lib/core/analyses/ligne_analyse_labo_service.dart lib/core/widgets/analyse_labo/analyse_card.dart test/rapport_labo_test.dart` → **7 fichiers formatés, 0 modifié**, code de sortie **0**.
+- `git diff --check` → aucune erreur de whitespace, code de sortie **0**.
+- `flutter analyze lib test` → code de sortie **1 avant l'analyse**, donc aucun décompte de diagnostics produit. Sortie : `CreateFile failed 5 (Access is denied.)`, puis Flutter échoue à exécuter `git -c log.showSignature=false log HEAD -n 1 --pretty=format:%ad --date=iso` dans son SDK.
+- `flutter test` → code de sortie **1 avant le lancement des tests**, donc aucun décompte de tests produit, avec la même erreur d'accès au SDK Flutter.
+- `flutter test test/rapport_labo_test.dart` → code de sortie **1 avant le lancement du test isolé**, avec la même erreur d'accès au SDK Flutter.
+
+### Non fait
+
+- Le point 4, filtre par dates, est volontairement sauté conformément à la « CONSIGNE DE REPRISE » ; il reste à réaliser avec la tâche 09.
+- Aucun test d'écran de débordement n'a été ajouté : la consigne de reprise demande de ne pas insister sur ces pages qui chargent des données à l'ouverture. Les vérifications ajoutées portent uniquement sur le contrat pur modèle/service.
+- La réussite de l'analyse Flutter et de la suite de tests ne peut pas être revendiquée : les deux commandes s'arrêtent dans le SDK avant d'atteindre le projet.
+
+### HORS PÉRIMÈTRE
+
+- L'environnement d'exécution refuse aux sous-processus Flutter/Dart l'accès nécessaire au SDK (`CreateFile failed 5`). Ce problème d'environnement n'a pas été contourné par une modification du projet.

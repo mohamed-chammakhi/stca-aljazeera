@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:project3/core/analyses/ligne_analyse_labo.dart';
 import 'package:project3/core/analyses/widgets/tableau_rapport_labo.dart';
 import 'package:project3/core/widgets/grille_details.dart';
+import 'package:project3/core/widgets/quantity_pill.dart';
 
 const Color _dark = Color(0xFF1A2E1F);
 const Color _green = Color(0xFF38835A);
@@ -70,7 +71,9 @@ class _AnalyseCardState extends State<AnalyseCard> {
                             children: [
                               Expanded(
                                 child: Text(
-                                  analyse.echantillonNom,
+                                  analyse.referenceBouteille.isNotEmpty
+                                      ? analyse.referenceBouteille
+                                      : analyse.echantillonNom,
                                   style: const TextStyle(
                                     fontSize: 15,
                                     fontWeight: FontWeight.w700,
@@ -80,6 +83,13 @@ class _AnalyseCardState extends State<AnalyseCard> {
                                   overflow: TextOverflow.ellipsis,
                                 ),
                               ),
+                              if (analyse.quantiteEstimee != null &&
+                                  analyse.quantiteEstimee!.isNotEmpty) ...[
+                                QuantityPill(
+                                  quantite: analyse.quantiteEstimee!,
+                                ),
+                                const SizedBox(width: 6),
+                              ],
                               AnimatedRotation(
                                 turns: _expanded ? 0.5 : 0,
                                 duration: const Duration(milliseconds: 200),
@@ -100,22 +110,26 @@ class _AnalyseCardState extends State<AnalyseCard> {
                                 color: Colors.grey.shade400,
                               ),
                               const SizedBox(width: 4),
-                              Text(
-                                analyse.id,
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500,
-                                  color: Colors.grey.shade500,
+                              Expanded(
+                                child: Text(
+                                  analyse.numero,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.grey.shade500,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ),
-                              const Spacer(),
-                              if (widget.onUrgentLabo != null)
+                              if (widget.onUrgentLabo != null) ...[
+                                const SizedBox(width: 8),
                                 _UrgentLaboBtn(
                                   isUrgent: widget.isUrgentLabo,
                                   onTap: widget.isUrgentLabo
                                       ? null
                                       : widget.onUrgentLabo,
                                 ),
+                              ],
                             ],
                           ),
                         ],
@@ -178,17 +192,15 @@ class _UrgentLaboBtn extends StatelessWidget {
             size: 13,
             color: isUrgent ? urgent : Colors.grey.shade400,
           ),
-          if (isUrgent) ...[
-            const SizedBox(width: 4),
-            const Text(
-              'Urgent',
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w700,
-                color: urgent,
-              ),
+          const SizedBox(width: 4),
+          Text(
+            'Urgent',
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: isUrgent ? FontWeight.w700 : FontWeight.w500,
+              color: isUrgent ? urgent : Colors.grey.shade400,
             ),
-          ],
+          ),
         ],
       ),
     ),
@@ -352,7 +364,6 @@ class _InformationsEchantillon extends StatelessWidget {
         const SizedBox(height: 8),
         GrilleDetails(
           items: [
-            DetailItem('N° échantillon', analyse.echantillonId),
             if (analyse.fournisseurNom != null)
               DetailItem('Fournisseur', analyse.fournisseurNom!),
             if (analyse.variete != null)

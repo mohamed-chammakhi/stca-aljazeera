@@ -27,7 +27,9 @@ class LigneAnalyseLaboService {
     final analyse = json['analyse'] as Map<String, dynamic>?;
     final sampleId = json['id'] as String;
     final numero = (json['numero'] ?? json['ref'] ?? '').toString();
-    final reference = (json['reference_bouteille'] ?? numero).toString();
+    final reference =
+        (analyse?['echantillon_ref'] ?? json['reference_bouteille'] ?? '')
+            .toString();
     final variete = (json['variete'] ?? '').toString();
     final gouvernorat = (json['gouvernorat'] ?? '').toString();
     final displayParts = [
@@ -42,6 +44,8 @@ class LigneAnalyseLaboService {
     return LigneAnalyseLabo(
       id: (analyse?['id'] ?? sampleId).toString(),
       echantillonId: sampleId,
+      numero: numero,
+      referenceBouteille: reference,
       echantillonNom: displayParts.isEmpty ? numero : displayParts.join(' - '),
       technicienNom:
           (analyse?['technicien_nom'] as String?) ?? 'En attente laboratoire',
@@ -106,6 +110,8 @@ const List<LigneAnalyseLabo> _analysesDemonstration = [
   LigneAnalyseLabo(
     id: 'ANL-188-2026',
     echantillonId: '2026/0001',
+    numero: '2026/0001',
+    referenceBouteille: 'S.T_C3_30T',
     echantillonNom: 'Chemlali - Lot A - Sfax',
     technicienNom: 'Karim B.',
     statut: StatutAnalyse.soumise,
@@ -128,6 +134,8 @@ const List<LigneAnalyseLabo> _analysesDemonstration = [
   LigneAnalyseLabo(
     id: 'ECH-EN-ATTENTE',
     echantillonId: '2026/0004',
+    numero: '2026/0004',
+    referenceBouteille: 'K.N_C1_18T',
     echantillonNom: 'Zalmati - Gafsa',
     technicienNom: 'En attente laboratoire',
     statut: StatutAnalyse.enAttente,

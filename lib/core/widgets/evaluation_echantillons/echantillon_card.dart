@@ -9,11 +9,11 @@
 import 'package:flutter/material.dart';
 import 'package:project3/core/models/echantillon_evaluation.dart';
 import 'package:project3/core/widgets/grille_details.dart';
+import 'package:project3/core/widgets/quantity_pill.dart';
 
 const Color _green = Color(0xFF38835A);
 const Color _dark = Color(0xFF1A2E1F);
 const Color _white = Color.fromARGB(255, 255, 255, 255);
-const Color _olive = Color(0xFF6B8143);
 
 // ── Status palette (matching CEO) ─────────────────────────────────────────────
 Color _statusColor(StatutEchantillon s) {
@@ -143,7 +143,7 @@ class _EchantillonCardState extends State<EchantillonCard> {
                                 if (e.quantite != null &&
                                     e.quantite!.isNotEmpty) ...[
                                   const SizedBox(height: 8),
-                                  _QuantityPill(quantite: e.quantite!),
+                                  QuantityPill(quantite: e.quantite!),
                                 ],
                               ],
                             ),
@@ -151,7 +151,7 @@ class _EchantillonCardState extends State<EchantillonCard> {
                           ] else if (e.quantite != null &&
                               e.quantite!.isNotEmpty) ...[
                             const SizedBox(width: 8),
-                            _QuantityPill(quantite: e.quantite!),
+                            QuantityPill(quantite: e.quantite!),
                             const SizedBox(width: 6),
                           ] else
                             const SizedBox(width: 6),
@@ -222,32 +222,6 @@ class _ClassificationBadge extends StatelessWidget {
       ),
     );
   }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// QUANTITY PILL
-// ─────────────────────────────────────────────────────────────────────────────
-class _QuantityPill extends StatelessWidget {
-  final String quantite;
-  const _QuantityPill({required this.quantite});
-
-  @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-    decoration: BoxDecoration(
-      color: _olive.withValues(alpha: 0.10),
-      borderRadius: BorderRadius.circular(6),
-      border: Border.all(color: _olive.withValues(alpha: 0.25)),
-    ),
-    child: Text(
-      'Qté : $quantite T',
-      style: const TextStyle(
-        fontSize: 12,
-        fontWeight: FontWeight.w700,
-        color: _olive,
-      ),
-    ),
-  );
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
