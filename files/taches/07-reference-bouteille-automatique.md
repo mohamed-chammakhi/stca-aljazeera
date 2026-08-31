@@ -118,3 +118,52 @@ de réécrire.
 ### HORS PÉRIMÈTRE
 
 - Aucun problème hors périmètre corrigé ou modifié.
+
+---
+
+## CONSIGNE DE REPRISE — le prérequis est levé
+
+La tâche 06 est **terminée, relue et commitée** (`370ff0a`). Tu peux exécuter la tâche 07.
+
+### Ce qui a changé dans le fichier depuis que cette tâche a été écrite
+
+`formulaire_dialog.dart` a beaucoup bougé. Lis-le avant de coder, les numéros de ligne de la
+consigne d'origine ne sont plus fiables. En résumé :
+
+- Chaque `_BouteilleCard` a maintenant **son propre bouton photo** (Galerie / Appareil photo /
+  Annuler) et **sa propre remarque** (`row.remarqueCtrl`).
+- Le bouton photo global, la question « à quelle bouteille ? » et la remarque globale ont été
+  supprimés.
+- `BouteilleRow` porte désormais : `refCtrl`, `varieteCtrl`, `numCiterneCtrl`, `qteCtrl`,
+  `remarqueCtrl`, `photoBytes`, `photoName`.
+
+Les trois sources dont tu as besoin pour construire la référence sont inchangées : le
+fournisseur au niveau du formulaire, `row.numCiterneCtrl` et `row.qteCtrl`.
+
+### Sur les tests — lis ceci avant d'en écrire un
+
+**N'écris pas de test de widget sur le formulaire du collecteur.** Trois tentatives ont échoué
+pendant la tâche 06, et le fichier de test a fini par être supprimé. La raison est structurelle :
+ces écrans vont chercher la liste des fournisseurs à l'ouverture et ne se stabilisent jamais
+dans un test. C'est une décision prise, elle est notée dans `ETAT.md`.
+
+**Ce que tu peux faire à la place :** si tu écris la construction de la référence sous forme de
+**fonction pure** — trois textes en entrée, un texte en sortie — tu peux la tester directement,
+sans monter aucun écran. C'est la bonne façon de faire ici, et c'est ce qu'on préfère.
+
+Si tu juges que ce n'est pas possible proprement, n'écris pas de test et dis-le sous
+« Non fait » avec ta raison. On vérifiera à l'écran. Ne perds pas de temps à forcer un test de
+widget.
+
+### Vérification
+
+```bash
+flutter analyze lib test
+flutter test
+```
+
+Référence : **50 problèmes, 0 erreur** ; **97 tests réussis** et un seul échec,
+`test/widget_test.dart`, connu et listé dans `PROTOCOLE.md`.
+
+Si `flutter` refuse de s'exécuter chez toi, dis-le franchement comme tu l'as fait trois fois,
+et ne revendique aucun chiffre. Écris ton compte rendu sous `### Reprise`.
