@@ -250,3 +250,71 @@ Référence : **50 problèmes, 0 erreur** ; **101 tests réussis** avec le seul 
 
 Si `flutter` refuse de s'exécuter chez toi, dis-le et ne revendique aucun chiffre. Donne en
 revanche le résultat brut du `grep` du critère chiffré, lui ne dépend d'aucun outil.
+
+---
+
+## CONSIGNE DE REPRISE — 2 : les trois dates sont maintenant possibles
+
+**Oublie la réponse précédente qui limitait à deux dates.** Le propriétaire a tranché
+autrement : la date de confirmation ne doit pas remplacer la date de livraison prévue.
+
+La **tâche 13 est faite et commitée** (`b233c10`). Le serveur a désormais deux dates
+distinctes :
+
+| Champ Django | Ce que c'est | Qui l'écrit |
+|---|---|---|
+| `date_arrivee_echantillon` | la date de livraison **prévue** | le collecteur, à l'enregistrement. Plus rien ne l'écrase. |
+| `date_reception_echantillon` | la date d'arrivée **réelle** | le bouton de confirmation de réception |
+| `date_ajout` | la date de saisie dans l'application | automatique |
+
+Le contournement du service collecteur a été supprimé : chaque date vient de son propre champ.
+
+### Les trois choix demandés sont donc tous disponibles
+
+Reprends la consigne d'origine telle qu'elle est écrite plus haut, avec les **trois** types :
+
+| Choix proposé à l'utilisateur | Champ lu |
+|---|---|
+| « Date d'enregistrement » | `date_ajout` |
+| « Livraison échantillon » | `date_arrivee_echantillon` |
+| « Réception physique » | `date_reception_echantillon` |
+
+Les trois ont maintenant un vrai contenu. Aucun ne ment.
+
+### Ce qui ne change pas
+
+1. **Un seul `DateFilterSheet`.** Critère chiffré inchangé : à la fin,
+   `grep -rl "class DateFilterSheet" lib --include=*.dart | wc -l` doit renvoyer **1**.
+
+2. Les trois choix vont sur les **six pages** du dégustateur et du chef dégustateur :
+   gestion des échantillons, évaluation des échantillons, analyses laboratoire.
+
+3. **Ne casse pas la direction ni le collecteur.** Ils utilisent le même widget et la valeur
+   `arriveeStock` en plus. Garde-la dans l'enum et laisse chaque page choisir ce qu'elle
+   propose, via `availableTypes`.
+
+4. **Supprime les deux copies** du filtre. Avant de supprimer, prouve avec `grep` que plus
+   personne ne les importe et donne le résultat brut.
+
+5. **Le point 6 de la consigne d'origine est réglé par la tâche 13** : le mapping des dates est
+   corrigé, `livraisonEchantillon` lit maintenant un champ réellement rempli. Tu n'as plus rien
+   à faire de ce côté.
+
+6. **Aucune migration, aucun changement Django.** Tout ce qu'il fallait côté serveur est déjà
+   fait.
+
+### Sur les tests
+
+Pas de test d'écran sur les pages du collecteur, ils ne se stabilisent jamais. Si tu as de la
+logique à vérifier — « telle date choisie, tel champ comparé, tel échantillon retenu » — sors-la
+dans une fonction pure de `lib/core/utils/` et teste-la là. C'est ce qui a marché en tâche 07.
+
+### Vérification
+
+```bash
+flutter analyze lib test
+flutter test
+```
+
+Référence : **50 problèmes, 0 erreur** ; **101 tests réussis** avec le seul échec connu
+`test/widget_test.dart`.
