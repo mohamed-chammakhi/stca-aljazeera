@@ -24,7 +24,7 @@ class EchantillonSerializer(serializers.ModelSerializer):
             'budget_negociation', 'budget_negociation_max', 'nb_renegociations',
             'quantite_cible_t', 'camion_reserve',
             'note_interne', 'raison_refus',
-            'prix_final',
+            'prix_final', 'remarque_collecteur',
             'stock_arrive', 'date_livraison_stock', 'date_livraison_stock_fin',
             'classification', 'remarques',
             'edit_history',

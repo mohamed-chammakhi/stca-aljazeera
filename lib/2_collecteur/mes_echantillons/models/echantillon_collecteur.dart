@@ -121,6 +121,7 @@ class EchantillonCollecteur {
   // Confirmed purchase details (filled by collector when confirming)
   String? prixFinal;
   String? camionLivraison;
+  String? remarqueCollecteur;
 
   // Metadata
   String? remarques;
@@ -157,6 +158,7 @@ class EchantillonCollecteur {
     this.dateStockSouhaiteeFin,
     this.prixFinal,
     this.camionLivraison,
+    this.remarqueCollecteur,
     this.remarques,
     required this.dateAjout,
     this.imageUrl,
@@ -210,6 +212,7 @@ class EchantillonCollecteur {
         dateStockSouhaiteeFin: null,
         prixFinal: json['prix_final']?.toString(),
         camionLivraison: json['camion_reserve'] as String?,
+        remarqueCollecteur: json['remarque_collecteur'] as String?,
         remarques: json['remarques'] as String?,
         dateAjout: DateTime.parse(json['date_ajout'] as String),
         imageUrl: json['image_url'] as String?,
@@ -236,6 +239,7 @@ class EchantillonCollecteur {
     'quantite_cible_t': quantiteCibleT,
     'prix_final': prixFinal,
     'camion_reserve': camionLivraison ?? '',
+    'remarque_collecteur': remarqueCollecteur ?? '',
     'remarques': remarques ?? '',
     'image_url': imageUrl ?? '',
   };

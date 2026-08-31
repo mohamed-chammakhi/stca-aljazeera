@@ -623,6 +623,28 @@ Verification:
 - Migration check passed:
   `$env:DEBUG='True'; $env:DB_ENGINE='sqlite'; .\venv\Scripts\python.exe manage.py makemigrations --check --dry-run`
 
+### Collector Purchase Remark
+
+Backend:
+
+- Collector purchase proposals accept and return the optional
+  `remarque_collecteur` field.
+- The remark is stored separately from the sample registration `remarques`
+  field and survives subsequent sample retrievals.
+
+Flutter:
+
+- The purchase-confirmation dialog sends and reloads the collector's optional
+  remark through `EchantillonCollecteurService`.
+
+Verification:
+
+- Migration consistency check passed with `No changes detected`.
+- The focused persistence/reload API test passed: 1 test.
+- The complete `echantillons` suite passed: 25 tests.
+- The full Django suite ran 159 tests; its only failure remains the documented
+  pre-existing Chef dashboard classification test.
+
 ### Backlog Table Completion Pass - Non-AI Scope
 
 Backend:

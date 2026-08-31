@@ -250,6 +250,42 @@ class CollectorEchantillonApiTests(APITestCase):
         self.assertEqual(notification.section, Notification.Section.ACHATS_VALIDATION)
         self.assertEqual(notification.echantillon, sample)
 
+    def test_collector_purchase_remark_is_stored_and_reloaded(self):
+        sample = self.create_sample(
+            self.collector,
+            statut_collecteur=Echantillon.StatutCollecteur.EN_NEGOCIATION,
+            statut_ceo=Echantillon.StatutCEO.EN_NEGOCIATION,
+        )
+        self.authenticate(self.collector)
+
+        response = self.client.post(
+            f'/api/echantillons/{sample.id}/confirmer-achat/',
+            {
+                'prix_final': '8000',
+                'remarque_collecteur': 'Livraison possible en deux camions.',
+            },
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            response.data['remarque_collecteur'],
+            'Livraison possible en deux camions.',
+        )
+        sample.refresh_from_db()
+        self.assertEqual(
+            sample.remarque_collecteur,
+            'Livraison possible en deux camions.',
+        )
+
+        reloaded = self.client.get(f'/api/echantillons/{sample.id}/')
+
+        self.assertEqual(reloaded.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            reloaded.data['remarque_collecteur'],
+            'Livraison possible en deux camions.',
+        )
+
     def test_direction_lists_purchase_proposals_awaiting_validation(self):
         awaiting = self.create_sample(
             self.collector,

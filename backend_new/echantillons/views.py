@@ -260,6 +260,8 @@ class EchantillonViewSet(viewsets.ModelViewSet):
             obj.budget_negociation = _decimal_from_display(price)
         if request.data.get('prix_final'):
             obj.prix_final = _decimal_from_display(request.data['prix_final'])
+        if 'remarque_collecteur' in request.data:
+            obj.remarque_collecteur = request.data.get('remarque_collecteur') or ''
         if request.data.get('quantite_cible_t'):
             obj.quantite_cible_t = _decimal_from_display(request.data['quantite_cible_t'])
         if request.data.get('camion_reserve'):

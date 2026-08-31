@@ -2,7 +2,7 @@
 // FILE : collecteur/mes_echantillons/widgets/dialogs/confirmer_achat_dialog.dart
 //
 // Dialog shown when the collector confirms (or modifies) a purchase.
-// Fields: prix convenu, camion, date de livraison du stock.
+// Fields: prix convenu, camion, remarque, date de livraison du stock.
 // ═════════════════════════════════════════════════════════════════════════════
 
 import 'package:flutter/material.dart';
@@ -30,6 +30,7 @@ Future<void> showConfirmerAchatDialog({
     String? camion,
     PlanificationLivraison? livraison,
     String? numCiterne,
+    String remarqueCollecteur,
   )
   onConfirm,
 }) async {
@@ -48,6 +49,7 @@ class _ConfirmerAchatDialog extends StatefulWidget {
     String? camion,
     PlanificationLivraison? livraison,
     String? numCiterne,
+    String remarqueCollecteur,
   )
   onConfirm;
 
@@ -64,6 +66,7 @@ class _ConfirmerAchatDialogState extends State<_ConfirmerAchatDialog> {
   late final TextEditingController _prixCtrl;
   late final TextEditingController _numCiterneCtrl;
   late final TextEditingController _camionCtrl;
+  late final TextEditingController _remarqueCtrl;
 
   ModePlanificationUI _mode = ModePlanificationUI.dateExacte;
   DateTime? _dateExacte;
@@ -77,6 +80,7 @@ class _ConfirmerAchatDialogState extends State<_ConfirmerAchatDialog> {
     _prixCtrl = TextEditingController(text: e.prixFinal ?? '');
     _numCiterneCtrl = TextEditingController(text: e.numCiterne ?? '');
     _camionCtrl = TextEditingController(text: e.camionLivraison ?? '');
+    _remarqueCtrl = TextEditingController(text: e.remarqueCollecteur ?? '');
     // Pre-fill delivery date if already set
     if (e.livraison?.dateExacte != null) {
       _dateExacte = e.livraison!.dateExacte;
@@ -88,6 +92,7 @@ class _ConfirmerAchatDialogState extends State<_ConfirmerAchatDialog> {
     _prixCtrl.dispose();
     _numCiterneCtrl.dispose();
     _camionCtrl.dispose();
+    _remarqueCtrl.dispose();
     super.dispose();
   }
 
@@ -257,6 +262,20 @@ class _ConfirmerAchatDialogState extends State<_ConfirmerAchatDialog> {
                     ),
                     const SizedBox(height: 14),
 
+                    // Remarque facultative du collecteur
+                    const _DialogLabel('Remarque du collecteur'),
+                    const SizedBox(height: 6),
+                    TextField(
+                      controller: _remarqueCtrl,
+                      minLines: 3,
+                      maxLines: 5,
+                      decoration: _inputDecoNoIcon(
+                        'Ajoutez une remarque (facultatif)',
+                      ),
+                      style: const TextStyle(fontSize: 14),
+                    ),
+                    const SizedBox(height: 14),
+
                     // Date de livraison du stock
                     const _DialogLabel('Date de livraison du stock'),
                     const SizedBox(height: 8),
@@ -328,6 +347,7 @@ class _ConfirmerAchatDialogState extends State<_ConfirmerAchatDialog> {
                           _numCiterneCtrl.text.trim().isEmpty
                               ? null
                               : _numCiterneCtrl.text.trim(),
+                          _remarqueCtrl.text.trim(),
                         );
                       },
                       style: ElevatedButton.styleFrom(

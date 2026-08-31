@@ -232,25 +232,29 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
     showConfirmerAchatDialog(
       context: context,
       echantillon: e,
-      onConfirm: (prix, camion, livraison, numCiterne) async {
-        try {
-          final saved = await _service.confirmerAchat(
-            e.id,
-            prixFinal: prix,
-            camionLivraison: camion,
-          );
-          if (!mounted) return;
-          setState(() {
-            final index = _echantillons.indexWhere((item) => item.id == e.id);
-            if (livraison != null) saved.livraison = livraison;
-            if (numCiterne != null) saved.numCiterne = numCiterne;
-            if (index != -1) _echantillons[index] = saved;
-          });
-          _showPropositionEnvoyeeDialog(saved.referenceBouteille);
-        } catch (error) {
-          if (mounted) _showError(_service.messageFor(error));
-        }
-      },
+      onConfirm:
+          (prix, camion, livraison, numCiterne, remarqueCollecteur) async {
+            try {
+              final saved = await _service.confirmerAchat(
+                e.id,
+                prixFinal: prix,
+                camionLivraison: camion,
+                remarqueCollecteur: remarqueCollecteur,
+              );
+              if (!mounted) return;
+              setState(() {
+                final index = _echantillons.indexWhere(
+                  (item) => item.id == e.id,
+                );
+                if (livraison != null) saved.livraison = livraison;
+                if (numCiterne != null) saved.numCiterne = numCiterne;
+                if (index != -1) _echantillons[index] = saved;
+              });
+              _showPropositionEnvoyeeDialog(saved.referenceBouteille);
+            } catch (error) {
+              if (mounted) _showError(_service.messageFor(error));
+            }
+          },
     );
   }
 
@@ -493,12 +497,13 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
     showConfirmerAchatDialog(
       context: context,
       echantillon: e,
-      onConfirm: (prix, camion, livraison, numCiterne) {
+      onConfirm: (prix, camion, livraison, numCiterne, remarqueCollecteur) {
         setState(() {
           e.prixFinal = prix;
           if (camion != null) e.camionLivraison = camion;
           if (livraison != null) e.livraison = livraison;
           if (numCiterne != null) e.numCiterne = numCiterne;
+          e.remarqueCollecteur = remarqueCollecteur;
         });
         _saveEchantillon(
           e,

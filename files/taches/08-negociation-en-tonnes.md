@@ -272,3 +272,63 @@ Ces deux échecs sont préexistants et listés dans `PROTOCOLE.md`.
 
 Si `flutter` refuse de s'exécuter chez toi, dis-le franchement comme tu l'as fait à chaque
 fois, et ne revendique aucun chiffre. Écris ton compte rendu sous `### Reprise`.
+
+### Reprise
+
+#### Fait
+
+- `backend_new/echantillons/models.py` — la remarque saisie lors de la confirmation d'achat est
+  stockée séparément des observations d'enregistrement de l'échantillon et peut rester vide.
+- `backend_new/echantillons/serializers.py` — l'API renvoie `remarque_collecteur` après
+  enregistrement et lors des rechargements suivants.
+- `backend_new/echantillons/views.py` — l'action de confirmation d'achat enregistre la remarque
+  du collecteur et permet aussi de la vider.
+- `backend_new/echantillons/migrations/0011_echantillon_remarque_collecteur.py` — la base de
+  données reçoit le nouveau champ facultatif avec une valeur vide pour les lignes existantes.
+- `backend_new/echantillons/tests.py` — un test API confirme que la remarque envoyée est écrite
+  en base, renvoyée immédiatement, puis encore présente après un nouveau `GET`.
+- `lib/2_collecteur/mes_echantillons/models/echantillon_collecteur.dart` — la remarque de
+  confirmation est lue et écrite sous le nom JSON `remarque_collecteur`.
+- `lib/2_collecteur/mes_echantillons/services/echantillon_collecteur_service.dart` — la remarque
+  circule dans les mappings API et dans la requête de confirmation d'achat.
+- `lib/2_collecteur/mes_echantillons/widgets/dialogs/confirmer_achat_dialog.dart` — le collecteur
+  dispose du champ texte facultatif « Remarque du collecteur », prérempli après rechargement.
+- `lib/2_collecteur/mes_echantillons/mes_echantillons_page.dart` — les deux usages du dialogue
+  transmettent et conservent la remarque saisie.
+- `files/mapbackend.md` — le checkpoint backend documente désormais ce champ et ses
+  vérifications.
+- `files/taches/08-negociation-en-tonnes.md` — le présent rapport de reprise consigne les
+  changements et les sorties réelles des contrôles.
+
+#### Vérifié
+
+- `dart format lib/2_collecteur/mes_echantillons/models/echantillon_collecteur.dart lib/2_collecteur/mes_echantillons/services/echantillon_collecteur_service.dart lib/2_collecteur/mes_echantillons/widgets/dialogs/confirmer_achat_dialog.dart lib/2_collecteur/mes_echantillons/mes_echantillons_page.dart` — sortie :
+  `Formatted 4 files (4 changed) in 0.12 seconds.`
+- Depuis `backend_new`,
+  `$env:DEBUG='True'; $env:DB_ENGINE='sqlite'; .\venv\Scripts\python.exe manage.py makemigrations --check --dry-run` — sortie : `No changes detected`.
+- Depuis `backend_new`, test ciblé
+  `echantillons.tests.CollectorEchantillonApiTests.test_collector_purchase_remark_is_stored_and_reloaded --keepdb -v 2` — sortie : `Found 1 test(s)`, `Ran 1 test in 8.407s`, `OK` ; la migration `0011_echantillon_remarque_collecteur` est appliquée avec `OK`.
+- Depuis `backend_new`,
+  `$env:DEBUG='True'; $env:DB_ENGINE='sqlite'; .\venv\Scripts\python.exe manage.py test echantillons --keepdb -v 1` — sortie : `Found 25 test(s)`, `Ran 25 tests in 160.146s`, `OK`.
+- Depuis `backend_new`,
+  `$env:DEBUG='True'; $env:DB_ENGINE='sqlite'; .\venv\Scripts\python.exe manage.py test --keepdb -v 1` — sortie : `Found 159 test(s)`, `Ran 159 tests in 972.186s`, un seul échec :
+  `chef.tests.ChefDashboardApiTests.test_delai_alignement_and_classifications_use_submitted_evaluations`, `AssertionError: 1 != 3`. C'est l'échec préexistant documenté dans le protocole ; les 158 autres tests réussissent.
+- `git diff --check` — aucune sortie, code retour `0`.
+- `flutter analyze lib test` — impossible avant l'analyse : code retour `1`, six lignes
+  `CreateFile failed 5 (Access is denied.)`, puis Flutter ne peut pas exécuter
+  `git -c log.showSignature=false log HEAD -n 1 --pretty=format:%ad --date=iso` dans son SDK.
+- `flutter test` — impossible avant l'exécution des tests : code retour `1`, même refus d'accès
+  du SDK Flutter lors de l'appel à `git`.
+- Contrôle supplémentaire `dart analyze lib test` — impossible avant l'analyse : code retour
+  `1`, `ProcessException: Access is denied` au lancement de `analysis_server_aot.dart.snapshot`.
+
+#### Non fait
+
+- Aucun résultat de compilation ou de tests Flutter n'est revendiqué : les deux commandes
+  demandées sont bloquées par les permissions de création de sous-processus du SDK dans cet
+  environnement. Aucun changement du SDK Flutter n'a été tenté.
+
+#### HORS PÉRIMÈTRE
+
+- `dateStockSouhaiteeDebut` et `dateStockSouhaiteeFin` restent forcés à `null` au parsing,
+  conformément à la consigne initiale ; aucune modification n'a été faite.

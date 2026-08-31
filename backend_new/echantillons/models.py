@@ -97,6 +97,7 @@ class Echantillon(models.Model):
 
     # Purchase confirmation (set by collector when confirming achat)
     prix_final = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    remarque_collecteur = models.TextField(blank=True, default='')
 
     # Stock delivery tracking
     stock_arrive        = models.BooleanField(default=False)

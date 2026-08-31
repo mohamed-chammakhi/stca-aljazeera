@@ -83,6 +83,7 @@ class EchantillonCollecteurService {
       'date_stock_souhaitee_fin': null,
       'prix_final': api['prix_final']?.toString(),
       'camion_livraison': api['camion_reserve'],
+      'remarque_collecteur': api['remarque_collecteur'],
       'remarques': api['remarques'],
       'date_ajout': api['date_ajout'],
       'image_url': api['image_url'],
@@ -114,6 +115,7 @@ class EchantillonCollecteurService {
       'quantite_cible_t': json['quantite_cible_t'],
       'prix_final': json['prix_final'],
       'camion_reserve': json['camion_reserve'],
+      'remarque_collecteur': json['remarque_collecteur'],
       'remarques': json['remarques'],
       'image_url': json['image_url'],
       'statut_collecteur': e.statut.toJson,
@@ -239,11 +241,12 @@ class EchantillonCollecteurService {
   /// Confirms the purchase of an echantillon.
   ///
   /// Calls `PATCH /api/echantillons/<id>/confirmer_achat/` with optional
-  /// [prixFinal] and [camionLivraison] values.
+  /// [prixFinal], [camionLivraison], and [remarqueCollecteur] values.
   Future<EchantillonCollecteur> confirmerAchat(
     String id, {
     String? prixFinal,
     String? camionLivraison,
+    String? remarqueCollecteur,
   }) async {
     if (_usingMockData) {
       throw StateError(
@@ -253,6 +256,9 @@ class EchantillonCollecteurService {
     final body = <String, dynamic>{};
     if (prixFinal != null) body['prix_final'] = prixFinal;
     if (camionLivraison != null) body['camion_reserve'] = camionLivraison;
+    if (remarqueCollecteur != null) {
+      body['remarque_collecteur'] = remarqueCollecteur;
+    }
     final response = await _api.patch(
       '/api/echantillons/$id/confirmer-achat/',
       body,
