@@ -3,7 +3,7 @@
 Ce fichier est le tableau de bord. **Claude le tient à jour, personne d'autre.**
 Il répond à une seule question : où en est-on, et qui attend quoi.
 
-Dernière mise à jour : 31/08/2026, après le commit de la tâche 07.
+Dernière mise à jour : 31/08/2026, après le commit de la tâche 08.
 
 ---
 
@@ -14,13 +14,13 @@ Dernière mise à jour : 31/08/2026, après le commit de la tâche 07.
 | 05 | Texte d'aide de la recherche | **Terminée et commitée** (`8dd2e9c`) | personne |
 | 06 | Photo et remarque par bouteille | **Terminée et commitée** (`370ff0a`) | à vérifier à l'écran |
 | 07 | Référence bouteille automatique | **Terminée et commitée** | personne |
-| 08 | Négociation en tonnes | Parties A et B commitées (`c5e0f97`). **Partie C à relancer**, migration autorisée | Codex |
+| 08 | Négociation en tonnes | **Terminée et commitée**, migration 0011 comprise | à vérifier à l'écran |
 | 09 | Filtre par dates unifié | **Jamais lancée** | Codex |
 | 10 | Carte analyses laboratoire | Attend la 09 | Codex, après la 09 |
 | 11 | Supprimer l'historique | Flutter et Django commités (`37488cc`). **Migration à relancer**, autorisée | Codex |
 | 12 | Notifications | **Jamais lancée** | Codex |
 
-Ordre conseillé : 08, 11, 09, 10, 12.
+Ordre conseillé : 11, 09, 10, 12.
 Les seules contraintes réelles sont **06 avant 07** et **09 avant 10**.
 
 ---
