@@ -316,3 +316,64 @@ System check identified no issues (0 silenced).
 
 - `files/role_degustateur.md`, `files/role_chef_degustateur.md` et plusieurs documents sous `files/notifications/` mentionnent encore l'ancienne règle d'historique. La consigne demande uniquement de corriger `CLAUDE.md`; ces documents n'ont donc pas été modifiés.
 - Le dépôt contenait déjà des changements hors tâche 11 dans les fichiers des tâches 05-08, plusieurs fichiers collecteur et `lib/core/utils/montant_achat.dart`; ils n'ont pas été modifiés dans cette tâche.
+
+---
+
+## CONSIGNE DE REPRISE — il ne reste que la colonne en base
+
+Tout le reste est **relu et commité** (`37488cc`) : les modèles Flutter, le panneau
+d'affichage, le bloc d'historique de `perform_update`, et la règle devenue fausse dans
+`CLAUDE.md`. N'y reviens pas.
+
+Ta question a été répondue plus haut, sous `### RÉPONSE À LA QUESTION`, et le propriétaire l'a
+reconfirmée : **supprime le champ.**
+
+### Ce qui reste exactement
+
+```
+backend_new/echantillons/models.py:112      edit_history = models.JSONField(default=list, blank=True)
+backend_new/echantillons/serializers.py:30  'edit_history'   (dans fields)
+backend_new/echantillons/serializers.py:37  'edit_history'   (dans read_only_fields)
+```
+
+Le mot `edit_history` n'apparaît **nulle part** dans `lib/`. Rien côté Flutter ne cassera.
+
+### Ce que tu fais
+
+1. Retire `edit_history` du modèle `Echantillon` et des deux listes du sérialiseur.
+
+2. Crée la migration de suppression. **Attention au numéro** : la tâche 08 vient d'ajouter
+   `0011_echantillon_remarque_collecteur.py`. Ta migration sera donc la **0012**, et elle doit
+   dépendre de `0011`, pas de `0010`. Vérifie-le, deux migrations qui dépendent du même parent
+   casseraient la suite.
+
+3. **Ne touche pas aux migrations `0006` et `0007`.** On n'efface pas l'histoire du dépôt, on
+   ajoute une migration qui retire le champ.
+
+4. Les données d'historique déjà enregistrées seront perdues. Le propriétaire l'a accepté en
+   connaissance de cause : elles ne s'affichaient nulle part.
+
+5. Après ta modification, donne le résultat brut d'une recherche du mot `edit_history` dans
+   `backend_new` hors migrations. Elle doit ne rien renvoyer.
+
+### Vérification
+
+```bash
+flutter analyze lib test
+flutter test
+```
+
+puis, **depuis le dossier `backend_new`** :
+
+```bash
+cd backend_new
+./venv/Scripts/python.exe manage.py test --keepdb
+```
+
+Référence : **50 problèmes, 0 erreur** ; **101 tests Flutter réussis** avec le seul échec connu
+`test/widget_test.dart` ; **159 tests Django** avec le seul échec connu
+`chef.tests.ChefDashboardApiTests.test_delai_alignement_and_classifications_use_submitted_evaluations`.
+
+Si `flutter` refuse de s'exécuter chez toi, dis-le franchement et ne revendique aucun chiffre.
+La suite Django, elle, doit être lancée pour de vrai : c'est elle qui prouve que la migration
+passe. Écris ton compte rendu sous `### Reprise`.
