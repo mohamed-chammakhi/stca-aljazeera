@@ -119,6 +119,57 @@ de réécrire.
 
 - Aucun problème hors périmètre corrigé ou modifié.
 
+### Reprise
+
+#### Fait
+
+- `lib/2_collecteur/mes_echantillons/widgets/dialogs/formulaire_dialog.dart` : lors d'une
+  création, la référence visible se met maintenant à jour avec le code du fournisseur
+  sélectionné (ou le nom saisi si aucun code n'est disponible), le numéro de citerne et le
+  tonnage. Une correction manuelle n'est plus écrasée, et une référence existante reste intacte
+  en mode modification.
+- `lib/2_collecteur/mes_echantillons/widgets/dialogs/bouteille_row.dart` : chaque bouteille
+  conserve le fait que sa référence a été corrigée manuellement, indépendamment des autres
+  bouteilles.
+- `lib/core/utils/reference_bouteille.dart` : le format produit est
+  `fournisseur_citerne_quantiteT`. Les espaces du code ou du nom fournisseur sont supprimés
+  (`Domaine Bel Air` devient `DomaineBelAir`) ; si l'une des trois informations manque, aucune
+  référence n'est proposée et le champ reste vide plutôt que d'afficher une référence à trous.
+- `test/reference_bouteille_test.dart` : quatre tests unitaires sans écran couvrent l'exemple
+  `S.T_C3_30T`, la protection d'une correction manuelle, l'absence de proposition incomplète et
+  la suppression des espaces du fournisseur.
+
+#### Vérifié
+
+- `dart format lib/core/utils/reference_bouteille.dart lib/2_collecteur/mes_echantillons/widgets/dialogs/bouteille_row.dart lib/2_collecteur/mes_echantillons/widgets/dialogs/formulaire_dialog.dart test/reference_bouteille_test.dart`
+  → code de sortie 0 ; `Formatted 4 files (2 changed) in 0.08 seconds.`
+- Exécution directe, avec `dart.exe`, d'un script temporaire important la fonction pure et
+  reproduisant les quatre assertions du test → code de sortie 0 ;
+  `4 vérifications réussies`. Le script temporaire a ensuite été supprimé.
+- `flutter test test/reference_bouteille_test.dart` → code de sortie 1 avant le démarrage des
+  tests : `CreateFile failed 5 (Access is denied.)`, puis Flutter échoue à exécuter
+  `git -c log.showSignature=false log HEAD -n 1 --pretty=format:%ad --date=iso` dans son SDK.
+- `flutter analyze lib test` → code de sortie 1 avant toute analyse, avec la même erreur
+  `CreateFile failed 5 (Access is denied.)` sur la commande Git du SDK Flutter.
+- `flutter test` → code de sortie 1 avant le démarrage des tests, avec la même erreur
+  `CreateFile failed 5 (Access is denied.)` sur la commande Git du SDK Flutter.
+- Vérifications complémentaires tentées : `dart analyze lib test` (code de sortie 1, lancement
+  de `analysis_server_aot.dart.snapshot` refusé par `Access is denied`) et
+  `dart test test/reference_bouteille_test.dart` (code de sortie 1, lancement du hook natif
+  `objective_c` refusé par `Access is denied`).
+
+#### Non fait
+
+- Les diagnostics globaux de `flutter analyze lib test` et le bilan de `flutter test` ne sont
+  pas disponibles : dans cet environnement, Flutter s'arrête sur l'accès au dépôt Git de son
+  SDK avant d'atteindre le code du projet. Aucun nombre de diagnostics ou de tests Flutter
+  réussis n'est donc revendiqué.
+
+#### HORS PÉRIMÈTRE
+
+- Aucun contrôle d'unicité n'a été ajouté à la référence bouteille, conformément à la consigne ;
+  aucune base de données, permission ou route n'a été modifiée.
+
 ---
 
 ## CONSIGNE DE REPRISE — le prérequis est levé

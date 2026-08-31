@@ -10,6 +10,7 @@ import '../../models/echantillon_collecteur.dart';
 import '../../../../core/models/enums.dart';
 import '../../../../core/models/fournisseur.dart';
 import '../../../../core/services/fournisseur_service.dart';
+import '../../../../core/utils/reference_bouteille.dart';
 import '../../../../core/widgets/champ_autocomplete.dart';
 import '../../../../core/widgets/dialog_doublon_fournisseur.dart';
 import '../../../../2_collecteur/carte_geo/services/geo_service.dart';
@@ -217,7 +218,40 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
   DateTime? get _livDate =>
       _livMode == ModePlanificationUI.dateExacte ? _livExacte : _livDebut;
 
-  void _addRow() => setState(() => _bouteilles.add(BouteilleRow.empty()));
+  String get _fournisseurPourReference {
+    final code = _fournisseurChoisi?.codeFournisseur.trim() ?? '';
+    return code.isNotEmpty ? code : _codeFournisseurCtrl.text;
+  }
+
+  void _actualiserReference(BouteilleRow row) {
+    if (_isModification) return;
+
+    final nouvelleReference = actualiserReferenceBouteille(
+      referenceActuelle: row.refCtrl.text,
+      referenceModifieeManuellement: row.referenceModifieeManuellement,
+      fournisseur: _fournisseurPourReference,
+      numeroCiterne: row.numCiterneCtrl.text,
+      quantite: row.qteCtrl.text,
+    );
+    if (nouvelleReference == row.refCtrl.text) return;
+
+    row.refCtrl.value = TextEditingValue(
+      text: nouvelleReference,
+      selection: TextSelection.collapsed(offset: nouvelleReference.length),
+    );
+  }
+
+  void _actualiserToutesLesReferences() {
+    for (final row in _bouteilles) {
+      _actualiserReference(row);
+    }
+  }
+
+  void _addRow() => setState(() {
+    final row = BouteilleRow.empty();
+    _bouteilles.add(row);
+    _actualiserReference(row);
+  });
   void _removeRow(int i) {
     setState(() {
       _bouteilles[i].dispose();
@@ -256,6 +290,7 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
       if (choisi != null) {
         _codeFournisseurCtrl.text = choisi.nom;
         _fournisseurChoisi = choisi;
+        _actualiserToutesLesReferences();
         return;
       }
     }
@@ -437,10 +472,16 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
                       chercher: FournisseurService.instance.suggest,
                       libelle: (f) => f.nom,
                       sousTitre: (f) => f.region,
-                      onSelection: (f) => _fournisseurChoisi = f,
+                      onSelection: (f) {
+                        _fournisseurChoisi = f;
+                        _actualiserToutesLesReferences();
+                      },
                       // Typing again means the field no longer points at the
                       // supplier that was picked.
-                      onSaisieLibre: () => _fournisseurChoisi = null,
+                      onSaisieLibre: () {
+                        _fournisseurChoisi = null;
+                        _actualiserToutesLesReferences();
+                      },
                     ),
 
                     const SizedBox(height: 12),
@@ -484,6 +525,9 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
                       onRemoveRow: _removeRow,
                       onPhoto: _choosePhotoSource,
                       onRemovePhoto: _removePhoto,
+                      onReferenceModifiee: (row) =>
+                          row.referenceModifieeManuellement = true,
+                      onDonneesReferenceChangees: _actualiserReference,
                     ),
                     const SizedBox(height: 12),
 
@@ -630,6 +674,8 @@ class _BouteillesSection extends StatelessWidget {
   final ValueChanged<int> onRemoveRow;
   final ValueChanged<BouteilleRow> onPhoto;
   final ValueChanged<BouteilleRow> onRemovePhoto;
+  final ValueChanged<BouteilleRow> onReferenceModifiee;
+  final ValueChanged<BouteilleRow> onDonneesReferenceChangees;
 
   const _BouteillesSection({
     required this.bouteilles,
@@ -638,6 +684,8 @@ class _BouteillesSection extends StatelessWidget {
     required this.onRemoveRow,
     required this.onPhoto,
     required this.onRemovePhoto,
+    required this.onReferenceModifiee,
+    required this.onDonneesReferenceChangees,
   });
 
   @override
@@ -730,6 +778,9 @@ class _BouteillesSection extends StatelessWidget {
             onRemove: () => onRemoveRow(i),
             onPhoto: () => onPhoto(bouteilles[i]),
             onRemovePhoto: () => onRemovePhoto(bouteilles[i]),
+            onReferenceModifiee: () => onReferenceModifiee(bouteilles[i]),
+            onDonneesReferenceChangees: () =>
+                onDonneesReferenceChangees(bouteilles[i]),
           ),
         ),
       ],
@@ -747,6 +798,8 @@ class _BouteilleCard extends StatelessWidget {
   final VoidCallback onRemove;
   final VoidCallback onPhoto;
   final VoidCallback onRemovePhoto;
+  final VoidCallback onReferenceModifiee;
+  final VoidCallback onDonneesReferenceChangees;
 
   const _BouteilleCard({
     required this.row,
@@ -755,6 +808,8 @@ class _BouteilleCard extends StatelessWidget {
     required this.onRemove,
     required this.onPhoto,
     required this.onRemovePhoto,
+    required this.onReferenceModifiee,
+    required this.onDonneesReferenceChangees,
   });
 
   InputDecoration _fieldDec(String hint, {String? suffixText}) =>
@@ -859,6 +914,7 @@ class _BouteilleCard extends StatelessWidget {
           TextField(
             key: ValueKey('reference-bouteille-$index'),
             controller: row.refCtrl,
+            onChanged: (_) => onReferenceModifiee(),
             style: const TextStyle(fontSize: 13, color: kDarkText),
             decoration: _fieldDec('Ex: CHEMLALI-C1'),
           ),
@@ -889,6 +945,7 @@ class _BouteilleCard extends StatelessWidget {
                     const SizedBox(height: 5),
                     TextField(
                       controller: row.numCiterneCtrl,
+                      onChanged: (_) => onDonneesReferenceChangees(),
                       style: const TextStyle(fontSize: 13, color: kDarkText),
                       decoration: _fieldDec('Ex: Z1'),
                     ),
@@ -903,6 +960,7 @@ class _BouteilleCard extends StatelessWidget {
           const SizedBox(height: 5),
           TextField(
             controller: row.qteCtrl,
+            onChanged: (_) => onDonneesReferenceChangees(),
             keyboardType: TextInputType.number,
             style: const TextStyle(fontSize: 13, color: kDarkText),
             decoration: _fieldDec('Ex: 5000', suffixText: 'T'),
