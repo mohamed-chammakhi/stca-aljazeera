@@ -203,3 +203,72 @@ puis relance les trois commandes de vérification, y compris la suite Django.
   comme signalé dans la consigne ; aucune modification n'a été faite.
 - La suite Django est bloquée par la valeur locale `DEBUG=release` ; aucune configuration n'a été
   modifiée.
+
+---
+
+## CONSIGNE DE REPRISE — il ne reste que la partie C
+
+Les parties A et B sont **relues et commitées** (`c5e0f97`). N'y reviens pas : les tonnes, la
+quantité proposée par la direction et le prix total sont en place et vérifiés.
+
+**Il ne reste que la partie C : la remarque du collecteur.**
+Ta question a été répondue plus haut, sous `### RÉPONSE À LA QUESTION` : **la migration est
+autorisée.**
+
+### Ce que tu fais, dans cet ordre
+
+1. **Côté Django.** Ajoute `remarque_collecteur` au modèle `Echantillon`
+   (`backend_new/echantillons/models.py`) et au sérialiseur. Champ texte, **non obligatoire**,
+   qui peut rester vide. Crée la migration correspondante.
+
+   Ne réutilise pas `remarques` : ce champ porte déjà les observations saisies au moment de
+   l'enregistrement de l'échantillon. Le commentaire écrit au moment de confirmer la
+   négociation est une autre information, à un autre moment.
+
+2. **Côté Flutter.** Ajoute le champ « Remarque du collecteur » dans
+   `confirmer_achat_dialog.dart`, texte libre, non obligatoire, et fais-le remonter jusqu'au
+   bout : la signature de rappel, la validation, l'appel dans `mes_echantillons_page.dart`,
+   puis `confirmerAchat` dans `echantillon_collecteur_service.dart`.
+
+   Ajoute aussi le champ au modèle `EchantillonCollecteur`, avec `fromJson`, `toJson` et le
+   mapping du service. **Même nom des deux côtés** : `remarque_collecteur` en JSON,
+   `remarqueCollecteur` en Dart. C'est la règle 1 du `CLAUDE.md`.
+
+3. La remarque saisie doit **survivre à un rechargement**. C'est le seul vrai critère de
+   réussite : si elle disparaît quand on recharge, le travail n'est pas fait.
+
+### Sur les tests — la leçon des tâches 06 et 07
+
+**N'écris aucun test de widget sur les écrans du collecteur.** Ils vont chercher des données à
+l'ouverture et ne se stabilisent jamais. Trois tentatives ont échoué en tâche 06.
+
+**Ce qui marche**, et qui a très bien marché en tâche 07 : si tu as de la logique à vérifier,
+sors-la dans une fonction pure de `lib/core/utils/` et teste-la directement.
+
+Côté Django en revanche, **écris un vrai test** : la remarque envoyée est bien enregistrée et
+bien relue. Là, rien ne t'en empêche.
+
+### Vérification
+
+```bash
+flutter analyze lib test
+flutter test
+```
+
+puis, **depuis le dossier `backend_new`** — lancée depuis la racine, la suite ne teste rien et
+affiche `Found 0 test(s)` :
+
+```bash
+cd backend_new
+./venv/Scripts/python.exe manage.py test --keepdb
+```
+
+Elle prend environ 800 secondes. Ne conclus pas à un blocage avant 15 minutes.
+
+Référence : **50 problèmes, 0 erreur** ; **101 tests Flutter réussis** avec le seul échec connu
+`test/widget_test.dart` ; **158 tests Django** avec le seul échec connu
+`chef.tests.ChefDashboardApiTests.test_delai_alignement_and_classifications_use_submitted_evaluations`.
+Ces deux échecs sont préexistants et listés dans `PROTOCOLE.md`.
+
+Si `flutter` refuse de s'exécuter chez toi, dis-le franchement comme tu l'as fait à chaque
+fois, et ne revendique aucun chiffre. Écris ton compte rendu sous `### Reprise`.
