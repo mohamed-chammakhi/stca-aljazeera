@@ -15,12 +15,12 @@ Dernière mise à jour : 31/08/2026, après le commit de la tâche 11.
 | 06 | Photo et remarque par bouteille | **Terminée et commitée** (`370ff0a`) | à vérifier à l'écran |
 | 07 | Référence bouteille automatique | **Terminée et commitée** | personne |
 | 08 | Négociation en tonnes | **Terminée et commitée**, migration 0011 comprise | à vérifier à l'écran |
-| 09 | Filtre par dates unifié | Consigne enrichie et diagnostic revérifié, **prête à lancer** | Codex |
-| 10 | Carte analyses laboratoire | Attend la 09 | Codex, après la 09 |
+| 09 | Filtre par dates unifié | Consigne à jour, trois dates possibles depuis la tâche 13. **Prête à lancer** | Codex |
+| 10 | Carte analyses laboratoire | **Terminée et commitée** (sauf le filtre par dates, qui attend la 09) | à vérifier à l'écran |
 | 11 | Supprimer l'historique | **Terminée et commitée**, migration 0012 comprise | personne |
 | 12 | Notifications | **Jamais lancée** | Codex |
 
-Ordre conseillé : 09, 10, 12.
+Ordre conseillé : 09, puis 12.
 Les seules contraintes réelles sont **06 avant 07** et **09 avant 10**.
 
 ---
