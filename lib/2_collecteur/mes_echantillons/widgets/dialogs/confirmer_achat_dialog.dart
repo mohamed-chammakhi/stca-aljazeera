@@ -10,6 +10,7 @@ import '../../models/echantillon_collecteur.dart';
 import 'date_livraison_section.dart'
     show DateLivraisonSection, ModePlanificationUI;
 import '../../../widgets/col_colors.dart';
+import '../../../../core/utils/montant_achat.dart';
 
 String? _dateStockStr(EchantillonCollecteur e) {
   final d = e.dateStockSouhaiteeDebut;
@@ -203,7 +204,7 @@ class _ConfirmerAchatDialogState extends State<_ConfirmerAchatDialog> {
                             const SizedBox(height: 4),
                             if (e.budgetNegociation != null)
                               Text(
-                                'Budget : ${e.budgetNegociation}',
+                                'Budget : ${MontantAchat.formaterPrixParTonne(e.budgetNegociation)}',
                                 style: const TextStyle(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w600,
@@ -229,7 +230,7 @@ class _ConfirmerAchatDialogState extends State<_ConfirmerAchatDialog> {
                     TextField(
                       controller: _prixCtrl,
                       decoration: _inputDeco(
-                        'ex: 9.20 TND/L',
+                        'ex: 8 000 TND/T',
                         Icons.payments_outlined,
                       ),
                       style: const TextStyle(fontSize: 14),

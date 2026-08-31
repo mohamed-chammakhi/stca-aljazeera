@@ -78,6 +78,7 @@ class EchantillonCollecteurService {
       // date_arrivee_echantillon from API = actual physical reception date.
       'date_reception_echantillon': api['date_arrivee_echantillon'],
       'budget_negociation': api['budget_negociation']?.toString(),
+      'quantite_cible_t': api['quantite_cible_t']?.toString(),
       'date_stock_souhaitee_debut': null,
       'date_stock_souhaitee_fin': null,
       'prix_final': api['prix_final']?.toString(),
@@ -110,6 +111,7 @@ class EchantillonCollecteurService {
       'quantite_estimee': json['quantite_estimee'],
       'variete': json['variete'],
       'budget_negociation': json['budget_negociation'],
+      'quantite_cible_t': json['quantite_cible_t'],
       'prix_final': json['prix_final'],
       'camion_reserve': json['camion_reserve'],
       'remarques': json['remarques'],
@@ -174,12 +176,11 @@ class EchantillonCollecteurService {
     EchantillonCollecteur e,
   ) async {
     if (_usingMockData) {
-      throw StateError('Création indisponible avec les données de démonstration.');
+      throw StateError(
+        'Création indisponible avec les données de démonstration.',
+      );
     }
-    final response = await _api.post(
-      '/api/echantillons/',
-      _toDjangoMap(e),
-    );
+    final response = await _api.post('/api/echantillons/', _toDjangoMap(e));
     return EchantillonCollecteur.fromJson(_toFlutterMap(response));
   }
 
@@ -191,7 +192,9 @@ class EchantillonCollecteurService {
     required String filename,
   }) async {
     if (_usingMockData) {
-      throw StateError('Création indisponible avec les données de démonstration.');
+      throw StateError(
+        'Création indisponible avec les données de démonstration.',
+      );
     }
     final dj = _toDjangoMap(e);
     final fields = <String, String>{};
@@ -212,7 +215,9 @@ class EchantillonCollecteurService {
     EchantillonCollecteur e,
   ) async {
     if (_usingMockData) {
-      throw StateError('Modification indisponible avec les données de démonstration.');
+      throw StateError(
+        'Modification indisponible avec les données de démonstration.',
+      );
     }
     final response = await _api.patch(
       '/api/echantillons/${e.id}/',
@@ -224,7 +229,9 @@ class EchantillonCollecteurService {
   /// Deletes an echantillon by ID.
   Future<void> deleteEchantillon(String id) async {
     if (_usingMockData) {
-      throw StateError('Suppression indisponible avec les données de démonstration.');
+      throw StateError(
+        'Suppression indisponible avec les données de démonstration.',
+      );
     }
     await _api.delete('/api/echantillons/$id/');
   }
@@ -239,7 +246,9 @@ class EchantillonCollecteurService {
     String? camionLivraison,
   }) async {
     if (_usingMockData) {
-      throw StateError('Confirmation indisponible avec les données de démonstration.');
+      throw StateError(
+        'Confirmation indisponible avec les données de démonstration.',
+      );
     }
     final body = <String, dynamic>{};
     if (prixFinal != null) body['prix_final'] = prixFinal;

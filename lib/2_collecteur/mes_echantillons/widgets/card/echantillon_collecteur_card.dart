@@ -22,6 +22,7 @@ import 'package:flutter/material.dart';
 import '../../models/echantillon_collecteur.dart';
 import '../../../widgets/col_colors.dart';
 import '../../../../core/widgets/grille_details.dart';
+import '../../../../core/utils/montant_achat.dart';
 
 String? _dateStockStr(EchantillonCollecteur e) {
   final d = e.dateStockSouhaiteeDebut;
@@ -243,7 +244,7 @@ class _QuantityPill extends StatelessWidget {
       borderRadius: BorderRadius.circular(6),
     ),
     child: Text(
-      'Qté : $quantite',
+      'Qté : $quantite T',
       style: const TextStyle(
         fontSize: 11,
         fontWeight: FontWeight.w700,
@@ -560,6 +561,9 @@ class _NegociationDetails extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool isNego = e.statut == StatutCollecteur.enNegociation;
+    final prixParTonne = MontantAchat.formaterPrixParTonne(e.budgetNegociation);
+    final total = MontantAchat.formater(e.budgetNegociation, e.quantiteCibleT);
+    final prixFinal = MontantAchat.formaterPrixParTonne(e.prixFinal);
 
     return Container(
       margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
@@ -572,13 +576,18 @@ class _NegociationDetails extends StatelessWidget {
       child: GrilleDetails(
         items: [
           if (isNego) ...[
-            if (e.budgetNegociation != null)
-              DetailItem('Budget proposé', e.budgetNegociation!),
+            if (e.quantiteCibleT != null && e.quantiteCibleT!.isNotEmpty)
+              DetailItem('Quantité proposée', '${e.quantiteCibleT} T'),
+            if (prixParTonne != null)
+              DetailItem('Prix par tonne', prixParTonne),
+            if (e.quantiteCibleT != null &&
+                e.quantiteCibleT!.isNotEmpty &&
+                total != null)
+              DetailItem('Prix total', total),
             if (_dateStockStr(e) != null)
               DetailItem('Date souhaitée', _dateStockStr(e)!),
           ] else ...[
-            if (e.prixFinal != null)
-              DetailItem('Prix final', e.prixFinal!),
+            if (prixFinal != null) DetailItem('Prix final', prixFinal),
             if (e.camionLivraison != null)
               DetailItem('Camion', e.camionLivraison!),
           ],

@@ -4,6 +4,7 @@ import 'models/notification_collecteur.dart';
 import 'services/notification_collecteur_service.dart';
 import '../widgets/col_colors.dart';
 import '../../core/widgets/bandeau_demonstration.dart';
+import '../../core/utils/montant_achat.dart';
 
 class NotificationsCollecteurPage extends StatefulWidget {
   final NotificationCollecteurService service;
@@ -93,7 +94,9 @@ class _NotificationsCollecteurPageState
 
   void _signalerErreur() {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('La notification n’a pas pu être mise à jour.')),
+      const SnackBar(
+        content: Text('La notification n’a pas pu être mise à jour.'),
+      ),
     );
   }
 
@@ -571,7 +574,7 @@ class _NegotiationPanel extends StatelessWidget {
           _DetailRow(
             icon: Icons.payments_outlined,
             label: 'Budget alloué',
-            value: '${budget.toStringAsFixed(2)} TND/L',
+            value: MontantAchat.formaterPrixParTonne(budget.toString())!,
             color: color,
           ),
           if (dateSouhaitee != null) ...[

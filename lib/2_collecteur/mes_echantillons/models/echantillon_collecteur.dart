@@ -113,6 +113,7 @@ class EchantillonCollecteur {
 
   // Negotiation details (communicated by CEO after approval)
   String? budgetNegociation;
+  String? quantiteCibleT;
   // Stock delivery window desired by CEO — may be a range or a single date
   DateTime? dateStockSouhaiteeDebut;
   DateTime? dateStockSouhaiteeFin;
@@ -151,6 +152,7 @@ class EchantillonCollecteur {
     this.recuPhysiquement = false,
     this.dateReceptionEchantillon,
     this.budgetNegociation,
+    this.quantiteCibleT,
     this.dateStockSouhaiteeDebut,
     this.dateStockSouhaiteeFin,
     this.prixFinal,
@@ -203,6 +205,7 @@ class EchantillonCollecteur {
         recuPhysiquement: json['recu_physiquement'] as bool? ?? false,
         dateReceptionEchantillon: null,
         budgetNegociation: json['budget_negociation']?.toString(),
+        quantiteCibleT: json['quantite_cible_t']?.toString(),
         dateStockSouhaiteeDebut: null,
         dateStockSouhaiteeFin: null,
         prixFinal: json['prix_final']?.toString(),
@@ -230,6 +233,7 @@ class EchantillonCollecteur {
     'date_arrivee_echantillon': dateArriveeEchantillon?.toIso8601String(),
     'recu_physiquement': recuPhysiquement,
     'budget_negociation': budgetNegociation,
+    'quantite_cible_t': quantiteCibleT,
     'prix_final': prixFinal,
     'camion_reserve': camionLivraison ?? '',
     'remarques': remarques ?? '',

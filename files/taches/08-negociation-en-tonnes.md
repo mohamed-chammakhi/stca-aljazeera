@@ -134,3 +134,72 @@ La suite Django prend environ 3 minutes 30 sans `--keepdb`. Ne conclus pas à un
 Ajoute des tests sur `MontantAchat` : un prix `'8000'` sans unité doit maintenant donner un
 total par tonne, et un prix `'9.50 TND/L'` doit continuer à donner le même résultat qu'avant ta
 modification. Donne les sorties chiffrées réelles.
+
+## QUESTION
+
+Le modèle Django `Echantillon` ne possède pas de champ distinct pour la « Remarque du
+collecteur ». Réutiliser `remarques` écraserait les remarques déjà enregistrées sur l'échantillon
+et mélangerait deux informations distinctes. Ajouter `remarque_collecteur` au modèle et au
+sérialiseur exige une migration Django. Autorisez-vous cette migration ?
+
+
+### RÉPONSE À LA QUESTION
+
+**Oui, la migration est autorisée.** Ajoute `remarque_collecteur` au modèle `Echantillon`, au
+sérialiseur, et crée la migration correspondante.
+
+Ton analyse est juste et c'est pour ça qu'on ne réutilise pas `remarques` : ce champ porte déjà
+les observations saisies au moment de l'enregistrement de l'échantillon. Le commentaire écrit
+par le collecteur au moment où il confirme la négociation est une autre information, à un autre
+moment. Les mélanger ferait perdre les deux.
+
+Le champ n'est **pas obligatoire** : il peut rester vide.
+
+Termine ensuite la partie C : la remontée depuis la fenêtre de confirmation jusqu'au service,
+puis relance les trois commandes de vérification, y compris la suite Django.
+
+## RAPPORT
+
+### Fait
+
+- `lib/core/utils/montant_achat.dart` — les prix sans unité sont désormais lus par tonne ; les
+  anciens prix explicitement au litre ou au kilo gardent le même montant et s'affichent en TND/T.
+- `lib/2_collecteur/mes_echantillons/models/echantillon_collecteur.dart` — le collecteur reçoit
+  désormais la quantité cible proposée par la direction.
+- `lib/2_collecteur/mes_echantillons/services/echantillon_collecteur_service.dart` — la quantité
+  cible de la direction est conservée entre l'API et la carte du collecteur.
+- `lib/2_collecteur/mes_echantillons/widgets/card/echantillon_collecteur_card.dart` — la carte
+  affiche quantité proposée, prix par tonne et prix total ; les quantités de ses pastilles ont
+  l'unité T.
+- `lib/2_collecteur/notifications/notifications_collecteur_page.dart` — les budgets de
+  notification sont affichés en TND/T.
+- `lib/2_collecteur/notifications/services/notification_mock_data.dart` — les messages de
+  démonstration n'annoncent plus de prix au litre.
+- `lib/2_collecteur/mes_echantillons/widgets/dialogs/confirmer_achat_dialog.dart` — le prix
+  convenu et le rappel de l'offre sont présentés en tonnes.
+- `test/montant_achat_test.dart` — couvre le nouveau défaut par tonne et la compatibilité d'un
+  ancien prix explicite au litre.
+
+### Vérifié
+
+- `dart format lib/core/utils/montant_achat.dart lib/2_collecteur/mes_echantillons/models/echantillon_collecteur.dart lib/2_collecteur/mes_echantillons/services/echantillon_collecteur_service.dart lib/2_collecteur/mes_echantillons/widgets/card/echantillon_collecteur_card.dart lib/2_collecteur/notifications/notifications_collecteur_page.dart lib/2_collecteur/notifications/services/notification_mock_data.dart lib/2_collecteur/mes_echantillons/widgets/dialogs/confirmer_achat_dialog.dart test/montant_achat_test.dart` — sortie : `Formatted 8 files (6 changed) in 0.20 seconds.`
+- `flutter test test/montant_achat_test.dart` — sortie : `00:00 +2: All tests passed!`
+- `flutter analyze lib test` — sortie : `50 issues found. (ran in 3.6s)` ; aucune erreur de
+  compilation affichée.
+- `flutter test` — sortie : `00:13 +97 -1`; seul échec :
+  `test/widget_test.dart: Counter increments smoke test`, l'échec modèle déjà connu.
+- `./backend_new/venv/Scripts/python.exe backend_new/manage.py test --keepdb` — échec après
+  `2.4 seconds`, avant l'exécution de tests : `ValueError: Invalid truth value: release` dans
+  `backend_new/aljazeera_stca/settings.py` lors de la lecture de `DEBUG`.
+
+### Non fait
+
+- Le champ « Remarque du collecteur » et sa transmission ne sont pas réalisés : ils exigent la
+  migration Django faisant l'objet de la question ci-dessus.
+
+### HORS PÉRIMÈTRE
+
+- `dateStockSouhaiteeDebut` et `dateStockSouhaiteeFin` restent forcés à `null` lors du parsing,
+  comme signalé dans la consigne ; aucune modification n'a été faite.
+- La suite Django est bloquée par la valeur locale `DEBUG=release` ; aucune configuration n'a été
+  modifiée.
