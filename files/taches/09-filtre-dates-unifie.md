@@ -100,8 +100,9 @@ et qui avait causé le bug « tout affiché En attente » décrit dans `CLAUDE.m
 ```bash
 flutter analyze lib test
 flutter test
-./backend_new/venv/Scripts/python.exe backend_new/manage.py test --keepdb
 ```
+
+Cette tâche ne touche pas au backend Django : inutile de lancer sa suite.
 
 Compte et donne le résultat brut de la commande : combien de fichiers déclarent encore un
 `DateFilterSheet` après ta modification ? La réponse attendue est **un seul**.
