@@ -68,11 +68,31 @@ Sous `## RAPPORT`, dans cet ordre :
    ```bash
    flutter analyze lib test
    flutter test
-   ./backend_new/venv/Scripts/python.exe backend_new/manage.py test --keepdb
    ```
 
-   La suite Django prend environ **3 minutes 30** sans `--keepdb`. Ne conclus pas à un
-   blocage avant 400 secondes.
+   Pour la suite Django, **place-toi d'abord dans `backend_new`** :
+
+   ```bash
+   cd backend_new
+   ./venv/Scripts/python.exe manage.py test --keepdb
+   ```
+
+   **Lancée depuis la racine du projet, elle ne teste rien** et affiche `Found 0 test(s)`.
+   Mesuré le 27/08/2026 : lancée correctement, elle exécute **158 tests en 800 secondes**.
+   Ne conclus pas à un blocage avant 15 minutes.
+
+### Les deux échecs déjà connus
+
+Ces deux-là échouaient avant toi. Ne les corrige pas, ne les compte pas comme une régression,
+mais ne t'en sers pas pour couvrir un autre échec.
+
+| Suite | Test | Pourquoi |
+|---|---|---|
+| `flutter test` | `test/widget_test.dart` — *Counter increments smoke test* | Test modèle livré par Flutter, qui teste un compteur inexistant dans cette application |
+| Django | `chef.tests.ChefDashboardApiTests.test_delai_alignement_and_classifications_use_submitted_evaluations` | Échoue sur `extra_vierge` : attendu 3, obtenu 1. Vérifié sur un dépôt sans aucune modification |
+
+État de référence : `flutter analyze lib test` → 50 diagnostics, 0 erreur ;
+`flutter test` → 97 réussis, 1 échec ; Django → 158 tests, 1 échec.
 
 3. **Non fait** — tout ce que la consigne demandait et que tu n'as pas fait, avec la raison.
 4. **HORS PÉRIMÈTRE** — les problèmes vus ailleurs, non corrigés.

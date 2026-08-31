@@ -101,3 +101,54 @@ Ajoute au moins un test qui prouve que prendre une photo avec deux bouteilles sa
 n'augmente pas la taille de `_bouteilles`.
 
 Donne les sorties chiffrées réelles dans ton rapport.
+
+## QUESTION
+
+`EchantillonCollecteur` ne possède qu'un seul champ `remarques`. La consigne demande que chaque
+échantillon reçoive sa remarque propre « plus la remarque globale recopiée », mais ne précise pas
+la valeur à enregistrer lorsque les deux sont renseignées : concaténation, ordre et séparateur.
+
+Quel format exact faut-il envoyer dans ce seul champ ? Ajouter une donnée distincte pour la
+remarque globale nécessiterait une modification de modèle et probablement une migration, ce qui
+n'est pas autorisé sans votre accord.
+
+
+### RÉPONSE À LA QUESTION
+
+**Une seule remarque, par bouteille.** Pas de concaténation, pas de nouveau champ, pas de
+migration.
+
+Concrètement, le point 7 de la consigne est tranché dans ce sens : **la case remarque globale
+du formulaire disparaît** (`_remarquesCtrl`, déclaré L86, affiché L633-690, recopié sur tous
+les échantillons L445-447). Elle est remplacée par une remarque portée par chaque
+`BouteilleRow`, qui va dans le champ `remarques` de l'échantillon créé pour cette bouteille.
+
+C'est exactement ce que demandait le propriétaire : savoir à quelle bouteille appartient une
+remarque. Une remarque recopiée à l'identique sur cinq échantillons ne répond à rien.
+
+**Attention au mode modification** (`_save()` L398-420) : il ne traite que `_bouteilles.first`.
+La remarque de cette bouteille doit continuer à être lue et réécrite correctement. Ne change
+pas le reste de ce mode.
+
+Reprends la tâche 06 en entier, parties A, B et C.
+
+## RAPPORT
+
+### Fait
+
+- Aucun code modifié : attente de la décision sur la représentation des deux remarques dans le
+  champ unique existant.
+
+### Vérifié
+
+- Vérifications Flutter non exécutées : la tâche est arrêtée avant toute modification, en attente
+  de la réponse à la question ci-dessus.
+
+### Non fait
+
+- Les changements photo, remarque par bouteille et le test demandé ne sont pas réalisés, car la
+  règle de non-supposition bloque d'abord la valeur à écrire pour chaque échantillon.
+
+### HORS PÉRIMÈTRE
+
+- Aucun problème hors périmètre corrigé ou modifié.

@@ -80,3 +80,41 @@ flutter test
 
 Ajoute un test qui vérifie que saisir fournisseur `S.T`, citerne `C3`, quantité `30` produit
 bien `S.T_C3_30T`, et qu'une référence modifiée à la main n'est plus écrasée ensuite.
+
+## QUESTION
+
+Le rapport de la tâche 06 est présent, mais il indique que cette tâche n'est pas terminée : elle
+attend une décision sur l'enregistrement simultané des remarques globale et par bouteille. La
+tâche 07 dépend explicitement d'une tâche 06 terminée et relue. Faut-il reprendre la tâche 07
+avant la résolution et la relecture de ce prérequis ?
+
+
+### RÉPONSE À LA QUESTION
+
+**Oui, mais dans l'ordre.** La tâche 06 vient d'être débloquée : sa question est répondue dans
+son propre fichier, sous `### RÉPONSE À LA QUESTION`.
+
+Fais donc la 06 d'abord, complètement, avec son rapport. La 07 vient ensuite.
+
+Ton réflexe de t'arrêter était le bon. Ne pars pas d'un fichier qu'une autre tâche est en train
+de réécrire.
+
+## RAPPORT
+
+### Fait
+
+- Aucun code modifié : le prérequis obligatoire de la tâche 06 n'est pas terminé ni relu.
+
+### Vérifié
+
+- Vérifications Flutter non exécutées : aucune modification applicative n'est autorisée tant que
+  le prérequis de la tâche 06 reste incomplet.
+
+### Non fait
+
+- La génération automatique de référence et son test ne sont pas réalisés, en attente de la
+  finalisation et de la relecture de la tâche 06.
+
+### HORS PÉRIMÈTRE
+
+- Aucun problème hors périmètre corrigé ou modifié.
