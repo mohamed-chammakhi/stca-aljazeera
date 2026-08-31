@@ -126,3 +126,65 @@ flutter test
 quantité et le mot « Urgent » ne doivent pas faire déborder l'en-tête avec une référence longue.
 
 Donne les sorties chiffrées réelles dans ton rapport.
+
+---
+
+## CONSIGNE DE REPRISE — fais la carte maintenant, sans le filtre
+
+Le propriétaire a ouvert l'application et constaté que ces changements n'y sont pas. Ils sont
+attendus.
+
+**La tâche 09 n'est pas faite** : elle a été interrompue et Codex n'avait rien écrit. Le filtre
+par dates unifié n'existe donc pas encore.
+
+**Fais quand même les points 1, 2 et 3 de la consigne ci-dessus** — ils ne dépendent d'aucun
+filtre :
+
+1. le mot « Urgent » toujours visible à côté de l'icône cloche ;
+2. la quantité affichée dans l'en-tête de la carte ;
+3. le numéro d'enregistrement de l'échantillon sous la référence, et la ligne devenue doublon
+   supprimée du détail déplié.
+
+**Saute le point 4** (« Le filtre par dates »). Il sera ajouté avec la tâche 09. Note-le sous
+« Non fait » avec cette raison.
+
+### Rappel de ce qui compte
+
+Tout se passe dans `lib/core/widgets/analyse_labo/analyse_card.dart`, un fichier **déjà
+partagé** par le dégustateur et le chef dégustateur. Une seule modification sert les deux rôles.
+
+**N'écris pas une nouvelle pastille de quantité.** Réutilise celle qui existe déjà dans
+`lib/core/widgets/gestion_echantillons/echantillon_card.dart`. Si elle est privée, sors-la dans
+un fichier partagé de `lib/core/widgets/` et fais pointer les cartes dessus. C'est la règle 1
+du `CLAUDE.md`, et une pastille identique traîne aussi dans
+`lib/core/widgets/evaluation_echantillons/echantillon_card.dart` : profites-en pour n'en garder
+qu'une seule.
+
+**Tu n'ajoutes ni « Approuver » ni « Refuser »** à la carte du dégustateur. C'est voulu.
+
+### La question sur le titre de la carte reste posée
+
+Le titre affiche `analyse.echantillonNom` (« Chemlali - Lot A - Sfax ») alors que la direction
+affiche `referenceBouteille` (« CHEMLALI-C4 »). `LigneAnalyseLabo` n'a pas ce champ, et
+l'ajouter demande de toucher à l'API Django.
+
+**Ne le fais pas de toi-même.** Livre les trois points ci-dessus, qui n'en dépendent pas, et
+écris la question sous `## QUESTION`.
+
+### Sur les tests
+
+Pas de test d'écran ici : ces pages vont chercher des données à l'ouverture et ne se stabilisent
+jamais dans un test. Si tu veux vérifier quelque chose, fais-le sur une fonction pure. Sinon,
+dis-le sous « Non fait » et n'insiste pas.
+
+### Vérification
+
+```bash
+flutter analyze lib test
+flutter test
+```
+
+Référence : **50 problèmes, 0 erreur** ; **101 tests réussis** avec le seul échec connu
+`test/widget_test.dart`.
+
+Si `flutter` refuse de s'exécuter chez toi, dis-le franchement et ne revendique aucun chiffre.
