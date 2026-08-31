@@ -107,3 +107,72 @@ Compte et donne le résultat brut de la commande : combien de fichiers déclaren
 `DateFilterSheet` après ta modification ? La réponse attendue est **un seul**.
 
 Donne les sorties chiffrées réelles dans ton rapport.
+
+---
+
+## CONSIGNE DE REPRISE — état vérifié le 31/08/2026
+
+Le diagnostic de cette tâche a été revérifié aujourd'hui, il tient toujours :
+**trois fichiers déclarent encore `DateFilterSheet`.**
+
+```
+lib/1_ceo/widgets/search_date_filter_bar.dart
+lib/core/widgets/search_filter_bar.dart
+lib/5_chef_degustateur/gestion_echantillons/widgets/search_filter_bar.dart
+```
+
+### Ton critère de réussite, en un chiffre
+
+À la fin de ton travail, cette commande doit renvoyer **1**, et un seul :
+
+```bash
+grep -rl "class DateFilterSheet" lib --include=*.dart | wc -l
+```
+
+Donne son résultat brut dans ton rapport. C'est la preuve la plus simple que la fusion est
+faite, et elle ne se discute pas.
+
+### Ce qui a changé dans le dépôt depuis que cette tâche a été écrite
+
+Quatre tâches ont été commitées entre-temps : 05, 06, 07 et 08.
+
+Une seule te concerne : **`mes_echantillons_page.dart` a été modifiée** par les tâches 05 et 08.
+C'est la page du collecteur, et elle utilise déjà `DateFilterSheet`. **Son filtre par dates doit
+continuer à fonctionner exactement comme avant ta modification.** Vérifie-le explicitement.
+
+Les tâches 06 et 07 n'ont touché que le formulaire d'ajout du collecteur, sans rapport avec
+les filtres.
+
+### Sur les tests — ce qu'on a appris aujourd'hui
+
+Les écrans du **collecteur** ne sont pas testables : ils vont chercher des données à
+l'ouverture et ne se stabilisent jamais. Trois tentatives ont échoué en tâche 06, le fichier de
+test a fini supprimé.
+
+Ce qui a marché, en tâche 07 : **sortir la logique dans une fonction pure** de
+`lib/core/utils/` et la tester là, sans monter aucun écran. Quatre tests écrits, quatre tests
+passés, zéro aller-retour.
+
+Applique la même méthode ici. La logique « telle date choisie, tel champ comparé, tel
+échantillon retenu ou écarté » est du calcul pur : elle peut vivre dans une fonction et se
+tester directement. C'est ce qu'on préfère.
+
+Si tu tentes un test d'écran et qu'il ne se stabilise pas, **ne t'acharne pas** : dis-le sous
+« Non fait » et passe à autre chose.
+
+### Rappel de la règle qui compte ici
+
+Les pages du dégustateur et du chef dégustateur sont encore deux fichiers séparés. C'est
+justement pour ça que le filtre doit être écrit **une seule fois** dans un widget partagé, et
+pas recopié six fois. Un code dupliqué dérive en silence — c'est ce qui avait produit le bug
+où toutes les évaluations soumises s'affichaient « En attente » chez le chef.
+
+### Vérification
+
+```bash
+flutter analyze lib test
+flutter test
+```
+
+Référence : **50 problèmes, 0 erreur** ; **101 tests réussis** avec le seul échec connu
+`test/widget_test.dart`.
