@@ -772,11 +772,10 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
                               setState(() => _recherche = v.trim()),
                           style: const TextStyle(fontSize: 14, color: colDark),
                           decoration: InputDecoration(
-                            hintText:
-                                'Rechercher réf, fournisseur, gouvernorat…',
+                            hintText: 'Réf., fournisseur, gouvernorat, variété',
                             hintStyle: const TextStyle(
                               color: Color(0xFF6B8E7A),
-                              fontSize: 13,
+                              fontSize: 11,
                             ),
                             prefixIcon: const Icon(
                               Icons.search,
