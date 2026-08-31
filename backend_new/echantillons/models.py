@@ -108,9 +108,6 @@ class Echantillon(models.Model):
     classification = models.CharField(max_length=20, choices=Classification.choices, blank=True)
     remarques      = models.TextField(blank=True)
 
-    # Edit history — populated once recu_physiquement=True
-    edit_history = models.JSONField(default=list, blank=True)
-
     # Timestamps
     date_ajout = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

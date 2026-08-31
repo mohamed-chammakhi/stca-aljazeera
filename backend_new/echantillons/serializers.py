@@ -27,14 +27,13 @@ class EchantillonSerializer(serializers.ModelSerializer):
             'prix_final', 'remarque_collecteur',
             'stock_arrive', 'date_livraison_stock', 'date_livraison_stock_fin',
             'classification', 'remarques',
-            'edit_history',
             'date_ajout', 'updated_at',
         ]
         # nb_renegociations n'est jamais pose par le client : seule l'action
         # renvoyer-en-negociation l'incremente, ce qui garantit qu'il compte
         # bien des tours reels et pas ce que l'app veut afficher.
         read_only_fields = [
-            'id', 'numero', 'collecteur', 'edit_history',
+            'id', 'numero', 'collecteur',
             'nb_renegociations', 'date_ajout', 'updated_at',
         ]
 
