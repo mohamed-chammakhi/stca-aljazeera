@@ -3,7 +3,7 @@
 Ce fichier est le tableau de bord. **Claude le tient à jour, personne d'autre.**
 Il répond à une seule question : où en est-on, et qui attend quoi.
 
-Dernière mise à jour : 31/08/2026, après le commit de la tâche 08.
+Dernière mise à jour : 31/08/2026, après le commit de la tâche 11.
 
 ---
 
@@ -17,10 +17,10 @@ Dernière mise à jour : 31/08/2026, après le commit de la tâche 08.
 | 08 | Négociation en tonnes | **Terminée et commitée**, migration 0011 comprise | à vérifier à l'écran |
 | 09 | Filtre par dates unifié | Consigne enrichie et diagnostic revérifié, **prête à lancer** | Codex |
 | 10 | Carte analyses laboratoire | Attend la 09 | Codex, après la 09 |
-| 11 | Supprimer l'historique | Reste la colonne en base. Suppression confirmée par le propriétaire. Codex a manqué de quota, **à relancer** | Codex |
+| 11 | Supprimer l'historique | **Terminée et commitée**, migration 0012 comprise | personne |
 | 12 | Notifications | **Jamais lancée** | Codex |
 
-Ordre conseillé : 11, 09, 10, 12.
+Ordre conseillé : 09, 10, 12.
 Les seules contraintes réelles sont **06 avant 07** et **09 avant 10**.
 
 ---
