@@ -2,7 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:project3/core/utils/reference_bouteille.dart';
 
 void main() {
-  group('Référence bouteille automatique', () {
+  group('Reference bouteille automatique', () {
     test('assemble fournisseur, citerne et tonnage', () {
       expect(
         construireReferenceBouteille(
@@ -14,20 +14,18 @@ void main() {
       );
     });
 
-    test('ne remplace plus une référence corrigée manuellement', () {
+    test('remplace une reference corrigee quand les sources changent', () {
       expect(
         actualiserReferenceBouteille(
-          referenceActuelle: 'REFERENCE-CORRIGEE',
-          referenceModifieeManuellement: true,
           fournisseur: 'S.T',
           numeroCiterne: 'C4',
           quantite: '40',
         ),
-        'REFERENCE-CORRIGEE',
+        'S.T_C4_40T',
       );
     });
 
-    test('attend que les trois informations soient renseignées', () {
+    test('attend que les trois informations soient renseignees', () {
       expect(
         construireReferenceBouteille(
           fournisseur: 'S.T',

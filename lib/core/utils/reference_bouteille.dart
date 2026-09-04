@@ -20,17 +20,11 @@ String construireReferenceBouteille({
 }
 
 String actualiserReferenceBouteille({
-  required String referenceActuelle,
-  required bool referenceModifieeManuellement,
   required String fournisseur,
   required String numeroCiterne,
   required String quantite,
-}) {
-  if (referenceModifieeManuellement) return referenceActuelle;
-
-  return construireReferenceBouteille(
-    fournisseur: fournisseur,
-    numeroCiterne: numeroCiterne,
-    quantite: quantite,
-  );
-}
+}) => construireReferenceBouteille(
+  fournisseur: fournisseur,
+  numeroCiterne: numeroCiterne,
+  quantite: quantite,
+);
