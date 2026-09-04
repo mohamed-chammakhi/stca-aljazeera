@@ -318,3 +318,66 @@ flutter test
 
 Référence : **50 problèmes, 0 erreur** ; **101 tests réussis** avec le seul échec connu
 `test/widget_test.dart`.
+
+---
+
+## CONSIGNE DE REPRISE — 3 : nom clair pour "Arrivée du stock", indication sous chaque
+## choix, et 4ᵉ type pour le collecteur
+
+Trois ajouts au-dessus de tout ce qui précède. Fais-les avec le reste de la tâche, pas
+séparément.
+
+### 1. Renomme `DateFilterType.arriveeStock`
+
+Le mot "Arrivée" laisse croire qu'une arrivée réelle est constatée par quelqu'un. Ce n'est
+pas le cas : ce type lit une date **prévue par le collecteur** au moment de la négociation
+(`echantillon.livraison?.dateExacte`, voir `mes_echantillons_page.dart` ~L150), jamais une
+confirmation.
+
+Dans `DateFilterTypeX` (`lib/1_ceo/widgets/search_date_filter_bar.dart` L18-40) :
+
+| Valeur | Ancien `label` | Nouveau `label` | Nouveau `shortLabel` |
+|---|---|---|---|
+| `arriveeStock` | Arrivée du stock | Livraison du stock | Livraison stock |
+
+Les trois autres libellés ne changent pas.
+
+### 2. Une phrase d'aide sous chaque choix, dans `DateFilterSheet`
+
+Dans le sélecteur de type (`_hasTypeSelector`, ~L301-350), sous la ligne de puces
+(`widget.availableTypes.map(...)`), affiche la phrase correspondant au type **actuellement
+sélectionné** (`_selectedType`) :
+
+| Type | Phrase d'aide |
+|---|---|
+| `enregistrement` | Cherche les échantillons enregistrés à une date précise. |
+| `livraisonEchantillon` | Cherche les échantillons que vous prévoyez de livrer à une date précise. |
+| `receptionPhysique` | Cherche les échantillons réellement arrivés à l'entreprise. |
+| `arriveeStock` | Cherche les dates auxquelles vous prévoyez de livrer le stock acheté. |
+
+Un `Text` simple sous les puces suffit, même style discret que le reste de la feuille (gris,
+petite taille).
+
+### 3. Le collecteur obtient aussi "Réception physique"
+
+`mes_echantillons_page.dart` (`_showDateFilter`, ~L583-587) ne propose aujourd'hui que
+`enregistrement`, `livraisonEchantillon`, `arriveeStock`. Ajoute `receptionPhysique` comme
+4ᵉ choix — le modèle `EchantillonCollecteur` porte déjà `dateReceptionEchantillon`
+(`lib/2_collecteur/mes_echantillons/models/echantillon_collecteur.dart` L112).
+
+Branche-le dans le `switch` qui résout le champ à comparer (~L144-151), à côté des trois cas
+existants :
+
+```
+case DateFilterType.receptionPhysique:
+  raw = e.dateReceptionEchantillon;
+```
+
+### Vérification
+
+```bash
+flutter analyze lib test
+flutter test
+```
+
+Même référence que ci-dessus. Donne les sorties chiffrées réelles dans ton rapport.

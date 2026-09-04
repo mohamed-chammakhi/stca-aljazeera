@@ -3,7 +3,7 @@
 Ce fichier est le tableau de bord. **Claude le tient à jour, personne d'autre.**
 Il répond à une seule question : où en est-on, et qui attend quoi.
 
-Dernière mise à jour : 31/08/2026, après le commit de la tâche 11.
+Dernière mise à jour : 04/09/2026, après le commit de la tâche 14.
 
 ---
 
@@ -15,13 +15,19 @@ Dernière mise à jour : 31/08/2026, après le commit de la tâche 11.
 | 06 | Photo et remarque par bouteille | **Terminée et commitée** (`370ff0a`) | à vérifier à l'écran |
 | 07 | Référence bouteille automatique | **Terminée et commitée** | personne |
 | 08 | Négociation en tonnes | **Terminée et commitée**, migration 0011 comprise | à vérifier à l'écran |
-| 09 | Filtre par dates unifié | Consigne à jour, trois dates possibles depuis la tâche 13. **Prête à lancer** | Codex |
+| 09 | Filtre par dates unifié (+ reprise 3 : libellé "Livraison du stock", indications sous chaque choix, 4ᵉ type pour le collecteur) | **Prête à lancer** | Codex |
 | 10 | Carte analyses laboratoire | **Terminée et commitée** (sauf le filtre par dates, qui attend la 09) | à vérifier à l'écran |
 | 11 | Supprimer l'historique | **Terminée et commitée**, migration 0012 comprise | personne |
 | 12 | Notifications | **Jamais lancée** | Codex |
+| 14 | Référence bouteille : indication dans le champ + mise à jour continue (collecteur) | **Terminée et commitée** (`a9deb01`) | à vérifier à l'écran |
+| 15 | Retirer le compteur d'échantillons, remplacer par une phrase de contexte (collecteur) | **Prête à lancer** | Codex |
+| 16 | `getList()` doit ramener toutes les pages, pas seulement la première | **Prête à lancer** | Codex |
+| 17 | Ajouter/modifier/supprimer un échantillon sans écriture en base, en mode démonstration (collecteur) | **Prête à lancer** | Codex |
+| 18 | Retirer complètement la carte géographique (collecteur, + vérification côté CEO) | **Prête à lancer** | Codex |
+| 19 | Champ "lieu précis" hors liste gouvernorat/délégation (collecteur, dégustateur, chef dégustateur) | **Prête à lancer** | Codex |
 
-Ordre conseillé : 09, puis 12.
-Les seules contraintes réelles sont **06 avant 07** et **09 avant 10**.
+14 est faite. Ordre conseillé pour la suite : 16, 17, 18, 19, 15, 09, 12.
+Les seules contraintes réelles sont **06 avant 07** et **09 avant 10** (10 est déjà faite).
 
 ---
 
