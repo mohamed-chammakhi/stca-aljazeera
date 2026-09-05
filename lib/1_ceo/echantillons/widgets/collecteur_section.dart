@@ -3,7 +3,6 @@
 // ═════════════════════════════════════════════════════════════════════════════
 
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:project3/core/theme/app_colors.dart';
 import '../../utilisateurs/models/echantillon_ceo_view.dart';
 import '../../widgets/sample_card_echantillon.dart';
@@ -26,7 +25,6 @@ class CollecteurSection extends StatelessWidget {
   final Set<String> expandedSamples;
   final VoidCallback onToggleCollecteur;
   final void Function(String id) onToggleSample;
-  final VoidCallback? onViewMap;
 
   const CollecteurSection({
     required this.group,
@@ -34,7 +32,6 @@ class CollecteurSection extends StatelessWidget {
     required this.expandedSamples,
     required this.onToggleCollecteur,
     required this.onToggleSample,
-    this.onViewMap,
   });
 
   @override
@@ -133,42 +130,6 @@ class CollecteurSection extends StatelessWidget {
                         ],
                       ),
                     ),
-                    if (onViewMap != null) ...[
-                      GestureDetector(
-                        onTap: onViewMap,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 5,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.blue.shade50,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: Colors.blue.shade100),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                Icons.map_outlined,
-                                size: 12,
-                                color: Colors.blue.shade600,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                'Carte',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.blue.shade600,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                    ],
                     AnimatedRotation(
                       turns: isExpanded ? 0.5 : 0.0,
                       duration: const Duration(milliseconds: 200),
@@ -211,50 +172,4 @@ class CollecteurSection extends StatelessWidget {
       ),
     );
   }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// CARTE GEO PLACEHOLDER
-// ─────────────────────────────────────────────────────────────────────────────
-class CarteGeoPlaceholder extends StatelessWidget {
-  final String collecteurNom;
-  const CarteGeoPlaceholder({super.key, required this.collecteurNom});
-
-  @override
-  Widget build(BuildContext context) => Scaffold(
-    backgroundColor: kBg,
-    appBar: AppBar(
-      backgroundColor: kGreen,
-      elevation: 0,
-      title: Text(
-        collecteurNom,
-        style: GoogleFonts.domine(
-          fontSize: 17,
-          fontWeight: FontWeight.w700,
-          color: Colors.white,
-        ),
-      ),
-    ),
-    body: Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.map_outlined, size: 56, color: Colors.grey.shade300),
-          const SizedBox(height: 14),
-          Text(
-            'Carte géographique',
-            style: GoogleFonts.domine(
-              fontSize: 16,
-              color: Colors.grey.shade500,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            'Connecter CarteGeoPage ici',
-            style: TextStyle(fontSize: 12, color: Colors.grey.shade400),
-          ),
-        ],
-      ),
-    ),
-  );
 }

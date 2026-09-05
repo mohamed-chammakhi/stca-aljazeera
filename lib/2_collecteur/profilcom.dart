@@ -220,7 +220,6 @@ class _ProfileCollecteurPageState extends State<ProfileCollecteurPage>
       backgroundColor: Colors.white,
       drawer: CollecteurDrawer(
         onMesEchantillons: () => goToPage(const MesEchantillonsPage()),
-        onCarte: () => goToPage(const Placeholder()),
         onMessagerie: () => goToPage(const Placeholder()),
 
         onProfil: () => Navigator.pop(context),

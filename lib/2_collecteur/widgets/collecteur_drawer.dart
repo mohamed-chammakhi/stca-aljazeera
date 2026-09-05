@@ -4,7 +4,6 @@ import 'col_colors.dart';
 
 class CollecteurDrawer extends StatelessWidget {
   final VoidCallback onMesEchantillons;
-  final VoidCallback onCarte;
   final VoidCallback onMessagerie;
   final VoidCallback onProfil;
   final VoidCallback onDeconnexion;
@@ -12,7 +11,6 @@ class CollecteurDrawer extends StatelessWidget {
   const CollecteurDrawer({
     super.key,
     required this.onMesEchantillons,
-    required this.onCarte,
     required this.onMessagerie,
     required this.onProfil,
     required this.onDeconnexion,
@@ -83,18 +81,16 @@ class CollecteurDrawer extends StatelessWidget {
             // ── Nav ──
             Expanded(
               child: ListView(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
                 children: [
                   _SectionLabel('Activités'),
                   _DrawerItem(
                     icon: Icons.inventory_2_outlined,
                     label: 'Mes échantillons',
                     onTap: onMesEchantillons,
-                  ),
-                  _DrawerItem(
-                    icon: Icons.map_outlined,
-                    label: 'Carte géographique',
-                    onTap: onCarte,
                   ),
                   _DrawerItem(
                     icon: Icons.chat_bubble_outline,

@@ -22,7 +22,6 @@ import '../notifications/notifications_collecteur_page.dart';
 import '../notifications/services/notification_collecteur_service.dart';
 import '../../../main.dart';
 import '../profilcom.dart';
-import '../carte_geo/carte_geo_page.dart';
 import '../carte_geo/services/geo_service.dart';
 import '../../core/widgets/bandeau_demonstration.dart';
 
@@ -611,7 +610,6 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
       backgroundColor: colBg,
       drawer: CollecteurDrawer(
         onMesEchantillons: () => Navigator.pop(context),
-        onCarte: () => goToPage(CarteGeoPage(echantillons: _echantillons)),
         onMessagerie: () => goToPage(const Placeholder()),
         onProfil: () => goToPage(const ProfileCollecteurPage()),
         onDeconnexion: goToLogin,

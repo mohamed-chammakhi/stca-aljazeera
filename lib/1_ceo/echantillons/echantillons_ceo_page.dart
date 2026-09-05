@@ -417,16 +417,6 @@ class _EchantillonsCeoPageState extends State<EchantillonsCeoPage>
                                     ? _expandedSamples.remove(id)
                                     : _expandedSamples.add(id);
                               }),
-                              onViewMap: groups[i].isInterne
-                                  ? null
-                                  : () => Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (_) => CarteGeoPlaceholder(
-                                          collecteurNom: groups[i].displayName,
-                                        ),
-                                      ),
-                                    ),
                             ),
                           ),
                   ),

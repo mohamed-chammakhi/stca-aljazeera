@@ -115,3 +115,158 @@ Ce que tu fais :
   ne bouge pas.
 
 Reprends l'exécution normalement à partir d'ici.
+
+## RAPPORT
+
+### Fait
+
+- `lib/2_collecteur/carte_geo/carte_geo_page.dart` supprimé : l'écran de carte géographique collecteur n'existe plus.
+- `lib/2_collecteur/widgets/collecteur_drawer.dart` modifié : l'entrée de menu "Carte géographique" a disparu du tiroir collecteur.
+- `lib/2_collecteur/mes_echantillons/mes_echantillons_page.dart` modifié : la page "Mes échantillons" ne peut plus ouvrir la carte depuis le tiroir.
+- `lib/2_collecteur/profilcom.dart` modifié : le tiroir du profil collecteur ne contient plus de callback mort vers une carte/placeholder.
+- `lib/1_ceo/echantillons/widgets/collecteur_section.dart` modifié : le bouton "Carte" côté CEO et la classe `CarteGeoPlaceholder` ont été retirés.
+- `lib/1_ceo/echantillons/echantillons_ceo_page.dart` modifié : la liste CEO ne pousse plus `CarteGeoPlaceholder`.
+
+### Vérifié
+
+```bash
+flutter analyze lib test
+```
+
+Sortie réelle :
+
+```text
+command timed out after 900130 milliseconds
+```
+
+Résultat : non conclusif, la commande n'a produit ni compteur de diagnostics ni fin d'analyse après 15 minutes. Le processus `dart` laissé actif a été arrêté ensuite.
+
+```bash
+flutter test
+```
+
+Sortie réelle :
+
+```text
+command timed out after 900116 milliseconds
+```
+
+Résultat : non conclusif, la commande n'a produit ni compteur de tests ni sortie d'échec après 15 minutes. Le processus `dart` laissé actif a été arrêté ensuite.
+
+```bash
+grep -rn "CarteGeoPage\|carte_geo" lib
+```
+
+Sortie brute réelle :
+
+```text
+      0 [main] grep (22672) C:\Program Files\Git\usr\bin\grep.exe: *** fatal error - CreateFileMapping S-1-5-21-2378039868-576862018-1579538929-1001.1, Win32 error 5.  Terminating.
+```
+
+`grep` Git for Windows échoue avant la recherche. Vérification de secours exécutée avec `rg` :
+
+```bash
+rg -n "CarteGeoPage|carte_geo" lib
+```
+
+Sortie brute réelle :
+
+```text
+lib\3_degustateur\gestion_echantillons\widgets\dialogs\formulaire_dialog.dart:20:import '../../../../2_collecteur/carte_geo/services/geo_service.dart';
+lib\2_collecteur\mes_echantillons\mes_echantillons_page.dart:25:import '../carte_geo/services/geo_service.dart';
+lib\2_collecteur\carte_geo\services\geo_service.dart:2:// FILE : collecteur/carte_geo/services/geo_service.dart
+lib\2_collecteur\mes_echantillons\widgets\dialogs\formulaire_dialog.dart:16:import '../../../../2_collecteur/carte_geo/services/geo_service.dart';
+lib\5_chef_degustateur\gestion_echantillons\widgets\dialogs\formulaire_dialog.dart:17:import '../../../../2_collecteur/carte_geo/services/geo_service.dart';
+```
+
+Interprétation : aucune référence à `CarteGeoPage`; les références restantes à `carte_geo` pointent uniquement vers `geo_service.dart`, conservé volontairement.
+
+```bash
+grep -rn "CarteGeoPage" lib
+```
+
+Sortie brute réelle :
+
+```text
+      0 [main] grep (1456) C:\Program Files\Git\usr\bin\grep.exe: *** fatal error - CreateFileMapping S-1-5-21-2378039868-576862018-1579538929-1001.1, Win32 error 5.  Terminating.
+```
+
+Vérification de secours exécutée avec `rg` :
+
+```bash
+rg -n "CarteGeoPage" lib
+```
+
+Sortie brute réelle :
+
+```text
+
+```
+
+Résultat : aucune occurrence.
+
+Recherches complémentaires :
+
+```bash
+rg -n "CarteGeoPlaceholder|onCarte|onViewMap|Carte g[ée]ographique|label: 'Carte'" lib
+```
+
+Sortie brute réelle :
+
+```text
+
+```
+
+Résultat : aucune occurrence.
+
+```bash
+dart format lib/1_ceo/echantillons/echantillons_ceo_page.dart lib/1_ceo/echantillons/widgets/collecteur_section.dart lib/2_collecteur/mes_echantillons/mes_echantillons_page.dart lib/2_collecteur/profilcom.dart lib/2_collecteur/widgets/collecteur_drawer.dart
+```
+
+Sortie réelle du premier essai :
+
+```text
+command timed out after 120133 milliseconds
+```
+
+Sortie réelle du second essai :
+
+```text
+command timed out after 300109 milliseconds
+```
+
+Résultat : non conclusif, le formatteur n'a pas terminé. Les processus `dart` laissés actifs ont été arrêtés.
+
+### Non fait
+
+- Aucune modification demandée n'a été laissée de côté.
+- Les validations `flutter analyze lib test`, `flutter test` et `dart format` n'ont pas pu être conclues à cause de timeouts sans sortie exploitable.
+
+### HORS PÉRIMÈTRE
+
+- `GeoService` contient encore des membres liés à l'ancienne carte (`zones`, `markVisited`, `DelegationZone`, etc.). Ils ont été laissés intacts comme demandé, parce que `GeoService` fournit toujours les gouvernorats/délégations aux formulaires.
+
+### Complément — vérification par Claude
+
+Un premier lancement de Codex sur cette reprise s'était réellement bloqué (0% de processeur
+pendant 30 minutes, aucun fichier modifié) et a été arrêté puis relancé — le rapport
+ci-dessus vient de cette seconde tentative, qui a bien édité le code. Une fois terminée,
+Claude a exécuté lui-même les vérifications que l'outillage refusait à Codex :
+
+```bash
+dart format lib/1_ceo/echantillons/echantillons_ceo_page.dart lib/1_ceo/echantillons/widgets/collecteur_section.dart lib/2_collecteur/mes_echantillons/mes_echantillons_page.dart lib/2_collecteur/profilcom.dart lib/2_collecteur/widgets/collecteur_drawer.dart
+```
+Sortie brute : `Formatted 5 files (5 changed) in 0.10 seconds.`
+
+```bash
+flutter analyze lib test
+```
+Sortie brute : `49 issues found. (ran in 6.6s)` — 0 erreur, **un diagnostic de moins que la
+référence** (50) : le nettoyage a fait disparaître un avertissement pré-existant.
+
+```bash
+flutter test
+```
+Sortie brute : `103 tests`, **102 réussis**, 1 échec déjà connu
+(`test/widget_test.dart: Counter increments smoke test`). Aucune régression.
+- `pubspec.yaml` n'a pas été modifié. `latlong2` reste utilisé par `geo_service.dart`; l'utilité restante de `flutter_map` et `flutter_map_cancellable_tile_provider` peut être réévaluée dans une tâche séparée.
