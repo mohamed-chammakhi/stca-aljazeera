@@ -103,6 +103,11 @@ class ApiClient {
   //          → full URL = "http://192.168.1.10:8000/api/samples/"
   Uri _uri(String path) => Uri.parse('$baseUrl$path');
 
+  Uri _uriFromPathOrUrl(String pathOrUrl) {
+    final uri = Uri.parse(pathOrUrl);
+    return uri.hasScheme ? uri : _uri(pathOrUrl);
+  }
+
   // ── Auto token refresh ────────────────────────────────────────────────────
   //
   // The access token expires after ~15 minutes for security reasons.
@@ -209,15 +214,30 @@ class ApiClient {
   // so callers never have to deal with the wrapper themselves.
   Future<List<dynamic>> getList(String path) async {
     final headers = await _headers();
-    final response = await _send(() => http.get(_uri(path), headers: headers));
-    _assertSuccess(response);
-    final decoded = jsonDecode(response.body);
-    // Paginated response — unwrap and return only the items array.
-    if (decoded is Map && decoded.containsKey('results')) {
-      return decoded['results'] as List<dynamic>;
+    String? nextUrl = path;
+    final allItems = <dynamic>[];
+
+    while (nextUrl != null) {
+      final currentUrl = nextUrl;
+      final response = await _send(
+        () => http.get(_uriFromPathOrUrl(currentUrl), headers: headers),
+      );
+      _assertSuccess(response);
+      final decoded = jsonDecode(response.body);
+
+      // Paginated response - collect this page, then follow the next URL.
+      if (decoded is Map && decoded.containsKey('results')) {
+        allItems.addAll(decoded['results'] as List<dynamic>);
+        final next = decoded['next'];
+        nextUrl = next is String && next.isNotEmpty ? next : null;
+        continue;
+      }
+
+      // Non-paginated — the server returned a plain list directly.
+      return decoded as List<dynamic>;
     }
-    // Non-paginated — the server returned a plain list directly.
-    return decoded as List<dynamic>;
+
+    return allItems;
   }
 
   // POST — send new data to the server to create a new record.

@@ -59,3 +59,49 @@ flutter test
 ```
 
 Donne les sorties chiffrées réelles dans ton rapport.
+
+## RAPPORT
+
+### Note sur l'exécution
+
+Codex a écrit le correctif ci-dessous puis son processus s'est interrompu (redémarrage de la
+session Claude en cours de tâche) avant d'avoir pu lancer la vérification ni écrire ce
+rapport. Claude a relu le code, jugé qu'il correspondait exactement à la consigne, et a
+lui-même exécuté la vérification ci-dessous plutôt que de relancer Codex sur un travail déjà
+fait.
+
+### Fait
+
+- `lib/core/api_client.dart` : `getList()` suit maintenant le champ `next` de la réponse
+  paginée Django et concatène chaque page jusqu'à épuisement, au lieu de ne renvoyer que la
+  première page. Ajout de `_uriFromPathOrUrl()` : `next` renvoyé par Django est une URL
+  absolue, pas un chemin relatif, il ne faut donc pas lui recoller `baseUrl`. Le cas non
+  paginé (liste brute) est inchangé. Aucun appelant n'a été modifié.
+
+### Vérifié
+
+```bash
+dart format lib/core/api_client.dart
+```
+Sortie brute : `Formatted 1 file (0 changed) in 0.11 seconds.`
+
+```bash
+flutter analyze lib test
+```
+Sortie brute : `50 issues found. (ran in 144.6s)` — 0 erreur, conforme à la référence
+(50 diagnostics, 0 erreur).
+
+```bash
+flutter test
+```
+Sortie brute : `103 tests` au total, **102 réussis**, 1 échec — le seul déjà connu
+(`test/widget_test.dart: Counter increments smoke test`). Aucune régression.
+
+### Non fait
+
+Rien.
+
+### HORS PÉRIMÈTRE
+
+Rien de nouveau au-delà de ce que la consigne signalait déjà (système de pagination à
+l'affichage non construit ici, comme demandé).
