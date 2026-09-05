@@ -71,3 +71,86 @@ flutter test
 ```
 
 Donne les sorties chiffrées réelles dans ton rapport.
+
+## RAPPORT
+
+### Fait
+
+- `lib/core/models/echantillon_evaluation.dart` : les listes d'évaluation du dégustateur et du chef peuvent maintenant lire et renvoyer le lieu précis `cite`.
+- `lib/2_collecteur/mes_echantillons/widgets/dialogs/formulaire_dialog.dart` : le collecteur dispose d'un champ libre "Lieu précis (optionnel)" après la délégation, prérempli en modification et enregistré avec l'échantillon.
+- `lib/3_degustateur/gestion_echantillons/widgets/dialogs/formulaire_dialog.dart` : le dégustateur dispose du même champ libre, au même endroit, avec le même texte.
+- `lib/5_chef_degustateur/gestion_echantillons/widgets/dialogs/formulaire_dialog.dart` : le chef dégustateur dispose du même champ libre, au même endroit, avec le même texte.
+
+### Vérifié
+
+```bash
+dart format lib/core/models/echantillon_evaluation.dart lib/2_collecteur/mes_echantillons/widgets/dialogs/formulaire_dialog.dart lib/3_degustateur/gestion_echantillons/widgets/dialogs/formulaire_dialog.dart lib/5_chef_degustateur/gestion_echantillons/widgets/dialogs/formulaire_dialog.dart
+```
+
+Sortie réelle : `Exit code 124`, `command timed out after 120100 milliseconds`. Aucune sortie stdout/stderr avant expiration.
+
+```bash
+flutter analyze lib test
+```
+
+Sortie réelle : `Exit code 124`, `command timed out after 900132 milliseconds`. Aucune sortie stdout/stderr avant expiration.
+
+```bash
+flutter test
+```
+
+Sortie réelle : `Exit code 124`, `command timed out after 900056 milliseconds`. Aucune sortie stdout/stderr avant expiration.
+
+Commandes de diagnostic également tentées après le blocage initial de Flutter/Dart :
+
+```bash
+flutter --version
+```
+
+Sortie réelle : `Exit code 124`, `command timed out after 120137 milliseconds`. Aucune sortie stdout/stderr avant expiration.
+
+```bash
+flutter --no-version-check analyze lib test
+```
+
+Sortie réelle : `Exit code 124`, `command timed out after 900136 milliseconds`. Aucune sortie stdout/stderr avant expiration.
+
+```bash
+flutter --no-version-check test
+```
+
+Sortie réelle : `Exit code 124`, `command timed out after 900118 milliseconds`. Aucune sortie stdout/stderr avant expiration.
+
+### Non fait
+
+- Rien de demandé n'a été laissé volontairement de côté. `EchantillonCollecteur.toJson()` contenait déjà `'cite': cite ?? '',` à l'ouverture de la tâche, donc aucun diff n'était nécessaire dans ce fichier.
+
+### HORS PÉRIMÈTRE
+
+- L'outil Flutter/Dart local bloque avant toute sortie, y compris sur `flutter --version`; je n'ai pas modifié l'environnement SDK.
+
+### Complément — vérification par Claude
+
+Le blocage de l'outillage venait de l'extension Dart/Flutter de VS Code, tombée dans un état
+corrompu (Dart Analyzer et Flutter Daemon plantés) à force de commandes `flutter` lancées en
+parallèle par Claude et par Codex. Une fois VS Code rechargé, Claude a vérifié :
+
+```bash
+dart format lib/core/models/echantillon_evaluation.dart lib/2_collecteur/mes_echantillons/widgets/dialogs/formulaire_dialog.dart lib/3_degustateur/gestion_echantillons/widgets/dialogs/formulaire_dialog.dart lib/5_chef_degustateur/gestion_echantillons/widgets/dialogs/formulaire_dialog.dart
+```
+Sortie brute : `Formatted 4 files (3 changed) in 0.08 seconds.`
+
+```bash
+flutter analyze lib test
+```
+Sortie brute : `49 issues found. (ran in 3.0s)` — 0 erreur, conforme à la référence.
+
+```bash
+flutter test
+```
+Sortie brute : `103 tests`, **102 réussis**, 1 échec déjà connu
+(`test/widget_test.dart: Counter increments smoke test`). Aucune régression.
+
+Vérifié aussi côté serveur : `backend_new/echantillons/models.py` et `serializers.py`
+possèdent déjà le champ `cite` (migration `0004`) — aucune migration Django nécessaire,
+la donnée sera bien reçue et persistée.

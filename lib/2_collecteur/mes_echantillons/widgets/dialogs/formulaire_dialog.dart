@@ -87,6 +87,7 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
   // ── Shared controllers ───────────────────────────────────────────────────
   late final TextEditingController _codeFournisseurCtrl;
   late final TextEditingController _collecteurCtrl;
+  late final TextEditingController _citeCtrl;
 
   // ── Date de livraison ────────────────────────────────────────────────────
   ModePlanificationUI _livMode = ModePlanificationUI.dateExacte;
@@ -179,6 +180,7 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
       text: e?.fournisseurNom ?? e?.codeFournisseur ?? '',
     );
     _collecteurCtrl = TextEditingController(text: e?.collecteurNom ?? '');
+    _citeCtrl = TextEditingController(text: e?.cite ?? '');
 
     _gouvernorat = (e?.gouvernorat != null && e!.gouvernorat.isNotEmpty)
         ? e.gouvernorat
@@ -209,6 +211,7 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
   void dispose() {
     _codeFournisseurCtrl.dispose();
     _collecteurCtrl.dispose();
+    _citeCtrl.dispose();
     for (final b in _bouteilles) {
       b.dispose();
     }
@@ -324,6 +327,7 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
     final fournisseurNom = _codeFournisseurCtrl.text.trim().isEmpty
         ? null
         : _codeFournisseurCtrl.text.trim();
+    final cite = _citeCtrl.text.trim().isEmpty ? null : _citeCtrl.text.trim();
 
     if (_isModification) {
       final e = widget.echantillon!;
@@ -340,6 +344,7 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
           : b.qteCtrl.text.trim();
       e.gouvernorat = gouvernorat;
       e.delegation = _delegation;
+      e.cite = cite;
       e.remarques = b.remarqueCtrl.text.trim().isEmpty
           ? null
           : b.remarqueCtrl.text.trim();
@@ -372,6 +377,7 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
               : b.numCiterneCtrl.text.trim(),
           gouvernorat: gouvernorat,
           delegation: _delegation,
+          cite: cite,
           remarques: b.remarqueCtrl.text.trim().isEmpty
               ? null
               : b.remarqueCtrl.text.trim(),
@@ -510,6 +516,12 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
                       onChanged: _gouvernorat == null
                           ? null
                           : (v) => setState(() => _delegation = v),
+                    ),
+                    const SizedBox(height: 12),
+                    _FormField(
+                      label: 'Lieu précis (optionnel)',
+                      controller: _citeCtrl,
+                      hint: 'Ex: nom du village, du lieu-dit...',
                     ),
                     const SizedBox(height: 12),
 

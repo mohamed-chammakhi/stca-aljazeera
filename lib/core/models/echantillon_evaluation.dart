@@ -26,6 +26,7 @@ class Echantillon {
   final String variete;
   final String? gouvernorat; // Tunisian governorate (replaces origine)
   final String? delegation; // sub-region — optional, cascades from gouvernorat
+  final String? cite; // precise place — optional free text
   final String? photoUrl;
   final String? quantite; // quantity in tonnes
   final String? collecteur; // collector name — optional
@@ -40,6 +41,7 @@ class Echantillon {
     required this.variete,
     this.gouvernorat,
     this.delegation,
+    this.cite,
     this.photoUrl,
     this.quantite,
     this.collecteur,
@@ -56,6 +58,7 @@ class Echantillon {
       variete: json['variete'] as String,
       gouvernorat: json['gouvernorat'] as String?,
       delegation: json['delegation'] as String?,
+      cite: json['cite'] as String?,
       photoUrl: json['photo_url'] as String?,
       quantite: json['quantite'] as String?,
       collecteur: json['collecteur'] as String?,
@@ -72,6 +75,7 @@ class Echantillon {
     'variete': variete,
     'gouvernorat': gouvernorat,
     'delegation': delegation,
+    'cite': cite,
     'photo_url': photoUrl,
     'quantite': quantite,
     'collecteur': collecteur,
