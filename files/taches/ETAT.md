@@ -3,7 +3,7 @@
 Ce fichier est le tableau de bord. **Claude le tient à jour, personne d'autre.**
 Il répond à une seule question : où en est-on, et qui attend quoi.
 
-Dernière mise à jour : 05/09/2026, après le commit de la tâche 16.
+Dernière mise à jour : 05/09/2026, après le commit de la tâche 17.
 
 ---
 
@@ -22,11 +22,11 @@ Dernière mise à jour : 05/09/2026, après le commit de la tâche 16.
 | 14 | Référence bouteille : indication dans le champ + mise à jour continue (collecteur) | **Terminée et commitée** (`a9deb01`) | à vérifier à l'écran |
 | 15 | Retirer le compteur d'échantillons, remplacer par une phrase de contexte (collecteur) | **Prête à lancer** | Codex |
 | 16 | `getList()` doit ramener toutes les pages, pas seulement la première | **Terminée et commitée** (`37c9342`) | personne |
-| 17 | Ajouter/modifier/supprimer un échantillon sans écriture en base, en mode démonstration (collecteur) | **Prête à lancer** | Codex |
+| 17 | Ajouter/modifier/supprimer un échantillon sans écriture en base, en mode démonstration (collecteur) | **Terminée et commitée** (`ab6a382`) | à vérifier à l'écran |
 | 18 | Retirer complètement la carte géographique (collecteur, + vérification côté CEO) | **Prête à lancer** | Codex |
 | 19 | Champ "lieu précis" hors liste gouvernorat/délégation (collecteur, dégustateur, chef dégustateur) | **Prête à lancer** | Codex |
 
-14 et 16 sont faites. Ordre conseillé pour la suite : 17, 18, 19, 15, 09, 12.
+14, 16 et 17 sont faites. Ordre conseillé pour la suite : 18, 19, 15, 09, 12.
 Les seules contraintes réelles sont **06 avant 07** et **09 avant 10** (10 est déjà faite).
 
 ---
