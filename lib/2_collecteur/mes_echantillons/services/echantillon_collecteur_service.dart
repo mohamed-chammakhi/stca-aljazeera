@@ -175,9 +175,7 @@ class EchantillonCollecteurService {
     EchantillonCollecteur e,
   ) async {
     if (_usingMockData) {
-      throw StateError(
-        'Création indisponible avec les données de démonstration.',
-      );
+      return e;
     }
     final response = await _api.post('/api/echantillons/', _toDjangoMap(e));
     return EchantillonCollecteur.fromJson(_toFlutterMap(response));
@@ -191,9 +189,7 @@ class EchantillonCollecteurService {
     required String filename,
   }) async {
     if (_usingMockData) {
-      throw StateError(
-        'Création indisponible avec les données de démonstration.',
-      );
+      return e;
     }
     final dj = _toDjangoMap(e);
     final fields = <String, String>{};
@@ -214,9 +210,7 @@ class EchantillonCollecteurService {
     EchantillonCollecteur e,
   ) async {
     if (_usingMockData) {
-      throw StateError(
-        'Modification indisponible avec les données de démonstration.',
-      );
+      return e;
     }
     final response = await _api.patch(
       '/api/echantillons/${e.id}/',
@@ -228,9 +222,7 @@ class EchantillonCollecteurService {
   /// Deletes an echantillon by ID.
   Future<void> deleteEchantillon(String id) async {
     if (_usingMockData) {
-      throw StateError(
-        'Suppression indisponible avec les données de démonstration.',
-      );
+      return;
     }
     await _api.delete('/api/echantillons/$id/');
   }
