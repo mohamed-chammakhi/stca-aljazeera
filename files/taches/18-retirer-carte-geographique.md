@@ -70,3 +70,48 @@ grep -rn "CarteGeoPage" lib
 
 Donne les sorties chiffrées réelles dans ton rapport, y compris le résultat brut du `grep`
 (il doit ne rien renvoyer).
+
+## QUESTION
+
+La consigne demande de verifier si `CarteGeoPlaceholder` est instanciee ailleurs, puis de
+s'arreter avant de toucher au code si c'est le cas. La verification trouve une instance
+reelle cote CEO :
+
+```bash
+rg -n "CarteGeoPlaceholder" lib files
+```
+
+```text
+files\taches\18-retirer-carte-geographique.md:28:| `lib/1_ceo/echantillons/widgets/collecteur_section.dart` (~L155-257) | Étiquette "Carte" et classe `CarteGeoPlaceholder` ("Connecter CarteGeoPage ici") — vérifie si ce widget est réellement instancié quelque part avant de le supprimer |
+files\taches\18-retirer-carte-geographique.md:41:   si `CarteGeoPlaceholder` est instanciée ailleurs dans le code. Si non, supprime la classe
+lib\1_ceo\echantillons\widgets\collecteur_section.dart:219:class CarteGeoPlaceholder extends StatelessWidget {
+lib\1_ceo\echantillons\widgets\collecteur_section.dart:221:  const CarteGeoPlaceholder({super.key, required this.collecteurNom});
+lib\1_ceo\echantillons\echantillons_ceo_page.dart:425:                                        builder: (_) => CarteGeoPlaceholder(
+```
+
+Question : faut-il aussi retirer l'acces CEO qui pousse `CarteGeoPlaceholder` depuis
+`lib/1_ceo/echantillons/echantillons_ceo_page.dart`, ou la suppression doit-elle rester
+strictement limitee a l'ecran carte du collecteur ?
+
+---
+
+### RÉPONSE À LA QUESTION
+
+Oui, retire-la aussi. Le propriétaire a demandé que la carte géographique soit "retirée
+complètement" — sans exception pour ce bouton. `CarteGeoPlaceholder` ne fait déjà rien de
+réel (son propre texte dit "Connecter CarteGeoPage ici", c'est une ébauche jamais terminée),
+donc le garder serait un bouton "Carte" qui ne mène nulle part d'utile, pire que pas de
+bouton du tout.
+
+Ce que tu fais :
+- Retire l'étiquette "Carte" et son `onTap` qui construit `CarteGeoPlaceholder` dans
+  `lib/1_ceo/echantillons/widgets/collecteur_section.dart` (~L155-163 pour l'étiquette,
+  ~L217-257 pour la classe `CarteGeoPlaceholder` elle-même — supprime la classe aussi,
+  vérifie d'abord avec `grep` qu'elle n'est utilisée nulle part ailleurs).
+- Retire l'appel `builder: (_) => CarteGeoPlaceholder(...)` dans
+  `lib/1_ceo/echantillons/echantillons_ceo_page.dart` (~L425) et ce qui l'entoure
+  (le bouton/l'action qui déclenchait cette navigation côté CEO).
+- Le reste de la consigne d'origine ne change pas : `GeoService` reste intact, `pubspec.yaml`
+  ne bouge pas.
+
+Reprends l'exécution normalement à partir d'ici.
