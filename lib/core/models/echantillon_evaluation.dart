@@ -23,6 +23,9 @@ class Echantillon {
   final String ref;
   final String fournisseur;
   final String date;
+  final String? dateEnregistrement;
+  final String? dateLivraisonEchantillon;
+  final String? dateReceptionPhysique;
   final String variete;
   final String? gouvernorat; // Tunisian governorate (replaces origine)
   final String? delegation; // sub-region — optional, cascades from gouvernorat
@@ -38,6 +41,9 @@ class Echantillon {
     required this.ref,
     required this.fournisseur,
     required this.date,
+    this.dateEnregistrement,
+    this.dateLivraisonEchantillon,
+    this.dateReceptionPhysique,
     required this.variete,
     this.gouvernorat,
     this.delegation,
@@ -55,6 +61,9 @@ class Echantillon {
       ref: json['ref'] as String,
       fournisseur: json['fournisseur'] as String,
       date: json['date_arrivee'] as String,
+      dateEnregistrement: json['date_ajout'] as String?,
+      dateLivraisonEchantillon: json['date_arrivee_echantillon'] as String?,
+      dateReceptionPhysique: json['date_reception_echantillon'] as String?,
       variete: json['variete'] as String,
       gouvernorat: json['gouvernorat'] as String?,
       delegation: json['delegation'] as String?,
@@ -72,6 +81,9 @@ class Echantillon {
     'ref': ref,
     'fournisseur': fournisseur,
     'date_arrivee': date,
+    'date_ajout': dateEnregistrement,
+    'date_arrivee_echantillon': dateLivraisonEchantillon,
+    'date_reception_echantillon': dateReceptionPhysique,
     'variete': variete,
     'gouvernorat': gouvernorat,
     'delegation': delegation,

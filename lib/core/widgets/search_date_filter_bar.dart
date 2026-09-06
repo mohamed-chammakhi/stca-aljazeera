@@ -1,8 +1,3 @@
-// ═════════════════════════════════════════════════════════════════════════════
-// FILE : shared/widgets/search_date_filter_bar.dart
-// Reusable search bar + date filter sheet.
-// ═════════════════════════════════════════════════════════════════════════════
-
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -10,10 +5,12 @@ const Color _green = Color(0xFF38835A);
 const Color _cream = Color(0xFFF9F6EF);
 const Color _dark = Color(0xFF1A2E1F);
 
-// ─────────────────────────────────────────────────────────────────────────────
-// DATE FILTER TYPE  — which date field to filter by (optional feature)
-// ─────────────────────────────────────────────────────────────────────────────
-enum DateFilterType { enregistrement, livraisonEchantillon, arriveeStock }
+enum DateFilterType {
+  enregistrement,
+  livraisonEchantillon,
+  receptionPhysique,
+  arriveeStock,
+}
 
 extension DateFilterTypeX on DateFilterType {
   String get label {
@@ -22,8 +19,10 @@ extension DateFilterTypeX on DateFilterType {
         return 'Date d\'enregistrement';
       case DateFilterType.livraisonEchantillon:
         return 'Livraison échantillon';
+      case DateFilterType.receptionPhysique:
+        return 'Réception physique';
       case DateFilterType.arriveeStock:
-        return 'Arrivée du stock';
+        return 'Livraison du stock';
     }
   }
 
@@ -33,16 +32,27 @@ extension DateFilterTypeX on DateFilterType {
         return 'Enregistrement';
       case DateFilterType.livraisonEchantillon:
         return 'Livraison éch.';
+      case DateFilterType.receptionPhysique:
+        return 'Réception';
       case DateFilterType.arriveeStock:
-        return 'Arrivée stock';
+        return 'Livraison stock';
+    }
+  }
+
+  String get helpText {
+    switch (this) {
+      case DateFilterType.enregistrement:
+        return 'Cherche les échantillons enregistrés à une date précise.';
+      case DateFilterType.livraisonEchantillon:
+        return 'Cherche les échantillons que vous prévoyez de livrer à une date précise.';
+      case DateFilterType.receptionPhysique:
+        return 'Cherche les échantillons réellement arrivés à l\'entreprise.';
+      case DateFilterType.arriveeStock:
+        return 'Cherche les dates auxquelles vous prévoyez de livrer le stock acheté.';
     }
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// SEARCH BAR
-// A slim, self-contained search input that notifies parent on change/clear.
-// ─────────────────────────────────────────────────────────────────────────────
 class SearchBarWidget extends StatelessWidget {
   final TextEditingController controller;
   final String searchQuery;
@@ -80,7 +90,7 @@ class SearchBarWidget extends StatelessWidget {
           onChanged: (v) => onChanged(v.trim()),
           style: const TextStyle(fontSize: 13, color: _dark),
           decoration: InputDecoration(
-            hintText: 'Rechercher réf, fournisseur, gouvernorat…',
+            hintText: 'Rechercher réf, fournisseur, gouvernorat...',
             hintStyle: const TextStyle(
               fontSize: 13,
               color: Color.fromARGB(255, 150, 149, 149),
@@ -113,9 +123,6 @@ class SearchBarWidget extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// DATE FILTER BUTTON  (AppBar action)
-// ─────────────────────────────────────────────────────────────────────────────
 class DateFilterButton extends StatelessWidget {
   final DateTime? dateDebut;
   final DateTime? dateFin;
@@ -131,7 +138,9 @@ class DateFilterButton extends StatelessWidget {
   bool get _active => dateDebut != null;
 
   String _fmt(DateTime d) =>
-      '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}';
+      '${d.day.toString().padLeft(2, '0')}/'
+      '${d.month.toString().padLeft(2, '0')}/'
+      '${d.year}';
 
   @override
   Widget build(BuildContext context) {
@@ -175,20 +184,16 @@ class DateFilterButton extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// DATE FILTER SHEET
-// ─────────────────────────────────────────────────────────────────────────────
 class DateFilterSheet extends StatefulWidget {
   final DateTime? dateDebut;
   final DateTime? dateFin;
   final void Function(DateTime debut, DateTime? fin) onApply;
   final VoidCallback onClear;
-  // Optional: enable a date-type selector above the date pickers.
-  // When provided, onApplyTyped fires instead of onApply.
+  final String titre;
   final List<DateFilterType> availableTypes;
   final DateFilterType? initialType;
   final void Function(DateTime debut, DateTime? fin, DateFilterType type)?
-      onApplyTyped;
+  onApplyTyped;
 
   const DateFilterSheet({
     super.key,
@@ -196,6 +201,7 @@ class DateFilterSheet extends StatefulWidget {
     required this.dateFin,
     required this.onApply,
     required this.onClear,
+    this.titre = 'Filtrer par date',
     this.availableTypes = const [],
     this.initialType,
     this.onApplyTyped,
@@ -217,7 +223,8 @@ class _DateFilterSheetState extends State<DateFilterSheet> {
     _debut = widget.dateDebut;
     _fin = widget.dateFin;
     _isRange = widget.dateFin != null;
-    _selectedType = widget.initialType ??
+    _selectedType =
+        widget.initialType ??
         (widget.availableTypes.isNotEmpty
             ? widget.availableTypes.first
             : DateFilterType.enregistrement);
@@ -226,7 +233,9 @@ class _DateFilterSheetState extends State<DateFilterSheet> {
   bool get _hasTypeSelector => widget.availableTypes.length > 1;
 
   String _fmtDate(DateTime d) =>
-      '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}';
+      '${d.day.toString().padLeft(2, '0')}/'
+      '${d.month.toString().padLeft(2, '0')}/'
+      '${d.year}';
 
   Future<void> _pickDate(bool isDebut) async {
     final picked = await showDatePicker(
@@ -286,7 +295,7 @@ class _DateFilterSheetState extends State<DateFilterSheet> {
               ),
               const SizedBox(width: 8),
               Text(
-                'Filtrer par date',
+                widget.titre,
                 style: GoogleFonts.domine(
                   fontSize: 17,
                   fontWeight: FontWeight.w700,
@@ -296,8 +305,6 @@ class _DateFilterSheetState extends State<DateFilterSheet> {
             ],
           ),
           const SizedBox(height: 16),
-
-          // ── Date type selector (shown only when availableTypes provided) ──
           if (_hasTypeSelector) ...[
             Text(
               'Filtrer sur quelle date :',
@@ -323,9 +330,7 @@ class _DateFilterSheetState extends State<DateFilterSheet> {
                         vertical: 7,
                       ),
                       decoration: BoxDecoration(
-                        color: selected
-                            ? _green
-                            : Colors.grey.shade100,
+                        color: selected ? _green : Colors.grey.shade100,
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
                           color: selected ? _green : Colors.grey.shade200,
@@ -336,9 +341,7 @@ class _DateFilterSheetState extends State<DateFilterSheet> {
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
-                          color: selected
-                              ? Colors.white
-                              : Colors.grey.shade600,
+                          color: selected ? Colors.white : Colors.grey.shade600,
                         ),
                       ),
                     ),
@@ -346,10 +349,17 @@ class _DateFilterSheetState extends State<DateFilterSheet> {
                 }).toList(),
               ),
             ),
+            const SizedBox(height: 8),
+            Text(
+              _selectedType.helpText,
+              style: TextStyle(
+                fontSize: 11,
+                color: Colors.grey.shade600,
+                height: 1.35,
+              ),
+            ),
             const SizedBox(height: 16),
           ],
-
-          // Mode toggle
           Container(
             decoration: BoxDecoration(
               color: Colors.grey.shade100,
@@ -453,13 +463,11 @@ class _DateFilterSheetState extends State<DateFilterSheet> {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// PRIVATE HELPERS  (used only inside this file)
-// ─────────────────────────────────────────────────────────────────────────────
 class _ModeSegment extends StatelessWidget {
   final String label;
   final bool selected;
   final VoidCallback onTap;
+
   const _ModeSegment({
     required this.label,
     required this.selected,
@@ -504,6 +512,7 @@ class _ModeSegment extends StatelessWidget {
 class _DatePickerField extends StatelessWidget {
   final String label;
   final String? value;
+
   const _DatePickerField({required this.label, this.value});
 
   @override

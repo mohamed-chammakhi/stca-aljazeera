@@ -36,6 +36,7 @@ class GestionEchantillonsService {
       'statut_ceo': api['statut_ceo'],
       'recu_physiquement': api['recu_physiquement'] ?? false,
       'date_arrivee_echantillon': api['date_arrivee_echantillon'],
+      'date_reception_echantillon': api['date_reception_echantillon'],
       'budget_negociation': api['budget_negociation'],
       'quantite_cible_t': api['quantite_cible_t'],
       'camion_reserve': api['camion_reserve'],

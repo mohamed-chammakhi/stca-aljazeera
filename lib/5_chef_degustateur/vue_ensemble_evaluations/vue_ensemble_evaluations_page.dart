@@ -15,7 +15,7 @@ import '../utilisateurs/utilisateurs_chef_page.dart';
 import '../tableau_de_bord/homepage_page.dart';
 import '../membres_panel/membres_panel_page.dart';
 import '../gestion_echantillons/gestion_echantillons_page.dart';
-import '../gestion_echantillons/widgets/search_filter_bar.dart'
+import 'package:project3/core/widgets/search_date_filter_bar.dart'
     show DateFilterSheet;
 import '../evaluation_echantillons/evaluation_echantillons_page.dart';
 import '../analyse_labo/analyse_laboratoire_page.dart';

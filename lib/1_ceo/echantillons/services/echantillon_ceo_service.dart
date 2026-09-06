@@ -156,6 +156,9 @@ class EchantillonCeoService {
       quantiteEstimee: sample['quantite_estimee']?.toString(),
       dateAjout: _formatDate(sample['date_ajout']),
       dateArriveeEchantillon: _formatDate(sample['date_arrivee_echantillon']),
+      dateReceptionEchantillon: _formatDate(
+        sample['date_reception_echantillon'],
+      ),
       collecteurNom: sample['collecteur_nom'] as String?,
       recuPhysiquement: sample['recu_physiquement'] as bool? ?? false,
       statut: _statutFromApi(sample['statut_ceo'] as String?),

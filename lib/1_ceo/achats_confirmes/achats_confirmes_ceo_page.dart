@@ -17,7 +17,7 @@ import '../profil_ceo_page.dart';
 import '../../main.dart';
 import '../utilisateurs/models/mock_data_patch.dart';
 import '../utilisateurs/utilisateurs_ceo_page.dart';
-import '../widgets/search_date_filter_bar.dart';
+import 'package:project3/core/widgets/search_date_filter_bar.dart';
 import '../widgets/sample_card_echantillon.dart';
 import '../widgets/base_sample_card.dart';
 import '../widgets/status_filter_chip.dart';
@@ -93,6 +93,8 @@ class _AchatsConfirmesCeoPageState extends State<AchatsConfirmesCeoPage>
         return e.dateAjout;
       case DateFilterType.livraisonEchantillon:
         return e.dateArriveeEchantillon ?? e.dateLivraisonPrevue;
+      case DateFilterType.receptionPhysique:
+        return e.dateReceptionEchantillon ?? e.dateArriveeEchantillon;
       case DateFilterType.arriveeStock:
         return e.dateLivraisonStock;
     }

@@ -13,7 +13,7 @@ import 'widgets/dialogs/date_livraison_section.dart'
     show DateLivraisonSection, ModePlanificationUI;
 import 'widgets/dialogs/confirmer_achat_dialog.dart'
     show showConfirmerAchatDialog;
-import '../../1_ceo/widgets/search_date_filter_bar.dart'
+import 'package:project3/core/widgets/search_date_filter_bar.dart'
     show DateFilterSheet, DateFilterType;
 import '../widgets/collecteur_drawer.dart';
 import '../widgets/col_colors.dart';
@@ -24,6 +24,7 @@ import '../../../main.dart';
 import '../profilcom.dart';
 import '../carte_geo/services/geo_service.dart';
 import '../../core/widgets/bandeau_demonstration.dart';
+import '../../core/utils/date_filter_utils.dart';
 
 class MesEchantillonsPage extends StatefulWidget {
   const MesEchantillonsPage({super.key});
@@ -137,36 +138,22 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
           e.gouvernorat.toLowerCase().contains(q) ||
           (e.variete?.toLowerCase().contains(q) ?? false);
       final matchStatut = _filtreStatut == null || e.statut == _filtreStatut;
-      bool matchDate = true;
-      if (_dateFilterActive) {
-        DateTime? raw;
-        switch (_dateFilterType) {
-          case DateFilterType.enregistrement:
-            raw = e.dateAjout;
-          case DateFilterType.livraisonEchantillon:
-            raw = e.dateArriveeEchantillon;
-          case DateFilterType.arriveeStock:
-            raw = e.livraison?.dateExacte;
-        }
-        if (raw == null) {
-          matchDate = false;
-        } else {
-          final d = DateTime(raw.year, raw.month, raw.day);
-          final debut = _dateDebut != null
-              ? DateTime(_dateDebut!.year, _dateDebut!.month, _dateDebut!.day)
-              : null;
-          final fin = _dateFin != null
-              ? DateTime(_dateFin!.year, _dateFin!.month, _dateFin!.day)
-              : null;
-          if (debut != null && fin != null) {
-            matchDate = !d.isBefore(debut) && !d.isAfter(fin);
-          } else if (debut != null) {
-            matchDate = !d.isBefore(debut);
-          } else if (fin != null) {
-            matchDate = !d.isAfter(fin);
-          }
-        }
+      DateTime? rawDate;
+      switch (_dateFilterType) {
+        case DateFilterType.enregistrement:
+          rawDate = e.dateAjout;
+        case DateFilterType.livraisonEchantillon:
+          rawDate = e.dateArriveeEchantillon;
+        case DateFilterType.receptionPhysique:
+          rawDate = e.dateReceptionEchantillon;
+        case DateFilterType.arriveeStock:
+          rawDate = e.livraison?.dateExacte;
       }
+      final matchDate = dateCorrespondAuFiltre(
+        rawDate,
+        debut: _dateDebut,
+        fin: _dateFin,
+      );
       return matchRecherche && matchStatut && matchDate;
     }).toList();
   }
@@ -582,6 +569,7 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
         availableTypes: const [
           DateFilterType.enregistrement,
           DateFilterType.livraisonEchantillon,
+          DateFilterType.receptionPhysique,
           DateFilterType.arriveeStock,
         ],
         initialType: _dateFilterType,

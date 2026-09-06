@@ -5,7 +5,7 @@ import '../../../core/services/resultat_service.dart';
 import '../../../core/widgets/bandeau_demonstration.dart';
 import '../models/dashboard_degustateur.dart';
 import '../services/dashboard_degustateur_service.dart';
-import '../../../../core/widgets/search_filter_bar.dart';
+import 'package:project3/core/widgets/search_date_filter_bar.dart';
 import '../../evaluation_echantillons/evaluation_echantillons_page.dart';
 import 'home_activite_section.dart';
 import 'home_classifications_section.dart';
@@ -25,8 +25,18 @@ const Color _purple = Color(0xFF7B3FC4);
 const Color _olive = Color(0xFF6B8143);
 
 const List<String> _moisAbr = [
-  'Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun',
-  'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc',
+  'Jan',
+  'Fév',
+  'Mar',
+  'Avr',
+  'Mai',
+  'Jun',
+  'Jul',
+  'Aoû',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Déc',
 ];
 
 String _fmtDate(DateTime d) =>
@@ -475,40 +485,40 @@ class _HomeBodyState extends State<HomeBody> {
       child: Stack(
         children: [
           ListView(
-          padding: const EdgeInsets.fromLTRB(14, 14, 14, 52),
-          children: [
-            HomePipelineSection(pipeline: _pipeline),
-            const SizedBox(height: 12),
-            HomeUrgentesSection(
-              urgentes: _urgentes,
-              ignoredUrgentes: _ignoredUrgentes,
-              onIgnore: (id) => setState(() => _ignoredUrgentes.add(id)),
-            ),
-            const SizedBox(height: 12),
-            HomePresenceSection(
-              presence: _presence,
-              dateDebut: _presDateDebut,
-              dateFin: _presDateFin,
-              onDateTap: _openPresenceDateSheet,
-            ),
-            const SizedBox(height: 12),
-            HomeDelaiSection(
-              delai: _delai,
-              dateDebut: _delaiDateDebut,
-              dateFin: _delaiDateFin,
-              onDateTap: _openDelaiDateSheet,
-            ),
-            const SizedBox(height: 12),
-            HomeClassificationsSection(
-              classifications: _classifications,
-              dateDebut: _classDateDebut,
-              dateFin: _classDateFin,
-              onDateTap: _openClassDateSheet,
-            ),
-            const SizedBox(height: 12),
-            _buildActivite(),
-          ],
-        ),
+            padding: const EdgeInsets.fromLTRB(14, 14, 14, 52),
+            children: [
+              HomePipelineSection(pipeline: _pipeline),
+              const SizedBox(height: 12),
+              HomeUrgentesSection(
+                urgentes: _urgentes,
+                ignoredUrgentes: _ignoredUrgentes,
+                onIgnore: (id) => setState(() => _ignoredUrgentes.add(id)),
+              ),
+              const SizedBox(height: 12),
+              HomePresenceSection(
+                presence: _presence,
+                dateDebut: _presDateDebut,
+                dateFin: _presDateFin,
+                onDateTap: _openPresenceDateSheet,
+              ),
+              const SizedBox(height: 12),
+              HomeDelaiSection(
+                delai: _delai,
+                dateDebut: _delaiDateDebut,
+                dateFin: _delaiDateFin,
+                onDateTap: _openDelaiDateSheet,
+              ),
+              const SizedBox(height: 12),
+              HomeClassificationsSection(
+                classifications: _classifications,
+                dateDebut: _classDateDebut,
+                dateFin: _classDateFin,
+                onDateTap: _openClassDateSheet,
+              ),
+              const SizedBox(height: 12),
+              _buildActivite(),
+            ],
+          ),
           if (_showClearConfirm) _buildClearConfirmDialog(),
         ],
       ),
@@ -826,14 +836,17 @@ class _HomeBodyState extends State<HomeBody> {
     );
   }
 
-  Widget _ignoreButton({required VoidCallback onConfirm}) =>
-      GestureDetector(
-        onTap: onConfirm,
-        child: Padding(
-          padding: const EdgeInsets.all(6),
-          child: Icon(Icons.visibility_off_outlined, size: 16, color: Colors.grey.shade400),
-        ),
-      );
+  Widget _ignoreButton({required VoidCallback onConfirm}) => GestureDetector(
+    onTap: onConfirm,
+    child: Padding(
+      padding: const EdgeInsets.all(6),
+      child: Icon(
+        Icons.visibility_off_outlined,
+        size: 16,
+        color: Colors.grey.shade400,
+      ),
+    ),
+  );
 
   // ── 3. PRESENCE ───────────────────────────────────────────────────────────
   Widget _buildPresence() {
@@ -1442,7 +1455,8 @@ class _HomeBodyState extends State<HomeBody> {
                                     reservedSize: 22,
                                     getTitlesWidget: (v, _) {
                                       final i = v.toInt();
-                                      if (i < 0 || i >= _classifications.length) {
+                                      if (i < 0 ||
+                                          i >= _classifications.length) {
                                         return const SizedBox();
                                       }
                                       return Padding(
@@ -1789,10 +1803,14 @@ class _DonutPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = 10
       ..strokeCap = StrokeCap.round;
-    final rect = Rect.fromCircle(center: size.center(Offset.zero), radius: size.width / 2 - 5);
+    final rect = Rect.fromCircle(
+      center: size.center(Offset.zero),
+      radius: size.width / 2 - 5,
+    );
     canvas.drawArc(rect, -1.5708, 6.2832, false, bg);
     canvas.drawArc(rect, -1.5708, 6.2832 * value.clamp(0, 1), false, fg);
   }
+
   @override
   bool shouldRepaint(_DonutPainter old) => old.value != value;
 }
@@ -1805,10 +1823,15 @@ class _DashPainter extends CustomPainter {
       ..strokeWidth = 1.5;
     double x = 0;
     while (x < size.width) {
-      canvas.drawLine(Offset(x, size.height / 2), Offset(x + 4, size.height / 2), paint);
+      canvas.drawLine(
+        Offset(x, size.height / 2),
+        Offset(x + 4, size.height / 2),
+        paint,
+      );
       x += 9;
     }
   }
+
   @override
   bool shouldRepaint(_DashPainter old) => false;
 }

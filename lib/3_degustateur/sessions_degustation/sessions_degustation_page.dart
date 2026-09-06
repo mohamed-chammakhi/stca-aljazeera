@@ -24,7 +24,8 @@ import 'widgets/dialogs/formulaire_session_dialog.dart';
 import 'package:project3/core/widgets/dialogs/suppression_session_dialog.dart';
 
 // ── Shared date filter ────────────────────────────────────────────────────────
-import '../../../core/widgets/search_filter_bar.dart' show DateFilterSheet;
+import 'package:project3/core/widgets/search_date_filter_bar.dart'
+    show DateFilterSheet;
 import '../../../core/widgets/bandeau_demonstration.dart';
 
 // ── App-wide imports ──────────────────────────────────────────────────────────

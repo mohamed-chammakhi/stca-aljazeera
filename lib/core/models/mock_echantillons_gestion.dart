@@ -19,6 +19,7 @@ final List<Echantillon> mockEchantillonsGestion = [
     statutDegustateur: StatutDegustateur.enAttente,
     dateAjout: '2026-03-01',
     dateArriveeEchantillon: '2026-03-15',
+    dateReceptionEchantillon: '2026-03-16',
   ),
   Echantillon(
     id: 'aaa00000-0000-0000-0000-000000000002',
@@ -52,6 +53,7 @@ final List<Echantillon> mockEchantillonsGestion = [
     statutDegustateur: StatutDegustateur.soumis,
     dateAjout: '2026-02-21',
     dateArriveeEchantillon: '2026-02-28',
+    dateReceptionEchantillon: '2026-03-01',
   ),
   Echantillon(
     id: 'aaa00000-0000-0000-0000-000000000004',

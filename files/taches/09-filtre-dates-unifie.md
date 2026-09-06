@@ -381,3 +381,189 @@ flutter test
 ```
 
 Même référence que ci-dessus. Donne les sorties chiffrées réelles dans ton rapport.
+
+## RAPPORT
+
+### Fait
+
+- Créé `lib/core/widgets/search_date_filter_bar.dart` : tous les rôles utilisent maintenant le même `DateFilterType`, le même bouton calendrier et le même `DateFilterSheet`; `arriveeStock` affiche désormais « Livraison du stock » / « Livraison stock » et chaque type affiche sa phrase d'aide.
+- Créé `lib/core/utils/date_filter_utils.dart` : les comparaisons de date exactes/périodes sont unifiées dans une fonction pure commune.
+- Créé `test/date_filter_utils_test.dart` : tests unitaires prévus pour vérifier la comparaison inclusive et le choix du champ pour gestion, évaluation et analyse labo.
+- Modifié `lib/3_degustateur/gestion_echantillons/gestion_echantillons_page.dart` : le dégustateur peut filtrer la gestion par date d'enregistrement, livraison échantillon ou réception physique.
+- Modifié `lib/5_chef_degustateur/gestion_echantillons/gestion_echantillons_page.dart` : le chef obtient les mêmes trois choix et la même logique que le dégustateur.
+- Modifié `lib/3_degustateur/evaluation_echantillons/evaluation_echantillons_page.dart` : l'évaluation dégustateur filtre sur les trois dates communes.
+- Modifié `lib/5_chef_degustateur/evaluation_echantillons/evaluation_echantillons_page.dart` : l'évaluation chef filtre sur les trois dates communes.
+- Modifié `lib/3_degustateur/analyse_labo/analyse_laboratoire_page.dart` : l'analyse labo dégustateur utilise l'enum commun au lieu des anciennes clés texte.
+- Modifié `lib/5_chef_degustateur/analyse_labo/analyse_laboratoire_page.dart` : l'analyse labo chef propose les mêmes trois dates que le dégustateur.
+- Modifié `lib/2_collecteur/mes_echantillons/mes_echantillons_page.dart` : le collecteur conserve ses filtres existants et gagne le choix « Réception physique ».
+- Modifié `lib/core/models/echantillon.dart` : le modèle partagé distingue maintenant `date_arrivee_echantillon` et `date_reception_echantillon`.
+- Modifié `lib/core/services/gestion_echantillons_service.dart` : la date de réception physique venant de l'API arrive jusqu'au modèle de gestion.
+- Modifié `lib/core/models/echantillon_evaluation.dart` : le modèle liste d'évaluation porte les trois dates nécessaires au filtre.
+- Modifié `lib/core/services/evaluation_service.dart` : les pages d'évaluation reçoivent `date_ajout`, `date_arrivee_echantillon` et `date_reception_echantillon`.
+- Modifié `lib/core/models/mock_echantillons_evaluation.dart` : les scénarios de secours des pages d'évaluation restent filtrables.
+- Modifié `lib/core/models/mock_echantillons_gestion.dart` : les scénarios de secours de gestion incluent des dates de réception physique.
+- Modifié `lib/core/analyses/ligne_analyse_labo.dart` : la ligne analyse labo porte aussi la date de livraison échantillon.
+- Modifié `lib/core/analyses/ligne_analyse_labo_service.dart` : l'analyse labo sépare livraison prévue et réception physique quand l'API fournit les champs.
+- Modifié `lib/1_ceo/utilisateurs/models/echantillon_ceo_view.dart` : la vue CEO peut porter la date de réception physique sans casser les filtres existants.
+- Modifié `lib/1_ceo/echantillons/services/echantillon_ceo_service.dart` : la date de réception physique est lue depuis l'API pour la vue CEO.
+- Modifié `lib/1_ceo/echantillons/echantillons_ceo_page.dart` : la page CEO reste compatible avec `DateFilterType.values`, qui contient maintenant `receptionPhysique`.
+- Modifié `lib/1_ceo/analyse_laboratoire/analyse_laboratoire_ceo_page.dart` : le switch CEO connaît le nouveau type commun sans changer ses choix visibles.
+- Modifié `lib/1_ceo/analyse_organoleptique/analyse_organoleptique_ceo_page.dart` : le switch CEO connaît le nouveau type commun sans changer ses choix visibles.
+- Modifié `lib/1_ceo/achats_confirmes/achats_confirmes_ceo_page.dart` : le switch CEO connaît le nouveau type commun sans changer ses choix visibles.
+- Modifié `lib/1_ceo/validation_achats/validation_achats_ceo_page.dart` : l'import du filtre date pointe vers `core`.
+- Modifié `lib/1_ceo/tableau_de_bord/tableau_de_bord.dart` : le dashboard CEO utilise le `DateFilterSheet` commun.
+- Modifié `lib/3_degustateur/sessions_degustation/sessions_degustation_page.dart` : l'import du filtre date pointe vers `core`.
+- Modifié `lib/3_degustateur/tableau_de_bord/widgets/home_body.dart` : le dashboard dégustateur utilise le `DateFilterSheet` commun.
+- Modifié `lib/5_chef_degustateur/sessions_degustation/sessions_degustation_page.dart` : l'import du filtre date pointe vers `core`.
+- Modifié `lib/5_chef_degustateur/tableau_de_bord/widgets/home_body.dart` : le dashboard chef utilise le `DateFilterSheet` commun.
+- Modifié `lib/5_chef_degustateur/vue_ensemble_evaluations/vue_ensemble_evaluations_page.dart` : la vue d'ensemble utilise le `DateFilterSheet` commun.
+- Supprimé `lib/1_ceo/widgets/search_date_filter_bar.dart` : l'ancien emplacement CEO ne déclare plus de filtre dupliqué.
+- Supprimé `lib/core/widgets/search_filter_bar.dart` : l'ancienne copie core ne déclare plus de filtre date séparé.
+- Supprimé `lib/5_chef_degustateur/gestion_echantillons/widgets/search_filter_bar.dart` : l'ancienne copie chef ne déclare plus de filtre date séparé.
+
+### Vérifié
+
+```bash
+(rg -l "class DateFilterSheet" lib -g "*.dart").Count
+```
+
+Sortie brute :
+
+```text
+1
+```
+
+```bash
+rg -l "class DateFilterSheet" lib -g "*.dart"
+```
+
+Sortie brute :
+
+```text
+lib\core\widgets\search_date_filter_bar.dart
+```
+
+```bash
+rg -n "search_filter_bar|1_ceo/widgets/search_date_filter_bar|gestion_echantillons/widgets/search_filter_bar" lib test
+```
+
+Sortie brute : aucune sortie, exit code 1.
+
+```bash
+grep -rl "class DateFilterSheet" lib --include=*.dart | wc -l
+```
+
+Sortie brute :
+
+```text
+      1 [main] grep (25048) C:\Program Files\Git\usr\bin\grep.exe: *** fatal error - CreateFileMapping S-1-5-21-2378039868-576862018-1579538929-1001.1, Win32 error 5.  Terminating.
+      0 [main] wc (26096) C:\Program Files\Git\usr\bin\wc.exe: *** fatal error - CreateFileMapping S-1-5-21-2378039868-576862018-1579538929-1001.1, Win32 error 5.  Terminating.
+```
+
+```bash
+git diff --check
+```
+
+Sortie brute : exit code 0, seulement des avertissements `LF will be replaced by CRLF`.
+
+```bash
+dart format lib test
+```
+
+Sortie brute :
+
+```text
+command timed out after 120106 milliseconds
+```
+
+```bash
+dart format <fichiers modifiés>
+```
+
+Sortie brute :
+
+```text
+command timed out after 120133 milliseconds
+```
+
+```bash
+dart format test/date_filter_utils_test.dart
+```
+
+Sortie brute :
+
+```text
+command timed out after 30118 milliseconds
+```
+
+```bash
+flutter analyze lib test
+```
+
+Sortie brute :
+
+```text
+command timed out after 300112 milliseconds
+```
+
+```bash
+flutter test test/date_filter_utils_test.dart
+```
+
+Sortie brute :
+
+```text
+command timed out after 180143 milliseconds
+```
+
+```bash
+flutter --version
+```
+
+Sortie brute :
+
+```text
+command timed out after 60054 milliseconds
+```
+
+### Non fait
+
+- `flutter analyze lib test` et `flutter test` n'ont pas produit de chiffres : les commandes Flutter/Dart expirent dans cet environnement, y compris `flutter --version`. Les processus Dart restants après expiration ont été arrêtés.
+
+### HORS PÉRIMÈTRE
+
+- `backend_new/analyses/serializers.py` expose `date_arrivee` / `date_arrivee_echantillon`, mais pas `date_reception_echantillon` dans `LabEchantillonAnalyseSerializer`. Le frontend lit `date_reception_echantillon` quand il est fourni, mais je n'ai pas modifié Django car la consigne dit explicitement : aucune migration, aucun changement Django.
+
+### Complément — vérification par Claude
+
+Deux lancements de Codex se sont bloqués avant de produire ce diff (0% d'activité, aucun
+fichier modifié) et ont été arrêtés puis relancés ; le rapport ci-dessus vient de la
+troisième tentative, qui a bien édité le code.
+
+Un `dart format lib test` lancé par erreur sur tout le dépôt a reformaté 92 fichiers hors du
+périmètre de cette tâche (le reste du projet n'avait jamais été passé au formateur). Ces
+92 fichiers ont été restaurés (`git checkout`) pour ne garder que les 33 fichiers réellement
+touchés par la tâche 09.
+
+Claude a ensuite vérifié :
+
+```bash
+flutter analyze lib test
+```
+Sortie brute (première passe) : `50 issues found. (ran in 60.2s)` — un `curly_braces_in_flow_control_structures`
+en trop dans le nouveau `date_filter_utils.dart` (un `if` sans accolades). Corrigé.
+
+```bash
+flutter analyze lib test
+```
+Sortie brute (après correction) : `49 issues found. (ran in 4.7s)` — 0 erreur, conforme à la
+référence après la tâche 18.
+
+```bash
+flutter test
+```
+Sortie brute : `108 tests`, **107 réussis**, 1 échec déjà connu
+(`test/widget_test.dart: Counter increments smoke test`). Les 5 tests supplémentaires
+viennent du nouveau `test/date_filter_utils_test.dart`. Aucune régression.
+
+`grep -rl "class DateFilterSheet" lib --include=*.dart | wc -l` revérifié par Claude : `1`.

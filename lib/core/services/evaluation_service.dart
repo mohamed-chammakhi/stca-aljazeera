@@ -122,6 +122,9 @@ class EvaluationService {
           api['fournisseur_nom'] ?? api['code_fournisseur'] ?? 'Non specifie',
       'date_arrivee':
           api['date_arrivee_echantillon'] ?? api['date_ajout'] ?? '',
+      'date_ajout': api['date_ajout'],
+      'date_arrivee_echantillon': api['date_arrivee_echantillon'],
+      'date_reception_echantillon': api['date_reception_echantillon'],
       'variete': api['variete'] ?? '',
       'gouvernorat': api['gouvernorat'],
       'delegation': api['delegation'],

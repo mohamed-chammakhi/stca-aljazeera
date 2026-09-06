@@ -29,6 +29,7 @@ class EchantillonCeoView {
   final String dateAjout;
   final String? dateLivraisonPrevue;
   final String? dateArriveeEchantillon;
+  final String? dateReceptionEchantillon;
   final String? collecteurNom;
   bool recuPhysiquement;
   StatutCeo statut;
@@ -68,6 +69,7 @@ class EchantillonCeoView {
     required this.dateAjout,
     this.dateLivraisonPrevue,
     this.dateArriveeEchantillon,
+    this.dateReceptionEchantillon,
     this.collecteurNom,
     this.recuPhysiquement = false,
     required this.statut,

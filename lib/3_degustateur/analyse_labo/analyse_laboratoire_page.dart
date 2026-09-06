@@ -8,11 +8,11 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../core/analyses/ligne_analyse_labo.dart';
 import '../../../core/analyses/ligne_analyse_labo_service.dart';
 import 'package:project3/core/widgets/analyse_labo/analyse_card.dart';
-import '../../../core/widgets/search_filter_bar.dart';
+import 'package:project3/core/widgets/search_date_filter_bar.dart';
 import '../../../core/widgets/statut_chip.dart';
 import '../../../core/widgets/bandeau_demonstration.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../core/utils/date_utils.dart';
+import '../../../core/utils/date_filter_utils.dart';
 import '../widgets/degustateur_nav_mixin.dart';
 import '../tableau_de_bord/homepage_page.dart';
 import '../profil/profil_page.dart';
@@ -40,19 +40,15 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage>
   String? _filtreStatutLabel; // null = all
   DateTime? _dateDebut;
   DateTime? _dateFin;
-  String _dateType = 'enregistrement';
+  DateFilterType _dateType = DateFilterType.enregistrement;
 
-  static const _dateTypeOptions = [
-    (key: 'enregistrement', label: "Date d'enregistrement"),
-    (key: 'receptionPhysique', label: 'Date de réception physique'),
+  static const _dateFilterTypes = [
+    DateFilterType.enregistrement,
+    DateFilterType.livraisonEchantillon,
+    DateFilterType.receptionPhysique,
   ];
 
-  String get _dateTypeLabel => _dateTypeOptions
-      .firstWhere(
-        (t) => t.key == _dateType,
-        orElse: () => _dateTypeOptions.first,
-      )
-      .label;
+  String get _dateTypeLabel => _dateType.label;
 
   // ── STATE ────────────────────────────────────────────────────────────────────
   List<LigneAnalyseLabo> _analyses = [];
@@ -93,17 +89,6 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage>
     }
   }
 
-  String? _dateFieldFor(LigneAnalyseLabo a) {
-    switch (_dateType) {
-      case 'enregistrement':
-        return a.dateEnregistrement;
-      case 'receptionPhysique':
-        return a.dateReceptionPhysique;
-      default:
-        return null;
-    }
-  }
-
   List<LigneAnalyseLabo> get _filtres {
     return _analyses.where((a) {
       final matchRecherche =
@@ -115,28 +100,11 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage>
       final filtreEnum = _labelToStatut(_filtreStatutLabel);
       final matchStatut = filtreEnum == null || a.statut == filtreEnum;
 
-      bool matchDate = true;
-      if (_dateDebut != null || _dateFin != null) {
-        final raw = DegDateUtils.parseDate(_dateFieldFor(a) ?? '');
-        if (raw == null) {
-          matchDate = false;
-        } else {
-          final d = DateTime(raw.year, raw.month, raw.day);
-          final debut = _dateDebut != null
-              ? DateTime(_dateDebut!.year, _dateDebut!.month, _dateDebut!.day)
-              : null;
-          final fin = _dateFin != null
-              ? DateTime(_dateFin!.year, _dateFin!.month, _dateFin!.day)
-              : null;
-          if (debut != null && fin != null) {
-            matchDate = !d.isBefore(debut) && !d.isAfter(fin);
-          } else if (debut != null) {
-            matchDate = !d.isBefore(debut);
-          } else if (fin != null) {
-            matchDate = !d.isAfter(fin);
-          }
-        }
-      }
+      final matchDate = dateCorrespondAuFiltre(
+        dateAnalyseLabo(a, _dateType),
+        debut: _dateDebut,
+        fin: _dateFin,
+      );
 
       return matchRecherche && matchStatut && matchDate;
     }).toList();
@@ -150,7 +118,7 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage>
       isScrollControlled: true,
       builder: (_) => DateFilterSheet(
         titre: 'Filtrer par date',
-        typeOptions: _dateTypeOptions,
+        availableTypes: _dateFilterTypes,
         initialType: _dateType,
         dateDebut: _dateDebut,
         dateFin: _dateFin,

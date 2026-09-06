@@ -4,12 +4,12 @@ import '../tableau_de_bord/homepage_page.dart';
 
 import '../../../core/models/echantillon.dart';
 import '../../../core/models/enums.dart';
-import '../../../core/utils/date_utils.dart';
+import '../../../core/utils/date_filter_utils.dart';
 import 'package:project3/core/services/gestion_echantillons_service.dart';
 import 'package:project3/core/widgets/gestion_echantillons/echantillon_card.dart';
 import '../../../core/widgets/empty_state.dart';
 import 'widgets/dialogs/formulaire_dialog.dart';
-import '../../../core/widgets/search_filter_bar.dart';
+import 'package:project3/core/widgets/search_date_filter_bar.dart';
 import '../evaluation_echantillons/evaluation_echantillons_page.dart';
 import '../profil/profil_page.dart';
 import '../tableau_de_bord/widgets/app_drawer.dart';
@@ -44,6 +44,13 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage>
   String? _filtreStatut;
   DateTime? _dateDebut;
   DateTime? _dateFin;
+  DateFilterType _dateType = DateFilterType.enregistrement;
+
+  static const _dateFilterTypes = [
+    DateFilterType.enregistrement,
+    DateFilterType.livraisonEchantillon,
+    DateFilterType.receptionPhysique,
+  ];
 
   bool get _dateFilterActive => _dateDebut != null || _dateFin != null;
 
@@ -95,28 +102,11 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage>
       final matchStatut =
           _filtreStatut == null || e.statutDegustateur?.label == _filtreStatut;
 
-      bool matchDate = true;
-      if (_dateFilterActive) {
-        final raw = DegDateUtils.parseDate(e.dateAjout);
-        if (raw == null) {
-          matchDate = false;
-        } else {
-          final d = DateTime(raw.year, raw.month, raw.day);
-          final debut = _dateDebut != null
-              ? DateTime(_dateDebut!.year, _dateDebut!.month, _dateDebut!.day)
-              : null;
-          final fin = _dateFin != null
-              ? DateTime(_dateFin!.year, _dateFin!.month, _dateFin!.day)
-              : null;
-          if (debut != null && fin != null) {
-            matchDate = !d.isBefore(debut) && !d.isAfter(fin);
-          } else if (debut != null) {
-            matchDate = !d.isBefore(debut);
-          } else if (fin != null) {
-            matchDate = !d.isAfter(fin);
-          }
-        }
-      }
+      final matchDate = dateCorrespondAuFiltre(
+        dateGestionEchantillon(e, _dateType),
+        debut: _dateDebut,
+        fin: _dateFin,
+      );
 
       return matchRecherche && matchStatut && matchDate;
     }).toList();
@@ -213,12 +203,19 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage>
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       builder: (_) => DateFilterSheet(
-        titre: "Filtrer par date d'enregistrement",
+        titre: 'Filtrer par date',
+        availableTypes: _dateFilterTypes,
+        initialType: _dateType,
         dateDebut: _dateDebut,
         dateFin: _dateFin,
         onApply: (debut, fin) => setState(() {
           _dateDebut = debut;
           _dateFin = fin;
+        }),
+        onApplyTyped: (debut, fin, type) => setState(() {
+          _dateDebut = debut;
+          _dateFin = fin;
+          _dateType = type;
         }),
         onClear: () => setState(() {
           _dateDebut = null;
@@ -292,7 +289,9 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage>
                   color: _dateFilterActive ? kGreen : const Color(0xFF6B8E7A),
                 ),
                 onPressed: _showDateFilter,
-                tooltip: "Filtrer par date d'enregistrement",
+                tooltip: _dateFilterActive
+                    ? 'Filtré par : ${_dateType.label}'
+                    : 'Filtrer par date',
               ),
               if (_dateFilterActive)
                 Positioned(

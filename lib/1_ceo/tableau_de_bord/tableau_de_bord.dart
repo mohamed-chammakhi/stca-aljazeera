@@ -13,7 +13,7 @@ import '../utilisateurs/utilisateurs_ceo_page.dart';
 import '../notifications/models/notification_ceo.dart';
 import '../notifications/services/notification_ceo_service.dart';
 import '../notifications/notifications_ceo_page.dart';
-import '../../core/widgets/search_filter_bar.dart';
+import 'package:project3/core/widgets/search_date_filter_bar.dart';
 import '../../core/widgets/bandeau_demonstration.dart';
 import 'models/dashboard_models.dart';
 import 'services/dashboard_ceo_service.dart';

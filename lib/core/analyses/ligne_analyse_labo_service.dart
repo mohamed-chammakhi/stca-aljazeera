@@ -57,8 +57,11 @@ class LigneAnalyseLaboService {
       variete: json['variete'] as String?,
       quantiteEstimee: json['quantite_estimee']?.toString(),
       dateEnregistrement: _formaterDate(json['date_ajout']),
+      dateLivraisonEchantillon: _formaterDate(
+        json['date_arrivee_echantillon'] ?? json['date_arrivee'],
+      ),
       dateReceptionPhysique: _formaterDate(
-        json['date_arrivee'] ?? json['date_arrivee_echantillon'],
+        json['date_reception_echantillon'] ?? json['date_reception_physique'],
       ),
       rapport: estSoumise ? rapport : null,
     );
@@ -122,6 +125,7 @@ const List<LigneAnalyseLabo> _analysesDemonstration = [
     variete: 'Chemlali',
     quantiteEstimee: '25',
     dateEnregistrement: '01/03/2026',
+    dateLivraisonEchantillon: '10/03/2026',
     dateReceptionPhysique: '15/03/2026',
     rapport: RapportLabo(
       valeurs: _valeursCertificat188,
@@ -146,6 +150,7 @@ const List<LigneAnalyseLabo> _analysesDemonstration = [
     variete: 'Oueslati',
     quantiteEstimee: '18',
     dateEnregistrement: '23/02/2026',
+    dateLivraisonEchantillon: '01/03/2026',
     dateReceptionPhysique: '05/03/2026',
   ),
 ];

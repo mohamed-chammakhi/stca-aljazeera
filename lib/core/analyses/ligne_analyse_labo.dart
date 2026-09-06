@@ -19,6 +19,7 @@ class LigneAnalyseLabo {
   final String? variete;
   final String? quantiteEstimee;
   final String? dateEnregistrement;
+  final String? dateLivraisonEchantillon;
   final String? dateReceptionPhysique;
   final RapportLabo? rapport;
 
@@ -37,6 +38,7 @@ class LigneAnalyseLabo {
     this.variete,
     this.quantiteEstimee,
     this.dateEnregistrement,
+    this.dateLivraisonEchantillon,
     this.dateReceptionPhysique,
     this.rapport,
   });
@@ -60,6 +62,7 @@ class LigneAnalyseLabo {
       variete: json['variete'] as String?,
       quantiteEstimee: json['quantite_estimee'] as String?,
       dateEnregistrement: json['date_enregistrement'] as String?,
+      dateLivraisonEchantillon: json['date_livraison_echantillon'] as String?,
       dateReceptionPhysique: json['date_reception_physique'] as String?,
       rapport: rapportJson == null ? null : RapportLabo.fromJson(rapportJson),
     );
@@ -80,6 +83,7 @@ class LigneAnalyseLabo {
     'variete': variete,
     'quantite_estimee': quantiteEstimee,
     'date_enregistrement': dateEnregistrement,
+    'date_livraison_echantillon': dateLivraisonEchantillon,
     'date_reception_physique': dateReceptionPhysique,
     'rapport': rapport?.toJson(),
   };

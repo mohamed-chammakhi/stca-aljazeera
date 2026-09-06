@@ -10,7 +10,7 @@ import '../../../core/analyses/ligne_analyse_labo_service.dart';
 import '../widgets/statut_chip.dart';
 import 'package:project3/core/widgets/analyse_labo/analyse_card.dart';
 // date filter sheet + button
-import '../gestion_echantillons/widgets/search_filter_bar.dart';
+import 'package:project3/core/widgets/search_date_filter_bar.dart';
 
 // app-wide imports
 import '../profil.dart';
@@ -25,7 +25,7 @@ import '../../../main.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/bandeau_demonstration.dart';
 import '../widgets/chef_nav_mixin.dart';
-import '../../../core/utils/date_utils.dart';
+import '../../../core/utils/date_filter_utils.dart';
 
 class AnalyseLaboratoirePage extends StatefulWidget {
   const AnalyseLaboratoirePage({super.key});
@@ -42,6 +42,13 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage>
   String? _filtreStatutLabel; // null = all
   DateTime? _dateDebut;
   DateTime? _dateFin;
+  DateFilterType _dateType = DateFilterType.enregistrement;
+
+  static const _dateFilterTypes = [
+    DateFilterType.enregistrement,
+    DateFilterType.livraisonEchantillon,
+    DateFilterType.receptionPhysique,
+  ];
 
   bool get _anyFilter =>
       _dateDebut != null ||
@@ -100,28 +107,11 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage>
       final filtreEnum = _labelToStatut(_filtreStatutLabel);
       final matchStatut = filtreEnum == null || a.statut == filtreEnum;
 
-      bool matchDate = true;
-      if (_dateDebut != null || _dateFin != null) {
-        final raw = DegDateUtils.parseDate(a.dateEnregistrement ?? '');
-        if (raw == null) {
-          matchDate = false;
-        } else {
-          final d = DateTime(raw.year, raw.month, raw.day);
-          final debut = _dateDebut != null
-              ? DateTime(_dateDebut!.year, _dateDebut!.month, _dateDebut!.day)
-              : null;
-          final fin = _dateFin != null
-              ? DateTime(_dateFin!.year, _dateFin!.month, _dateFin!.day)
-              : null;
-          if (debut != null && fin != null) {
-            matchDate = !d.isBefore(debut) && !d.isAfter(fin);
-          } else if (debut != null) {
-            matchDate = !d.isBefore(debut);
-          } else if (fin != null) {
-            matchDate = !d.isAfter(fin);
-          }
-        }
-      }
+      final matchDate = dateCorrespondAuFiltre(
+        dateAnalyseLabo(a, _dateType),
+        debut: _dateDebut,
+        fin: _dateFin,
+      );
 
       return matchRecherche && matchStatut && matchDate;
     }).toList();
@@ -238,11 +228,18 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage>
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       builder: (_) => DateFilterSheet(
+        availableTypes: _dateFilterTypes,
+        initialType: _dateType,
         dateDebut: _dateDebut,
         dateFin: _dateFin,
         onApply: (debut, fin) => setState(() {
           _dateDebut = debut;
           _dateFin = fin;
+        }),
+        onApplyTyped: (debut, fin, type) => setState(() {
+          _dateDebut = debut;
+          _dateFin = fin;
+          _dateType = type;
         }),
         onClear: () => setState(() {
           _dateDebut = null;
@@ -311,7 +308,9 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage>
                   color: _dateFilterActive ? kGreen : const Color(0xFF6B8E7A),
                 ),
                 onPressed: _showDateFilter,
-                tooltip: 'Filtrer par date',
+                tooltip: _dateFilterActive
+                    ? 'Filtré par : ${_dateType.label}'
+                    : 'Filtrer par date',
               ),
               if (_dateFilterActive)
                 Positioned(

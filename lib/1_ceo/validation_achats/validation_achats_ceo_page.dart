@@ -9,7 +9,7 @@ import 'package:project3/core/utils/date_utils.dart';
 import 'package:project3/core/widgets/bandeau_demonstration.dart';
 import '../widgets/ceo_nav_mixin.dart';
 import '../widgets/ceo_drawer.dart';
-import '../widgets/search_date_filter_bar.dart';
+import 'package:project3/core/widgets/search_date_filter_bar.dart';
 import '../widgets/sample_card_echantillon.dart';
 import '../widgets/base_sample_card.dart';
 import '../widgets/status_filter_chip.dart';

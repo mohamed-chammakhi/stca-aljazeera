@@ -6,7 +6,7 @@ import '../../../core/services/resultat_service.dart';
 import '../../../core/widgets/bandeau_demonstration.dart';
 import '../models/dashboard_chef_degustateur.dart';
 import '../services/dashboard_chef_degustateur_service.dart';
-import '../../gestion_echantillons/widgets/search_filter_bar.dart';
+import 'package:project3/core/widgets/search_date_filter_bar.dart';
 import '../../evaluation_echantillons/evaluation_echantillons_page.dart';
 import 'home_activite_section.dart';
 import 'home_alignement_section.dart';
@@ -156,7 +156,10 @@ class _HomeBodyState extends State<HomeBody> {
   Future<void> _reloadAlignement() async {
     await _recharger(
       'alignement',
-      _service.fetchAlignement(dateDebut: _alignDateDebut, dateFin: _alignDateFin),
+      _service.fetchAlignement(
+        dateDebut: _alignDateDebut,
+        dateFin: _alignDateFin,
+      ),
       (data) => _alignement = data,
     );
   }
@@ -164,7 +167,10 @@ class _HomeBodyState extends State<HomeBody> {
   Future<void> _reloadClassifications() async {
     await _recharger(
       'classifications',
-      _service.fetchClassifications(dateDebut: _classDateDebut, dateFin: _classDateFin),
+      _service.fetchClassifications(
+        dateDebut: _classDateDebut,
+        dateFin: _classDateFin,
+      ),
       (data) => _classifications = data,
     );
   }
@@ -298,7 +304,7 @@ class _HomeBodyState extends State<HomeBody> {
   }) {
     final active = dateDebut != null;
     final chipLabel = active
-        ? '${dateDebut!.day.toString().padLeft(2,'0')}/${dateDebut.month.toString().padLeft(2,'0')}/${dateDebut.year}'
+        ? '${dateDebut!.day.toString().padLeft(2, '0')}/${dateDebut.month.toString().padLeft(2, '0')}/${dateDebut.year}'
         : 'Période';
     return Container(
       color: _headerBg,
@@ -345,7 +351,11 @@ class _HomeBodyState extends State<HomeBody> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.calendar_today_outlined, size: 10, color: active ? _green : _dark),
+                    Icon(
+                      Icons.calendar_today_outlined,
+                      size: 10,
+                      color: active ? _green : _dark,
+                    ),
                     const SizedBox(width: 4),
                     Text(
                       chipLabel,
@@ -356,7 +366,11 @@ class _HomeBodyState extends State<HomeBody> {
                       ),
                     ),
                     const SizedBox(width: 2),
-                    Icon(Icons.keyboard_arrow_down_rounded, size: 12, color: active ? _green : _dark),
+                    Icon(
+                      Icons.keyboard_arrow_down_rounded,
+                      size: 12,
+                      color: active ? _green : _dark,
+                    ),
                   ],
                 ),
               ),
@@ -391,7 +405,10 @@ class _HomeBodyState extends State<HomeBody> {
                   width: 90,
                   child: Text(
                     name,
-                    style: const TextStyle(fontSize: 11, color: Color(0xFF777777)),
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: Color(0xFF777777),
+                    ),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
@@ -410,7 +427,11 @@ class _HomeBodyState extends State<HomeBody> {
                 const SizedBox(width: 8),
                 Text(
                   label,
-                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: color),
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: color,
+                  ),
                 ),
               ],
             ),
@@ -424,7 +445,11 @@ class _HomeBodyState extends State<HomeBody> {
     onTap: onConfirm,
     child: Padding(
       padding: const EdgeInsets.all(6),
-      child: Icon(Icons.visibility_off_outlined, size: 16, color: Colors.grey.shade400),
+      child: Icon(
+        Icons.visibility_off_outlined,
+        size: 16,
+        color: Colors.grey.shade400,
+      ),
     ),
   );
 
@@ -438,150 +463,151 @@ class _HomeBodyState extends State<HomeBody> {
       child: Stack(
         children: [
           ListView(
-          padding: const EdgeInsets.fromLTRB(14, 14, 14, 52),
-          children: [
-            PipelineSection(pipeline: _pipeline),
-            const SizedBox(height: 12),
-            UrgentesSection(
-              urgentes: _urgentes,
-              urgentesCeo: _urgentesCeo,
-              ignoredUrgentes: _ignoredUrgentes,
-              ignoredUrgentesCeo: _ignoredUrgentesCeo,
-              onIgnoreUrgente: (id) => setState(() => _ignoredUrgentes.add(id)),
-              onIgnoreUrgenteCeo: (id) =>
-                  setState(() => _ignoredUrgentesCeo.add(id)),
-            ),
-            const SizedBox(height: 12),
-            if (_sessions.isNotEmpty) ...[
-              SessionsSection(sessions: _sessions),
+            padding: const EdgeInsets.fromLTRB(14, 14, 14, 52),
+            children: [
+              PipelineSection(pipeline: _pipeline),
               const SizedBox(height: 12),
-            ],
-            PresenceSection(
-              presence: _presence,
-              dateDebut: _presDateDebut,
-              dateFin: _presDateFin,
-              onDateTap: () => _openDateSheet(
+              UrgentesSection(
+                urgentes: _urgentes,
+                urgentesCeo: _urgentesCeo,
+                ignoredUrgentes: _ignoredUrgentes,
+                ignoredUrgentesCeo: _ignoredUrgentesCeo,
+                onIgnoreUrgente: (id) =>
+                    setState(() => _ignoredUrgentes.add(id)),
+                onIgnoreUrgenteCeo: (id) =>
+                    setState(() => _ignoredUrgentesCeo.add(id)),
+              ),
+              const SizedBox(height: 12),
+              if (_sessions.isNotEmpty) ...[
+                SessionsSection(sessions: _sessions),
+                const SizedBox(height: 12),
+              ],
+              PresenceSection(
+                presence: _presence,
                 dateDebut: _presDateDebut,
                 dateFin: _presDateFin,
-                onApply: (d, f) {
-                  setState(() {
-                    _presDateDebut = d;
-                    _presDateFin = f;
-                  });
-                  _reloadPresence();
-                },
-                onClear: () {
-                  setState(() {
-                    _presDateDebut = null;
-                    _presDateFin = null;
-                  });
-                  _reloadPresence();
-                },
+                onDateTap: () => _openDateSheet(
+                  dateDebut: _presDateDebut,
+                  dateFin: _presDateFin,
+                  onApply: (d, f) {
+                    setState(() {
+                      _presDateDebut = d;
+                      _presDateFin = f;
+                    });
+                    _reloadPresence();
+                  },
+                  onClear: () {
+                    setState(() {
+                      _presDateDebut = null;
+                      _presDateFin = null;
+                    });
+                    _reloadPresence();
+                  },
+                ),
               ),
-            ),
-            const SizedBox(height: 12),
-            DelaiSection(
-              delai: _delai,
-              dateDebut: _delaiDateDebut,
-              dateFin: _delaiDateFin,
-              onDateTap: () => _openDateSheet(
+              const SizedBox(height: 12),
+              DelaiSection(
+                delai: _delai,
                 dateDebut: _delaiDateDebut,
                 dateFin: _delaiDateFin,
-                onApply: (debut, fin) {
-                  setState(() {
-                    _delaiDateDebut = debut;
-                    _delaiDateFin = fin;
-                  });
-                  _reloadDelai();
-                },
-                onClear: () {
-                  setState(() {
-                    _delaiDateDebut = null;
-                    _delaiDateFin = null;
-                  });
-                  _reloadDelai();
-                },
+                onDateTap: () => _openDateSheet(
+                  dateDebut: _delaiDateDebut,
+                  dateFin: _delaiDateFin,
+                  onApply: (debut, fin) {
+                    setState(() {
+                      _delaiDateDebut = debut;
+                      _delaiDateFin = fin;
+                    });
+                    _reloadDelai();
+                  },
+                  onClear: () {
+                    setState(() {
+                      _delaiDateDebut = null;
+                      _delaiDateFin = null;
+                    });
+                    _reloadDelai();
+                  },
+                ),
               ),
-            ),
-            const SizedBox(height: 12),
-            AlignementSection(
-              alignement: _alignement,
-              dateDebut: _alignDateDebut,
-              dateFin: _alignDateFin,
-              onDateTap: () => _openDateSheet(
+              const SizedBox(height: 12),
+              AlignementSection(
+                alignement: _alignement,
                 dateDebut: _alignDateDebut,
                 dateFin: _alignDateFin,
-                onApply: (debut, fin) {
-                  setState(() {
-                    _alignDateDebut = debut;
-                    _alignDateFin = fin;
-                  });
-                  _reloadAlignement();
-                },
-                onClear: () {
-                  setState(() {
-                    _alignDateDebut = null;
-                    _alignDateFin = null;
-                  });
-                  _reloadAlignement();
-                },
+                onDateTap: () => _openDateSheet(
+                  dateDebut: _alignDateDebut,
+                  dateFin: _alignDateFin,
+                  onApply: (debut, fin) {
+                    setState(() {
+                      _alignDateDebut = debut;
+                      _alignDateFin = fin;
+                    });
+                    _reloadAlignement();
+                  },
+                  onClear: () {
+                    setState(() {
+                      _alignDateDebut = null;
+                      _alignDateFin = null;
+                    });
+                    _reloadAlignement();
+                  },
+                ),
               ),
-            ),
-            const SizedBox(height: 12),
-            ClassificationsSection(
-              classifications: _classifications,
-              dateDebut: _classDateDebut,
-              dateFin: _classDateFin,
-              onDateTap: () => _openDateSheet(
+              const SizedBox(height: 12),
+              ClassificationsSection(
+                classifications: _classifications,
                 dateDebut: _classDateDebut,
                 dateFin: _classDateFin,
-                onApply: (d, f) {
-                  setState(() {
-                    _classDateDebut = d;
-                    _classDateFin = f;
-                  });
-                  _reloadClassifications();
-                },
-                onClear: () {
-                  setState(() {
-                    _classDateDebut = null;
-                    _classDateFin = null;
-                  });
-                  _reloadClassifications();
-                },
+                onDateTap: () => _openDateSheet(
+                  dateDebut: _classDateDebut,
+                  dateFin: _classDateFin,
+                  onApply: (d, f) {
+                    setState(() {
+                      _classDateDebut = d;
+                      _classDateFin = f;
+                    });
+                    _reloadClassifications();
+                  },
+                  onClear: () {
+                    setState(() {
+                      _classDateDebut = null;
+                      _classDateFin = null;
+                    });
+                    _reloadClassifications();
+                  },
+                ),
               ),
-            ),
-            const SizedBox(height: 12),
-            ActiviteSection(
-              activite: _activite,
-              activiteTotal: _activiteTotal,
-              activiteLoading: _activiteLoading,
-              dateDebut: _actDateDebut,
-              dateFin: _actDateFin,
-              onDateTap: () => _openDateSheet(
+              const SizedBox(height: 12),
+              ActiviteSection(
+                activite: _activite,
+                activiteTotal: _activiteTotal,
+                activiteLoading: _activiteLoading,
                 dateDebut: _actDateDebut,
                 dateFin: _actDateFin,
-                onApply: (d, f) {
-                  setState(() {
-                    _actDateDebut = d;
-                    _actDateFin = f;
-                  });
-                  _reloadActivite();
-                },
-                onClear: () {
-                  setState(() {
-                    _actDateDebut = null;
-                    _actDateFin = null;
-                  });
-                  _reloadActivite();
-                },
+                onDateTap: () => _openDateSheet(
+                  dateDebut: _actDateDebut,
+                  dateFin: _actDateFin,
+                  onApply: (d, f) {
+                    setState(() {
+                      _actDateDebut = d;
+                      _actDateFin = f;
+                    });
+                    _reloadActivite();
+                  },
+                  onClear: () {
+                    setState(() {
+                      _actDateDebut = null;
+                      _actDateFin = null;
+                    });
+                    _reloadActivite();
+                  },
+                ),
+                onLoadMore: _loadMoreActivite,
+                onClearFilterTap: () =>
+                    setState(() => _showClearConfirm = true),
               ),
-              onLoadMore: _loadMoreActivite,
-              onClearFilterTap: () =>
-                  setState(() => _showClearConfirm = true),
-            ),
-          ],
-        ),
+            ],
+          ),
           if (_showClearConfirm) _buildClearConfirmDialog(),
         ],
       ),
@@ -2086,10 +2112,14 @@ class _DonutPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = 10
       ..strokeCap = StrokeCap.round;
-    final rect = Rect.fromCircle(center: size.center(Offset.zero), radius: size.width / 2 - 5);
+    final rect = Rect.fromCircle(
+      center: size.center(Offset.zero),
+      radius: size.width / 2 - 5,
+    );
     canvas.drawArc(rect, -1.5708, 6.2832, false, bg);
     canvas.drawArc(rect, -1.5708, 6.2832 * value.clamp(0, 1), false, fg);
   }
+
   @override
   bool shouldRepaint(_DonutPainter old) => old.value != value;
 }

@@ -12,7 +12,7 @@ import 'package:project3/core/widgets/sessions_degustation/session_card.dart';
 import 'widgets/dialogs/formulaire_session_dialog.dart';
 import 'package:project3/core/widgets/dialogs/suppression_session_dialog.dart';
 
-import '../gestion_echantillons/widgets/search_filter_bar.dart'
+import 'package:project3/core/widgets/search_date_filter_bar.dart'
     show DateFilterSheet;
 import '../../../core/widgets/bandeau_demonstration.dart';
 

@@ -45,7 +45,8 @@ class Echantillon {
 
   // ── Physical reception ────────────────────────────────────────────────────────
   bool recuPhysiquement; // true once bottle arrives at company
-  String? dateArriveeEchantillon; // ISO 8601 — set when physically confirmed
+  String? dateArriveeEchantillon; // ISO 8601 — planned sample delivery
+  String? dateReceptionEchantillon; // ISO 8601 — physical reception timestamp
 
   // ── CEO negotiation & purchase fields ────────────────────────────────────────
   double? budgetNegociation; // negotiation budget in TND/L
@@ -88,6 +89,7 @@ class Echantillon {
     this.statutCeo,
     this.recuPhysiquement = false,
     this.dateArriveeEchantillon,
+    this.dateReceptionEchantillon,
     this.budgetNegociation,
     this.quantiteCibleT,
     this.camionReserve,
@@ -142,6 +144,7 @@ class Echantillon {
         : null,
     recuPhysiquement: (json['recu_physiquement'] as bool?) ?? false,
     dateArriveeEchantillon: json['date_arrivee_echantillon'] as String?,
+    dateReceptionEchantillon: json['date_reception_echantillon'] as String?,
     budgetNegociation: (json['budget_negociation'] as num?)?.toDouble(),
     quantiteCibleT: (json['quantite_cible_t'] as num?)?.toDouble(),
     camionReserve: json['camion_reserve'] as String?,
@@ -180,6 +183,7 @@ class Echantillon {
     'statut_ceo': statutCeo?.toJson,
     'recu_physiquement': recuPhysiquement,
     'date_arrivee_echantillon': dateArriveeEchantillon,
+    'date_reception_echantillon': dateReceptionEchantillon,
     'budget_negociation': budgetNegociation,
     'quantite_cible_t': quantiteCibleT,
     'camion_reserve': camionReserve,
