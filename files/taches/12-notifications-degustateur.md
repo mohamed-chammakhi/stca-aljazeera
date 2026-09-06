@@ -159,6 +159,12 @@ Faut-il prévenir un seul dégustateur (celui concerné), tous les dégustateurs
 chef dégustateur reçoit-il la notification lui aussi ? Le comportement actuel du serveur
 (tous les dégustateurs + le chef) n'a pas été modifié en attendant la réponse.
 
+### RÉPONSE À LA QUESTION — 06/09/2026
+
+Tous les dégustateurs, et le chef dégustateur aussi. C'est déjà exactement le comportement du
+serveur (`backend_new/notifications/views.py:155-158`) — **aucun changement de code
+nécessaire**. Question close.
+
 ## RAPPORT
 
 *Rapport rédigé par Claude : le processus Codex qui a produit le code ci-dessous s'est

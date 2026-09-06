@@ -19,7 +19,7 @@ sont terminées.
 | 09 | Filtre par dates unifié (+ reprise 3 : libellé "Livraison du stock", indications sous chaque choix, 4ᵉ type pour le collecteur) | **Terminée et commitée** (`b058ea4`) | à vérifier à l'écran |
 | 10 | Carte analyses laboratoire | **Terminée et commitée** (sauf le filtre par dates, qui attend la 09) | à vérifier à l'écran |
 | 11 | Supprimer l'historique | **Terminée et commitée**, migration 0012 comprise | personne |
-| 12 | Notifications | **Terminée et commitée** (`7e3b0b0`) — une question ouverte, voir ci-dessous | à vérifier à l'écran, réponse attendue du propriétaire |
+| 12 | Notifications | **Terminée et commitée** (`7e3b0b0`) | à vérifier à l'écran |
 | 14 | Référence bouteille : indication dans le champ + mise à jour continue (collecteur) | **Terminée et commitée** (`a9deb01`) | à vérifier à l'écran |
 | 15 | Retirer le compteur d'échantillons, remplacer par une phrase de contexte (collecteur) | **Terminée et commitée** (`361be23`) | à vérifier à l'écran |
 | 16 | `getList()` doit ramener toutes les pages, pas seulement la première | **Terminée et commitée** (`37c9342`) | personne |
@@ -27,12 +27,7 @@ sont terminées.
 | 18 | Retirer complètement la carte géographique (collecteur, + vérification côté CEO) | **Terminée et commitée** (`70b4731`) | à vérifier à l'écran |
 | 19 | Champ "lieu précis" hors liste gouvernorat/délégation (collecteur, dégustateur, chef dégustateur) | **Terminée et commitée** (`1edbfe0`) | à vérifier à l'écran |
 
-Toutes les tâches numérotées sont faites et commitées.
-
-Une question du propriétaire reste ouverte, posée dans `files/taches/12-notifications-degustateur.md`
-sous `## QUESTION` : qui doit recevoir la notification d'évaluation urgente — un seul
-dégustateur, tous, et le chef dégustateur aussi ? Le comportement actuel (tous + le chef) n'a
-pas été changé en attendant la réponse.
+Toutes les tâches numérotées sont faites et commitées, plus aucune question ouverte.
 
 ---
 
@@ -51,6 +46,7 @@ pas été changé en attendant la réponse.
 | Photo par bouteille | Un bouton photo dans chaque carte de bouteille, avec Galerie / Appareil photo / Annuler. Plus de question « à quelle bouteille ? » |
 | Tests sur les écrans du collecteur | Abandonnés. Ces écrans vont chercher des données à l'ouverture et ne se stabilisent jamais dans un test. Vérification à l'écran |
 | Comment tester malgré tout | Sortir la logique dans une **fonction pure** de `lib/core/utils/` et la tester là. C'est ce qui a marché en tâche 07 |
+| Évaluation urgente — qui la reçoit | Tous les dégustateurs actifs, et le chef dégustateur aussi. Déjà le comportement du serveur, aucun changement de code |
 
 ---
 
@@ -64,7 +60,6 @@ Ils sont détaillés dans `docs/retours-utilisation-et-questions.md`, section 7.
 - La date d'arrivée de l'échantillon : réelle ou prévue ?
 - Qui confirme que le stock est arrivé ?
 - Le dégustateur envoie-t-il parfois une notification à la direction ?
-- L'évaluation urgente va-t-elle à un seul dégustateur ou à tous ?
 
 ---
 
