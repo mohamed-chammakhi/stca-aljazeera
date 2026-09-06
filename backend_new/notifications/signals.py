@@ -7,6 +7,31 @@ from users.models import User
 from .models import Notification
 
 
+COLLECTOR_DETAIL_FIELDS = (
+    'fournisseur_id',
+    'gouvernorat',
+    'delegation',
+    'cite',
+    'reference_bouteille',
+    'num_citerne',
+    'quantite_estimee',
+    'variete',
+    'date_arrivee_echantillon',
+    'remarques',
+    'image_url',
+)
+
+LEGACY_STATUS_FIELDS = (
+    'statut_labo',
+    'statut_ceo',
+)
+
+STOCK_DELIVERY_FIELDS = (
+    'date_livraison_stock',
+    'date_livraison_stock_fin',
+)
+
+
 def _get_users_by_roles(*roles):
     return User.objects.filter(role__in=roles, is_active=True)
 
@@ -33,6 +58,30 @@ def _sample_ref(echantillon):
     return echantillon.numero or echantillon.reference_bouteille or str(echantillon.id)[:8]
 
 
+def _snapshot(instance, fields):
+    return {field: getattr(instance, field) for field in fields}
+
+
+def _changed(instance, old_values, fields):
+    return any(old_values.get(field) != getattr(instance, field) for field in fields)
+
+
+def _format_date(value):
+    if not value:
+        return None
+    return timezone.localtime(value).strftime('%d/%m/%Y')
+
+
+def _delivery_label(echantillon):
+    start = _format_date(echantillon.date_livraison_stock)
+    end = _format_date(echantillon.date_livraison_stock_fin)
+    if start and end:
+        return f'entre le {start} et le {end}'
+    if start:
+        return f'pour le {start}'
+    return 'sans date definie'
+
+
 @receiver(pre_save, sender='echantillons.Echantillon')
 def echantillon_pre_save(sender, instance, **kwargs):
     if instance.pk:
@@ -40,21 +89,21 @@ def echantillon_pre_save(sender, instance, **kwargs):
             old = sender.objects.get(pk=instance.pk)
             instance._old_recu_physiquement = old.recu_physiquement
             instance._old_statut_collecteur = old.statut_collecteur
-            instance._old_statut_labo = old.statut_labo
-            instance._old_statut_ceo = old.statut_ceo
-            instance._old_variete = old.variete
+            instance._old_collector_details = _snapshot(old, COLLECTOR_DETAIL_FIELDS)
+            instance._old_legacy_statuses = _snapshot(old, LEGACY_STATUS_FIELDS)
+            instance._old_stock_delivery = _snapshot(old, STOCK_DELIVERY_FIELDS)
         except sender.DoesNotExist:
             instance._old_recu_physiquement = False
             instance._old_statut_collecteur = None
-            instance._old_statut_labo = None
-            instance._old_statut_ceo = None
-            instance._old_variete = None
+            instance._old_collector_details = {}
+            instance._old_legacy_statuses = {}
+            instance._old_stock_delivery = {}
     else:
         instance._old_recu_physiquement = False
         instance._old_statut_collecteur = None
-        instance._old_statut_labo = None
-        instance._old_statut_ceo = None
-        instance._old_variete = None
+        instance._old_collector_details = {}
+        instance._old_legacy_statuses = {}
+        instance._old_stock_delivery = {}
 
 
 @receiver(post_save, sender='echantillons.Echantillon')
@@ -105,12 +154,61 @@ def on_echantillon_saved(sender, instance, created, **kwargs):
             section=Notification.Section.ACHATS,
         )
     else:
-        meaningful_change = (
-            getattr(instance, '_old_statut_labo', instance.statut_labo) != instance.statut_labo
-            or getattr(instance, '_old_statut_ceo', instance.statut_ceo) != instance.statut_ceo
-            or getattr(instance, '_old_variete', instance.variete) != instance.variete
+        old_delivery = getattr(instance, '_old_stock_delivery', {})
+        delivery_changed = _changed(instance, old_delivery, STOCK_DELIVERY_FIELDS)
+        if delivery_changed:
+            had_delivery = any(old_delivery.get(field) for field in STOCK_DELIVERY_FIELDS)
+            notification_type = (
+                Notification.Type.DATE_LIVRAISON_MODIFIEE
+                if had_delivery
+                else Notification.Type.DATE_LIVRAISON_AJOUTEE
+            )
+            title = (
+                'Date de livraison modifiee'
+                if had_delivery
+                else 'Date de livraison ajoutee'
+            )
+            recipients = _get_users_by_roles(
+                User.Role.DEGUSTATEUR,
+                User.Role.CHEF_DEGUSTATION,
+            )
+            _notify(
+                recipients,
+                notification_type,
+                title,
+                f"La livraison de l'echantillon {ref} est planifiee {_delivery_label(instance)}.",
+                echantillon=instance,
+                section=Notification.Section.ECHANTILLONS,
+            )
+            return
+
+        collector_detail_change = _changed(
+            instance,
+            getattr(instance, '_old_collector_details', {}),
+            COLLECTOR_DETAIL_FIELDS,
         )
-        if meaningful_change:
+        if collector_detail_change:
+            recipients = _get_users_by_roles(
+                User.Role.DIRECTION,
+                User.Role.CHEF_DEGUSTATION,
+                User.Role.DEGUSTATEUR,
+            )
+            _notify(
+                recipients,
+                Notification.Type.ECHANTILLON_MODIFIE,
+                'Echantillon modifie',
+                f"L'echantillon {ref} a ete modifie.",
+                echantillon=instance,
+                section=Notification.Section.ECHANTILLONS,
+            )
+            return
+
+        legacy_status_change = _changed(
+            instance,
+            getattr(instance, '_old_legacy_statuses', {}),
+            LEGACY_STATUS_FIELDS,
+        )
+        if legacy_status_change:
             recipients = _get_users_by_roles(User.Role.DIRECTION, User.Role.CHEF_DEGUSTATION)
             _notify(
                 recipients,
@@ -164,11 +262,12 @@ def on_evaluation_saved(sender, instance, created, **kwargs):
         )
     else:
         recipients = _get_users_by_roles(User.Role.CHEF_DEGUSTATION).exclude(id=instance.degustateur_id)
+        degustateur_name = f'{instance.degustateur.prenom} {instance.degustateur.nom}'.strip()
         _notify(
             recipients,
             Notification.Type.EVALUATION_SOUMISE,
             'Evaluation soumise',
-            f"Une evaluation de {ref} a ete soumise.",
+            f"{degustateur_name} a soumis une evaluation de {ref}.",
             echantillon=echantillon,
             section=Notification.Section.EVALUATIONS,
         )

@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APITestCase
@@ -411,6 +413,87 @@ class NotificationSignalTests(APITestCase):
             ).values_list('destinataire__email', flat=True)
         )
         self.assertEqual(recipients, {self.direction.email, self.chef.email})
+
+    def test_submitted_evaluation_notification_includes_taster_name(self):
+        sample = Echantillon.objects.create(
+            reference_bouteille='REF-EVAL-NAME-001',
+            collecteur=self.collecteur,
+            gouvernorat='Sfax',
+            variete='Chemlali',
+            recu_physiquement=True,
+            date_arrivee_echantillon=timezone.now(),
+        )
+        Notification.objects.all().delete()
+
+        EvaluationOrganoleptique.objects.create(
+            echantillon=sample,
+            degustateur=self.taster_one,
+            statut=EvaluationOrganoleptique.Statut.SOUMIS,
+            fruite='3.0',
+            soumis_le=timezone.now(),
+        )
+
+        notification = Notification.objects.get(
+            type=Notification.Type.EVALUATION_SOUMISE,
+            destinataire=self.chef,
+        )
+        self.assertIn('Taster One', notification.message)
+        self.assertIn(sample.numero, notification.message)
+
+    def test_stock_delivery_date_change_notifies_all_tasters_and_chef(self):
+        sample = Echantillon.objects.create(
+            reference_bouteille='REF-DELIVERY-001',
+            collecteur=self.collecteur,
+            gouvernorat='Sfax',
+            variete='Chemlali',
+        )
+        Notification.objects.all().delete()
+
+        sample.date_livraison_stock = timezone.now() + timedelta(days=7)
+        sample.save(update_fields=['date_livraison_stock', 'updated_at'])
+
+        notifications = Notification.objects.filter(
+            type=Notification.Type.DATE_LIVRAISON_AJOUTEE,
+        )
+        recipients = set(notifications.values_list('destinataire__email', flat=True))
+        self.assertEqual(
+            recipients,
+            {self.chef.email, self.taster_one.email, self.taster_two.email},
+        )
+        self.assertFalse(notifications.filter(destinataire=self.direction).exists())
+        self.assertEqual(notifications.count(), 3)
+        self.assertFalse(
+            Notification.objects.filter(type=Notification.Type.ECHANTILLON_MODIFIE).exists()
+        )
+
+    def test_collector_detail_change_notifies_panel_and_direction_once(self):
+        sample = Echantillon.objects.create(
+            reference_bouteille='REF-DETAIL-001',
+            collecteur=self.collecteur,
+            gouvernorat='Sfax',
+            variete='Chemlali',
+            quantite_estimee='20T',
+        )
+        Notification.objects.all().delete()
+
+        sample.quantite_estimee = '25T'
+        sample.remarques = 'Correction terrain'
+        sample.save(update_fields=['quantite_estimee', 'remarques', 'updated_at'])
+
+        notifications = Notification.objects.filter(
+            type=Notification.Type.ECHANTILLON_MODIFIE,
+        )
+        recipients = set(notifications.values_list('destinataire__email', flat=True))
+        self.assertEqual(
+            recipients,
+            {
+                self.direction.email,
+                self.chef.email,
+                self.taster_one.email,
+                self.taster_two.email,
+            },
+        )
+        self.assertEqual(notifications.count(), 4)
 
     def test_degustateur_created_session_notifies_chef(self):
         Notification.objects.all().delete()

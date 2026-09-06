@@ -93,7 +93,9 @@ class _NotificationsDegustateurPageState
 
   void _signalerErreur() {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('La notification n’a pas pu être mise à jour.')),
+      const SnackBar(
+        content: Text('La notification n’a pas pu être mise à jour.'),
+      ),
     );
   }
 
@@ -362,7 +364,7 @@ class _NotificationCard extends StatelessWidget {
       Color(0xFFFEF3E8),
     ),
     // CEO-triggered
-    'DEGUSTATION_URGENTE': (
+    'EVALUATION_URGENTE': (
       Icons.warning_amber_outlined,
       Color(0xFFB71C1C),
       Color(0xFFFFEBEE),

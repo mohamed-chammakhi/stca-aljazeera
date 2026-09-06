@@ -6,7 +6,7 @@ class NotificationCeoService {
   static final List<NotificationCeo> _mock = [
     NotificationCeo(
       id: 'n-ceo-001',
-      type: 'evaluation_soumise',
+      type: 'EVALUATION_SOUMISE',
       titre: 'Évaluation soumise',
       message: 'L\'évaluation de CHEMLALI-C1 a été soumise par Ali Ben Salem.',
       echantillonId: '2026/0001',
@@ -17,7 +17,7 @@ class NotificationCeoService {
     ),
     NotificationCeo(
       id: 'n-ceo-002',
-      type: 'analyse_soumise',
+      type: 'ANALYSE_SOUMISE',
       titre: 'Analyse laboratoire disponible',
       message:
           'L\'analyse chimique de OUESLATI-C2 est disponible. Acidité : 0.55 %.',
@@ -29,7 +29,7 @@ class NotificationCeoService {
     ),
     NotificationCeo(
       id: 'n-ceo-003',
-      type: 'achat_confirme',
+      type: 'ACHAT_CONFIRME',
       titre: 'Achat confirmé',
       message:
           'L\'achat du lot CHETOUI-C5 (18 T) a été confirmé. Camion TRK-007 réservé.',
@@ -53,7 +53,7 @@ class NotificationCeoService {
     ),
     NotificationCeo(
       id: 'n-ceo-005',
-      type: 'echantillon_recu',
+      type: 'ECHANTILLON_RECU',
       titre: 'Échantillon reçu physiquement',
       message:
           'L\'échantillon CHEMLALI-C9 a été reçu physiquement au laboratoire.',
@@ -65,7 +65,7 @@ class NotificationCeoService {
     ),
     NotificationCeo(
       id: 'n-ceo-006',
-      type: 'evaluation_urgente',
+      type: 'EVALUATION_URGENTE',
       titre: 'Évaluation urgente requise',
       message:
           'OUESLATI-C2 attend une évaluation depuis 14 jours. Veuillez accélérer le processus.',
@@ -77,7 +77,7 @@ class NotificationCeoService {
     ),
     NotificationCeo(
       id: 'n-ceo-007',
-      type: 'echantillon_enregistre',
+      type: 'NOUVEL_ECHANTILLON',
       titre: 'Nouvel échantillon enregistré',
       message: 'NOURI-03 (Nabeul, 22 T) enregistré par Mounir Zouaghi.',
       echantillonId: '2026/0011',

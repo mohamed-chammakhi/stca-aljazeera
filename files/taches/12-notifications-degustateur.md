@@ -152,3 +152,86 @@ livraison, et un test qui vérifie que le nom du dégustateur apparaît dans le 
 « évaluation soumise ».
 
 Donne les sorties chiffrées réelles dans ton rapport.
+
+## QUESTION
+
+Faut-il prévenir un seul dégustateur (celui concerné), tous les dégustateurs actifs, et le
+chef dégustateur reçoit-il la notification lui aussi ? Le comportement actuel du serveur
+(tous les dégustateurs + le chef) n'a pas été modifié en attendant la réponse.
+
+## RAPPORT
+
+*Rapport rédigé par Claude : le processus Codex qui a produit le code ci-dessous s'est
+interrompu avant d'écrire son propre rapport (blocage de l'outillage dans cet environnement,
+comme sur plusieurs tâches précédentes ce soir). Claude a relu le diff, corrigé un défaut
+trouvé pendant la relecture, écrit la question ci-dessus telle que la consigne l'exige, et
+exécuté toutes les vérifications lui-même.*
+
+### Fait
+
+- `backend_new/notifications/models.py` : deux nouveaux types, `DATE_LIVRAISON_AJOUTEE` et
+  `DATE_LIVRAISON_MODIFIEE`.
+- `backend_new/notifications/migrations/0006_delivery_notification_types.py` : migration
+  correspondante, sur le même modèle que les trois précédentes.
+- `backend_new/notifications/signals.py` :
+  - Écart 1 — le message « évaluation soumise » envoyé au chef contient maintenant le prénom
+    et le nom du dégustateur.
+  - Écart 2 — `ECHANTILLON_MODIFIE` se déclenche maintenant aussi quand le collecteur change
+    la quantité, les remarques, le gouvernorat, la délégation, la cité, la référence
+    bouteille, le n° de citerne, la variété, la date de livraison de l'échantillon, la photo
+    ou le fournisseur — pas seulement `statut_labo`/`statut_ceo` comme avant. Une seule
+    notification part par sauvegarde, même si plusieurs champs ont changé (garde par
+    priorité : livraison du stock, puis détails collecteur, puis statuts historiques — chacun
+    avec un `return` immédiat).
+  - Écart 3 — nouvelle notification quand `date_livraison_stock`/`date_livraison_stock_fin`
+    change, envoyée à tous les dégustateurs actifs et au chef dégustateur, avec les deux types
+    déjà nommés côté démonstration Flutter (aucun type inventé).
+- `backend_new/notifications/tests.py` : trois tests ajoutés — nom du dégustateur dans le
+  message, notification de date de livraison (destinataires et absence de doublon), et
+  notification de détail collecteur (destinataires et compte unique).
+- Écart 4 — `DEGUSTATION_URGENTE` renommé `EVALUATION_URGENTE` dans les deux pages de
+  notifications (dégustateur, chef) et leurs données de démonstration, pour correspondre au
+  type réellement envoyé par le serveur.
+- **Défaut trouvé par Claude en relisant le diff, corrigé avant de continuer** :
+  `lib/1_ceo/notifications/services/notification_ceo_service.dart` — la première version du
+  correctif avait échangé les types entre les entrées de démonstration « Achat confirmé » et
+  « Stock arrivé », et avait donné à « Évaluation soumise » le type `PREMIERE_EVALUATION` au
+  lieu de `EVALUATION_SOUMISE`. Corrigé : chaque entrée porte maintenant la majuscule exacte
+  de son propre type d'origine. `stock_arrive` reste en minuscules : aucun type serveur ne lui
+  correspond (pas de notification « stock arrivé » dans `models.py`), signalé ci-dessous.
+
+### Vérifié
+
+```bash
+flutter analyze lib test
+```
+Sortie brute : `49 issues found. (ran in 5.4s)` — 0 erreur, conforme à la référence.
+
+```bash
+flutter test
+```
+Sortie brute : `108 tests`, **107 réussis**, 1 échec déjà connu
+(`test/widget_test.dart: Counter increments smoke test`). Aucune régression.
+
+```bash
+cd backend_new && ./venv/Scripts/python.exe manage.py test --keepdb
+```
+Sortie brute : `Ran 163 tests in 975.599s` — **OK, 0 échec**. Le défaut Django déjà connu
+(`ChefDashboardApiTests.test_delai_alignement_and_classifications_use_submitted_evaluations`)
+ne se reproduit plus, probablement réglé en effet de bord par la tâche 13 de ce soir
+(séparation des dates prévue/réelle) — ce n'est pas un problème, juste un constat.
+
+### Non fait
+
+Rien de demandé n'a été laissé de côté.
+
+### HORS PÉRIMÈTRE
+
+- Le type de démonstration `stock_arrive` (CEO, « Stock arrivé ») n'a pas d'équivalent dans
+  `Notification.Type` côté serveur — aucune notification d'arrivée de stock n'existe
+  aujourd'hui dans le modèle Django. Laissé en minuscules, non corrigé : ce serait inventer un
+  type, pas aligner un existant.
+- `views.py:130-195` (qui décide qui reçoit l'évaluation urgente) n'a pas été touché — voir la
+  question ci-dessus.
+- Navigation au clic sur une notification pour le collecteur et le laboratoire : toujours
+  absente, sujet non décidé par le propriétaire (déjà signalé dans la consigne d'origine).

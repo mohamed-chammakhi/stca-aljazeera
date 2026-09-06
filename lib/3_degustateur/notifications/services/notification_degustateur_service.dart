@@ -43,7 +43,7 @@ class NotificationDegustateurService {
       // ── Aujourd'hui ───────────────────────────────────────────────────────
       NotificationDegustateur(
         id: '1',
-        type: 'DEGUSTATION_URGENTE',
+        type: 'EVALUATION_URGENTE',
         titre: 'Dégustation urgente requise',
         message:
             "Le directeur a marqué l'échantillon ECH-2026-041 comme urgent. Vous devez soumettre votre évaluation dès que possible.",
