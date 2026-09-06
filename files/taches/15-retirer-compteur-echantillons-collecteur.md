@@ -43,6 +43,46 @@ aujourd'hui.
 - Tu ne touches à aucun autre module que `2_collecteur`.
 - Tu n'inventes pas d'autre texte que celui du tableau ci-dessus.
 
+## RAPPORT
+
+### Fait
+
+- `lib/2_collecteur/mes_echantillons/mes_echantillons_page.dart` : le nombre d'échantillons
+  affiché sous les onglets de statut a été remplacé par `_descriptionFiltreStatut`, une phrase
+  fixe selon `_filtreStatut` — exactement les quatre phrases demandées. Le texte est enveloppé
+  dans un `Flexible` avec ellipsis pour ne jamais déborder. L'encart de dates sélectionnées
+  n'a pas été touché.
+
+### Vérifié
+
+Codex a écrit ce correctif puis son processus s'est interrompu (redémarrage de session côté
+Claude) avant d'écrire ce rapport. Claude a relu le diff — conforme au tableau demandé, aucun
+autre fichier touché — et exécuté lui-même :
+
+```bash
+dart format lib/2_collecteur/mes_echantillons/mes_echantillons_page.dart
+```
+Sortie brute : `Formatted 1 file (1 changed) in 0.10 seconds.`
+
+```bash
+flutter analyze lib test
+```
+Sortie brute : `49 issues found. (ran in 6.5s)` — 0 erreur, conforme à la référence.
+
+```bash
+flutter test
+```
+Sortie brute : `103 tests`, **102 réussis**, 1 échec déjà connu
+(`test/widget_test.dart: Counter increments smoke test`). Aucune régression.
+
+### Non fait
+
+Rien.
+
+### HORS PÉRIMÈTRE
+
+Rien.
+
 ---
 
 ## Vérification à exécuter

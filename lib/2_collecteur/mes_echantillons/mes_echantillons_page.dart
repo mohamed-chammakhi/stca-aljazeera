@@ -594,7 +594,18 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
     );
   }
 
-  int get _totalFiltered => _filtres.length;
+  String get _descriptionFiltreStatut {
+    switch (_filtreStatut) {
+      case null:
+        return 'Tous vos échantillons, quel que soit leur état.';
+      case StatutCollecteur.receptionne:
+        return 'Échantillons enregistrés, en attente de négociation.';
+      case StatutCollecteur.enNegociation:
+        return 'Échantillons en cours de négociation avec le fournisseur.';
+      case StatutCollecteur.achatConfirme:
+        return "Échantillons dont l'achat est confirmé.";
+    }
+  }
 
   @override
   void dispose() {
@@ -912,12 +923,15 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
                           color: Color.fromARGB(255, 156, 156, 156),
                         ),
                         const SizedBox(width: 6),
-                        Text(
-                          '$_totalFiltered échantillon${_totalFiltered > 1 ? "s" : ""}',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: Color.fromARGB(255, 156, 156, 156),
-                            fontWeight: FontWeight.w500,
+                        Flexible(
+                          child: Text(
+                            _descriptionFiltreStatut,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Color.fromARGB(255, 156, 156, 156),
+                              fontWeight: FontWeight.w500,
+                            ),
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                         if (_dateFilterActive) ...[
