@@ -3,7 +3,7 @@
 Ce fichier est le tableau de bord. **Claude le tient à jour, personne d'autre.**
 Il répond à une seule question : où en est-on, et qui attend quoi.
 
-Dernière mise à jour : 06/09/2026, après le commit de la tâche 15.
+Dernière mise à jour : 06/09/2026, après le commit de la tâche 09.
 
 ---
 
@@ -15,7 +15,7 @@ Dernière mise à jour : 06/09/2026, après le commit de la tâche 15.
 | 06 | Photo et remarque par bouteille | **Terminée et commitée** (`370ff0a`) | à vérifier à l'écran |
 | 07 | Référence bouteille automatique | **Terminée et commitée** | personne |
 | 08 | Négociation en tonnes | **Terminée et commitée**, migration 0011 comprise | à vérifier à l'écran |
-| 09 | Filtre par dates unifié (+ reprise 3 : libellé "Livraison du stock", indications sous chaque choix, 4ᵉ type pour le collecteur) | **Prête à lancer** | Codex |
+| 09 | Filtre par dates unifié (+ reprise 3 : libellé "Livraison du stock", indications sous chaque choix, 4ᵉ type pour le collecteur) | **Terminée et commitée** (`b058ea4`) | à vérifier à l'écran |
 | 10 | Carte analyses laboratoire | **Terminée et commitée** (sauf le filtre par dates, qui attend la 09) | à vérifier à l'écran |
 | 11 | Supprimer l'historique | **Terminée et commitée**, migration 0012 comprise | personne |
 | 12 | Notifications | **Jamais lancée** | Codex |
@@ -26,7 +26,7 @@ Dernière mise à jour : 06/09/2026, après le commit de la tâche 15.
 | 18 | Retirer complètement la carte géographique (collecteur, + vérification côté CEO) | **Terminée et commitée** (`70b4731`) | à vérifier à l'écran |
 | 19 | Champ "lieu précis" hors liste gouvernorat/délégation (collecteur, dégustateur, chef dégustateur) | **Terminée et commitée** (`1edbfe0`) | à vérifier à l'écran |
 
-14, 15, 16, 17, 18 et 19 sont faites. Reste : 09, 12.
+14, 15, 16, 17, 18, 19 et 09 sont faites. Reste : 12.
 Les seules contraintes réelles sont **06 avant 07** et **09 avant 10** (10 est déjà faite).
 
 ---
