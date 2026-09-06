@@ -3,7 +3,8 @@
 Ce fichier est le tableau de bord. **Claude le tient à jour, personne d'autre.**
 Il répond à une seule question : où en est-on, et qui attend quoi.
 
-Dernière mise à jour : 06/09/2026, après le commit de la tâche 09.
+Dernière mise à jour : 06/09/2026, après le commit de la tâche 12. Toutes les tâches écrites
+sont terminées.
 
 ---
 
@@ -18,7 +19,7 @@ Dernière mise à jour : 06/09/2026, après le commit de la tâche 09.
 | 09 | Filtre par dates unifié (+ reprise 3 : libellé "Livraison du stock", indications sous chaque choix, 4ᵉ type pour le collecteur) | **Terminée et commitée** (`b058ea4`) | à vérifier à l'écran |
 | 10 | Carte analyses laboratoire | **Terminée et commitée** (sauf le filtre par dates, qui attend la 09) | à vérifier à l'écran |
 | 11 | Supprimer l'historique | **Terminée et commitée**, migration 0012 comprise | personne |
-| 12 | Notifications | **Jamais lancée** | Codex |
+| 12 | Notifications | **Terminée et commitée** (`7e3b0b0`) — une question ouverte, voir ci-dessous | à vérifier à l'écran, réponse attendue du propriétaire |
 | 14 | Référence bouteille : indication dans le champ + mise à jour continue (collecteur) | **Terminée et commitée** (`a9deb01`) | à vérifier à l'écran |
 | 15 | Retirer le compteur d'échantillons, remplacer par une phrase de contexte (collecteur) | **Terminée et commitée** (`361be23`) | à vérifier à l'écran |
 | 16 | `getList()` doit ramener toutes les pages, pas seulement la première | **Terminée et commitée** (`37c9342`) | personne |
@@ -26,8 +27,12 @@ Dernière mise à jour : 06/09/2026, après le commit de la tâche 09.
 | 18 | Retirer complètement la carte géographique (collecteur, + vérification côté CEO) | **Terminée et commitée** (`70b4731`) | à vérifier à l'écran |
 | 19 | Champ "lieu précis" hors liste gouvernorat/délégation (collecteur, dégustateur, chef dégustateur) | **Terminée et commitée** (`1edbfe0`) | à vérifier à l'écran |
 
-14, 15, 16, 17, 18, 19 et 09 sont faites. Reste : 12.
-Les seules contraintes réelles sont **06 avant 07** et **09 avant 10** (10 est déjà faite).
+Toutes les tâches numérotées sont faites et commitées.
+
+Une question du propriétaire reste ouverte, posée dans `files/taches/12-notifications-degustateur.md`
+sous `## QUESTION` : qui doit recevoir la notification d'évaluation urgente — un seul
+dégustateur, tous, et le chef dégustateur aussi ? Le comportement actuel (tous + le chef) n'a
+pas été changé en attendant la réponse.
 
 ---
 
@@ -63,10 +68,13 @@ Ils sont détaillés dans `docs/retours-utilisation-et-questions.md`, section 7.
 
 ---
 
-## Deux défauts connus, non corrigés
+## Défauts connus, non corrigés
 
 | Où | Quoi |
 |---|---|
 | `test/widget_test.dart` | Test modèle de Flutter, teste un compteur inexistant. Échoue depuis toujours |
-| `chef.tests.ChefDashboardApiTests.test_delai_alignement_and_classifications_use_submitted_evaluations` | Attend 3 échantillons « extra vierge », en trouve 1. Vérifié comme préexistant en remisant toutes les modifications |
 | `lib/2_collecteur/mes_echantillons/widgets/card/echantillon_collecteur_card.dart:517` | Débordement d'affichage signalé par Codex, hors périmètre de la tâche 05 |
+
+`chef.tests.ChefDashboardApiTests.test_delai_alignement_and_classifications_use_submitted_evaluations`
+ne se reproduit plus depuis la tâche 12 (163 tests Django, 0 échec) — probablement réglé en
+effet de bord par la tâche 13 (séparation des dates prévue/réelle). Retiré de la liste.
