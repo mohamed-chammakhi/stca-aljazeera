@@ -112,9 +112,9 @@ class EchantillonViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         if self.action in ['create', 'bulk', 'destroy']:
-            return [IsCollecteur()]
+            return [(IsCollecteur | IsDegustateur | IsChefDegustation)()]
         if self.action in ['update', 'partial_update']:
-            return [(IsCollecteur | IsDegustateur)()]
+            return [(IsCollecteur | IsDegustateur | IsChefDegustation)()]
         return super().get_permissions()
 
     def _store_bottle_photo(self):
@@ -169,6 +169,14 @@ class EchantillonViewSet(viewsets.ModelViewSet):
         #   1. The sample has already been physically received — it's in the system now
         #   2. The status has advanced past "réceptionné" — it's already in a workflow
         obj = self.get_object()
+        if (
+            request.user.role in (User.Role.DEGUSTATEUR, User.Role.CHEF_DEGUSTATION)
+            and obj.collecteur is not None
+        ):
+            return Response(
+                {'detail': 'Impossible de supprimer un echantillon enregistre par un collecteur.'},
+                status=status.HTTP_403_FORBIDDEN,
+            )
         if obj.recu_physiquement:
             return Response(
                 {'detail': 'Impossible de supprimer un échantillon déjà reçu physiquement.'},
@@ -449,7 +457,12 @@ class EchantillonViewSet(viewsets.ModelViewSet):
         for i, item in enumerate(items):
             serializer = EchantillonSerializer(data=item, context={'request': request})
             if serializer.is_valid():
-                obj = serializer.save(collecteur=request.user)
+                extra = {}
+                if request.user.role == User.Role.COLLECTEUR:
+                    extra['collecteur'] = request.user
+                else:
+                    extra['statut_collecteur'] = Echantillon.StatutCollecteur.RECEPTIONNE
+                obj = serializer.save(**extra)
                 created.append(EchantillonSerializer(obj, context={'request': request}).data)
             else:
                 errors.append({'index': i, 'errors': serializer.errors})

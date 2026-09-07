@@ -745,6 +745,34 @@ Verification:
 - The complete `echantillons` suite passed: 26 tests.
 - The full Django suite passed: 160 tests.
 
+### Degustateur and Chef Sample Registration Access
+
+Backend:
+
+- Degustateur and Chef de Degustation can now create, bulk-create, update, and
+  delete samples through `/api/echantillons/` permissions.
+- Samples created by Degustateur/Chef keep `collecteur=null`; the collector
+  status remains the model default `receptionne`.
+- Degustateur/Chef deletion is blocked for samples registered by a collector,
+  while samples without a collector owner remain deletable if the existing
+  reception/status rules allow it.
+
+Flutter:
+
+- Degustateur and Chef drawers now expose the reused collector
+  `MesEchantillonsPage` as `Mes echantillons`.
+- The reused collector sample page hides the delete action for Degustateur/Chef
+  when the sample has a non-empty `collecteurId`, in addition to the existing
+  `canDelete` rule.
+
+Verification:
+
+- Focused `echantillons` Django tests passed: 31 tests.
+- Full Django suite passed: 168 tests.
+- Flutter tool commands timed out in this Codex shell before producing output;
+  rerun `flutter analyze lib test` and `flutter test` locally once Flutter/Dart
+  is responsive.
+
 ## Next Recommended Backend Feature
 
 ### 1. Physical Phone Smoke Test

@@ -158,3 +158,106 @@ cd backend_new
 ```
 
 Donne les sorties chiffrées réelles dans ton rapport.
+
+## QUESTION
+
+La page `MesEchantillonsPage` est bien reutilisee telle quelle, comme demande. En l'ouvrant
+depuis Degustateur/Chef, elle embarque donc aussi des elements specifiques au collecteur :
+le drawer `CollecteurDrawer`, la cloche `NotificationCollecteurService`, le profil collecteur,
+et les actions d'achat/livraison qui peuvent apparaitre selon le statut mais restent refusees
+cote serveur pour Degustateur/Chef. Faut-il, dans une tache separee, creer une enveloppe
+role-aware autour de cette meme page pour masquer seulement ces destinations/actions non
+pertinentes sans dupliquer le formulaire ni la liste ?
+
+## RAPPORT
+
+### Fait
+
+- `backend_new/echantillons/views.py` : Degustateur et Chef de Degustation peuvent creer,
+  creer en lot, modifier et appeler la suppression des echantillons; la suppression reste
+  refusee si l'echantillon a ete enregistre par un collecteur.
+- `backend_new/echantillons/tests.py` : les tests prouvent la creation Degustateur/Chef avec
+  `collecteur = null`, le statut collecteur par defaut `receptionne`, la modification par le
+  chef, le refus de suppression d'un echantillon collecteur par un degustateur, et la
+  suppression autorisee d'un echantillon sans collecteur.
+- `lib/3_degustateur/tableau_de_bord/widgets/app_drawer.dart` : le drawer Degustateur ajoute
+  l'entree `Mes echantillons` qui ouvre directement la page collecteur reutilisee.
+- `lib/5_chef_degustateur/tableau_de_bord/widgets/app_drawer.dart` : le drawer Chef ajoute
+  la meme entree `Mes echantillons` vers la page collecteur reutilisee.
+- `lib/2_collecteur/mes_echantillons/mes_echantillons_page.dart` : le bouton supprimer reste
+  base sur `canDelete`, et il est masque en plus pour Degustateur/Chef quand `collecteurId`
+  n'est pas vide.
+- `files/mapbackend.md` : le checkpoint backend est mis a jour avec ce changement.
+
+### Verifie
+
+```bash
+$env:DEBUG='True'; $env:DB_ENGINE='sqlite'; .\venv\Scripts\python.exe manage.py test echantillons --keepdb -v 2
+```
+
+Sortie chiffree : `Found 31 test(s).` puis `Ran 31 tests in 125.389s` -> `OK`.
+
+```bash
+& 'C:\Users\takwa\Documents\flutter\bin\cache\dart-sdk\bin\dart.exe' format lib/2_collecteur/mes_echantillons/mes_echantillons_page.dart lib/3_degustateur/tableau_de_bord/widgets/app_drawer.dart lib/5_chef_degustateur/tableau_de_bord/widgets/app_drawer.dart
+```
+
+Sortie chiffree : `Formatted 3 files (2 changed) in 0.22 seconds.`
+
+```bash
+$env:FLUTTER_SUPPRESS_ANALYTICS='true'; flutter analyze lib test
+```
+
+Sortie chiffree : timeout apres `900122 ms`, aucune sortie Flutter produite.
+
+```bash
+$env:FLUTTER_SUPPRESS_ANALYTICS='true'; flutter test
+```
+
+Sortie chiffree : timeout apres `900114 ms`, aucune sortie Flutter produite.
+
+```bash
+$env:DEBUG='True'; $env:DB_ENGINE='sqlite'; .\venv\Scripts\python.exe manage.py test --keepdb -v 1
+```
+
+Sortie chiffree : `Found 168 test(s).` puis `Ran 168 tests in 1061.398s` -> `OK`.
+
+Commandes de diagnostic Flutter executees pendant le blocage :
+
+```bash
+dart --version
+flutter --version
+```
+
+Sorties chiffrees : timeouts apres environ `30153 ms` et `30157 ms`, sans sortie.
+
+```bash
+& 'C:\Users\takwa\Documents\flutter\bin\cache\dart-sdk\bin\dart.exe' --version
+```
+
+Sortie chiffree : `Dart SDK version: 3.12.2 (stable)`.
+
+```bash
+$env:FLUTTER_SUPPRESS_ANALYTICS='true'; & 'C:\Users\takwa\Documents\flutter\bin\dart.bat' --version
+$env:FLUTTER_SUPPRESS_ANALYTICS='true'; & 'C:\Users\takwa\Documents\flutter\bin\flutter.bat' --version
+```
+
+Sorties chiffrees : timeouts apres `60061 ms` pour les deux commandes, sans sortie.
+
+```bash
+$env:FLUTTER_SUPPRESS_ANALYTICS='true'; & 'C:\Users\takwa\Documents\flutter\bin\cache\dart-sdk\bin\dart.exe' 'C:\Users\takwa\Documents\flutter\packages\flutter_tools\bin\flutter_tools.dart' --version
+```
+
+Sortie chiffree : timeout apres `120119 ms`, aucune sortie Flutter produite.
+
+### Non fait
+
+- `flutter analyze lib test` et `flutter test` n'ont pas pu aboutir : l'outil Flutter/Dart
+  reste muet jusqu'au timeout via les wrappers `dart.bat`/`flutter.bat`, et Flutter reste
+  bloque meme via `flutter_tools.dart`.
+- `files/backend_sprint_plan.md` n'a pas pu etre lu : le fichier est absent de ce checkout.
+
+### HORS PERIMETRE
+
+- Plusieurs processus Dart etaient deja presents pendant le diagnostic. Le sandbox a refuse
+  `Get-CimInstance Win32_Process` avec `Access denied`, donc je n'ai pas pu identifier leur
+  ligne de commande ni les nettoyer sans risquer de toucher a un processus utilisateur.

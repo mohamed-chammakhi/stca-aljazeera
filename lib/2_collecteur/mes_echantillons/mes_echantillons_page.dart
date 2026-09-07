@@ -25,6 +25,8 @@ import '../profilcom.dart';
 import '../carte_geo/services/geo_service.dart';
 import '../../core/widgets/bandeau_demonstration.dart';
 import '../../core/utils/date_filter_utils.dart';
+import '../../core/models/enums.dart' show RoleUtilisateur;
+import '../../core/services/auth_service.dart';
 
 class MesEchantillonsPage extends StatefulWidget {
   const MesEchantillonsPage({super.key});
@@ -49,6 +51,7 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
   DateTime? _dateFin;
   DateFilterType _dateFilterType = DateFilterType.enregistrement;
   int _unreadNotifCount = 0;
+  RoleUtilisateur? _roleConnecte;
 
   bool get _estDemonstration => _demoEchantillons || _demoNotifications;
 
@@ -62,8 +65,19 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
   @override
   void initState() {
     super.initState();
+    _loadRoleConnecte();
     _loadEchantillons();
     _loadUnreadCount();
+  }
+
+  Future<void> _loadRoleConnecte() async {
+    try {
+      final user = await authService.currentUser();
+      if (!mounted) return;
+      setState(() => _roleConnecte = user.role);
+    } catch (_) {
+      // Keep the sample list fallback independent from profile loading.
+    }
   }
 
   Future<void> _loadEchantillons() async {
@@ -126,6 +140,14 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
           .map((e) => (gouvernorat: e.gouvernorat, delegation: e.delegation))
           .toList(),
     );
+  }
+
+  bool _canDeleteForCurrentRole(EchantillonCollecteur e) {
+    final role = _roleConnecte;
+    final isPanelRole =
+        role == RoleUtilisateur.degustateur ||
+        role == RoleUtilisateur.chefDegustation;
+    return e.canDelete && !(isPanelRole && e.collecteurId.trim().isNotEmpty);
   }
 
   List<EchantillonCollecteur> get _filtres {
@@ -997,7 +1019,7 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
                                     onModifier: e.canModify
                                         ? () => _onModifier(e)
                                         : null,
-                                    onSupprimer: e.canDelete
+                                    onSupprimer: _canDeleteForCurrentRole(e)
                                         ? () => _onSupprimer(e)
                                         : null,
                                     onConfirmerAchat: e.canConfirm

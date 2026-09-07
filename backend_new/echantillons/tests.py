@@ -42,6 +42,13 @@ class CollectorEchantillonApiTests(APITestCase):
             prenom='User',
             role=User.Role.DEGUSTATEUR,
         )
+        self.chef = User.objects.create_user(
+            email='chef.echantillons@example.com',
+            password='Test@12345',
+            nom='Chef',
+            prenom='User',
+            role=User.Role.CHEF_DEGUSTATION,
+        )
 
     def authenticate(self, user):
         self.client.force_authenticate(user=user)
@@ -210,6 +217,91 @@ class CollectorEchantillonApiTests(APITestCase):
         )
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_degustateur_can_create_sample_without_collecteur_owner(self):
+        self.authenticate(self.degustateur)
+
+        response = self.client.post(
+            '/api/echantillons/',
+            {
+                'reference_bouteille': 'DEG-001',
+                'gouvernorat': 'Sfax',
+                'delegation': 'Sfax Sud',
+                'variete': 'Chemlali',
+            },
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        sample = Echantillon.objects.get(id=response.data['id'])
+        self.assertIsNone(sample.collecteur)
+        self.assertEqual(
+            sample.statut_collecteur,
+            Echantillon.StatutCollecteur.RECEPTIONNE,
+        )
+
+    def test_chef_can_create_sample_without_collecteur_owner(self):
+        self.authenticate(self.chef)
+
+        response = self.client.post(
+            '/api/echantillons/',
+            {
+                'reference_bouteille': 'CHEF-001',
+                'gouvernorat': 'Sfax',
+                'delegation': 'Sfax Sud',
+                'variete': 'Chemlali',
+            },
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        sample = Echantillon.objects.get(id=response.data['id'])
+        self.assertIsNone(sample.collecteur)
+        self.assertEqual(
+            sample.statut_collecteur,
+            Echantillon.StatutCollecteur.RECEPTIONNE,
+        )
+
+    def test_chef_can_update_sample(self):
+        sample = self.create_sample(self.collector)
+        self.authenticate(self.chef)
+
+        response = self.client.patch(
+            f'/api/echantillons/{sample.id}/',
+            {'variete': 'Chetoui'},
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        sample.refresh_from_db()
+        self.assertEqual(sample.variete, 'Chetoui')
+
+    def test_degustateur_cannot_delete_collector_sample(self):
+        sample = self.create_sample(self.collector)
+        self.authenticate(self.degustateur)
+
+        response = self.client.delete(f'/api/echantillons/{sample.id}/')
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(
+            response.data['detail'],
+            'Impossible de supprimer un echantillon enregistre par un collecteur.',
+        )
+        self.assertTrue(Echantillon.objects.filter(id=sample.id).exists())
+
+    def test_degustateur_can_delete_sample_without_collecteur_owner(self):
+        sample = Echantillon.objects.create(
+            reference_bouteille='DEG-DEL-001',
+            gouvernorat='Sfax',
+            delegation='Sfax Sud',
+            variete='Chemlali',
+        )
+        self.authenticate(self.degustateur)
+
+        response = self.client.delete(f'/api/echantillons/{sample.id}/')
+
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertFalse(Echantillon.objects.filter(id=sample.id).exists())
 
     def test_delete_blocked_after_physical_reception(self):
         sample = self.create_sample(

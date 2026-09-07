@@ -6,6 +6,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:project3/2_collecteur/mes_echantillons/mes_echantillons_page.dart';
 import '../../widgets/chef_colors.dart';
 
 const Color _olive = Color(0xFF6B8143);
@@ -123,6 +124,19 @@ class AppDrawer extends StatelessWidget {
                     icon: Icons.folder_outlined,
                     label: 'Gestion des échantillons',
                     onTap: onGestionEchantillons,
+                  ),
+                  _DrawerItem(
+                    icon: Icons.inventory_2_outlined,
+                    label: 'Mes échantillons',
+                    onTap: () {
+                      final navigator = Navigator.of(context);
+                      navigator.pop();
+                      navigator.push(
+                        MaterialPageRoute(
+                          builder: (_) => const MesEchantillonsPage(),
+                        ),
+                      );
+                    },
                   ),
                   _DrawerItem(
                     customIcon: SizedBox(
