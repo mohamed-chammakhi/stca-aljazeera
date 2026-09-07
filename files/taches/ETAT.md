@@ -3,8 +3,7 @@
 Ce fichier est le tableau de bord. **Claude le tient à jour, personne d'autre.**
 Il répond à une seule question : où en est-on, et qui attend quoi.
 
-Dernière mise à jour : 06/09/2026, après le commit de la tâche 12. Toutes les tâches écrites
-sont terminées.
+Dernière mise à jour : 07/09/2026, après le commit de la tâche 20.
 
 ---
 
@@ -26,10 +25,17 @@ sont terminées.
 | 17 | Ajouter/modifier/supprimer un échantillon sans écriture en base, en mode démonstration (collecteur) | **Terminée et commitée** (`ab6a382`) | à vérifier à l'écran |
 | 18 | Retirer complètement la carte géographique (collecteur, + vérification côté CEO) | **Terminée et commitée** (`70b4731`) | à vérifier à l'écran |
 | 19 | Champ "lieu précis" hors liste gouvernorat/délégation (collecteur, dégustateur, chef dégustateur) | **Terminée et commitée** (`1edbfe0`) | à vérifier à l'écran |
-| 20 | Dégustateur et chef dégustateur peuvent enregistrer/modifier/supprimer des échantillons, page du collecteur réutilisée | **En cours — lancée sur Codex** | Codex |
+| 20 | Dégustateur et chef dégustateur peuvent enregistrer/modifier/supprimer des échantillons, page du collecteur réutilisée | **Terminée et commitée** (`d986f95`) — une question ouverte, voir ci-dessous | à vérifier à l'écran |
 
-Tâche 20 en cours. Elle touche les permissions serveur (backend_new/echantillons) en plus des
-modules 3_degustateur et 5_chef_degustateur — relire le diff avec attention avant de commiter.
+Toutes les tâches numérotées sont faites et commitées.
+
+**Question ouverte de la tâche 20** (posée par Codex, pas encore tranchée) : en ouvrant la
+page "Mes échantillons" du collecteur depuis le dégustateur ou le chef, ils voient aussi le
+tiroir, la cloche de notifications et les actions d'achat/livraison propres au collecteur.
+Ces actions sont refusées par le serveur pour eux, mais restent visibles à l'écran — source de
+confusion possible. Pas corrigé : demande une décision du propriétaire, pas une réponse
+que Claude peut deviner. Voir `files/taches/20-degustateur-chef-peuvent-enregistrer.md`
+sous `## QUESTION`.
 
 ---
 
