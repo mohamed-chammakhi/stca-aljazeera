@@ -26,8 +26,10 @@ sont terminées.
 | 17 | Ajouter/modifier/supprimer un échantillon sans écriture en base, en mode démonstration (collecteur) | **Terminée et commitée** (`ab6a382`) | à vérifier à l'écran |
 | 18 | Retirer complètement la carte géographique (collecteur, + vérification côté CEO) | **Terminée et commitée** (`70b4731`) | à vérifier à l'écran |
 | 19 | Champ "lieu précis" hors liste gouvernorat/délégation (collecteur, dégustateur, chef dégustateur) | **Terminée et commitée** (`1edbfe0`) | à vérifier à l'écran |
+| 20 | Dégustateur et chef dégustateur peuvent enregistrer/modifier/supprimer des échantillons, page du collecteur réutilisée | **En cours — lancée sur Codex** | Codex |
 
-Toutes les tâches numérotées sont faites et commitées, plus aucune question ouverte.
+Tâche 20 en cours. Elle touche les permissions serveur (backend_new/echantillons) en plus des
+modules 3_degustateur et 5_chef_degustateur — relire le diff avec attention avant de commiter.
 
 ---
 
