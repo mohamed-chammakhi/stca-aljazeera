@@ -6,7 +6,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:project3/2_collecteur/mes_echantillons/mes_echantillons_page.dart';
 
 const Color _headerBg = Color.fromARGB(255, 220, 233, 226);
 const Color _green = Color(0xFF38835A);
@@ -122,33 +121,6 @@ class AppDrawer extends StatelessWidget {
                     icon: Icons.folder_outlined,
                     label: 'Gestion des échantillons',
                     onTap: onGestionEchantillons,
-                  ),
-                  _DrawerItem(
-                    icon: Icons.inventory_2_outlined,
-                    label: 'Mes échantillons',
-                    onTap: () {
-                      final navigator = Navigator.of(context);
-                      navigator.pop();
-                      navigator.push(
-                        MaterialPageRoute(
-                          builder: (_) => MesEchantillonsPage(
-                            afficherExtrasCollecteur: false,
-                            drawerPersonnalise: AppDrawer(
-                              onaccueil: onaccueil,
-                              onEvaluationEchantillons:
-                                  onEvaluationEchantillons,
-                              onGestionEchantillons: onGestionEchantillons,
-                              onAnalyseLaboratoire: onAnalyseLaboratoire,
-                              onSessionsDegustationPage:
-                                  onSessionsDegustationPage,
-                              onMembredupanel: onMembredupanel,
-                              onProfil: onProfil,
-                              onDeconnexion: onDeconnexion,
-                            ),
-                          ),
-                        ),
-                      );
-                    },
                   ),
                   _DrawerItem(
                     customIcon: SizedBox(

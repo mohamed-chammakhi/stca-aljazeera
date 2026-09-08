@@ -6,6 +6,7 @@ import '../../../core/models/enums.dart';
 import 'package:project3/core/services/gestion_echantillons_service.dart';
 import 'package:project3/core/widgets/gestion_echantillons/echantillon_card.dart';
 import 'widgets/empty_state.dart';
+import 'widgets/dialogs/formulaire_dialog.dart';
 import 'package:project3/core/widgets/search_date_filter_bar.dart';
 import '../evaluation_echantillons/evaluation_echantillons_page.dart';
 import '../widgets/statut_chip.dart';
@@ -119,9 +120,112 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage>
     return liste.reversed.toList();
   }
 
+  int get _prochainNumero => _echantillons.length + 1;
+  bool _peutSupprimer(Echantillon e) =>
+      e.canDelete && e.collecteurId.trim().isEmpty;
+
   // ───────────────────────────────────────────────────────────────────────────
   // 6. ACTIONS
   // ───────────────────────────────────────────────────────────────────────────
+
+  Future<void> _onModifier(List<Echantillon> modifies) async {
+    try {
+      final updated = await _service.updateEchantillon(modifies.single);
+      if (!mounted) return;
+      setState(() {
+        final index = _echantillons.indexWhere((e) => e.id == updated.id);
+        if (index != -1) _echantillons[index] = updated;
+      });
+      _showSuccess('Échantillon modifié avec succès');
+    } catch (error) {
+      await _loadData();
+      if (mounted) _showError('Modification impossible : $error');
+    }
+  }
+
+  Future<void> _onAjouter(List<Echantillon> nouveaux) async {
+    try {
+      final created = <Echantillon>[];
+      for (final e in nouveaux) {
+        created.add(await _service.createEchantillon(e));
+      }
+      if (!mounted) return;
+      setState(() {
+        for (final e in created) {
+          _echantillons.insert(0, e);
+        }
+      });
+      final label = created.length == 1
+          ? '"${created.first.referenceBouteille}" ajouté'
+          : '${created.length} échantillons ajoutés';
+      _showSuccess(label);
+    } catch (error) {
+      if (mounted) _showError('Ajout impossible : $error');
+    }
+  }
+
+  void _onSupprimer(Echantillon e) {
+    if (_estDemonstration) {
+      _showError(
+        'Suppression indisponible avec les données de démonstration. Réessayez lorsque le serveur répond.',
+      );
+      return;
+    }
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Supprimer l\'échantillon'),
+        content: Text(
+          'Voulez-vous supprimer "${e.referenceBouteille}" (${e.ref}) ?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Annuler',
+              style: TextStyle(color: Colors.grey.shade600),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              try {
+                await _service.deleteEchantillon(e.id);
+                if (!mounted) return;
+                setState(
+                  () => _echantillons.removeWhere((item) => item.id == e.id),
+                );
+                _showSuccess('"${e.referenceBouteille}" supprimé');
+              } catch (error) {
+                if (mounted) _showError('Suppression impossible : $error');
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red.shade400,
+              foregroundColor: Colors.white,
+              elevation: 0,
+            ),
+            child: const Text('Supprimer'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _ouvrirModification(Echantillon e) {
+    if (_estDemonstration) {
+      _showError(
+        'Modification indisponible avec les données de démonstration. Réessayez lorsque le serveur répond.',
+      );
+      return;
+    }
+    showFormulaireDialog(
+      context,
+      echantillon: e,
+      prochainNumero: _prochainNumero,
+      onSaveMultiple: _onModifier,
+    );
+  }
 
   Future<bool> _onToggleRecu(Echantillon e) async {
     if (e.recuPhysiquement) {
@@ -286,6 +390,28 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage>
           const SizedBox(width: 6),
         ],
       ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          if (_estDemonstration) {
+            _showError(
+              'Ajout indisponible avec les données de démonstration. Réessayez lorsque le serveur répond.',
+            );
+            return;
+          }
+          showFormulaireDialog(
+            context,
+            prochainNumero: _prochainNumero,
+            onSaveMultiple: _onAjouter,
+          );
+        },
+        backgroundColor: const Color.fromARGB(255, 197, 206, 201),
+        elevation: 2,
+        icon: const Icon(Icons.add, color: kDark),
+        label: const Text(
+          'Ajouter',
+          style: TextStyle(color: kDark, fontWeight: FontWeight.w700),
+        ),
+      ),
 
       body: VueResultatService(
         estDemonstration: _estDemonstration,
@@ -444,6 +570,10 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage>
                           final e = items[i];
                           return EchantillonCard(
                             echantillon: e,
+                            onModifier: () => _ouvrirModification(e),
+                            onSupprimer: _peutSupprimer(e)
+                                ? () => _onSupprimer(e)
+                                : null,
                             onToggleRecu: () => _onToggleRecu(e),
                           );
                         },

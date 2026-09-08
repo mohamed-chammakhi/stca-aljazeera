@@ -1,5 +1,6 @@
 import 'package:project3/core/api_client.dart';
 import 'package:project3/core/models/echantillon.dart';
+import 'package:project3/core/models/enums.dart';
 import 'package:project3/core/models/mock_echantillons_gestion.dart';
 import 'package:project3/core/services/resultat_service.dart';
 
@@ -51,6 +52,27 @@ class GestionEchantillonsService {
     };
   }
 
+  /// Converts the shared Flutter sample model to the Django serializer payload.
+  Map<String, dynamic> _toDjangoMap(Echantillon e) {
+    final code = e.codeFournisseur?.trim() ?? '';
+    final nom = e.fournisseurNom?.trim() ?? '';
+    return {
+      'gouvernorat': e.gouvernorat,
+      'delegation': e.delegation,
+      'cite': e.cite,
+      if (nom.isEmpty && code.isNotEmpty) 'code_fournisseur': code,
+      if (nom.isNotEmpty) 'fournisseur_nom': nom,
+      'reference_bouteille': e.referenceBouteille,
+      'num_citerne': e.numCiterne,
+      'quantite_estimee': e.quantiteEstimee,
+      'variete': e.variete,
+      'date_arrivee_echantillon': e.dateArriveeEchantillon,
+      'remarques': e.remarques,
+      'image_url': e.imageUrl,
+      'statut_collecteur': e.statutCollecteur.toJson,
+    };
+  }
+
   // ── Public API ─────────────────────────────────────────────────────────────
 
   /// Fetches all physically received echantillons visible to the degustateur.
@@ -74,9 +96,21 @@ class GestionEchantillonsService {
   Future<Echantillon> updateEchantillon(Echantillon e) async {
     final response = await apiClient.patch(
       '/api/echantillons/${e.id}/',
-      e.toJson(),
+      _toDjangoMap(e),
     );
     return Echantillon.fromJson(_toFlutterMap(response));
+  }
+
+  Future<Echantillon> createEchantillon(Echantillon e) async {
+    final response = await apiClient.post(
+      '/api/echantillons/',
+      _toDjangoMap(e),
+    );
+    return Echantillon.fromJson(_toFlutterMap(response));
+  }
+
+  Future<void> deleteEchantillon(String id) async {
+    await apiClient.delete('/api/echantillons/$id/');
   }
 
   /// Confirms physical reception of an echantillon at the company.
