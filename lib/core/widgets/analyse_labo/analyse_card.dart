@@ -104,12 +104,6 @@ class _AnalyseCardState extends State<AnalyseCard> {
                           const SizedBox(height: 4),
                           Row(
                             children: [
-                              Icon(
-                                Icons.tag,
-                                size: 11,
-                                color: Colors.grey.shade400,
-                              ),
-                              const SizedBox(width: 4),
                               Expanded(
                                 child: Text(
                                   analyse.numero,
