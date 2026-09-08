@@ -3,8 +3,11 @@
 Ce fichier est le tableau de bord. **Claude le tient à jour, personne d'autre.**
 Il répond à une seule question : où en est-on, et qui attend quoi.
 
-Dernière mise à jour : 08/09/2026, après le commit de la tâche 21. Toutes les tâches
-numérotées sont terminées, plus aucune question ouverte.
+Dernière mise à jour : 08/09/2026, après le commit de la tâche 22. Le propriétaire avait
+signalé que les tâches 20 et 21 avaient pris la mauvaise direction : une page entière avait
+été réutilisée depuis le collecteur au lieu de simplement ajouter les boutons
+ajouter/modifier/supprimer sur la page "Gestion des échantillons" déjà existante pour le
+dégustateur et le chef. La tâche 22 corrige ça. Plus aucune question ouverte.
 
 ---
 
@@ -27,7 +30,8 @@ numérotées sont terminées, plus aucune question ouverte.
 | 18 | Retirer complètement la carte géographique (collecteur, + vérification côté CEO) | **Terminée et commitée** (`70b4731`) | à vérifier à l'écran |
 | 19 | Champ "lieu précis" hors liste gouvernorat/délégation (collecteur, dégustateur, chef dégustateur) | **Terminée et commitée** (`1edbfe0`) | à vérifier à l'écran |
 | 20 | Dégustateur et chef dégustateur peuvent enregistrer/modifier/supprimer des échantillons, page du collecteur réutilisée | **Terminée et commitée** (`d986f95`) | à vérifier à l'écran |
-| 21 | Retirer (pas cacher) le tiroir/cloche/achat-livraison du collecteur pour dégustateur et chef | **Terminée et commitée** (`76446cf`) | à vérifier à l'écran |
+| 21 | Retirer (pas cacher) le tiroir/cloche/achat-livraison du collecteur pour dégustateur et chef | **Annulée par la tâche 22**, mauvaise approche selon le propriétaire | personne |
+| 22 | Corriger : retirer la page réutilisée du collecteur, ajouter/modifier/supprimer directement sur la page "Gestion des échantillons" du dégustateur et du chef | **Terminée et commitée** | à vérifier à l'écran |
 
 Toutes les tâches numérotées sont faites et commitées.
 
