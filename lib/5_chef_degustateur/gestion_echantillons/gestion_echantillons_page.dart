@@ -51,6 +51,7 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage>
     DateFilterType.enregistrement,
     DateFilterType.livraisonEchantillon,
     DateFilterType.receptionPhysique,
+    DateFilterType.arriveeStock,
   ];
 
   bool get _dateFilterActive => _dateDebut != null || _dateFin != null;
