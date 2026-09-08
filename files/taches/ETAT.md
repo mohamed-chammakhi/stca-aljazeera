@@ -3,11 +3,10 @@
 Ce fichier est le tableau de bord. **Claude le tient à jour, personne d'autre.**
 Il répond à une seule question : où en est-on, et qui attend quoi.
 
-Dernière mise à jour : 08/09/2026, après le commit de la tâche 22. Le propriétaire avait
-signalé que les tâches 20 et 21 avaient pris la mauvaise direction : une page entière avait
-été réutilisée depuis le collecteur au lieu de simplement ajouter les boutons
-ajouter/modifier/supprimer sur la page "Gestion des échantillons" déjà existante pour le
-dégustateur et le chef. La tâche 22 corrige ça. Plus aucune question ouverte.
+Dernière mise à jour : 08/09/2026, après le commit de la tâche 23. Plus aucune question
+ouverte. Confirmé par le propriétaire : dégustateur et chef peuvent chacun supprimer
+n'importe quel échantillon non enregistré par un collecteur (pas seulement ce que chacun a
+lui-même ajouté) — c'était déjà le comportement depuis la tâche 22, rien à changer.
 
 ---
 
@@ -32,6 +31,7 @@ dégustateur et le chef. La tâche 22 corrige ça. Plus aucune question ouverte.
 | 20 | Dégustateur et chef dégustateur peuvent enregistrer/modifier/supprimer des échantillons, page du collecteur réutilisée | **Terminée et commitée** (`d986f95`) | à vérifier à l'écran |
 | 21 | Retirer (pas cacher) le tiroir/cloche/achat-livraison du collecteur pour dégustateur et chef | **Annulée par la tâche 22**, mauvaise approche selon le propriétaire | personne |
 | 22 | Corriger : retirer la page réutilisée du collecteur, ajouter/modifier/supprimer directement sur la page "Gestion des échantillons" du dégustateur et du chef | **Terminée et commitée** | à vérifier à l'écran |
+| 23 | Le filtre par date du dégustateur et du chef propose les mêmes 4 choix que celui du collecteur | **Terminée et commitée** | à vérifier à l'écran |
 
 Toutes les tâches numérotées sont faites et commitées.
 
@@ -50,6 +50,7 @@ Toutes les tâches numérotées sont faites et commitées.
 | Réception physique | Reste au dégustateur, le laboratoire n'intervient pas |
 | Test de la page « Mes échantillons » | Abandonné : il aurait fallu changer le constructeur de la page |
 | Photo par bouteille | Un bouton photo dans chaque carte de bouteille, avec Galerie / Appareil photo / Annuler. Plus de question « à quelle bouteille ? » |
+| Suppression par dégustateur/chef | N'importe lequel des deux peut supprimer n'importe quel échantillon non enregistré par un collecteur — pas seulement ce que chacun a lui-même ajouté. Aucun champ « qui a enregistré » à ajouter |
 | Tests sur les écrans du collecteur | Abandonnés. Ces écrans vont chercher des données à l'ouverture et ne se stabilisent jamais dans un test. Vérification à l'écran |
 | Comment tester malgré tout | Sortir la logique dans une **fonction pure** de `lib/core/utils/` et la tester là. C'est ce qui a marché en tâche 07 |
 | Évaluation urgente — qui la reçoit | Tous les dégustateurs actifs, et le chef dégustateur aussi. Déjà le comportement du serveur, aucun changement de code |
