@@ -133,7 +133,24 @@ class AppDrawer extends StatelessWidget {
                       navigator.pop();
                       navigator.push(
                         MaterialPageRoute(
-                          builder: (_) => const MesEchantillonsPage(),
+                          builder: (_) => MesEchantillonsPage(
+                            afficherExtrasCollecteur: false,
+                            drawerPersonnalise: AppDrawer(
+                              onaccueil: onaccueil,
+                              onEvaluationEchantillons:
+                                  onEvaluationEchantillons,
+                              onGestionEchantillons: onGestionEchantillons,
+                              onAnalyseLaboratoire: onAnalyseLaboratoire,
+                              onSessionsDegustationPage:
+                                  onSessionsDegustationPage,
+                              onMembredupanel: onMembredupanel,
+                              onUtilisateurs: onUtilisateurs,
+                              onVueEnsembleEvaluations:
+                                  onVueEnsembleEvaluations,
+                              onProfil: onProfil,
+                              onDeconnexion: onDeconnexion,
+                            ),
+                          ),
                         ),
                       );
                     },

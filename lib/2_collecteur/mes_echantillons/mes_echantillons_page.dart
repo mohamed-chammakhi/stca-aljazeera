@@ -29,7 +29,15 @@ import '../../core/models/enums.dart' show RoleUtilisateur;
 import '../../core/services/auth_service.dart';
 
 class MesEchantillonsPage extends StatefulWidget {
-  const MesEchantillonsPage({super.key});
+  final Widget? drawerPersonnalise;
+  final bool afficherExtrasCollecteur;
+
+  const MesEchantillonsPage({
+    super.key,
+    this.drawerPersonnalise,
+    this.afficherExtrasCollecteur = true,
+  });
+
   @override
   State<MesEchantillonsPage> createState() => _MesEchantillonsPageState();
 }
@@ -67,7 +75,9 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
     super.initState();
     _loadRoleConnecte();
     _loadEchantillons();
-    _loadUnreadCount();
+    if (widget.afficherExtrasCollecteur) {
+      _loadUnreadCount();
+    }
   }
 
   Future<void> _loadRoleConnecte() async {
@@ -116,7 +126,9 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
 
   void _reessayer() {
     _loadEchantillons();
-    _loadUnreadCount();
+    if (widget.afficherExtrasCollecteur) {
+      _loadUnreadCount();
+    }
   }
 
   void _openNotifications() async {
@@ -629,12 +641,14 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
 
     return Scaffold(
       backgroundColor: colBg,
-      drawer: CollecteurDrawer(
-        onMesEchantillons: () => Navigator.pop(context),
-        onMessagerie: () => goToPage(const Placeholder()),
-        onProfil: () => goToPage(const ProfileCollecteurPage()),
-        onDeconnexion: goToLogin,
-      ),
+      drawer:
+          widget.drawerPersonnalise ??
+          CollecteurDrawer(
+            onMesEchantillons: () => Navigator.pop(context),
+            onMessagerie: () => goToPage(const Placeholder()),
+            onProfil: () => goToPage(const ProfileCollecteurPage()),
+            onDeconnexion: goToLogin,
+          ),
       appBar: AppBar(
         backgroundColor: colHeaderBg,
         elevation: 0,
@@ -650,49 +664,51 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
         ),
         iconTheme: const IconThemeData(color: colDark),
         actions: [
-          // ── Bell icon with unread badge ──────────────────────────────────
-          Stack(
-            alignment: Alignment.center,
-            children: [
-              IconButton(
-                icon: const Icon(
-                  Icons.notifications_outlined,
-                  size: 22,
-                  color: Color(0xFF6B8E7A),
+          if (widget.afficherExtrasCollecteur) ...[
+            // ── Bell icon with unread badge ──────────────────────────────────
+            Stack(
+              alignment: Alignment.center,
+              children: [
+                IconButton(
+                  icon: const Icon(
+                    Icons.notifications_outlined,
+                    size: 22,
+                    color: Color(0xFF6B8E7A),
+                  ),
+                  onPressed: _openNotifications,
+                  tooltip: 'Notifications',
                 ),
-                onPressed: _openNotifications,
-                tooltip: 'Notifications',
-              ),
-              if (_unreadNotifCount > 0)
-                Positioned(
-                  right: 8,
-                  top: 10,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 4,
-                      vertical: 1,
-                    ),
-                    decoration: BoxDecoration(
-                      color: colGreen,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    constraints: const BoxConstraints(
-                      minWidth: 16,
-                      minHeight: 16,
-                    ),
-                    child: Text(
-                      _unreadNotifCount > 9 ? '9+' : '$_unreadNotifCount',
-                      style: const TextStyle(
-                        fontSize: 9,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
+                if (_unreadNotifCount > 0)
+                  Positioned(
+                    right: 8,
+                    top: 10,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 4,
+                        vertical: 1,
                       ),
-                      textAlign: TextAlign.center,
+                      decoration: BoxDecoration(
+                        color: colGreen,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      constraints: const BoxConstraints(
+                        minWidth: 16,
+                        minHeight: 16,
+                      ),
+                      child: Text(
+                        _unreadNotifCount > 9 ? '9+' : '$_unreadNotifCount',
+                        style: const TextStyle(
+                          fontSize: 9,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
                     ),
                   ),
-                ),
-            ],
-          ),
+              ],
+            ),
+          ],
           // ── Date filter ──────────────────────────────────────────────────
           Stack(
             alignment: Alignment.center,
@@ -1022,10 +1038,14 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
                                     onSupprimer: _canDeleteForCurrentRole(e)
                                         ? () => _onSupprimer(e)
                                         : null,
-                                    onConfirmerAchat: e.canConfirm
+                                    onConfirmerAchat:
+                                        (widget.afficherExtrasCollecteur &&
+                                            e.canConfirm)
                                         ? () => _onConfirmerAchat(e)
                                         : null,
-                                    onPlanifierLivraison: e.canPlanifier
+                                    onPlanifierLivraison:
+                                        (widget.afficherExtrasCollecteur &&
+                                            e.canPlanifier)
                                         ? () => _onPlanifierLivraison(e)
                                         : null,
                                     onScheduleArrivee: e.canScheduleArrivee

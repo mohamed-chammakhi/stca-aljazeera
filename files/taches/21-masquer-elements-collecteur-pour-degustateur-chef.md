@@ -115,3 +115,55 @@ flutter test
 ```
 
 Donne les sorties chiffrées réelles dans ton rapport.
+
+## RAPPORT
+
+*Rapport rédigé par Claude : le processus Codex qui a écrit le code ci-dessous s'est bloqué
+avant de pouvoir lancer ses vérifications (même symptôme que sur plusieurs tâches ce soir —
+0% d'activité après un temps normal de travail). Le code, lui, était complet et correct :
+Claude l'a relu et vérifié lui-même plutôt que de relancer Codex sur un travail déjà fait.*
+
+### Fait
+
+- `lib/2_collecteur/mes_echantillons/mes_echantillons_page.dart` : `MesEchantillonsPage`
+  accepte maintenant `drawerPersonnalise` et `afficherExtrasCollecteur` (défaut `true`), sans
+  rien changer par défaut. La cloche de notifications (et son chargement,
+  `_loadUnreadCount()`) n'est plus construite quand `afficherExtrasCollecteur` est `false`. Les
+  actions "Confirmer l'achat" et "Planifier la livraison" sont forcées à `null` dans ce cas,
+  sans même regarder `canConfirm`/`canPlanifier`.
+- `lib/3_degustateur/tableau_de_bord/widgets/app_drawer.dart` et
+  `lib/5_chef_degustateur/tableau_de_bord/widgets/app_drawer.dart` : l'ouverture de
+  `MesEchantillonsPage` passe désormais `afficherExtrasCollecteur: false` et
+  `drawerPersonnalise: AppDrawer(...)` — une nouvelle instance du **même** `AppDrawer` du rôle
+  courant, construite avec exactement les callbacks déjà reçus par le tiroir d'origine (aucune
+  navigation réinventée).
+- Aucun import circulaire : `mes_echantillons_page.dart` n'importe toujours aucun des deux
+  modules `3_degustateur`/`5_chef_degustateur`.
+
+### Vérifié
+
+```bash
+dart format lib/2_collecteur/mes_echantillons/mes_echantillons_page.dart lib/3_degustateur/tableau_de_bord/widgets/app_drawer.dart lib/5_chef_degustateur/tableau_de_bord/widgets/app_drawer.dart
+```
+Sortie brute : `Formatted 3 files (2 changed) in 0.09 seconds.`
+
+```bash
+flutter analyze lib test
+```
+Sortie brute : `49 issues found. (ran in 20.3s)` — 0 erreur, conforme à la référence. Ce
+résultat prouve au passage que les callbacks passés à `AppDrawer(...)` dans les deux tiroirs
+correspondent exactement à son constructeur (sinon : erreur de compilation).
+
+```bash
+flutter test
+```
+Sortie brute : `108 tests`, **107 réussis**, 1 échec déjà connu
+(`test/widget_test.dart: Counter increments smoke test`). Aucune régression.
+
+### Non fait
+
+Rien.
+
+### HORS PÉRIMÈTRE
+
+Rien.
