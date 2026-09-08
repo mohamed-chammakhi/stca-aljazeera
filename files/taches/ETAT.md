@@ -3,7 +3,8 @@
 Ce fichier est le tableau de bord. **Claude le tient à jour, personne d'autre.**
 Il répond à une seule question : où en est-on, et qui attend quoi.
 
-Dernière mise à jour : 07/09/2026, après le commit de la tâche 20.
+Dernière mise à jour : 08/09/2026, après le commit de la tâche 21. Toutes les tâches
+numérotées sont terminées, plus aucune question ouverte.
 
 ---
 
@@ -26,11 +27,9 @@ Dernière mise à jour : 07/09/2026, après le commit de la tâche 20.
 | 18 | Retirer complètement la carte géographique (collecteur, + vérification côté CEO) | **Terminée et commitée** (`70b4731`) | à vérifier à l'écran |
 | 19 | Champ "lieu précis" hors liste gouvernorat/délégation (collecteur, dégustateur, chef dégustateur) | **Terminée et commitée** (`1edbfe0`) | à vérifier à l'écran |
 | 20 | Dégustateur et chef dégustateur peuvent enregistrer/modifier/supprimer des échantillons, page du collecteur réutilisée | **Terminée et commitée** (`d986f95`) | à vérifier à l'écran |
-| 21 | Retirer (pas cacher) le tiroir/cloche/achat-livraison du collecteur pour dégustateur et chef | **En cours — lancée sur Codex** | Codex |
+| 21 | Retirer (pas cacher) le tiroir/cloche/achat-livraison du collecteur pour dégustateur et chef | **Terminée et commitée** (`76446cf`) | à vérifier à l'écran |
 
-Tâche 21 en cours : le propriétaire a tranché la question ouverte de la tâche 20 — les
-éléments propres au collecteur ne doivent pas juste être masqués, ils ne doivent pas être
-construits du tout pour le dégustateur et le chef.
+Toutes les tâches numérotées sont faites et commitées.
 
 ---
 
