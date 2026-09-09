@@ -12,7 +12,11 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/models/echantillon.dart';
 import '../../../../core/models/enums.dart';
+import '../../../../core/models/fournisseur.dart';
+import '../../../../core/services/fournisseur_service.dart';
+import '../../../../core/widgets/champ_autocomplete.dart';
 import '../../../../core/widgets/date_input_field.dart';
+import '../../../../core/widgets/dialog_doublon_fournisseur.dart';
 // TODO(core): move GeoService to lib/core/services/ — cross-module import from 2_collecteur
 import '../../../../2_collecteur/carte_geo/services/geo_service.dart';
 import '../../../widgets/chef_colors.dart';
@@ -107,6 +111,7 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
   // ── GeoService ────────────────────────────────────────────────────────────
   final GeoService _geo = GeoService.instance;
   bool _geoLoaded = false;
+  Fournisseur? _fournisseurChoisi;
 
   // ── Shared controllers ───────────────────────────────────────────────────
   late final TextEditingController _codeFournisseurCtrl;
@@ -184,7 +189,33 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
     return _bouteilles.every((b) => b.refCtrl.text.trim().isNotEmpty);
   }
 
-  void _save() {
+  Future<void> _verifierFournisseur() async {
+    final saisi = _codeFournisseurCtrl.text.trim();
+    if (saisi.isEmpty) return;
+
+    if (_fournisseurChoisi != null && _fournisseurChoisi!.nom.trim() == saisi) {
+      return;
+    }
+
+    final resultatProches = await FournisseurService.instance
+        .findNearDuplicates(saisi);
+    if (resultatProches.estDemonstration) return;
+
+    final proches = resultatProches.donnees;
+    if (proches.isNotEmpty && mounted) {
+      final choisi = await DialogDoublonFournisseur.afficher(
+        context,
+        nomSaisi: saisi,
+        proches: proches,
+      );
+      if (choisi != null) {
+        _codeFournisseurCtrl.text = choisi.nom;
+        _fournisseurChoisi = choisi;
+      }
+    }
+  }
+
+  Future<void> _save() async {
     if (!_isValid) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -201,6 +232,9 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
       );
       return;
     }
+
+    await _verifierFournisseur();
+    if (!mounted) return;
 
     Navigator.pop(context);
 
@@ -335,10 +369,15 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // ── SHARED: FOURNISSEUR & COLLECTEUR ─────────────────
-                    _FormField(
+                    ChampAutocomplete<Fournisseur>(
                       label: 'Nom / Code fournisseur',
                       controller: _codeFournisseurCtrl,
                       hint: 'Ex: Domaine Bel-Air',
+                      chercher: FournisseurService.instance.suggest,
+                      libelle: (f) => f.nom,
+                      sousTitre: (f) => f.region,
+                      onSelection: (f) => _fournisseurChoisi = f,
+                      onSaisieLibre: () => _fournisseurChoisi = null,
                     ),
                     const SizedBox(height: 12),
                     _FormField(
