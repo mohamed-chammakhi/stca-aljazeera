@@ -3,10 +3,8 @@
 Ce fichier est le tableau de bord. **Claude le tient à jour, personne d'autre.**
 Il répond à une seule question : où en est-on, et qui attend quoi.
 
-Dernière mise à jour : 08/09/2026, après le commit de la tâche 23. Plus aucune question
-ouverte. Confirmé par le propriétaire : dégustateur et chef peuvent chacun supprimer
-n'importe quel échantillon non enregistré par un collecteur (pas seulement ce que chacun a
-lui-même ajouté) — c'était déjà le comportement depuis la tâche 22, rien à changer.
+Dernière mise à jour : 09/09/2026, après le commit de la tâche 24. Plus aucune question
+ouverte.
 
 ---
 
@@ -32,6 +30,7 @@ lui-même ajouté) — c'était déjà le comportement depuis la tâche 22, rien
 | 21 | Retirer (pas cacher) le tiroir/cloche/achat-livraison du collecteur pour dégustateur et chef | **Annulée par la tâche 22**, mauvaise approche selon le propriétaire | personne |
 | 22 | Corriger : retirer la page réutilisée du collecteur, ajouter/modifier/supprimer directement sur la page "Gestion des échantillons" du dégustateur et du chef | **Terminée et commitée** | à vérifier à l'écran |
 | 23 | Le filtre par date du dégustateur et du chef propose les mêmes 4 choix que celui du collecteur | **Terminée et commitée** | à vérifier à l'écran |
+| 24 | Suggestions de fournisseur (façon Google) pour le dégustateur et le chef, comme le collecteur a déjà | **Terminée et commitée** | à vérifier à l'écran |
 
 Toutes les tâches numérotées sont faites et commitées.
 
