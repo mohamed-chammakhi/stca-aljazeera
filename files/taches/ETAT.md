@@ -3,12 +3,19 @@
 Ce fichier est le tableau de bord. **Claude le tient à jour, personne d'autre.**
 Il répond à une seule question : où en est-on, et qui attend quoi.
 
-Dernière mise à jour : 10/09/2026, tâche 25 terminée. Audit des 32 pages utilisant
-`VueResultatService` : vérifier que chaque page distingue bien "pas encore de données"
-(message contextuel) de "échec de chargement" (erreur) — parti d'un incident sur la page
-Sessions où l'erreur affichée était en fait un vrai échec réseau passager, pas un bug de
-code. 2 vrais manques trouvés et corrigés (dashboards dégustateur et chef dégustateur,
-panneau "Activité récente"), les 30 autres étaient déjà corrects ou hors sujet.
+Dernière mise à jour : 10/09/2026, tâche 26 en cours. Le propriétaire a demandé de
+« s'occuper des notifications » : le carnet `files/notifications/` (6 fichiers, un par
+rôle + transverse web) a été relu entièrement, toutes ses questions ouvertes tranchées
+(commit dédié), puis recoupé avec le vrai code. Le carnet était en partie obsolète : le
+système de notifications serveur est bien plus construit que prévu (négociation/refus,
+urgents, dates de livraison stock — tout existe et est testé). 4 vrais manques confirmés
+et scopés en tâche 26 : le collecteur n'est jamais notifié de la réception physique de
+son échantillon, le laboratoire n'est jamais notifié d'un nouvel échantillon disponible,
+le CEO qui propose/met à jour une négociation ne notifie personne, et cliquer sur une
+notification collecteur ne navigue nulle part. Un point est volontairement laissé de
+côté : la "décoche" de réception physique est aujourd'hui bloquée en dur côté code
+("ne peut pas être annulée") — ce n'est pas un oubli de notification mais une règle
+produit actuelle, à trancher explicitement avec le propriétaire avant d'y toucher.
 
 ---
 
@@ -36,6 +43,7 @@ panneau "Activité récente"), les 30 autres étaient déjà corrects ou hors su
 | 23 | Le filtre par date du dégustateur et du chef propose les mêmes 4 choix que celui du collecteur | **Terminée et commitée** | à vérifier à l'écran |
 | 24 | Suggestions de fournisseur (façon Google) pour le dégustateur et le chef, comme le collecteur a déjà | **Terminée et commitée** | à vérifier à l'écran |
 | 25 | Audit des 32 pages utilisant VueResultatService : message contextuel quand une liste est vide, sans toucher à la vraie gestion d'erreur | **Terminée et commitée** | à vérifier à l'écran |
+| 26 | Notifications manquantes : collecteur (réception physique), laboratoire (nouvel échantillon), collecteur (négociation proposée/mise à jour), clic notification collecteur → page échantillon | **En cours** | Codex |
 
 ---
 
