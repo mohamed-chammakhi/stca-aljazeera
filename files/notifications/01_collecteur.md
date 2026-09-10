@@ -1,7 +1,7 @@
 # Collecteur — Notifications & Idées
 
 > Carnet d'idées brut, organisé. Non validé, non implémenté.
-> Dernière mise à jour : 2026-08-01
+> Dernière mise à jour : 2026-09-10 — questions ouvertes tranchées (§8), sauf D27 (reporté, lié à la messagerie non construite)
 
 ---
 
@@ -441,25 +441,26 @@ Dans la **page de détails de l'échantillon**, une **icône photo** permet d'ou
 
 | # | Question ouverte | Impact |
 |---|------------------|--------|
-| D1 | Qui reçoit la notif « achat confirmé » ? Groupée ou unitaire ? | anti-spam |
-| D2 | Date de livraison d'échantillon : obligatoire à la confirmation d'achat ? | flux métier |
-| D3 | Qui peut modifier une date confirmée, et faut-il re-notifier + historiser ? | traçabilité |
-| D4 | Contenu exact de la notification « détails de négociation » | contenu notif |
-| D5 | Créer l'action « mettre à jour la négociation » côté CEO | fonctionnalité manquante |
-| D6 | Solution UI pour saisir un intervalle numérique en un seul champ | UI CEO |
-| D7 | Filtre calendrier : sélecteur unique ou 3 vues ? | UI collecteur |
-| D8 | Vocabulaire du ruban de confirmation physique | wording |
-| D9 | Si les 4 critères ne tiennent pas dans le hint même en petit → plan B ? | UI recherche |
+| ~~D1~~ | ~~Qui reçoit la notif « achat confirmé » ? Groupée ou unitaire ?~~ → ✅ **le CEO seul, individuellement.** Pas de groupage pour l'instant | résolu |
+| ~~D2~~ | ~~Date de livraison d'échantillon : obligatoire à la confirmation d'achat ?~~ → ✅ **oui, obligatoire** | résolu |
+| ~~D3~~ | ~~Qui peut modifier une date confirmée, et faut-il re-notifier + historiser ?~~ → ✅ **chef dégustateur + dégustateur, avec historique** (cohérent avec §6.1) ; toute modification d'une date déjà annoncée **re-notifie** les destinataires | résolu |
+| ~~D4~~ | ~~Contenu exact de la notification « détails de négociation »~~ → ✅ **nom + montant proposé**, puis clic vers la page complète | résolu |
+| ~~D5~~ | ~~Créer l'action « mettre à jour la négociation » côté CEO~~ → ✅ **à construire** — manque fonctionnel confirmé | résolu |
+| ~~D6~~ | ~~Solution UI pour saisir un intervalle numérique en un seul champ~~ → ✅ **un seul champ**, format `1200-1500`, séparateur auto (même logique que le champ date) | résolu |
+| ~~D7~~ | ~~Filtre calendrier : sélecteur unique ou 3 vues ?~~ → ✅ **sélecteur unique** avec menu déroulant du type de date (comme le filtre déjà en place) | résolu |
+| ~~D8~~ | ~~Vocabulaire du ruban de confirmation physique~~ → ✅ **« Réception confirmée »** | résolu |
+| ~~D9~~ | ~~Si les 4 critères ne tiennent pas dans le hint même en petit → plan B ?~~ → ✅ **mineur, non bloquant** : on affiche ce qui tient | résolu |
 | ~~D10~~ | ~~Autocomplétion : saisie libre autorisée hors suggestions ?~~ → **oui**, avec détection de quasi-doublon | référentiel |
 | ~~D11~~ | ~~Suggestions dans le formulaire d'enregistrement ?~~ → ✅ **OUI, c'est le cas d'usage principal** (dashboard CEO) | résolu |
 | ~~D18~~ | ~~Fournisseur = entité avec ID ?~~ → ✅ **OUI**, `fournisseur_id` + région portée par l'entité | résolu |
 | ~~D19~~ | ~~Qui crée un nouveau fournisseur ?~~ → ✅ **le collecteur**, avec détection de quasi-doublon | résolu |
 | ~~D20~~ | ~~Variété / zone en référentiel ?~~ → ✅ **variété = liste fermée** (recherche), **zone = liste fermée via `GeoService`** | résolu |
+| ~~D12~~ | ~~Date d'enregistrement : avec ou sans heure ?~~ → ✅ **date seule, sans heure** | résolu |
 | ~~D13~~ | ~~Verrouillage : qui peut encore éditer ?~~ → ✅ collecteur bloqué ; **chef dégustateur + dégustateur** éditent avec historique | résolu |
 | ~~D14~~ | ~~Fil libre ou par échantillon ?~~ → ✅ **page Messagerie indépendante** dans le Drawer + référence cliquable vers un échantillon | résolu |
 | ~~D15~~ | ~~Notification sur message ?~~ → ✅ **push activable/désactivable** + badge rouge non-lus (modèle Messenger) | résolu |
 | ~~D16~~ | ~~Correction appliquée depuis le fil ?~~ → ✅ sans objet : messagerie indépendante, la correction se fait sur la fiche | résolu |
-| ~~D17~~ | ~~Qui voit le fil ?~~ → ✅ **uniquement les participants** | résolu |
+| ~~D17~~ | ~~Qui voit le fil ?~~ → ✅ **uniquement les participants** — principe posé : la messagerie reste strictement entre les deux personnes qui échangent, comme Messenger (confirmé via [`03_degustateur.md`](03_degustateur.md) T4) | résolu |
 | ~~D21~~ | ~~Le dégustateur simple a-t-il une messagerie ?~~ → ✅ **non** | résolu |
 | ~~D22~~ | ~~Laboratoire / CEO : messagerie ?~~ → ✅ **labo : non** ; **CEO : oui** (collecteurs + chefs dégustateurs) | résolu |
 | ~~D23~~ | ~~Pièces jointes ?~~ → ✅ **oui** | résolu |
@@ -467,19 +468,13 @@ Dans la **page de détails de l'échantillon**, une **icône photo** permet d'ou
 | ~~D25~~ | ~~Variété : option « autre » ?~~ → ✅ **sans objet — saisie libre + autocomplétion, jamais de liste fermée** | résolu |
 | ~~D26~~ | ~~Formuler les droits du CEO~~ → ✅ **ni modifier, ni ajouter, ni supprimer un échantillon** ; négociation ≠ échantillon | résolu |
 | ~~D28~~ | ~~Le laboratoire peut-il modifier un échantillon ?~~ → ✅ **jamais** | résolu |
-| D27 | Pièces jointes : types acceptés, taille max, comportement hors ligne ? | messagerie |
-| D29 | Photo échantillon : une seule ou plusieurs ? | §7 |
-| D30 | Photo remplaçable après enregistrement ? Et après réception (verrouillage §6.1) ? | §7 |
+| ~~D29~~ | ~~Photo échantillon : une seule ou plusieurs ?~~ → ✅ **une par bouteille**, déjà le comportement actuel | résolu |
+| ~~D30~~ | ~~Photo remplaçable après enregistrement ? Et après réception (verrouillage §6.1) ?~~ → ✅ **même règle que le reste** : chef dégustateur + dégustateur peuvent la remplacer avec historique, verrouillée pour le collecteur après réception | résolu |
+| D27 | Pièces jointes : types acceptés, taille max, comportement hors ligne ? | 📌 reporté — dépend de la construction de la messagerie, non commencée |
 
 **Principe transverse dégagé :** l'autocomplétion **assiste** la saisie, elle ne la
 **contraint** jamais. Seule exception : la zone/délégation, qui vient d'une liste
 officielle déjà présente dans l'app.
-| D12 | Date d'enregistrement : avec ou sans heure ? | détails échantillon |
-| D13 | Verrouillage après réception : personne n'édite, ou seul le collecteur est bloqué ? | ⚠️ conflit avec règle CLAUDE.md |
-| D14 | Messagerie : fil libre ou fil rattaché à un échantillon ? | archi messagerie |
-| D15 | Un message déclenche-t-il une notification ? | notif |
-| D16 | Le chef dégustateur peut-il appliquer la correction depuis le fil ? | droits |
-| ~~D17~~ | ~~CEO / dégustateur : accès en lecture au fil ?~~ → ✅ **non, aucun accès pour un tiers** — principe posé : la messagerie reste strictement entre les deux personnes qui échangent, comme Messenger (tranché via [`03_degustateur.md`](03_degustateur.md) T4) | résolu |
 
 ---
 

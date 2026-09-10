@@ -1,6 +1,7 @@
 # Chef Dégustateur — Notifications & Idées
 
-> Carnet d'idées brut, organisé. Non validé, non implémenté.
+> Décisions tranchées le 2026-09-10 (voir §4) — pas encore codées, sauf ce qui est marqué
+> « déjà existant ».
 
 **Rappel de droits (tranché dans [`01_collecteur.md`](01_collecteur.md) §6.1) :**
 le chef dégustateur **peut modifier** un échantillon après réception physique, avec
@@ -25,10 +26,9 @@ La structure, la mise en page, la présentation des panels d'évaluation.
 ❌ Les **boutons de décision** (approbation / refus). Le chef dégustateur consulte et
 supervise les évaluations — il ne décide pas de l'achat, c'est le rôle du CEO.
 
-❓ À préciser : le bouton **« Urgent »** de la page CEO (§2.3 de [`02_ceo.md`](02_ceo.md))
-fait-il partie des « boutons de décision » à retirer, ou le chef dégustateur peut-il lui
-aussi relancer ses dégustateurs ? *(à mon sens il devrait pouvoir — c'est lui qui pilote
-le panel au quotidien, pas le CEO)*
+✅ **Tranché (CD1) :** le bouton « Urgent » **ne fait pas partie** des boutons de décision à
+retirer — le chef dégustateur peut lui aussi relancer ses dégustateurs, il pilote le panel
+au quotidien.
 
 ---
 
@@ -96,31 +96,26 @@ chef dégustateur.
 ---
 
 ## 3. Notifications REÇUES par le chef dégustateur
-_(à compléter — pas encore d'idées données)_
 
-Pistes évidentes à valider :
-- ❓ Nouvel échantillon enregistré par un collecteur
-- ❓ Évaluation soumise par un de ses dégustateurs
-- ❓ Analyse laboratoire disponible
-- ❓ Dates de livraison annoncées / modifiées par le collecteur
-  *(ton point 4 côté CEO : « c'est la même chose pour les tasters »)*
-- ❓ Notification « Urgent » envoyée par le CEO — la reçoit-il aussi ? (= C4 dans
-  [`02_ceo.md`](02_ceo.md))
+✅ **Tranché (CD3) — liste retenue, toutes confirmées :**
+- Nouvel échantillon enregistré par un collecteur
+- Évaluation soumise par un de ses dégustateurs
+- Analyse laboratoire disponible
+- Dates de livraison annoncées / modifiées par le collecteur
+  *(même chose côté CEO : « c'est la même chose pour les tasters »)*
+- Notification « Urgent » envoyée par le CEO (= C4, ✅ oui — [`02_ceo.md`](02_ceo.md))
 
 ---
 
 ## 4. Récapitulatif des décisions
 
-| # | Question ouverte | Impact |
-|---|------------------|--------|
-| CD1 | Le chef dégustateur garde-t-il un bouton « Urgent » ? *(reco : oui)* | §1.2 |
-| CD2 | Reçoit-il la notification « Urgent » du CEO ? (= C4) | notif |
-| CD3 | Liste définitive de ses notifications reçues (§3) | notif |
-
 **Déjà tranché / déjà existant :**
 - ✅ Compteur `3 / 4` : **existe, conservé, rien à faire** (§1.3)
 - ✅ Check actionnable : **le widget existe** dans le module dégustateur, à réutiliser (§1.4)
 - ❌ Boutons de décision : **retirés** de la vue d'ensemble (§1.2)
+- ~~CD1~~ — Le chef dégustateur garde-t-il un bouton « Urgent » ? → ✅ **oui** (§1.2)
+- ~~CD2~~ — Reçoit-il la notification « Urgent » du CEO ? → ✅ **oui** (= C4, §2)
+- ~~CD3~~ — Liste définitive de ses notifications reçues → ✅ **fixée** (§3)
 
 ---
 

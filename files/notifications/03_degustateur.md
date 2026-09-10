@@ -1,6 +1,7 @@
 # Dégustateur — Notifications & Idées
 
-> Carnet d'idées brut, organisé. Non validé, non implémenté.
+> Décisions tranchées le 2026-09-10 (voir §3) — pas encore codées, sauf ce qui est marqué
+> « déjà existant ».
 
 **Rappel de droits (tranché dans [`01_collecteur.md`](01_collecteur.md) §6.1) :**
 le dégustateur simple **peut modifier** un échantillon après réception physique, avec
@@ -24,7 +25,7 @@ dérive que la fusion doit corriger, pas figer.
 | **Évaluation soumise** | CEO (`evaluation_soumise`, ✅ déjà listé dans [`02_ceo.md`](02_ceo.md) §1.1) | 📌 vérifié dans le code : `lib/3_degustateur/evaluation_echantillons/services/evaluation_service.dart:90` — `soumettre()` appelle déjà `POST /api/evaluations/{id}/soumettre/`. Le déclenchement de la notification est côté serveur, pas encore vérifié. |
 | **Confirmation de présence à une séance** (coche sur `session_card.dart`) | ✅ Le créateur de la séance | tranché (T3) — à construire, n'existe pas encore |
 | **Bouton urgent labo** (page Analyse laboratoire, cloche rouge) | Laboratoire | ✅ déjà décrit dans [`05_laboratoire.md`](05_laboratoire.md) (`ANALYSE_URGENTE`, "existe déjà") ; bouton verrouillé après envoi, pour la session. 📌 Vérifié : `lib/3_degustateur/analyse_labo/analyse_laboratoire_page.dart:263` et `lib/5_chef_degustateur/analyse_labo/analyse_laboratoire_page.dart:219` appellent **le même** `LigneAnalyseLaboService.sendUrgentAnalyseLabo()` — déjà partagé, aucune dérive ici. |
-| **Nouvel échantillon ajouté** (le dégustateur peut créer un échantillon manqué par le collecteur, `role_degustateur.md`) | ❓ Collecteur concerné ? CEO ? | pas encore posé nulle part |
+| **Nouvel échantillon ajouté** (le dégustateur peut créer un échantillon manqué par le collecteur, `role_degustateur.md`) | ✅ **le collecteur concerné + le CEO** (T5) | tranché |
 
 ---
 
@@ -90,11 +91,9 @@ nom, même fichier) est censée l'empêcher.
 
 ## 3. Récapitulatif des décisions
 
-| # | Question ouverte | Impact |
-|---|-------------------|--------|
-| T5 | Un dégustateur qui ajoute lui-même un échantillon manqué par le collecteur — qui est prévenu ? | notif |
-
 **Tranché :**
+- ~~T5~~ — Un dégustateur qui ajoute lui-même un échantillon manqué par le collecteur —
+  qui est prévenu ? → ✅ **le collecteur concerné + le CEO** (§1)
 - ~~T1~~ — Le chef dégustateur reçoit-il en plus `EVALUATION_SOUMISE` et
   `TOUTES_EVALUATIONS` ? → ✅ **non, retirés** — le chef reçoit exactement les mêmes
   notifications que le dégustateur simple (§2.2)

@@ -1,17 +1,22 @@
-# Notifications — Idées & Scénarios (brut, en cours)
+# Notifications — Idées & Scénarios
 
 Espace de collecte des idées de notifications entre les 5 acteurs.
-Rien ici n'est validé ni implémenté — c'est un carnet d'idées organisé, à trier ensuite.
+
+**2026-09-10 : toutes les questions ouvertes ont été tranchées** (voir le récapitulatif
+de chaque fichier). Ce qui reste non tranché est explicitement marqué comme tel (D27 et W7,
+tous deux reportés le temps que la messagerie soit construite). **Rien de ce qui est
+décidé n'est encore codé**, à l'exception de ce que chaque fichier signale comme
+« déjà existant ».
 
 ## Fichiers par acteur
 
 | Acteur | Fichier | Statut |
 |--------|---------|--------|
-| Collecteur | [`01_collecteur.md`](01_collecteur.md) | 🟡 en cours de collecte |
-| CEO / Directeur | [`02_ceo.md`](02_ceo.md) | 🟡 en cours de collecte |
-| Dégustateur | [`03_degustateur.md`](03_degustateur.md) | 🟡 en cours de collecte |
-| Chef Dégustateur | [`04_chef_degustateur.md`](04_chef_degustateur.md) | 🟡 en cours de collecte |
-| Laboratoire | [`05_laboratoire.md`](05_laboratoire.md) | 🟡 en cours de collecte |
+| Collecteur | [`01_collecteur.md`](01_collecteur.md) | 🟢 décisions tranchées |
+| CEO / Directeur | [`02_ceo.md`](02_ceo.md) | 🟢 décisions tranchées |
+| Dégustateur | [`03_degustateur.md`](03_degustateur.md) | 🟢 décisions tranchées |
+| Chef Dégustateur | [`04_chef_degustateur.md`](04_chef_degustateur.md) | 🟢 décisions tranchées |
+| Laboratoire | [`05_laboratoire.md`](05_laboratoire.md) | 🟢 décisions tranchées |
 
 ## Fichiers transverses
 
@@ -20,7 +25,7 @@ Sujets qui concernent plusieurs rôles, remontés depuis le fichier d'acteur où
 
 | Sujet | Fichier | Statut | Soulevé depuis |
 |-------|---------|--------|----------------|
-| Version web | [`00_transverse_web.md`](00_transverse_web.md) | 🟡 en cours de collecte | Laboratoire |
+| Version web | [`00_transverse_web.md`](00_transverse_web.md) | 🟢 décisions tranchées (sauf W7) | Laboratoire |
 
 ## Convention d'écriture
 

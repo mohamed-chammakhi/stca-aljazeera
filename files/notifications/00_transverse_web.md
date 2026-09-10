@@ -1,7 +1,7 @@
 # Transverse — Version web (tous les rôles)
 
-> Carnet d'idées brut, organisé. Non validé, non implémenté.
-> Dernière mise à jour : 2026-08-03
+> Décisions tranchées le 2026-09-10 (voir §6) — pas encore codées, sauf ce qui est marqué
+> « déjà existant ». Reste ouvert : W7 (messagerie sur le web).
 
 **Pourquoi un fichier commun :** ce sujet a été soulevé depuis le laboratoire
 ([`05_laboratoire.md`](05_laboratoire.md) §2) mais concerne **les 5 rôles**.
@@ -103,8 +103,8 @@ téléphone est mauvais — **beaucoup de lignes, fichiers, clavier, grand écra
 | **Collecteur** | ❌ faible | il est **sur la route**, souvent hors ligne. Le mobile *est* son outil |
 | **Dégustateur** | ❌ faible | il évalue physiquement devant l'échantillon |
 
-→ ❓ **W3 :** confirmer cet ordre de priorité. *(Recommandation : laboratoire d'abord —
-c'est le seul dont le besoin est déjà spécifié et concret.)*
+✅ **Tranché (W3) :** ordre confirmé — **Laboratoire → CEO → Chef dégustateur → reste**
+(collecteur et dégustateur restent des outils mobiles en priorité).
 
 ℹ️ **Le collecteur n'est pas exclu.** Comme il n'y a qu'une application (W1), il aura
 accès au web s'il se connecte. Simplement, aucune page ne sera *conçue pour* lui en
@@ -112,15 +112,21 @@ priorité.
 
 ---
 
-## 6. ❓ Questions ouvertes
+## 6. Questions — décisions
 
-| # | Question | Impact |
-|---|----------|--------|
-| W3 | Ordre de priorité des rôles pour l'adaptation web | planning |
-| W4 | Points de rupture retenus (mobile / tablette / bureau) — à figer une fois, dans le design system | UI transverse |
-| W5 | Le web est-il public ou réservé au réseau de l'entreprise ? | sécurité / déploiement |
-| W6 | Les notifications push : quel comportement sur le web ? (le sujet push est ouvert dans [`ideas.md`](../ideas.md)) | notif |
-| W7 | La messagerie ([`01_collecteur.md`](01_collecteur.md) §6.2) doit-elle être adaptée au web dès le départ ? | messagerie |
+- ~~W3~~ — Ordre de priorité des rôles pour l'adaptation web → ✅ **Laboratoire → CEO →
+  Chef dégustateur → reste** (§5)
+- ~~W4~~ — Points de rupture (mobile / tablette / bureau) → ✅ **standard Material** :
+  mobile `< 600px`, tablette `600–1024px`, bureau `> 1024px`
+- ~~W5~~ — Le web est-il public ou réservé au réseau de l'entreprise ? → ✅ **public**,
+  accessible avec identifiants depuis n'importe où — ⚠️ exige une vraie rigueur côté
+  Django (rate limiting, permissions par rôle vérifiées serveur, jamais côté Flutter
+  seul — voir §4 ci-dessus)
+- ~~W6~~ — Notifications push sur le web → ✅ **reporté**, pas prioritaire avant un vrai
+  déploiement web (sujet push aussi ouvert dans [`ideas.md`](../ideas.md))
+- W7 — La messagerie ([`01_collecteur.md`](01_collecteur.md) §6.2) doit-elle être adaptée
+  au web dès le départ ? → 📌 **laissé ouvert**, dépend de la construction de la
+  messagerie elle-même, non commencée
 
 ---
 

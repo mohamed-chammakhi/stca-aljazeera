@@ -1,6 +1,7 @@
 # CEO / Direction — Notifications & Idées
 
-> Carnet d'idées brut, organisé. Non validé, non implémenté.
+> Décisions tranchées le 2026-09-10 (voir §6) — pas encore codées, sauf ce qui est marqué
+> « déjà existant ».
 > ⚠️ Dans le Drawer des autres rôles, on dit **« Messagerie Direction »**, jamais « Messagerie CEO ».
 
 **Rappel de droits (tranché dans [`01_collecteur.md`](01_collecteur.md) §6.1) :**
@@ -49,18 +50,17 @@ Vérifié dans [`lib/1_ceo/notifications/services/notification_ceo_service.dart`
 
 ---
 
-### 1.3 — Notifications potentiellement manquantes (à valider par toi)
-Idées relevées en relisant le code, **pas encore demandées** :
+### 1.3 — Notifications potentiellement manquantes (✅ tranché — C7)
 
-- ❓ **Analyse labo hors normes** — acidité anormale, échantillon non conforme → alerte
-  distincte de `analyse_soumise` ?
-- ❓ **Aucune évaluation depuis X jours sur un échantillon reçu** — pendant symétrique de
-  `evaluation_urgente`, mais côté réception
-- ❓ **Stock en retard** — la date de livraison annoncée est dépassée et rien n'est arrivé
-- ❓ **Nouveau fournisseur créé** par un collecteur (lien : garde-fou anti-doublon,
-  §4.2 collecteur — le CEO voudra peut-être surveiller ça)
-- ❓ **Proposition d'achat expirée** — une proposition qui attend sa validation depuis
-  trop longtemps
+- ✅ **Analyse labo hors normes** — acidité anormale, échantillon non conforme → alerte
+  distincte de `analyse_soumise`. **Retenue**, la donnée `parametres_hors_normes` existe
+  déjà côté labo (voir [`05_laboratoire.md`](05_laboratoire.md) §3.2)
+- ✅ **Aucune évaluation depuis X jours sur un échantillon reçu** — pendant symétrique de
+  `evaluation_urgente`, côté réception. **Retenue, secondaire**
+- ✅ **Stock en retard** — la date de livraison annoncée est dépassée et rien n'est arrivé.
+  **Retenue, secondaire**
+- ❌ **Nouveau fournisseur créé** par un collecteur — **écartée pour l'instant**
+- ❌ **Proposition d'achat expirée** — **écartée pour l'instant**
 
 ---
 
@@ -101,10 +101,10 @@ existante, pas seulement la créer. Notification associée.
 
 → **Rien à faire**, sauf si tu veux modifier le comportement.
 
-❓ Questions ouvertes malgré tout :
-- le **chef dégustateur** reçoit-il aussi cette notification urgente, ou seulement les
-  dégustateurs simples ?
-- peut-on **annuler** un « urgent » envoyé par erreur ? (aujourd'hui : non, définitif)
+✅ Tranché (C4, C5) :
+- le **chef dégustateur** reçoit aussi cette notification urgente, comme les dégustateurs
+  simples
+- on **ne peut pas** annuler un « urgent » envoyé par erreur — reste définitif
 
 ---
 
@@ -261,9 +261,8 @@ intervalle est compliquée.
 - il faut un séparateur clair (`/` ou autre) indiquant l'intervalle
 - ❌ **pas** deux sélecteurs côte à côte type calendrier → trop lourd, trop chargé
 
-❓ **Décision UI toujours ouverte (D6).** À traiter avec la même logique que le masque de
-saisie de date (§3.2 collecteur) : un champ unique, des séparateurs qui s'insèrent tout
-seuls, un saut automatique d'un nombre à l'autre.
+✅ **Tranché (D6/C8).** Même logique que le masque de saisie de date (§3.2 collecteur) : un
+champ unique, format `1200-1500`, séparateur auto, pas de sélecteurs côte à côte.
 
 ---
 
@@ -313,10 +312,10 @@ l'écart est justifié. À ne pas « corriger » par erreur plus tard.
 | ~~C2~~ | ~~Cycles plafonnés ?~~ → ✅ **non — aucun plafond**, l'app ne refuse jamais toute seule | résolu |
 | ~~C3~~ | ~~Nouveau statut ?~~ → ✅ **non — marqueur visuel** sur l'échantillon, statut inchangé | résolu |
 | ~~C11~~ | ~~Design du marqueur ?~~ → ✅ **spécifié** : pastille contournée orange + `↺ Renégocié ×N`, pleine à partir de ×3 | résolu |
-| C4 | Le chef dégustateur reçoit-il la notification « Urgent » ? | notif |
-| C5 | Peut-on annuler un « Urgent » envoyé par erreur ? | notif |
-| C7 | Valider ou écarter les 5 notifications proposées en §1.3 | notif |
-| C8 | Solution UI pour l'intervalle de prix (= D6) | UI |
+| ~~C4~~ | ~~Le chef dégustateur reçoit-il la notification « Urgent » ?~~ → ✅ **oui**, il supervise le panel | résolu |
+| ~~C5~~ | ~~Peut-on annuler un « Urgent » envoyé par erreur ?~~ → ✅ **non**, pas prioritaire | résolu |
+| ~~C7~~ | ~~Valider ou écarter les 5 notifications proposées en §1.3~~ → ✅ **analyse hors normes : oui** (donnée déjà disponible côté labo) ; **aucune évaluation depuis X jours** et **stock en retard : oui, secondaire** ; **nouveau fournisseur créé** et **proposition expirée : non pour l'instant** | résolu |
+| ~~C8~~ | ~~Solution UI pour l'intervalle de prix (= D6)~~ → ✅ résolu dans [`01_collecteur.md`](01_collecteur.md) D6 : un seul champ, format `1200-1500` | résolu |
 
 **Déjà tranché / déjà existant :**
 - ✅ **Principe du refus scindé** (refus définitif ≠ renvoi en négociation) : **retenu** (§3)

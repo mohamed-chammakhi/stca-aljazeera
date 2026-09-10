@@ -1,7 +1,7 @@
 # Laboratoire — Notifications & Idées
 
-> Carnet d'idées brut, organisé. Non validé, non implémenté.
-> Dernière mise à jour : 2026-08-03
+> Décisions tranchées le 2026-09-10 (voir §4) — pas encore codées, sauf ce qui est marqué
+> « déjà existant ».
 
 **Rappel de droits (tranché dans [`01_collecteur.md`](01_collecteur.md) §6.1) :**
 le laboratoire ne modifie **jamais** un échantillon. Il produit ses analyses — objets
@@ -164,19 +164,18 @@ l'utilisateur** : le template est fixe, le cas ne se présentera pas.
 
 ---
 
-### 1.6 — ❓ Écran de revue avant soumission
+### 1.6 — ✅ TRANCHÉ (L8) — écran de revue avant soumission
 
 La revue humaine est **obligatoire** (elle est ce qui rend le moteur gratuit acceptable —
-§1.2). Reste à préciser sa forme :
+§1.2). Forme retenue :
 
-- ❓ photo et tableau extrait **côte à côte**, ou tableau seul avec la photo accessible ?
-- ❓ les valeurs issues de l'OCR sont-elles **visuellement distinguées** de celles saisies
-  à la main (ex. fond légèrement teinté tant que non confirmées) ?
-- ❓ un champ que l'OCR n'a pas trouvé : laissé **vide**, ou marqué « non détecté » ?
+- les valeurs issues de l'OCR sont **visuellement distinguées** de celles saisies à la
+  main (fond légèrement teinté tant que non confirmées)
+- un champ que l'OCR n'a pas trouvé est marqué **« non détecté »**, jamais laissé vide en
+  silence
 
-*Recommandation : distinguer visuellement l'origine de la valeur. Le technicien doit
-savoir d'un coup d'œil ce qu'il doit vérifier, sinon il valide tout en bloc et la revue
-devient une formalité.*
+Le technicien doit savoir d'un coup d'œil ce qu'il doit vérifier, sinon il valide tout en
+bloc et la revue devient une formalité.
 
 ---
 
@@ -203,37 +202,26 @@ caméra dans le build web.**
 
 ---
 
-### 2.2 — ❓ OUVERT (L6) — extraction côté web : par quel chemin ?
+### 2.2 — ✅ TRANCHÉ (L6) — pas d'extraction côté web
 
-Si un fichier importé sur le web doit lui aussi être extrait automatiquement, ML Kit est
-hors-jeu. Pistes, **non tranchées** :
-
-| Piste | Coût | Remarque |
-|-------|------|----------|
-| **Pas d'extraction sur web** — import de données structurées uniquement (voir L7) | 0 | le plus simple ; le web n'importe pas des *images* mais des *valeurs* |
-| **OCR côté serveur** (PaddleOCR / docTR sur le Django existant) | gratuit, ~1–2 Go RAM | mutualisable, mais complexifie le déploiement |
-| **Azure** via le flag du L2 | payant | déjà prévu comme porte de sortie |
-
-*Recommandation : la première.* Sur un poste fixe, la donnée existe le plus souvent déjà
-sous forme de fichier — la ré-OCRiser est un détour.
+**Décision retenue :** pas d'extraction automatique sur le web — import de données
+structurées uniquement (voir L7). Sur un poste fixe, la donnée existe le plus souvent déjà
+sous forme de fichier — la ré-OCRiser serait un détour. OCR serveur et Azure restent des
+options non retenues pour l'instant, pas des besoins bloquants.
 
 ---
 
-### 2.3 — ❓ OUVERT (L7) — import / export : formats et périmètre
+### 2.3 — ✅ TRANCHÉ (L7) — import / export : formats et périmètre
 
-À préciser :
+- **Import** : Excel `.xlsx` + CSV
+- **Import** : **plusieurs analyses en une fois** (traitement par lot)
+- **Import** : rattachement par la **référence (`ref`)** ; référence inconnue ou ambiguë →
+  rejet clair de la ligne, pas d'écriture silencieuse
+- **Export** : réservé au laboratoire pour l'instant (le CEO pourra être ajouté plus tard
+  si un besoin réel apparaît)
 
-- ❓ **Import** : quels formats ? (Excel `.xlsx` / CSV / PDF ?)
-- ❓ **Import** : une analyse à la fois, ou **plusieurs en une fois** (traitement par lot) ?
-- ❓ **Import** : comment l'app rattache une ligne importée au **bon échantillon** —
-  par la référence (`ref`) ? Que se passe-t-il si la référence est inconnue ou ambiguë ?
-- ❓ **Export** : quel format ? (Excel / CSV / PDF « rapport d'analyse » présentable ?)
-- ❓ **Export** : une analyse, une sélection, ou tout un intervalle de dates ?
-- ❓ L'export est-il réservé au laboratoire, ou le **CEO** en a-t-il besoin aussi ?
-
-📌 [`role_laboratoire.md`](../role_laboratoire.md) dit déjà « **Export analysis results is
-supported** » — sans préciser ni le format ni le périmètre. C'est cette phrase qu'il faut
-transformer en spécification.
+📌 [`role_laboratoire.md`](../role_laboratoire.md) disait déjà « **Export analysis results is
+supported** » sans préciser le format — c'est maintenant précisé ci-dessus.
 
 ⚠️ **Un import écrit dans la base sans repasser par la revue humaine du §1.6.**
 Il lui faut donc **son propre garde-fou** : prévisualisation avant validation, et refus
@@ -249,16 +237,14 @@ d'écrasement silencieux d'une analyse déjà `Soumis`.
 |------|----------|--------|
 | `ANALYSE_URGENTE` | Dégustateur / Chef dégustateur | ✅ **existe déjà** — [`notification_labo_service.dart`](../../lib/4_laboratoire/notifications/services/notification_labo_service.dart) |
 
-Pistes à valider :
-- ❓ **Nouvel échantillon disponible** — quand un échantillon passe `recuPhysiquement = true`,
+✅ **Tranché (L9) :**
+- **Nouvel échantillon disponible** — quand un échantillon passe `recuPhysiquement = true`,
   il **apparaît chez le laboratoire** (effet de bord acté §2.4 de
-  [`01_collecteur.md`](01_collecteur.md)). Aujourd'hui il apparaît **sans prévenir** :
-  le technicien doit ouvrir l'app pour le découvrir.
-  *Recommandation : oui, notifier — c'est le déclencheur de son travail.*
-- ❓ **Décoche de réception physique** — si le chef dégustateur annule la réception
+  [`01_collecteur.md`](01_collecteur.md)). **Oui, notifier** — c'est le déclencheur de son
+  travail.
+- **Décoche de réception physique** — si le chef dégustateur annule la réception
   (§1.4 de [`04_chef_degustateur.md`](04_chef_degustateur.md)), l'échantillon **disparaît**
-  de la liste du labo. Doit-il être prévenu, surtout si l'analyse est déjà `En cours` ?
-  ⚠️ **Cas non traité nulle part aujourd'hui.**
+  de la liste du labo. **Oui, notifier si l'analyse est déjà `En cours`** — sinon inutile.
 
 ### 3.2 — ÉMISES par le laboratoire
 
@@ -289,10 +275,10 @@ peut donc **pas** être déduite du classement — elle doit lire
 | ~~L3~~ | ~~Où atterrissent les valeurs extraites ?~~ → ✅ **7 champs typés** de `AnalyseLabo` + `CritereAnalyse` pour le reste | résolu |
 | ~~L5~~ | ~~Scan caméra sur le web ?~~ → ✅ **non — ML Kit est mobile only.** Scan = mobile, import/export = web | résolu |
 | ~~L4~~ | ~~Template réel du rapport~~ → ✅ **certificat 188-2026 reçu**. 28 valeurs en 3 tableaux, décimales à la virgule, **aucune norme imprimée** → seuils COI dans `normes_coi.dart` | résolu |
-| L6 | Extraction côté web : aucune / serveur / Azure ? | archi web |
-| L7 | Import/export : formats, lot, rattachement, périmètre | fonctionnel |
-| L8 | Forme de l'écran de revue (§1.6) | UI |
-| L9 | Notifier le labo à l'arrivée d'un échantillon ? Et à la décoche ? | notif |
+| ~~L6~~ | ~~Extraction côté web : aucune / serveur / Azure ?~~ → ✅ **aucune** — import de données structurées seulement | résolu |
+| ~~L7~~ | ~~Import/export : formats, lot, rattachement, périmètre~~ → ✅ **Excel + CSV, par lot, rattachement par référence, export réservé au labo** | résolu |
+| ~~L8~~ | ~~Forme de l'écran de revue (§1.6)~~ → ✅ **valeurs OCR distinguées visuellement, champ non détecté marqué comme tel** | résolu |
+| ~~L9~~ | ~~Notifier le labo à l'arrivée d'un échantillon ? Et à la décoche ?~~ → ✅ **oui aux deux**, la décoche seulement si l'analyse est déjà en cours | résolu |
 
 **Déjà existant, rien à faire :**
 - ✅ `ANALYSE_URGENTE` reçue — implémentée
