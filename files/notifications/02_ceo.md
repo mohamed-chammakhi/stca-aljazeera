@@ -269,17 +269,15 @@ champ unique, format `1200-1500`, séparateur auto, pas de sélecteurs côte à 
 ## 5. Page « Validation achats » — corrections UI
 
 ### 5.1 — Popup de confirmation sur « Confirmer »
-⚠️ **Problème vérifié dans le code** — asymétrie dangereuse :
 
-| Action | Comportement actuel |
-|--------|---------------------|
-| **Refuser** | ouvre un dialog, demande une raison → protégé |
-| **Confirmer** | ⚠️ **applique immédiatement**, aucune confirmation ([ligne 123](../../lib/1_ceo/validation_achats/validation_achats_ceo_page.dart#L123)) |
+✅ **RE-VÉRIFIÉ LE 2026-09-10 — CE N'EST PLUS UN PROBLÈME, DÉJÀ CORRIGÉ.**
 
-Un clic accidentel sur « Confirmer » **valide un achat** sans retour possible.
-
-✅ **À faire :** popup de confirmation avant validation — « Confirmer l'achat de {ref} ? »
-avec le prix et la quantité rappelés, puis [Annuler] / [Confirmer].
+Le code a changé depuis la première rédaction de cette note. `_confirmer()`
+([`validation_achats_ceo_page.dart:182`](../../lib/1_ceo/validation_achats/validation_achats_ceo_page.dart#L182))
+ouvre bien `ConfirmerAchatDialog`
+([`decision_dialog.dart`](../../lib/1_ceo/validation_achats/widgets/decision_dialog.dart)),
+qui rappelle la référence, le budget négocié et la quantité, et n'appelle le serveur que si
+`confirme == true`. Symétrique avec « Refuser ». **Rien à faire.**
 
 ---
 
@@ -321,8 +319,8 @@ l'écart est justifié. À ne pas « corriger » par erreur plus tard.
 - ✅ **Principe du refus scindé** (refus définitif ≠ renvoi en négociation) : **retenu** (§3)
 - ✅ Urgent → dégustateurs : **déjà implémenté**, rien à faire (§2.3)
 - ✅ Notification « nouvel échantillon » : **déjà implémentée** (§1.1)
-- ✅ Popup de confirmation sur **« Confirmer »** : **à ajouter** — le dialog de refus, lui,
-  existe déjà (§5.1)
+- ✅ Popup de confirmation sur **« Confirmer »** : **existe déjà**, re-vérifié 2026-09-10
+  (§5.1)
 - ~~C6~~ ✅ Ordre des filtres : **inchangé**, `À valider → Décidées → Tout` conservé (§5.2)
 
 ---
