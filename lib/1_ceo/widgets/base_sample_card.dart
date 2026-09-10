@@ -15,6 +15,7 @@ class BaseSampleCard extends StatefulWidget {
   final Color tintColor;
   final Color? accentColor; // left accent bar color (collecteur-style)
   final Widget badge;
+
   /// Cellules du panneau de détails — voir [GrilleDetails.items].
   final List<Widget> detailItems;
   final Widget? bottomSection;
@@ -276,17 +277,18 @@ class SampleDeliveryIndicator extends StatelessWidget {
     } else if (e.recuPhysiquement) {
       // ③ Sample physically received
       return Text(
-        e.dateArriveeEchantillon != null
-            ? '— Échantillon réceptionné le ${e.dateArriveeEchantillon} —'
+        e.dateReceptionEchantillon != null
+            ? '— Échantillon réceptionné le ${e.dateReceptionEchantillon} —'
             : '— Échantillon réceptionné —',
         style: _greyStyle,
       );
-    } else if (e.dateLivraisonPrevue != null) {
+    } else if ((e.dateArriveeEchantillon?.isNotEmpty ?? false) ||
+        e.dateLivraisonPrevue != null) {
       // ④ Delivery date announced but not yet arrived
-      return Text(
-        '— Arrivée prévue le ${e.dateLivraisonPrevue} —',
-        style: _greyStyle,
-      );
+      final dateAnnoncee = (e.dateArriveeEchantillon?.isNotEmpty ?? false)
+          ? e.dateArriveeEchantillon
+          : e.dateLivraisonPrevue;
+      return Text('— Arrivée prévue le $dateAnnoncee —', style: _greyStyle);
     } else if (e.statut == StatutCeo.enNegociation ||
         e.statut == StatutCeo.achatConfirme) {
       // ⑤ Purchase confirmed but no stock delivery date yet

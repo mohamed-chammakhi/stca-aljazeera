@@ -141,8 +141,14 @@ class _SampleDetailsState extends State<SampleDetails> {
               if (e.quantiteEstimee != null)
                 DetailItem('Quantité', '${e.quantiteEstimee} T'),
               DetailItem('Date d\'ajout', e.dateAjout),
-              if (e.dateLivraisonPrevue != null)
-                DetailItem('Livraison prévue', e.dateLivraisonPrevue!),
+              if ((e.dateArriveeEchantillon?.isNotEmpty ?? false) ||
+                  e.dateLivraisonPrevue != null)
+                DetailItem(
+                  'Livraison prévue',
+                  (e.dateArriveeEchantillon?.isNotEmpty ?? false)
+                      ? e.dateArriveeEchantillon!
+                      : e.dateLivraisonPrevue!,
+                ),
             ],
           ),
           const SizedBox(height: 15),
@@ -156,8 +162,8 @@ class _SampleDetailsState extends State<SampleDetails> {
           if (e.statut == StatutCeo.selectionne) ...[
             if (e.recuPhysiquement)
               _dLine(
-                e.dateArriveeEchantillon != null
-                    ? 'Échantillon réceptionné le ${e.dateArriveeEchantillon}'
+                e.dateReceptionEchantillon != null
+                    ? 'Échantillon réceptionné le ${e.dateReceptionEchantillon}'
                     : 'Échantillon réceptionné',
               )
             else if (e.dateLivraisonPrevue != null &&
@@ -165,20 +171,23 @@ class _SampleDetailsState extends State<SampleDetails> {
               _dLine(
                 'Échantillon attendu entre le ${e.dateLivraisonPrevue} et le ${e.dateLivraisonPrevueFin}',
               )
-            else if (e.dateLivraisonPrevue != null)
-              _dLine('Échantillon attendu le ${e.dateLivraisonPrevue}')
+            else if ((e.dateArriveeEchantillon?.isNotEmpty ?? false) ||
+                e.dateLivraisonPrevue != null)
+              _dLine(
+                'Échantillon attendu le ${(e.dateArriveeEchantillon?.isNotEmpty ?? false) ? e.dateArriveeEchantillon : e.dateLivraisonPrevue}',
+              )
             else
               _dLine('Livraison de l\'échantillon non planifiée'),
           ] else if (e.statut == StatutCeo.enNegociation) ...[
             _dLine(
-              e.dateArriveeEchantillon != null
-                  ? 'Échantillon réceptionné le ${e.dateArriveeEchantillon}'
+              e.dateReceptionEchantillon != null
+                  ? 'Échantillon réceptionné le ${e.dateReceptionEchantillon}'
                   : 'Échantillon réceptionné',
             ),
           ] else if (e.statut == StatutCeo.achatConfirme) ...[
             _dLine(
-              e.dateArriveeEchantillon != null
-                  ? 'Échantillon réceptionné le ${e.dateArriveeEchantillon}'
+              e.dateReceptionEchantillon != null
+                  ? 'Échantillon réceptionné le ${e.dateReceptionEchantillon}'
                   : 'Échantillon réceptionné',
             ),
             const SizedBox(height: 4),
@@ -307,14 +316,12 @@ class PurchaseDetailsPanel extends StatelessWidget {
             DetailItem('Quantité livrée', '${e.quantiteCibleT} T'),
           if (e.budgetNegociation != null)
             DetailItem('Montant total', e.budgetNegociation!),
-          if (e.camionReserve != null)
-            DetailItem('Camion', e.camionReserve!),
+          if (e.camionReserve != null) DetailItem('Camion', e.camionReserve!),
         ],
       ),
     );
   }
 }
-
 
 // ─────────────────────────────────────────────────────────────────────────────
 // SAMPLE ROW  — one row in the collecteur list, with expandable details
