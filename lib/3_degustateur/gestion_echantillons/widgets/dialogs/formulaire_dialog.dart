@@ -18,6 +18,7 @@ import '../../../../core/models/echantillon.dart';
 import '../../../../core/models/enums.dart';
 import '../../../../core/models/fournisseur.dart';
 import '../../../../core/services/fournisseur_service.dart';
+import '../../../../core/services/variete_service.dart';
 import '../../../../core/widgets/champ_autocomplete.dart';
 import '../../../../core/widgets/date_input_field.dart';
 import '../../../../core/widgets/dialog_doublon_fournisseur.dart';
@@ -1030,12 +1031,12 @@ class _BouteilleCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _InlineLabel(label: "Variété d'olive"),
-                    const SizedBox(height: 5),
-                    TextField(
+                    ChampAutocomplete<String>(
+                      label: "Variété d'olive",
                       controller: row.varieteCtrl,
-                      style: const TextStyle(fontSize: 13, color: _dark),
-                      decoration: _fieldDec('Ex: Chemlali'),
+                      hint: 'Chemlali, Chetoui...',
+                      chercher: VarieteService.instance.suggest,
+                      libelle: (v) => v,
                     ),
                   ],
                 ),
