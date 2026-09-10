@@ -131,7 +131,9 @@ def on_echantillon_saved(sender, instance, created, **kwargs):
 
     if old_recu is False and instance.recu_physiquement:
         now = timezone.now()
-        recipients = _get_users_by_roles(User.Role.DIRECTION, User.Role.CHEF_DEGUSTATION)
+        recipients = list(_get_users_by_roles(User.Role.DIRECTION, User.Role.CHEF_DEGUSTATION))
+        if instance.collecteur:
+            recipients.append(instance.collecteur)
         _notify(
             recipients,
             Notification.Type.ECHANTILLON_RECU,
@@ -142,6 +144,15 @@ def on_echantillon_saved(sender, instance, created, **kwargs):
             ),
             echantillon=instance,
             section=Notification.Section.ECHANTILLONS,
+        )
+        lab_recipients = _get_users_by_roles(User.Role.LABORATOIRE)
+        _notify(
+            lab_recipients,
+            Notification.Type.NOUVEL_ECHANTILLON,
+            'Echantillon disponible pour analyse',
+            f"L'echantillon {ref} est disponible pour analyse laboratoire.",
+            echantillon=instance,
+            section=Notification.Section.ANALYSES,
         )
     elif old_statut != 'achat_confirme' and instance.statut_collecteur == 'achat_confirme':
         recipients = _get_users_by_roles(User.Role.DIRECTION, User.Role.CHEF_DEGUSTATION)

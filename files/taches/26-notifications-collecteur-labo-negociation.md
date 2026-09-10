@@ -180,6 +180,144 @@ doivent pas régresser).
 
 ## RAPPORT
 
+### Fait
+
+- `backend_new/notifications/models.py` : ajoute les types `NEGOCIATION_PROPOSEE` et `NEGOCIATION_MISE_A_JOUR`.
+- `backend_new/notifications/migrations/0007_alter_notification_type.py` : migration Django generee pour ces deux types.
+- `backend_new/notifications/signals.py` : la reception physique notifie aussi le collecteur proprietaire, et notifie les laboratoires actifs avec `NOUVEL_ECHANTILLON` en section `ANALYSES`.
+- `backend_new/echantillons/views.py` : l'action Direction `approuver` notifie le collecteur apres sauvegarde, en premiere proposition ou en mise a jour selon l'ancien budget.
+- `backend_new/notifications/tests.py` : ajoute un test pour la reception physique collecteur + labo actif.
+- `backend_new/echantillons/tests.py` : ajoute deux tests pour la proposition de negociation et sa mise a jour.
+- `lib/2_collecteur/notifications/notifications_collecteur_page.dart` : le tap sur une notification avec `echantillonId` demande la navigation vers l'echantillon ; si l'id est absent ou introuvable, la page reste ouverte.
+- `lib/2_collecteur/mes_echantillons/mes_echantillons_page.dart` : la liste collecteur filtre sur l'echantillon cible depuis une notification.
+- `lib/2_collecteur/mes_echantillons/widgets/card/echantillon_collecteur_card.dart` : la carte cible peut s'ouvrir initialement pour afficher son detail.
+
+### Verifie
+
+```bash
+cd backend_new
+$env:DEBUG='True'; $env:DB_ENGINE='sqlite'; .\venv\Scripts\python.exe manage.py makemigrations notifications --check --dry-run
+```
+
+Sortie avant generation, apres modification du modele :
+
+```text
+Migrations for 'notifications':
+  notifications\migrations\0007_alter_notification_type.py
+    ~ Alter field type on notification
+```
+
+```bash
+$env:DEBUG='True'; $env:DB_ENGINE='sqlite'; .\venv\Scripts\python.exe manage.py makemigrations notifications
+```
+
+```text
+Migrations for 'notifications':
+  notifications\migrations\0007_alter_notification_type.py
+    ~ Alter field type on notification
+```
+
+```bash
+$env:DEBUG='True'; $env:DB_ENGINE='sqlite'; .\venv\Scripts\python.exe manage.py migrate
+```
+
+```text
+Operations to perform:
+  Apply all migrations: admin, analyses, auth, contenttypes, echantillons, evaluations, fournisseurs, messages_chat, notifications, planifications, sessions, sessions_degustation, token_blacklist, users
+Running migrations:
+  Applying notifications.0007_alter_notification_type... OK
+```
+
+```bash
+$env:DEBUG='True'; $env:DB_ENGINE='sqlite'; .\venv\Scripts\python.exe manage.py test notifications echantillons
+```
+
+```text
+Found 52 test(s).
+System check identified no issues (0 silenced).
+Ran 52 tests in 492.168s
+OK
+```
+
+```bash
+$env:DEBUG='True'; $env:DB_ENGINE='sqlite'; .\venv\Scripts\python.exe manage.py makemigrations notifications --check --dry-run
+```
+
+```text
+No changes detected in app 'notifications'
+```
+
+```bash
+flutter analyze lib test
+```
+
+Resultat reel : timeout apres 900 secondes, sans sortie exploitable avant l'arret.
+
+```bash
+flutter test
+```
+
+Resultat reel : timeout apres 900 secondes, sans sortie exploitable avant l'arret.
+
+Verification ciblee tentee :
+
+```bash
+flutter analyze lib/2_collecteur/notifications/notifications_collecteur_page.dart lib/2_collecteur/mes_echantillons/mes_echantillons_page.dart lib/2_collecteur/mes_echantillons/widgets/card/echantillon_collecteur_card.dart
+```
+
+Resultat reel : timeout apres 300 secondes, sans sortie exploitable.
+
+Formatage tente :
+
+```bash
+dart format lib/2_collecteur/notifications/notifications_collecteur_page.dart lib/2_collecteur/mes_echantillons/mes_echantillons_page.dart lib/2_collecteur/mes_echantillons/widgets/card/echantillon_collecteur_card.dart
+```
+
+Resultat reel : timeout apres 120 secondes, puis timeout apres 300 secondes au second essai.
+
+### Non fait (par Codex)
+
+- Les chiffres `flutter analyze lib test` et `flutter test` n'ont pas pu etre produits par
+  Codex : les deux commandes ont expire apres 900 secondes sans sortie.
+- Le fichier `files/backend_sprint_plan.md` demande par les consignes projet n'existe pas dans ce depot ; j'ai continue avec les fichiers de contexte disponibles.
+- Le skill `frontend-design` demande par `CLAUDE.md` n'est pas disponible dans cette session ; aucun changement visuel n'a ete introduit.
+
+### Vérification par Claude (les commandes de Codex avaient bloqué)
+
+Deux anciens processus `flutter analyze` restés bloqués en arrière-plan (un depuis
+plusieurs heures, un depuis le lancement de cette vérification) ont d'abord été repérés
+et arrêtés. Une fois relancées proprement :
+
+```bash
+dart format lib/2_collecteur/notifications/notifications_collecteur_page.dart lib/2_collecteur/mes_echantillons/mes_echantillons_page.dart lib/2_collecteur/mes_echantillons/widgets/card/echantillon_collecteur_card.dart
+```
+Résultat : `Formatted 3 files (3 changed)`.
+
+```bash
+flutter analyze lib test
+```
+Résultat : **48 diagnostics, 0 erreur** (8.3s) — cohérent avec la référence d'avant cette
+tâche.
+
+```bash
+flutter test
+```
+Résultat : **108 tests, 107 réussis, 1 échec** (`test/widget_test.dart`, échec connu et
+sans rapport) — identique à la référence, aucune régression.
+
+### Conclusion
+
+Les 4 manques confirmés sont corrigés : le collecteur et le laboratoire reçoivent
+maintenant la notification de réception physique ; le CEO qui propose/met à jour une
+négociation notifie le collecteur ; cliquer sur une notification du collecteur ouvre
+l'échantillon concerné (liste filtrée + carte dépliée). Rien de ce qui existait déjà
+n'a été touché. 52 tests Django (0 échec) + 108 tests Flutter (107 + 1 connu, 0
+régression).
+
+### HORS PERIMETRE
+
+- `git status` montre des fichiers non suivis que je n'ai pas crees ni modifies : `backend_new/backup_propre.json`, `files/taches/27-annuler-reception-physique.md`, `files/taches/codex_22.txt`, `files/taches/codex_25.txt`.
+
 Complète cette section : ce qui a été fait, les vérifications avec leurs vrais résultats
 chiffrés, et tout écart avec cette consigne (fichier différent, nom de constante différent
 de ce que ce document suppose, etc.) — explique pourquoi plutôt que de forcer.

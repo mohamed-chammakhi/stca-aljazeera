@@ -351,6 +351,21 @@ class NotificationSignalTests(APITestCase):
             prenom='User',
             role=User.Role.COLLECTEUR,
         )
+        self.lab = User.objects.create_user(
+            email='lab.signal@example.com',
+            password='Test@12345',
+            nom='Lab',
+            prenom='Active',
+            role=User.Role.LABORATOIRE,
+        )
+        self.inactive_lab = User.objects.create_user(
+            email='lab.signal.inactive@example.com',
+            password='Test@12345',
+            nom='Lab',
+            prenom='Inactive',
+            role=User.Role.LABORATOIRE,
+            is_active=False,
+        )
 
     def test_sample_creation_notifies_direction_chef_and_tasters(self):
         Echantillon.objects.create(
@@ -375,6 +390,37 @@ class NotificationSignalTests(APITestCase):
                 self.taster_two.email,
             },
         )
+
+    def test_physical_reception_notifies_collector_and_active_labs(self):
+        sample = Echantillon.objects.create(
+            reference_bouteille='REF-RECU-001',
+            collecteur=self.collecteur,
+            gouvernorat='Sfax',
+            variete='Chemlali',
+            recu_physiquement=False,
+        )
+        Notification.objects.all().delete()
+
+        sample.recu_physiquement = True
+        sample.date_reception_echantillon = timezone.now()
+        sample.save(update_fields=['recu_physiquement', 'date_reception_echantillon', 'updated_at'])
+
+        reception_notifications = Notification.objects.filter(
+            type=Notification.Type.ECHANTILLON_RECU,
+        )
+        self.assertEqual(
+            set(reception_notifications.values_list('destinataire__email', flat=True)),
+            {self.direction.email, self.chef.email, self.collecteur.email},
+        )
+        lab_notifications = Notification.objects.filter(
+            type=Notification.Type.NOUVEL_ECHANTILLON,
+            section=Notification.Section.ANALYSES,
+        )
+        self.assertEqual(
+            set(lab_notifications.values_list('destinataire__email', flat=True)),
+            {self.lab.email},
+        )
+        self.assertFalse(lab_notifications.filter(destinataire=self.inactive_lab).exists())
 
     def test_all_evaluations_signal_waits_for_all_active_panel_members(self):
         sample = Echantillon.objects.create(

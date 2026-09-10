@@ -516,6 +516,57 @@ class CollectorEchantillonApiTests(APITestCase):
         )
         self.assertIsNotNone(response.data['date_reception_echantillon'])
 
+    def test_direction_approval_notifies_collector_of_negotiation_proposal(self):
+        sample = self.create_sample(self.collector, reference_bouteille='APPROVE-001')
+        self.authenticate(self.direction)
+        Notification.objects.all().delete()
+
+        response = self.client.patch(
+            f'/api/echantillons/{sample.id}/approuver/',
+            {'budget_negociation': '8.20', 'quantite_cible_t': '12'},
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        notification = Notification.objects.get(
+            destinataire=self.collector,
+            type=Notification.Type.NEGOCIATION_PROPOSEE,
+        )
+        self.assertEqual(notification.section, Notification.Section.ACHATS_VALIDATION)
+        self.assertEqual(notification.echantillon, sample)
+        self.assertIn('APPROVE-001', notification.message)
+        self.assertIn('8.2', notification.message)
+        self.assertIn('12', notification.message)
+
+    def test_direction_approval_notifies_collector_of_negotiation_update(self):
+        sample = self.create_sample(
+            self.collector,
+            reference_bouteille='APPROVE-002',
+            budget_negociation='8.20',
+            quantite_cible_t='12',
+            statut_collecteur=Echantillon.StatutCollecteur.EN_NEGOCIATION,
+            statut_ceo=Echantillon.StatutCEO.EN_NEGOCIATION,
+        )
+        self.authenticate(self.direction)
+        Notification.objects.all().delete()
+
+        response = self.client.patch(
+            f'/api/echantillons/{sample.id}/approuver/',
+            {'budget_negociation': '8.50', 'quantite_cible_t': '14'},
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        notification = Notification.objects.get(
+            destinataire=self.collector,
+            type=Notification.Type.NEGOCIATION_MISE_A_JOUR,
+        )
+        self.assertEqual(notification.section, Notification.Section.ACHATS_VALIDATION)
+        self.assertEqual(notification.echantillon, sample)
+        self.assertIn('APPROVE-002', notification.message)
+        self.assertIn('8.5', notification.message)
+        self.assertIn('14', notification.message)
+
 
 class RenvoiEnNegociationTests(APITestCase):
     """

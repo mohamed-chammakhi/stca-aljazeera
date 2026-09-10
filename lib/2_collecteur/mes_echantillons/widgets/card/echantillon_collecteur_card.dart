@@ -56,6 +56,7 @@ class EchantillonComCard extends StatefulWidget {
   final VoidCallback? onConfirmerAchat;
   final VoidCallback? onPlanifierLivraison;
   final VoidCallback? onScheduleArrivee;
+  final bool initiallyExpanded;
 
   const EchantillonComCard({
     super.key,
@@ -65,6 +66,7 @@ class EchantillonComCard extends StatefulWidget {
     this.onConfirmerAchat,
     this.onPlanifierLivraison,
     this.onScheduleArrivee,
+    this.initiallyExpanded = false,
   });
 
   @override
@@ -72,8 +74,24 @@ class EchantillonComCard extends StatefulWidget {
 }
 
 class _EchantillonComCardState extends State<EchantillonComCard> {
-  bool _expanded = false;
-  bool _detailsExpanded = false;
+  late bool _expanded;
+  late bool _detailsExpanded;
+
+  @override
+  void initState() {
+    super.initState();
+    _expanded = widget.initiallyExpanded;
+    _detailsExpanded = widget.initiallyExpanded;
+  }
+
+  @override
+  void didUpdateWidget(covariant EchantillonComCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!oldWidget.initiallyExpanded && widget.initiallyExpanded) {
+      _expanded = true;
+      _detailsExpanded = true;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

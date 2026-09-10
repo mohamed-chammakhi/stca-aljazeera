@@ -49,13 +49,17 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
   DateTime? _dateDebut;
   DateTime? _dateFin;
   DateFilterType _dateFilterType = DateFilterType.enregistrement;
+  String? _selectionEchantillonId;
   int _unreadNotifCount = 0;
 
   bool get _estDemonstration => _demoEchantillons || _demoNotifications;
 
   bool get _dateFilterActive => _dateDebut != null || _dateFin != null;
   bool get _anyFilter =>
-      _dateFilterActive || _recherche.isNotEmpty || _filtreStatut != null;
+      _dateFilterActive ||
+      _recherche.isNotEmpty ||
+      _filtreStatut != null ||
+      _selectionEchantillonId != null;
 
   // Next reference number derived from loaded data — no magic constant needed
   int get _prochainNumero => _echantillons.length + 1;
@@ -113,7 +117,19 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
         builder: (_) => NotificationsCollecteurPage(
           service: _notifService,
           onNavigate: (notification) {
-            // Deep-link: all collector notifications navigate to MES_ECHANTILLONS
+            final targetId = notification.echantillonId;
+            if (targetId == null) return false;
+            final exists = _echantillons.any((item) => item.id == targetId);
+            if (!exists) return false;
+            setState(() {
+              _selectionEchantillonId = targetId;
+              _recherche = '';
+              _searchCtrl.clear();
+              _filtreStatut = null;
+              _dateDebut = null;
+              _dateFin = null;
+            });
+            return true;
           },
         ),
       ),
@@ -130,6 +146,10 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
   }
 
   List<EchantillonCollecteur> get _filtres {
+    final selectionId = _selectionEchantillonId;
+    if (selectionId != null) {
+      return _echantillons.where((e) => e.id == selectionId).toList();
+    }
     return _echantillons.where((e) {
       final q = _recherche.toLowerCase();
       final matchRecherche =
@@ -560,10 +580,12 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
         dateDebut: _dateDebut,
         dateFin: _dateFin,
         onApply: (debut, fin) => setState(() {
+          _selectionEchantillonId = null;
           _dateDebut = debut;
           _dateFin = fin;
         }),
         onClear: () => setState(() {
+          _selectionEchantillonId = null;
           _dateDebut = null;
           _dateFin = null;
         }),
@@ -575,6 +597,7 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
         ],
         initialType: _dateFilterType,
         onApplyTyped: (debut, fin, type) => setState(() {
+          _selectionEchantillonId = null;
           _dateDebut = debut;
           _dateFin = fin;
           _dateFilterType = type;
@@ -584,6 +607,9 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
   }
 
   String get _descriptionFiltreStatut {
+    if (_selectionEchantillonId != null) {
+      return 'Echantillon ouvert depuis une notification.';
+    }
     switch (_filtreStatut) {
       case null:
         return 'Tous vos échantillons, quel que soit leur état.';
@@ -771,8 +797,10 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
                         // Search bar
                         TextField(
                           controller: _searchCtrl,
-                          onChanged: (v) =>
-                              setState(() => _recherche = v.trim()),
+                          onChanged: (v) => setState(() {
+                            _selectionEchantillonId = null;
+                            _recherche = v.trim();
+                          }),
                           style: const TextStyle(fontSize: 14, color: colDark),
                           decoration: InputDecoration(
                             hintText: 'Réf., fournisseur, gouvernorat, variété',
@@ -793,6 +821,7 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
                                       color: Color(0xFF6B8E7A),
                                     ),
                                     onPressed: () => setState(() {
+                                      _selectionEchantillonId = null;
                                       _recherche = '';
                                       _searchCtrl.clear();
                                     }),
@@ -835,8 +864,10 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
                                 inactiveBg: const Color(0xFFF0F0F0),
                                 inactiveFg: const Color(0xFF9E9E9E),
                                 selected: _filtreStatut == null,
-                                onTap: () =>
-                                    setState(() => _filtreStatut = null),
+                                onTap: () => setState(() {
+                                  _selectionEchantillonId = null;
+                                  _filtreStatut = null;
+                                }),
                               ),
                               const SizedBox(width: 7),
                               _StatutChip(
@@ -850,10 +881,10 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
                                 selected:
                                     _filtreStatut ==
                                     StatutCollecteur.receptionne,
-                                onTap: () => setState(
-                                  () => _filtreStatut =
-                                      StatutCollecteur.receptionne,
-                                ),
+                                onTap: () => setState(() {
+                                  _selectionEchantillonId = null;
+                                  _filtreStatut = StatutCollecteur.receptionne;
+                                }),
                               ),
                               const SizedBox(width: 7),
                               _StatutChip(
@@ -867,10 +898,11 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
                                 selected:
                                     _filtreStatut ==
                                     StatutCollecteur.enNegociation,
-                                onTap: () => setState(
-                                  () => _filtreStatut =
-                                      StatutCollecteur.enNegociation,
-                                ),
+                                onTap: () => setState(() {
+                                  _selectionEchantillonId = null;
+                                  _filtreStatut =
+                                      StatutCollecteur.enNegociation;
+                                }),
                               ),
                               const SizedBox(width: 7),
                               _StatutChip(
@@ -884,10 +916,11 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
                                 selected:
                                     _filtreStatut ==
                                     StatutCollecteur.achatConfirme,
-                                onTap: () => setState(
-                                  () => _filtreStatut =
-                                      StatutCollecteur.achatConfirme,
-                                ),
+                                onTap: () => setState(() {
+                                  _selectionEchantillonId = null;
+                                  _filtreStatut =
+                                      StatutCollecteur.achatConfirme;
+                                }),
                               ),
                             ],
                           ),
@@ -1010,6 +1043,8 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
                                     onScheduleArrivee: e.canScheduleArrivee
                                         ? () => _onScheduleArrivee(e)
                                         : null,
+                                    initiallyExpanded:
+                                        e.id == _selectionEchantillonId,
                                   );
                                 },
                               ),

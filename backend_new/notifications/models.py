@@ -21,6 +21,8 @@ class Notification(models.Model):
         DATE_LIVRAISON_AJOUTEE = 'DATE_LIVRAISON_AJOUTEE', 'Date de livraison ajoutee'
         DATE_LIVRAISON_MODIFIEE = 'DATE_LIVRAISON_MODIFIEE', 'Date de livraison modifiee'
         NOUVELLE_SESSION = 'NOUVELLE_SESSION', 'Nouvelle session'
+        NEGOCIATION_PROPOSEE = 'NEGOCIATION_PROPOSEE', 'Negociation proposee'
+        NEGOCIATION_MISE_A_JOUR = 'NEGOCIATION_MISE_A_JOUR', 'Negociation mise a jour'
         # La direction refuse le PRIX, pas le stock : le collecteur recoit une
         # contre-proposition et l'echantillon reste en negociation.
         NEGOCIATION_A_REVOIR = 'NEGOCIATION_A_REVOIR', 'Negociation a revoir'

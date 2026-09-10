@@ -222,6 +222,7 @@ class EchantillonViewSet(viewsets.ModelViewSet):
         # This moves the sample to "en_negociation" for both the CEO and the collector.
         # Optionally sets the negotiation budget and internal notes.
         obj = self.get_object()
+        old_budget = obj.budget_negociation
         obj.statut_ceo = Echantillon.StatutCEO.EN_NEGOCIATION
         obj.statut_collecteur = Echantillon.StatutCollecteur.EN_NEGOCIATION
         if request.data.get('budget_negociation'):
@@ -231,7 +232,34 @@ class EchantillonViewSet(viewsets.ModelViewSet):
         if request.data.get('note_interne'):
             obj.note_interne = request.data['note_interne']
         obj.save()
+        self._notify_negotiation_proposal(obj, old_budget)
         return Response(EchantillonSerializer(obj, context={'request': request}).data)
+
+    def _notify_negotiation_proposal(self, obj, old_budget):
+        if not obj.collecteur or obj.budget_negociation is None:
+            return
+        is_update = old_budget is not None
+        notification_type = (
+            Notification.Type.NEGOCIATION_MISE_A_JOUR
+            if is_update
+            else Notification.Type.NEGOCIATION_PROPOSEE
+        )
+        title = 'Negociation mise a jour' if is_update else 'Proposition de negociation'
+        ref = obj.reference_bouteille or obj.numero
+        price = f"{_format_decimal(obj.budget_negociation)} TND/L"
+        quantity = (
+            f"{_format_decimal(obj.quantite_cible_t)} T"
+            if obj.quantite_cible_t is not None
+            else (obj.quantite_estimee or '-')
+        )
+        Notification.objects.create(
+            destinataire=obj.collecteur,
+            type=notification_type,
+            titre=title,
+            message=f"{ref} : la direction propose {price} pour {quantity}.",
+            echantillon=obj,
+            section=Notification.Section.ACHATS_VALIDATION,
+        )
 
     @action(detail=True, methods=['patch'], permission_classes=[IsDirection])
     def refuser(self, request, pk=None):

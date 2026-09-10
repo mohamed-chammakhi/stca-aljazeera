@@ -8,7 +8,7 @@ import '../../core/utils/montant_achat.dart';
 
 class NotificationsCollecteurPage extends StatefulWidget {
   final NotificationCollecteurService service;
-  final void Function(NotificationCollecteur) onNavigate;
+  final bool Function(NotificationCollecteur) onNavigate;
 
   const NotificationsCollecteurPage({
     super.key,
@@ -88,8 +88,9 @@ class _NotificationsCollecteurPageState
 
   Future<void> _onTap(NotificationCollecteur n) async {
     if (!await _markRead(n) || !mounted) return;
-    widget.onNavigate(n);
-    Navigator.pop(context);
+    if (n.echantillonId == null) return;
+    final navigated = widget.onNavigate(n);
+    if (navigated && mounted) Navigator.pop(context);
   }
 
   void _signalerErreur() {
