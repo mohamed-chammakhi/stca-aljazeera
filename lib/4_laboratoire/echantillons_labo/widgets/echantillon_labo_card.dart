@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import '../models/echantillon_labo.dart';
 import '../../analyse_labo.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/utils/date_utils.dart';
 import '../../../core/widgets/grille_details.dart';
 
 Color _accentColor(StatutAnalyse s) {
@@ -314,7 +315,10 @@ class _DetailPanel extends StatelessWidget {
                   DetailItem('Gouvernorat', e.gouvernorat),
                   DetailItem('Fournisseur', e.codeFournisseur),
                   DetailItem('Collecteur', e.collecteurNom),
-                  DetailItem('Date arrivée', e.dateArrivee),
+                  DetailItem(
+                    'Date arrivée',
+                    DegDateUtils.formaterAffichage(e.dateArrivee),
+                  ),
                   if (e.variete != null && e.variete!.isNotEmpty)
                     DetailItem('Variété', e.variete!),
                   if (e.numeroLot != null) DetailItem('N° lot', e.numeroLot!),
