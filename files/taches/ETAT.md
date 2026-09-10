@@ -3,8 +3,12 @@
 Ce fichier est le tableau de bord. **Claude le tient à jour, personne d'autre.**
 Il répond à une seule question : où en est-on, et qui attend quoi.
 
-Dernière mise à jour : 09/09/2026, après le commit de la tâche 24. Plus aucune question
-ouverte.
+Dernière mise à jour : 10/09/2026, tâche 25 terminée. Audit des 32 pages utilisant
+`VueResultatService` : vérifier que chaque page distingue bien "pas encore de données"
+(message contextuel) de "échec de chargement" (erreur) — parti d'un incident sur la page
+Sessions où l'erreur affichée était en fait un vrai échec réseau passager, pas un bug de
+code. 2 vrais manques trouvés et corrigés (dashboards dégustateur et chef dégustateur,
+panneau "Activité récente"), les 30 autres étaient déjà corrects ou hors sujet.
 
 ---
 
@@ -31,8 +35,7 @@ ouverte.
 | 22 | Corriger : retirer la page réutilisée du collecteur, ajouter/modifier/supprimer directement sur la page "Gestion des échantillons" du dégustateur et du chef | **Terminée et commitée** | à vérifier à l'écran |
 | 23 | Le filtre par date du dégustateur et du chef propose les mêmes 4 choix que celui du collecteur | **Terminée et commitée** | à vérifier à l'écran |
 | 24 | Suggestions de fournisseur (façon Google) pour le dégustateur et le chef, comme le collecteur a déjà | **Terminée et commitée** | à vérifier à l'écran |
-
-Toutes les tâches numérotées sont faites et commitées.
+| 25 | Audit des 32 pages utilisant VueResultatService : message contextuel quand une liste est vide, sans toucher à la vraie gestion d'erreur | **Terminée et commitée** | à vérifier à l'écran |
 
 ---
 
