@@ -212,7 +212,6 @@ class _EchantillonsLaboPageState extends State<EchantillonsLaboPage>
       backgroundColor: kBg,
       drawer: LaboDrawer(
         onEchantillons: () => goToPage(const EchantillonsLaboPage()),
-        onNotifications: () => goToPage(const NotificationsLaboPage()),
         onProfil: () => goToPage(const ProfilLaboPage()),
         onDeconnexion: () => goToPage(LoginPage()),
       ),

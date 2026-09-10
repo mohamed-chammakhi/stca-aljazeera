@@ -7,7 +7,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'echantillons_labo/echantillons_labo_page.dart';
 import '../core/theme/app_colors.dart';
 import 'widgets/labo_nav_mixin.dart';
-import 'notifications/notifications_labo_page.dart';
 
 class ProfilLaboPage extends StatefulWidget {
   const ProfilLaboPage({super.key});
@@ -218,8 +217,6 @@ class _ProfilLaboPageState extends State<ProfilLaboPage> with LaboNavMixin {
       backgroundColor: Colors.white,
       drawer: LaboDrawer(
         onEchantillons: () => goToPage(const EchantillonsLaboPage()),
-        onNotifications: () => goToPage(const NotificationsLaboPage()),
-
         onProfil: () => goToPage(const ProfilLaboPage()),
         onDeconnexion: goToLogin,
       ),
