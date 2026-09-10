@@ -1632,14 +1632,24 @@ class _HomeBodyState extends State<HomeBody> {
                 }
                 return false;
               },
-              child: ListView.builder(
-                padding: const EdgeInsets.fromLTRB(14, 10, 14, 14),
-                itemCount: _activite.length,
-                itemBuilder: (_, i) => _timelineItem(
-                  _activite[i],
-                  isLast: i == _activite.length - 1,
-                ),
-              ),
+              child: _activite.isEmpty
+                  ? const Center(
+                      child: Text(
+                        'Aucune activité récente',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Color(0xFFAAAAAA),
+                        ),
+                      ),
+                    )
+                  : ListView.builder(
+                      padding: const EdgeInsets.fromLTRB(14, 10, 14, 14),
+                      itemCount: _activite.length,
+                      itemBuilder: (_, i) => _timelineItem(
+                        _activite[i],
+                        isLast: i == _activite.length - 1,
+                      ),
+                    ),
             ),
           ),
           Container(

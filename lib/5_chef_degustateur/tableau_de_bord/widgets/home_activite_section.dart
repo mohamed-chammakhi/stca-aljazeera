@@ -56,8 +56,18 @@ class ActiviteSection extends StatelessWidget {
             chipLabel: ({required debut, required fin}) {
               if (debut == null) return '';
               final mois = [
-                'Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun',
-                'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc',
+                'Jan',
+                'Fév',
+                'Mar',
+                'Avr',
+                'Mai',
+                'Jun',
+                'Jul',
+                'Aoû',
+                'Sep',
+                'Oct',
+                'Nov',
+                'Déc',
               ];
               if (fin == null ||
                   (debut.year == fin.year &&
@@ -79,9 +89,7 @@ class ActiviteSection extends StatelessWidget {
                 ),
                 decoration: BoxDecoration(
                   color: chefGreen.withValues(alpha: 0.06),
-                  border: Border.all(
-                    color: chefGreen.withValues(alpha: 0.15),
-                  ),
+                  border: Border.all(color: chefGreen.withValues(alpha: 0.15)),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
@@ -133,14 +141,24 @@ class ActiviteSection extends StatelessWidget {
                 }
                 return false;
               },
-              child: ListView.builder(
-                padding: const EdgeInsets.fromLTRB(14, 10, 14, 14),
-                itemCount: activite.length,
-                itemBuilder: (_, i) => _timelineItem(
-                  activite[i],
-                  isLast: i == activite.length - 1,
-                ),
-              ),
+              child: activite.isEmpty
+                  ? const Center(
+                      child: Text(
+                        'Aucune activité récente',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Color(0xFFAAAAAA),
+                        ),
+                      ),
+                    )
+                  : ListView.builder(
+                      padding: const EdgeInsets.fromLTRB(14, 10, 14, 14),
+                      itemCount: activite.length,
+                      itemBuilder: (_, i) => _timelineItem(
+                        activite[i],
+                        isLast: i == activite.length - 1,
+                      ),
+                    ),
             ),
           ),
           Container(
