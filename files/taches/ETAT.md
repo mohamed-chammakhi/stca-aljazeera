@@ -3,18 +3,19 @@
 Ce fichier est le tableau de bord. **Claude le tient à jour, personne d'autre.**
 Il répond à une seule question : où en est-on, et qui attend quoi.
 
-Dernière mise à jour : 10/09/2026, tâche 26 terminée, tâche 27 en cours. Le propriétaire
-a demandé de « s'occuper des notifications » : le carnet `files/notifications/` (6
-fichiers) a été relu entièrement, toutes ses questions ouvertes tranchées, puis recoupé
-avec le vrai code — bien plus construit que le carnet ne le disait (négociation/refus,
-urgents, dates de livraison stock — tout existe et est testé). La tâche 26 a corrigé les
-4 vrais manques trouvés (collecteur non notifié de la réception, labo non notifié d'un
-nouvel échantillon, CEO qui propose/met à jour une négociation ne notifiait personne,
-clic sur une notification collecteur sans effet). En creusant, un point est apparu plus
-gros qu'une notification manquante : la "décoche" de réception physique est bloquée en
-dur côté code ("ne peut pas être annulée"), sans route serveur pour l'inverse. Le
-propriétaire a explicitement confirmé vouloir permettre cette annulation, avec
-notification dans les deux sens → tâche 27.
+Dernière mise à jour : 10/09/2026, tâches 26 et 27 terminées. Le propriétaire a demandé
+de « s'occuper des notifications » : le carnet `files/notifications/` (6 fichiers) a été
+relu entièrement, toutes ses questions ouvertes tranchées, puis recoupé avec le vrai
+code — bien plus construit que le carnet ne le disait (négociation/refus, urgents, dates
+de livraison stock — tout existe et est testé). La tâche 26 a corrigé les 4 vrais manques
+trouvés (collecteur non notifié de la réception, labo non notifié d'un nouvel
+échantillon, CEO qui propose/met à jour une négociation ne notifiait personne, clic sur
+une notification collecteur sans effet). En creusant, un point est apparu plus gros
+qu'une notification manquante : la "décoche" de réception physique était bloquée en dur
+côté code. Le propriétaire a explicitement confirmé vouloir permettre cette annulation,
+avec notification dans les deux sens — tâche 27, faite : nouvelle action serveur
+`annuler-reception`, notifie collecteur + Direction + Chef, et le laboratoire seulement
+si son analyse est déjà en cours.
 
 ---
 
@@ -43,7 +44,7 @@ notification dans les deux sens → tâche 27.
 | 24 | Suggestions de fournisseur (façon Google) pour le dégustateur et le chef, comme le collecteur a déjà | **Terminée et commitée** | à vérifier à l'écran |
 | 25 | Audit des 32 pages utilisant VueResultatService : message contextuel quand une liste est vide, sans toucher à la vraie gestion d'erreur | **Terminée et commitée** | à vérifier à l'écran |
 | 26 | Notifications manquantes : collecteur (réception physique), laboratoire (nouvel échantillon), collecteur (négociation proposée/mise à jour), clic notification collecteur → page échantillon | **Terminée et commitée** (`9b3aca9`) | à vérifier à l'écran |
-| 27 | Permettre d'annuler une réception physique confirmée, avec notification dans les deux sens | **En cours** | Codex |
+| 27 | Permettre d'annuler une réception physique confirmée, avec notification dans les deux sens | **Terminée et commitée** (`39d7a35`) | à vérifier à l'écran |
 
 ---
 
