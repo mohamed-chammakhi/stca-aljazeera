@@ -216,6 +216,22 @@ class EchantillonViewSet(viewsets.ModelViewSet):
     def confirmer_reception_hyphen(self, request, pk=None):
         return self._confirmer_reception(request)
 
+    def _annuler_reception(self, request):
+        obj = self.get_object()
+        if obj.recu_physiquement:
+            obj.recu_physiquement = False
+            obj.date_reception_echantillon = None
+            obj.save(update_fields=['recu_physiquement', 'date_reception_echantillon', 'updated_at'])
+        return Response(EchantillonSerializer(obj, context={'request': request}).data)
+
+    @action(detail=True, methods=['patch', 'post'], permission_classes=[IsDegustateur | IsChefDegustation])
+    def annuler_reception(self, request, pk=None):
+        return self._annuler_reception(request)
+
+    @action(detail=True, methods=['post', 'patch'], permission_classes=[IsDegustateur | IsChefDegustation], url_path='annuler-reception')
+    def annuler_reception_hyphen(self, request, pk=None):
+        return self._annuler_reception(request)
+
     @action(detail=True, methods=['patch'], permission_classes=[IsDirection])
     def approuver(self, request, pk=None):
         # The CEO approves a sample for negotiation.

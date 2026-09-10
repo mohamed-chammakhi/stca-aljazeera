@@ -113,13 +113,11 @@ class GestionEchantillonsService {
     await apiClient.delete('/api/echantillons/$id/');
   }
 
-  /// Confirms physical reception of an echantillon at the company.
+  /// Toggles physical reception of an echantillon at the company.
   ///
-  /// Calls `PATCH /api/echantillons/<id>/confirmer_reception/` — the backend
-  /// sets `recu_physiquement = true` and records the arrival timestamp.
-  /// The [value] parameter is retained for API symmetry but is always true
-  /// when calling this endpoint.
+  /// Calls the backend endpoint that matches the requested state.
   Future<void> toggleRecuPhysiquement(String id, bool value) async {
-    await apiClient.patch('/api/echantillons/$id/confirmer-reception/', {});
+    final action = value ? 'confirmer-reception' : 'annuler-reception';
+    await apiClient.patch('/api/echantillons/$id/$action/', {});
   }
 }

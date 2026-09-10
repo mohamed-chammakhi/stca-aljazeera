@@ -491,6 +491,27 @@ class CollectorEchantillonApiTests(APITestCase):
         self.assertTrue(sample.recu_physiquement)
         self.assertIsNotNone(sample.date_reception_echantillon)
 
+    def test_degustateur_can_cancel_physical_reception(self):
+        sample = self.create_sample(
+            self.collector,
+            recu_physiquement=True,
+            date_reception_echantillon=timezone.now(),
+        )
+        self.authenticate(self.degustateur)
+
+        response = self.client.patch(
+            f'/api/echantillons/{sample.id}/annuler-reception/',
+            {},
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        sample.refresh_from_db()
+        self.assertFalse(sample.recu_physiquement)
+        self.assertIsNone(sample.date_reception_echantillon)
+        self.assertFalse(response.data['recu_physiquement'])
+        self.assertIsNone(response.data['date_reception_echantillon'])
+
     def test_physical_reception_preserves_scheduled_arrival_date(self):
         scheduled_arrival = timezone.now() + timedelta(days=3)
         sample = self.create_sample(

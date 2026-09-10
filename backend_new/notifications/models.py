@@ -10,6 +10,7 @@ class Notification(models.Model):
         ECHANTILLON_MODIFIE = 'ECHANTILLON_MODIFIE', 'Echantillon modifie'
         ECHANTILLON_SUPPRIME = 'ECHANTILLON_SUPPRIME', 'Echantillon supprime'
         ECHANTILLON_RECU = 'ECHANTILLON_RECU', 'Echantillon recu physiquement'
+        RECEPTION_ANNULEE = 'RECEPTION_ANNULEE', 'Reception physique annulee'
         PREMIERE_EVALUATION = 'PREMIERE_EVALUATION', 'Premiere evaluation soumise'
         EVALUATION_SOUMISE = 'EVALUATION_SOUMISE', 'Evaluation soumise'
         TOUTES_EVALUATIONS = 'TOUTES_EVALUATIONS', 'Toutes les evaluations soumises'

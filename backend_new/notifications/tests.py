@@ -4,6 +4,7 @@ from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APITestCase
 
+from analyses.models import AnalyseLabo
 from echantillons.models import Echantillon
 from evaluations.models import EvaluationOrganoleptique
 from sessions_degustation.models import SessionDegustation
@@ -421,6 +422,66 @@ class NotificationSignalTests(APITestCase):
             {self.lab.email},
         )
         self.assertFalse(lab_notifications.filter(destinataire=self.inactive_lab).exists())
+
+    def test_reception_cancellation_notifies_collector_and_lab_when_analysis_in_progress(self):
+        sample = Echantillon.objects.create(
+            reference_bouteille='REF-ANNUL-001',
+            collecteur=self.collecteur,
+            gouvernorat='Sfax',
+            variete='Chemlali',
+            recu_physiquement=True,
+            date_reception_echantillon=timezone.now(),
+        )
+        AnalyseLabo.objects.create(
+            echantillon=sample,
+            technicien=self.lab,
+            statut=AnalyseLabo.Statut.EN_COURS,
+        )
+        Notification.objects.all().delete()
+
+        sample.recu_physiquement = False
+        sample.date_reception_echantillon = None
+        sample.save(update_fields=['recu_physiquement', 'date_reception_echantillon', 'updated_at'])
+
+        notifications = Notification.objects.filter(type=Notification.Type.RECEPTION_ANNULEE)
+        self.assertEqual(
+            set(notifications.values_list('destinataire__email', flat=True)),
+            {self.direction.email, self.chef.email, self.collecteur.email, self.lab.email},
+        )
+        self.assertEqual(
+            notifications.filter(section=Notification.Section.ANALYSES).count(),
+            1,
+        )
+        self.assertFalse(notifications.filter(destinataire=self.inactive_lab).exists())
+
+    def test_reception_cancellation_does_not_notify_lab_without_in_progress_analysis(self):
+        sample = Echantillon.objects.create(
+            reference_bouteille='REF-ANNUL-002',
+            collecteur=self.collecteur,
+            gouvernorat='Sfax',
+            variete='Chemlali',
+            recu_physiquement=True,
+            date_reception_echantillon=timezone.now(),
+        )
+        AnalyseLabo.objects.create(
+            echantillon=sample,
+            technicien=self.lab,
+            statut=AnalyseLabo.Statut.SOUMIS,
+        )
+        Notification.objects.all().delete()
+
+        sample.recu_physiquement = False
+        sample.date_reception_echantillon = None
+        sample.save(update_fields=['recu_physiquement', 'date_reception_echantillon', 'updated_at'])
+
+        notifications = Notification.objects.filter(type=Notification.Type.RECEPTION_ANNULEE)
+        self.assertEqual(
+            set(notifications.values_list('destinataire__email', flat=True)),
+            {self.direction.email, self.chef.email, self.collecteur.email},
+        )
+        self.assertFalse(
+            notifications.filter(section=Notification.Section.ANALYSES).exists(),
+        )
 
     def test_all_evaluations_signal_waits_for_all_active_panel_members(self):
         sample = Echantillon.objects.create(

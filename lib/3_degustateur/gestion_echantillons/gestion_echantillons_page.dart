@@ -208,10 +208,6 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage>
   }
 
   Future<bool> _onToggleRecu(Echantillon e) async {
-    if (e.recuPhysiquement) {
-      _showError('Une réception confirmée ne peut pas être annulée.');
-      return false;
-    }
     if (_estDemonstration) {
       _showError(
         'Action indisponible avec les données de démonstration. Réessayez lorsque le serveur répond.',
@@ -219,13 +215,22 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage>
       return false;
     }
     try {
-      await _service.toggleRecuPhysiquement(e.id, true);
+      final nouvelleValeur = !e.recuPhysiquement;
+      await _service.toggleRecuPhysiquement(e.id, nouvelleValeur);
       if (!mounted) return false;
-      setState(() => e.recuPhysiquement = true);
-      _showSuccess('Reception physique confirmee');
+      setState(() => e.recuPhysiquement = nouvelleValeur);
+      _showSuccess(
+        nouvelleValeur ? 'Réception physique confirmée' : 'Réception annulée',
+      );
       return true;
     } catch (error) {
-      if (mounted) _showError('Confirmation impossible : $error');
+      if (mounted) {
+        _showError(
+          e.recuPhysiquement
+              ? 'Annulation impossible : $error'
+              : 'Confirmation impossible : $error',
+        );
+      }
       return false;
     }
   }

@@ -154,6 +154,35 @@ def on_echantillon_saved(sender, instance, created, **kwargs):
             echantillon=instance,
             section=Notification.Section.ANALYSES,
         )
+    elif old_recu is True and not instance.recu_physiquement:
+        recipients = list(_get_users_by_roles(User.Role.DIRECTION, User.Role.CHEF_DEGUSTATION))
+        if instance.collecteur:
+            recipients.append(instance.collecteur)
+        _notify(
+            recipients,
+            Notification.Type.RECEPTION_ANNULEE,
+            'Reception physique annulee',
+            f"La reception physique de l'echantillon {ref} a ete annulee.",
+            echantillon=instance,
+            section=Notification.Section.ECHANTILLONS,
+        )
+
+        from analyses.models import AnalyseLabo
+
+        analyse = getattr(instance, 'analyse', None)
+        if analyse and analyse.statut == AnalyseLabo.Statut.EN_COURS:
+            lab_recipients = _get_users_by_roles(User.Role.LABORATOIRE)
+            _notify(
+                lab_recipients,
+                Notification.Type.RECEPTION_ANNULEE,
+                'Reception physique annulee',
+                (
+                    f"La reception physique de l'echantillon {ref} a ete annulee. "
+                    "L'analyse en cours doit etre suspendue."
+                ),
+                echantillon=instance,
+                section=Notification.Section.ANALYSES,
+            )
     elif old_statut != 'achat_confirme' and instance.statut_collecteur == 'achat_confirme':
         recipients = _get_users_by_roles(User.Role.DIRECTION, User.Role.CHEF_DEGUSTATION)
         _notify(
