@@ -3,6 +3,7 @@
 // ═════════════════════════════════════════════════════════════════════════════
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/services/variete_service.dart';
 import '../../../../core/widgets/champ_autocomplete.dart';
@@ -484,7 +485,12 @@ class _BouteilleCard extends StatelessWidget {
                   label: 'Quantité estimée',
                   hint: '0',
                   suffix: 'T',
-                  keyboardType: TextInputType.number,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(RegExp(r'[\d.,]')),
+                  ],
                 ),
               ),
             ],
@@ -502,6 +508,7 @@ class _CardField extends StatelessWidget {
   final String? suffix;
   final TextInputType keyboardType;
   final TextCapitalization textCapitalization;
+  final List<TextInputFormatter>? inputFormatters;
 
   const _CardField({
     required this.controller,
@@ -510,6 +517,7 @@ class _CardField extends StatelessWidget {
     this.suffix,
     this.keyboardType = TextInputType.text,
     this.textCapitalization = TextCapitalization.none,
+    this.inputFormatters,
   });
 
   @override
@@ -530,6 +538,7 @@ class _CardField extends StatelessWidget {
           controller: controller,
           keyboardType: keyboardType,
           textCapitalization: textCapitalization,
+          inputFormatters: inputFormatters,
           style: const TextStyle(fontSize: 14, color: kDarkText),
           decoration: InputDecoration(
             hintText: hint,

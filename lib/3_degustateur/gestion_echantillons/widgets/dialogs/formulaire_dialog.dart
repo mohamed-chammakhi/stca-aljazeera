@@ -9,9 +9,9 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import 'dart:async';
-import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../../core/models/echantillon.dart';
@@ -1064,7 +1064,10 @@ class _BouteilleCard extends StatelessWidget {
           const SizedBox(height: 5),
           TextField(
             controller: row.qteCtrl,
-            keyboardType: TextInputType.number,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            inputFormatters: [
+              FilteringTextInputFormatter.allow(RegExp(r'[\d.,]')),
+            ],
             style: const TextStyle(fontSize: 13, color: _dark),
             decoration: _fieldDec('Ex: 5000', suffixText: 'T'),
           ),

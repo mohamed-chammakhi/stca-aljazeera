@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../models/echantillon_collecteur.dart';
@@ -969,7 +970,10 @@ class _BouteilleCard extends StatelessWidget {
           TextField(
             controller: row.qteCtrl,
             onChanged: (_) => onDonneesReferenceChangees(),
-            keyboardType: TextInputType.number,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            inputFormatters: [
+              FilteringTextInputFormatter.allow(RegExp(r'[\d.,]')),
+            ],
             style: const TextStyle(fontSize: 13, color: kDarkText),
             decoration: _fieldDec('Ex: 5000', suffixText: 'T'),
           ),

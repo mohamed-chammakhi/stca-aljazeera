@@ -9,6 +9,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/models/echantillon.dart';
 import '../../../../core/models/enums.dart';
@@ -922,7 +923,10 @@ class _BouteilleCard extends StatelessWidget {
           const SizedBox(height: 5),
           TextField(
             controller: row.qteCtrl,
-            keyboardType: TextInputType.number,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            inputFormatters: [
+              FilteringTextInputFormatter.allow(RegExp(r'[\d.,]')),
+            ],
             style: const TextStyle(fontSize: 13, color: chefDark),
             decoration: _fieldDec('Ex: 5000', suffixText: 'T'),
           ),
