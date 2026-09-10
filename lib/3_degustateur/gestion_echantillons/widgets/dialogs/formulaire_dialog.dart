@@ -470,7 +470,7 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
               : b.qteCtrl.text.trim(),
           dateAjout: _dateAjoutCtrl.text,
           statutCollecteur: StatutCollecteur.receptionne,
-          statutDegustateur: StatutDegustateur.enAttente,
+          statutDegustateur: StatutDegustateur.nonEvaluee,
           recuPhysiquement: true,
         );
       }).toList();

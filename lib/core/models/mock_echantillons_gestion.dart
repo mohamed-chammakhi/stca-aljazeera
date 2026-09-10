@@ -16,7 +16,7 @@ final List<Echantillon> mockEchantillonsGestion = [
     delegation: 'Sfax Sud',
     quantiteEstimee: '25',
     statutCollecteur: StatutCollecteur.receptionne,
-    statutDegustateur: StatutDegustateur.enAttente,
+    statutDegustateur: StatutDegustateur.nonEvaluee,
     dateAjout: '2026-03-01',
     dateArriveeEchantillon: '2026-03-15',
     dateReceptionEchantillon: '2026-03-16',
@@ -67,7 +67,7 @@ final List<Echantillon> mockEchantillonsGestion = [
     delegation: 'Kairouan Nord',
     quantiteEstimee: '18',
     statutCollecteur: StatutCollecteur.receptionne,
-    statutDegustateur: StatutDegustateur.enAttente,
+    statutDegustateur: StatutDegustateur.nonEvaluee,
     dateAjout: '2026-02-23',
   ),
 ];
