@@ -12,6 +12,7 @@ class DateLivraisonSection extends StatelessWidget {
   final ValueChanged<DateTime?> onDateExacteChanged;
   final ValueChanged<DateTime?> onPeriodeDebutChanged;
   final ValueChanged<DateTime?> onPeriodeFinChanged;
+
   /// Set to false to suppress the internal "Date de Livraison de L'échantillon" label.
   final bool showLabel;
 
@@ -39,10 +40,10 @@ class DateLivraisonSection extends StatelessWidget {
     return '$base  $hour:$minute $period';
   }
 
-  Future<DateTime?> _pickDateThenOptionalTime(
-    BuildContext ctx, {
-    DateTime? initial,
-  }) async {
+  /// Date only — keeps whatever time was already set on [initial], doesn't
+  /// prompt for a time. The time is set separately, on demand, via the small
+  /// clock button next to the date field (see [_TimeIconButton]).
+  Future<DateTime?> _pickDate(BuildContext ctx, {DateTime? initial}) async {
     final initialDateOnly = initial != null
         ? DateTime(initial.year, initial.month, initial.day)
         : DateTime.now();
@@ -66,16 +67,38 @@ class DateLivraisonSection extends StatelessWidget {
     );
     if (date == null) return null;
 
-    // ignore: use_build_context_synchronously
+    if (initial != null && (initial.hour != 0 || initial.minute != 0)) {
+      return DateTime(
+        date.year,
+        date.month,
+        date.day,
+        initial.hour,
+        initial.minute,
+      );
+    }
+    return DateTime(date.year, date.month, date.day);
+  }
+
+  /// Opens the time sheet on demand, for a date already chosen via
+  /// [_pickDate]. Returns null if the user cancels or taps "Ignorer".
+  Future<DateTime?> _pickTime(
+    BuildContext ctx, {
+    required DateTime dateBase,
+  }) async {
     final time = await _showScrollTimeSheet(
       ctx,
-      initial: initial != null && (initial.hour != 0 || initial.minute != 0)
-          ? TimeOfDay(hour: initial.hour, minute: initial.minute)
+      initial: dateBase.hour != 0 || dateBase.minute != 0
+          ? TimeOfDay(hour: dateBase.hour, minute: dateBase.minute)
           : null,
     );
-
-    if (time == null) return DateTime(date.year, date.month, date.day);
-    return DateTime(date.year, date.month, date.day, time.hour, time.minute);
+    if (time == null) return null;
+    return DateTime(
+      dateBase.year,
+      dateBase.month,
+      dateBase.day,
+      time.hour,
+      time.minute,
+    );
   }
 
   bool get _isFilled {
@@ -155,17 +178,37 @@ class DateLivraisonSection extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 6),
-              _DatePickerButton(
-                date: dateExacte,
-                hint: 'Sélectionner une date',
-                onTap: () async {
-                  final dt = await _pickDateThenOptionalTime(
-                    context,
-                    initial: dateExacte,
-                  );
-                  if (dt != null) onDateExacteChanged(dt);
-                },
-                fmt: _fmtDateTime,
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: _DatePickerButton(
+                      date: dateExacte,
+                      hint: 'Sélectionner une date',
+                      onTap: () async {
+                        final dt = await _pickDate(
+                          context,
+                          initial: dateExacte,
+                        );
+                        if (dt != null) onDateExacteChanged(dt);
+                      },
+                      fmt: _fmtDateTime,
+                    ),
+                  ),
+                  if (dateExacte != null) ...[
+                    const SizedBox(width: 8),
+                    _TimeIconButton(
+                      hasTime: dateExacte!.hour != 0 || dateExacte!.minute != 0,
+                      onTap: () async {
+                        final dt = await _pickTime(
+                          context,
+                          dateBase: dateExacte!,
+                        );
+                        if (dt != null) onDateExacteChanged(dt);
+                      },
+                    ),
+                  ],
+                ],
               ),
             ],
           ),
@@ -201,7 +244,7 @@ class DateLivraisonSection extends StatelessWidget {
                           date: periodeDebut,
                           hint: 'Choisir...',
                           onTap: () async {
-                            final dt = await _pickDateThenOptionalTime(
+                            final dt = await _pickDate(
                               context,
                               initial: periodeDebut,
                             );
@@ -214,6 +257,25 @@ class DateLivraisonSection extends StatelessWidget {
                           },
                           fmt: _fmtDateTime,
                         ),
+                        if (periodeDebut != null) ...[
+                          const SizedBox(height: 4),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: _TimeIconButton(
+                              small: true,
+                              hasTime:
+                                  periodeDebut!.hour != 0 ||
+                                  periodeDebut!.minute != 0,
+                              onTap: () async {
+                                final dt = await _pickTime(
+                                  context,
+                                  dateBase: periodeDebut!,
+                                );
+                                if (dt != null) onPeriodeDebutChanged(dt);
+                              },
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   ),
@@ -237,7 +299,7 @@ class DateLivraisonSection extends StatelessWidget {
                           date: periodeFin,
                           hint: 'Choisir...',
                           onTap: () async {
-                            final dt = await _pickDateThenOptionalTime(
+                            final dt = await _pickDate(
                               context,
                               initial:
                                   periodeFin ?? periodeDebut ?? DateTime.now(),
@@ -251,6 +313,25 @@ class DateLivraisonSection extends StatelessWidget {
                           },
                           fmt: _fmtDateTime,
                         ),
+                        if (periodeFin != null) ...[
+                          const SizedBox(height: 4),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: _TimeIconButton(
+                              small: true,
+                              hasTime:
+                                  periodeFin!.hour != 0 ||
+                                  periodeFin!.minute != 0,
+                              onTap: () async {
+                                final dt = await _pickTime(
+                                  context,
+                                  dateBase: periodeFin!,
+                                );
+                                if (dt != null) onPeriodeFinChanged(dt);
+                              },
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   ),
@@ -585,6 +666,52 @@ class _ModeTab extends StatelessWidget {
       ),
     ),
   );
+}
+
+/// Small optional button (clock icon) that opens the time picker on demand,
+/// once a date is already chosen. Replaces the old behaviour where the time
+/// sheet popped up automatically after every date pick.
+class _TimeIconButton extends StatelessWidget {
+  final VoidCallback onTap;
+  final bool hasTime;
+  final bool small;
+
+  const _TimeIconButton({
+    required this.onTap,
+    this.hasTime = false,
+    this.small = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final size = small ? 30.0 : 44.0;
+    return Tooltip(
+      message: hasTime ? "Modifier l'heure" : 'Préciser une heure (optionnel)',
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          width: size,
+          height: size,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: hasTime ? kGreen.withValues(alpha: 0.06) : Colors.white,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: hasTime
+                  ? kGreen.withValues(alpha: 0.4)
+                  : Colors.grey.shade200,
+              width: hasTime ? 1.5 : 1.0,
+            ),
+          ),
+          child: Icon(
+            Icons.access_time_rounded,
+            size: small ? 14 : 16,
+            color: hasTime ? kGreen : Colors.grey.shade400,
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class _DatePickerButton extends StatelessWidget {
