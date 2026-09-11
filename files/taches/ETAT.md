@@ -3,13 +3,16 @@
 Ce fichier est le tableau de bord. **Claude le tient à jour, personne d'autre.**
 Il répond à une seule question : où en est-on, et qui attend quoi.
 
-Dernière mise à jour : 11/09/2026, tâche 30 en cours. Le propriétaire a demandé trois
-ajouts à la messagerie : joindre une photo (galerie ou appareil photo), référencer un
-échantillon dans un message (cliquable, ouvre la page adaptée au rôle de celui qui
-clique), et pouvoir modifier/supprimer ses propres messages. Découpé comme 28/29 : 30
-(serveur) puis 31 (interface). En creusant le code de suppression existant, un vrai bug
-de permission a été trouvé : le destinataire d'un message pouvait déjà le supprimer,
-pas seulement l'expéditeur — corrigé dans la même tâche.
+Dernière mise à jour : 11/09/2026, tâches 30 et 31 terminées. Le propriétaire avait
+demandé trois ajouts à la messagerie : joindre une photo (galerie ou appareil photo),
+référencer un échantillon dans un message (cliquable, ouvre la page adaptée au rôle de
+celui qui clique), et pouvoir modifier/supprimer ses propres messages. En creusant le
+code de suppression existant, un vrai bug de permission a été trouvé et corrigé au
+passage : le destinataire d'un message pouvait déjà le supprimer, pas seulement
+l'expéditeur. Un incident mineur pendant la tâche 31 : Codex a livré un diff correct
+mais avec des accents mal encodés dans 12 chaînes de caractères (double encodage
+UTF-8/Latin-1) — repéré et corrigé avant le commit, et le processus Codex s'est arrêté
+sans écrire de RAPPORT, complété par Claude après revue complète du diff.
 
 Ancienne mise à jour (11/09/2026), tâches 28 et 29 terminées — la messagerie
 collecteur ↔ chef dégustateur ↔ direction est fonctionnelle de bout en bout (décrite
@@ -65,7 +68,7 @@ si son analyse est déjà en cours.
 | 28 | Messagerie — backend : règles de contacts par rôle, liste des contacts, compteur de non-lus | **Terminée et commitée** (`5f9c4c6`) | personne |
 | 29 | Messagerie — frontend : pages de conversation partagées, câblage dans les 3 Drawers concernés | **Terminée et commitée** (`9d6c81f`) | à vérifier à l'écran |
 | 30 | Messagerie — backend : photo jointe, référence à un échantillon, modifier/supprimer un message (+ correction d'un bug de permission de suppression) | **Terminée et commitée** (`c9a4dda`) | personne |
-| 31 | Messagerie — frontend : bouton photo, sélecteur d'échantillon, menu modifier/supprimer, navigation au clic sur une référence | **En cours** | Codex |
+| 31 | Messagerie — frontend : bouton photo, sélecteur d'échantillon, menu modifier/supprimer, navigation au clic sur une référence | **Terminée et commitée** (`67ff348`) | à vérifier à l'écran |
 
 ---
 
