@@ -1,6 +1,14 @@
 from rest_framework import serializers
 
 from .models import Message
+from .permissions import roles_contacts_autorises
+
+
+class ContactSerializer(serializers.Serializer):
+    id = serializers.UUIDField(read_only=True)
+    nom = serializers.CharField(read_only=True)
+    prenom = serializers.CharField(read_only=True)
+    role = serializers.CharField(read_only=True)
 
 
 class MessageSerializer(serializers.ModelSerializer):
@@ -27,8 +35,19 @@ class MessageSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('Destinataire introuvable ou inactif.')
 
         request = self.context.get('request')
-        if request and value == request.user:
+        if not request:
+            return value
+
+        if value == request.user:
             raise serializers.ValidationError('Impossible de vous envoyer un message.')
+
+        roles_autorises = roles_contacts_autorises(request.user)
+        if not roles_autorises:
+            raise serializers.ValidationError("Vous n'avez pas de messagerie.")
+
+        if value.role not in roles_autorises:
+            raise serializers.ValidationError('Vous ne pouvez pas ecrire a ce contact.')
+
         return value
 
     def get_expediteur_nom(self, obj):

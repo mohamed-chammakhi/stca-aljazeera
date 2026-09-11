@@ -175,6 +175,52 @@ l'app est plus grand, donne le vrai chiffre).
 
 ## RAPPORT
 
-Complète cette section : les deux nouvelles routes exactes, où vit la table
-`CONTACTS_AUTORISES`, le traitement retenu pour `RESPONSABLE_FINANCIER`, les résultats
-chiffrés réels des vérifications, et tout écart avec cette consigne.
+### Fait (par Codex, revu et vérifié par Claude)
+
+- `backend_new/messages_chat/permissions.py` (nouveau) : table `CONTACTS_AUTORISES`
+  (chef dégustation ↔ collecteur + direction, collecteur ↔ chef + direction,
+  direction ↔ collecteur + chef) et la fonction `roles_contacts_autorises(user)`,
+  réutilisée à la fois par `validate_destinataire()` (serializers.py) et par
+  `MessageContactsView` (views.py) — une seule source de vérité.
+- `RESPONSABLE_FINANCIER` : absent de `CONTACTS_AUTORISES`, retombe donc naturellement
+  sur `roles_contacts_autorises() == []` — traité comme le dégustateur et le
+  laboratoire (aucune messagerie), par défaut du `.get(role, [])`, sans cas spécial
+  écrit. Conforme à la décision prise dans la consigne.
+- `messages_chat/serializers.py` : `validate_destinataire()` refuse maintenant un
+  expéditeur sans rôle autorisé (« Vous n'avez pas de messagerie. ») et un destinataire
+  dont le rôle n'est pas dans la liste autorisée (« Vous ne pouvez pas écrire à ce
+  contact. »). Nouveau `ContactSerializer` (`id`, `nom`, `prenom`, `role`).
+- `messages_chat/views.py` : `MessageContactsView` (`GET /api/messages/contacts/`,
+  liste vide si pas de messagerie, triée par nom/prénom) et `MessageUnreadCountView`
+  (`GET /api/messages/non-lus/`, `{"total": N}`, ne compte que les messages reçus non
+  lus).
+- `messages_chat/urls.py` : `contacts/` et `non-lus/` ajoutées **avant**
+  `<uuid:pk>/lire/` et `<uuid:pk>/`, dans cet ordre — évite que Django tente de parser
+  ces mots comme un UUID.
+- `messages_chat/tests.py` : le test cassé (`test_user_can_send_message_and_sender_is_forced_from_token`)
+  corrigé pour utiliser un expéditeur `COLLECTEUR`. Nouveaux tests : matrice complète
+  des envois autorisés (chef/collecteur/direction dans les deux sens), refus pour
+  dégustateur et laboratoire (avec message d'erreur exact vérifié), refus
+  collecteur→collecteur, `/contacts/` correct pour un collecteur et vide pour un
+  dégustateur (utilisateur inactif exclu), `/non-lus/` ne compte que les messages
+  reçus et non lus.
+
+### Vérifié
+
+Codex a lancé `manage.py test` (suite complète) en parallèle de la vérification de
+Claude — les deux tournant en même temps sur la même base SQLite de test, le process
+Codex a été arrêté pour éviter une collision, après relecture complète et validation du
+diff (correct et conforme à la consigne).
+
+```bash
+cd backend_new
+python manage.py test
+```
+Résultat (exécuté par Claude) : **179 tests, 0 échec** (1225.5s / ~20 minutes). Aucune
+régression sur le reste de l'app.
+
+### Conclusion
+
+Les règles de contacts, la liste de contacts et le compteur de non-lus sont en place et
+testés côté serveur. Le frontend (tâche 29) peut maintenant construire l'interface par
+dessus cette API.

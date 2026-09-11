@@ -5,8 +5,11 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from users.models import User
+
 from .models import Message
-from .serializers import MessageSerializer
+from .permissions import roles_contacts_autorises
+from .serializers import ContactSerializer, MessageSerializer
 
 
 class MessageListCreateView(generics.ListCreateAPIView):
@@ -57,3 +60,26 @@ class MessageMarkReadView(APIView):
             message.save(update_fields=['lu', 'lu_le'])
 
         return Response(MessageSerializer(message, context={'request': request}).data)
+
+
+class MessageContactsView(generics.ListAPIView):
+    serializer_class = ContactSerializer
+    permission_classes = [IsAuthenticated]
+    pagination_class = None
+
+    def get_queryset(self):
+        roles_autorises = roles_contacts_autorises(self.request.user)
+        if not roles_autorises:
+            return User.objects.none()
+        return User.objects.filter(
+            is_active=True,
+            role__in=roles_autorises,
+        ).order_by('nom', 'prenom')
+
+
+class MessageUnreadCountView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        total = Message.objects.filter(destinataire=request.user, lu=False).count()
+        return Response({'total': total})
