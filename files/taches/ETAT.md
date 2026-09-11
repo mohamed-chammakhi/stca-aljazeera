@@ -3,15 +3,14 @@
 Ce fichier est le tableau de bord. **Claude le tient à jour, personne d'autre.**
 Il répond à une seule question : où en est-on, et qui attend quoi.
 
-Dernière mise à jour : 11/09/2026, tâche 28 en cours. Le propriétaire a demandé de
-construire la messagerie entre utilisateurs concernés, décrite dans
-`files/notifications/01_collecteur.md` §6.2 : collecteur ↔ chef dégustateur ↔ direction,
-pas le dégustateur simple ni le laboratoire. Le code existant a été vérifié : une vraie
-API de messages tourne déjà (`backend_new/messages_chat/`) mais sans aucune règle de
-contact, et côté app le bouton "Messagerie" du collecteur ouvre un `Placeholder()` vide
-— rien n'existe chez le chef ni le CEO. Découpé en deux tâches : 28 (serveur — règles de
-contact, liste de contacts, compteur non-lus) puis 29 (interface, une seule messagerie
-partagée entre les 3 rôles).
+Dernière mise à jour : 11/09/2026, tâches 28 et 29 terminées — la messagerie
+collecteur ↔ chef dégustateur ↔ direction est fonctionnelle de bout en bout (décrite
+dans `files/notifications/01_collecteur.md` §6.2). Backend : règles de contact par
+rôle, liste des contacts, compteur de non-lus. Frontend : une seule interface partagée
+(pas 3 copies), câblée dans les 19 points d'entrée réels des 3 Drawers concernés (le
+bouton "Messagerie" du collecteur ouvrait un `Placeholder()` vide, rien n'existait chez
+le chef ni le CEO). Le dégustateur simple et le laboratoire n'ont toujours pas de
+messagerie (décision du propriétaire).
 
 Ancienne mise à jour (10/09/2026), tâches 26 et 27 terminées. Le propriétaire a demandé
 de « s'occuper des notifications » : le carnet `files/notifications/` (6 fichiers) a été
@@ -56,7 +55,7 @@ si son analyse est déjà en cours.
 | 26 | Notifications manquantes : collecteur (réception physique), laboratoire (nouvel échantillon), collecteur (négociation proposée/mise à jour), clic notification collecteur → page échantillon | **Terminée et commitée** (`9b3aca9`) | à vérifier à l'écran |
 | 27 | Permettre d'annuler une réception physique confirmée, avec notification dans les deux sens | **Terminée et commitée** (`39d7a35`) | à vérifier à l'écran |
 | 28 | Messagerie — backend : règles de contacts par rôle, liste des contacts, compteur de non-lus | **Terminée et commitée** (`5f9c4c6`) | personne |
-| 29 | Messagerie — frontend : pages de conversation partagées, câblage dans les 3 Drawers concernés | **En cours** | Codex |
+| 29 | Messagerie — frontend : pages de conversation partagées, câblage dans les 3 Drawers concernés | **Terminée et commitée** (`9d6c81f`) | à vérifier à l'écran |
 
 ---
 
