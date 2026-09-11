@@ -5,6 +5,12 @@ class Message {
   final String expediteurNom;
   final String destinataireNom;
   final String contenu;
+  final String? photoUrl;
+  final String? echantillonId;
+  final String? echantillonNumero;
+  final String? echantillonReferenceBouteille;
+  final bool modifie;
+  final String? modifieLe;
   bool lu;
   String? luLe;
   final String dateEnvoi;
@@ -16,6 +22,12 @@ class Message {
     required this.expediteurNom,
     required this.destinataireNom,
     required this.contenu,
+    this.photoUrl,
+    this.echantillonId,
+    this.echantillonNumero,
+    this.echantillonReferenceBouteille,
+    this.modifie = false,
+    this.modifieLe,
     this.lu = false,
     this.luLe,
     required this.dateEnvoi,
@@ -27,7 +39,14 @@ class Message {
     destinataire: json['destinataire'] as String,
     expediteurNom: (json['expediteur_nom'] as String?) ?? '',
     destinataireNom: (json['destinataire_nom'] as String?) ?? '',
-    contenu: json['contenu'] as String,
+    contenu: (json['contenu'] as String?) ?? '',
+    photoUrl: json['photo_url'] as String?,
+    echantillonId: json['echantillon'] as String?,
+    echantillonNumero: json['echantillon_numero'] as String?,
+    echantillonReferenceBouteille:
+        json['echantillon_reference_bouteille'] as String?,
+    modifie: (json['modifie'] as bool?) ?? false,
+    modifieLe: json['modifie_le'] as String?,
     lu: (json['lu'] as bool?) ?? (json['is_read'] as bool?) ?? false,
     luLe: json['lu_le'] as String?,
     dateEnvoi:
@@ -46,5 +65,6 @@ class Message {
   Map<String, dynamic> toCreateJson() => {
     'destinataire': destinataire,
     'contenu': contenu,
+    if (echantillonId != null) 'echantillon': echantillonId,
   };
 }

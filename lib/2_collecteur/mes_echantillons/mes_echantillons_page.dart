@@ -28,7 +28,9 @@ import '../../core/widgets/bandeau_demonstration.dart';
 import '../../core/utils/date_filter_utils.dart';
 
 class MesEchantillonsPage extends StatefulWidget {
-  const MesEchantillonsPage({super.key});
+  const MesEchantillonsPage({super.key, this.referenceInitiale});
+
+  final String? referenceInitiale;
 
   @override
   State<MesEchantillonsPage> createState() => _MesEchantillonsPageState();
@@ -68,6 +70,11 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
   @override
   void initState() {
     super.initState();
+    final referenceInitiale = widget.referenceInitiale?.trim();
+    if (referenceInitiale != null && referenceInitiale.isNotEmpty) {
+      _recherche = referenceInitiale;
+      _searchCtrl.text = referenceInitiale;
+    }
     _loadEchantillons();
     _loadUnreadCount();
   }
@@ -155,6 +162,8 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
       final q = _recherche.toLowerCase();
       final matchRecherche =
           _recherche.isEmpty ||
+          e.id.toLowerCase().contains(q) ||
+          e.numero.toLowerCase().contains(q) ||
           e.referenceBouteille.toLowerCase().contains(q) ||
           e.codeFournisseur.toLowerCase().contains(q) ||
           e.gouvernorat.toLowerCase().contains(q) ||

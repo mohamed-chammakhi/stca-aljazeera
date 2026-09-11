@@ -28,7 +28,9 @@ import '../../../core/widgets/bandeau_demonstration.dart';
 // PAGE
 // ─────────────────────────────────────────────────────────────────────────────
 class GestionEchantillonsPage extends StatefulWidget {
-  const GestionEchantillonsPage({super.key});
+  const GestionEchantillonsPage({super.key, this.referenceInitiale});
+
+  final String? referenceInitiale;
 
   @override
   _GestionEchantillonsPageState createState() =>
@@ -73,6 +75,11 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage>
   @override
   void initState() {
     super.initState();
+    final referenceInitiale = widget.referenceInitiale?.trim();
+    if (referenceInitiale != null && referenceInitiale.isNotEmpty) {
+      _recherche = referenceInitiale;
+      _searchController.text = referenceInitiale;
+    }
     _loadData();
   }
 
@@ -99,6 +106,7 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage>
       final q = _recherche.toLowerCase();
       final matchRecherche =
           _recherche.isEmpty ||
+          e.id.toLowerCase().contains(q) ||
           e.referenceBouteille.toLowerCase().contains(q) ||
           e.ref.toLowerCase().contains(q) ||
           (e.codeFournisseur?.toLowerCase().contains(q) ?? false) ||

@@ -38,7 +38,9 @@ String _initials(String name) {
 // ─────────────────────────────────────────────────────────────────────────────
 // ─────────────────────────────────────────────────────────────────────────────
 class EchantillonsCeoPage extends StatefulWidget {
-  const EchantillonsCeoPage({super.key});
+  const EchantillonsCeoPage({super.key, this.referenceInitiale});
+
+  final String? referenceInitiale;
 
   @override
   State<EchantillonsCeoPage> createState() => _EchantillonsCeoPageState();
@@ -64,6 +66,11 @@ class _EchantillonsCeoPageState extends State<EchantillonsCeoPage>
   @override
   void initState() {
     super.initState();
+    final referenceInitiale = widget.referenceInitiale?.trim();
+    if (referenceInitiale != null && referenceInitiale.isNotEmpty) {
+      _searchQuery = referenceInitiale;
+      _searchController.text = referenceInitiale;
+    }
     _loadEchantillons();
   }
 

@@ -213,7 +213,79 @@ erreur, 108 tests (107 réussis + 1 échec déjà connu).
 
 ## RAPPORT
 
-Complète cette section : fichiers créés/modifiés, comment la photo et la référence sont
-envoyées et affichées, comment modifier/supprimer sont exposés dans l'UI, la liste des
-3 pages de liste modifiées avec leur nouveau paramètre, les résultats chiffrés réels
-des vérifications, et tout écart avec cette consigne.
+*Codex s'est arrêté sans écrire cette section (processus terminé sans laisser de sortie
+ni de rapport, cause inconnue). Rédigée par Claude après revue complète du diff et
+vérification personnelle.*
+
+### Fait
+
+- `lib/core/models/message.dart` : ajout de `photoUrl`, `echantillonId`,
+  `echantillonNumero`, `echantillonReferenceBouteille`, `modifie`, `modifieLe` —
+  champs alignés sur l'API réelle de la tâche 30.
+- `lib/core/services/messagerie_service.dart` : `sendMessage()` accepte maintenant des
+  paramètres optionnels `bytes`/`filename` (bascule automatiquement vers
+  `apiClient.postMultipart` si une photo est fournie) et `echantillonId` ; nouvelles
+  méthodes `editMessage()` (PATCH) et `deleteMessage()` (DELETE).
+- `lib/core/widgets/messagerie/conversation_page.dart` — le gros du travail :
+  - Composeur enrichi avec deux boutons (photo, référencer un échantillon), aperçu des
+    pièces jointes en préparation avec possibilité de les retirer avant envoi.
+  - Sélecteur de photo Galerie/Appareil photo/Annuler, reproduit à l'identique du motif
+    du collecteur (mêmes libellés, mêmes réglages `ImagePicker` : `maxWidth: 2000,
+    imageQuality: 90`).
+  - Sélecteur d'échantillon (`_EchantillonPicker`) — liste recherchable (numéro,
+    référence bouteille, fournisseur) via `GestionEchantillonsService(uniquementRecusPhysiquement: false).fetchEchantillons()`.
+  - Bulles de message : affichent la photo (tap → plein écran avec
+    `InteractiveViewer`), la référence d'échantillon (chip cliquable), et un indicateur
+    « modifié » discret à côté de l'heure.
+  - Appui long sur un message **envoyé** (jamais un message reçu) → menu Modifier /
+    Supprimer, chacun avec sa propre confirmation/dialogue et gestion d'erreur.
+  - Navigation au clic sur une référence : lit le rôle de l'utilisateur connecté
+    (`authService.currentUser()`, mis en cache dans l'état local) et route vers
+    `EchantillonsCeoPage`, `MesEchantillonsPage` ou `GestionEchantillonsPage` (chef)
+    selon ce rôle — pas celui de l'expéditeur du message.
+- Les 3 pages de liste concernées ont chacune un nouveau paramètre optionnel
+  `referenceInitiale` (même nom dans les 3 fichiers), qui pré-remplit le champ de
+  recherche existant dans `initState()` :
+  - `lib/2_collecteur/mes_echantillons/mes_echantillons_page.dart`
+  - `lib/5_chef_degustateur/gestion_echantillons/gestion_echantillons_page.dart`
+  - `lib/1_ceo/echantillons/echantillons_ceo_page.dart`
+
+### Corrigé par Claude pendant la revue
+
+**Corruption d'encodage** — 12 chaînes de caractères dans `conversation_page.dart`
+contenaient des accents mal encodés (`Ã©` au lieu de `é`, `Â·` au lieu de `·`, etc. —
+motif classique d'un double encodage UTF-8/Latin-1). Détecté par une recherche
+systématique (`grep` des séquences `Ã©`, `Â·`, `Ãª`...), corrigé chaîne par chaîne,
+re-vérifié qu'il n'en restait aucune dans les 6 fichiers de la tâche.
+
+### Vérifié (par Claude — Codex n'a pas laissé de résultat de vérification)
+
+```bash
+dart format <les 6 fichiers de la tâche, un par un — jamais lib/ en entier>
+```
+Résultat : `Formatted 6 files (3 changed)`.
+
+```bash
+flutter analyze lib test
+```
+Résultat : **55 diagnostics, 0 erreur** (référence : 50). Les 5 en plus sont des infos
+`unnecessary_underscores` dans `conversation_page.dart` (callbacks `(_, __)` /
+`(context, child, progress)` non utilisés), style déjà toléré ailleurs dans le projet.
+
+```bash
+flutter test
+```
+Résultat : **108 tests, 107 réussis, 1 échec** (`test/widget_test.dart`, connu et sans
+rapport) — identique à la référence, aucune régression.
+
+### Non fait
+
+- Aucun écart volontaire avec la consigne relevé au-delà de la correction d'encodage
+  ci-dessus.
+
+### Conclusion
+
+La messagerie permet maintenant l'envoi d'une photo (galerie ou appareil), la
+référence à un échantillon avec navigation contextuelle au rôle de qui clique, et la
+modification/suppression de ses propres messages — jamais d'un message reçu, conforme
+à la restriction posée côté serveur en tâche 30.

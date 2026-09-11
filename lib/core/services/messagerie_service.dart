@@ -30,12 +30,41 @@ class MessagerieService {
     }
   }
 
-  Future<Message> sendMessage(String destinataireId, String contenu) async {
-    final data = await apiClient.post('/api/messages/', {
+  Future<Message> sendMessage(
+    String destinataireId,
+    String contenu, {
+    List<int>? bytes,
+    String? filename,
+    String? echantillonId,
+  }) async {
+    final texte = contenu.trim();
+    final fields = <String, String>{
       'destinataire': destinataireId,
-      'contenu': contenu.trim(),
+      'contenu': texte,
+      if (echantillonId != null && echantillonId.isNotEmpty)
+        'echantillon': echantillonId,
+    };
+    final data = bytes == null
+        ? await apiClient.post('/api/messages/', fields)
+        : await apiClient.postMultipart(
+            '/api/messages/',
+            bytes: bytes,
+            filename: filename ?? 'message.jpg',
+            fileField: 'image',
+            fields: fields,
+          );
+    return Message.fromJson(data);
+  }
+
+  Future<Message> editMessage(String id, String nouveauContenu) async {
+    final data = await apiClient.patch('/api/messages/$id/', {
+      'contenu': nouveauContenu.trim(),
     });
     return Message.fromJson(data);
+  }
+
+  Future<void> deleteMessage(String id) async {
+    await apiClient.delete('/api/messages/$id/');
   }
 
   Future<void> markAsRead(String messageId) async {
