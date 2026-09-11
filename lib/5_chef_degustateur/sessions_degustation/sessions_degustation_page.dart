@@ -4,6 +4,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:project3/core/widgets/messagerie/conversations_page.dart';
 
 import 'package:project3/core/models/session_degustation.dart';
 import 'package:project3/core/services/sessions_service.dart';
@@ -276,6 +277,7 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage>
         onUtilisateurs: () => goToPage(const UtilisateursChefPage()),
         onVueEnsembleEvaluations: () =>
             goToPage(const VueEnsembleEvaluationsPage()),
+        onMessagerie: () => goToPage(const ConversationsPage()),
         onProfil: () => goToPage(const ProfilePage()),
         onDeconnexion: goToLogin,
       ),

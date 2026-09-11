@@ -6,6 +6,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:project3/core/widgets/messagerie/messagerie_badge.dart';
 import '../../widgets/chef_colors.dart';
 
 const Color _olive = Color(0xFF6B8143);
@@ -20,6 +21,7 @@ class AppDrawer extends StatelessWidget {
   final VoidCallback onMembredupanel;
   final VoidCallback onUtilisateurs;
   final VoidCallback onVueEnsembleEvaluations;
+  final VoidCallback onMessagerie;
   final VoidCallback onProfil;
   final VoidCallback onDeconnexion;
 
@@ -33,6 +35,7 @@ class AppDrawer extends StatelessWidget {
     required this.onMembredupanel,
     required this.onUtilisateurs,
     required this.onVueEnsembleEvaluations,
+    required this.onMessagerie,
     required this.onProfil,
     required this.onDeconnexion,
   });
@@ -174,6 +177,12 @@ class AppDrawer extends StatelessWidget {
                     onTap: onMembredupanel,
                   ),
                   _DrawerItem(
+                    icon: Icons.chat_bubble_outline,
+                    label: 'Messagerie',
+                    trailing: const MessagerieBadge(),
+                    onTap: onMessagerie,
+                  ),
+                  _DrawerItem(
                     icon: Icons.person_outline,
                     label: 'Votre profil',
                     onTap: onProfil,
@@ -238,12 +247,14 @@ class _DrawerItem extends StatelessWidget {
   final IconData? icon;
   final Widget? customIcon;
   final String label;
+  final Widget? trailing;
   final VoidCallback onTap;
 
   const _DrawerItem({
     this.icon,
     this.customIcon,
     required this.label,
+    this.trailing,
     required this.onTap,
   }) : assert(icon != null || customIcon != null);
 
@@ -271,14 +282,19 @@ class _DrawerItem extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 14),
-            Text(
-              label,
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: chefDark,
+            Expanded(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: chefDark,
+                ),
               ),
             ),
+            if (trailing != null) ...[const SizedBox(width: 8), trailing!],
           ],
         ),
       ),

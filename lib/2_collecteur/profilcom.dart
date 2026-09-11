@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:project3/core/services/profile_service.dart';
+import 'package:project3/core/widgets/messagerie/conversations_page.dart';
 import 'package:project3/core/widgets/change_password_dialog.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'mes_echantillons/mes_echantillons_page.dart';
@@ -220,7 +221,7 @@ class _ProfileCollecteurPageState extends State<ProfileCollecteurPage>
       backgroundColor: Colors.white,
       drawer: CollecteurDrawer(
         onMesEchantillons: () => goToPage(const MesEchantillonsPage()),
-        onMessagerie: () => goToPage(const Placeholder()),
+        onMessagerie: () => goToPage(const ConversationsPage()),
 
         onProfil: () => Navigator.pop(context),
         onDeconnexion: goToLogin,

@@ -1,6 +1,7 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:project3/core/theme/app_colors.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:project3/core/widgets/messagerie/messagerie_badge.dart';
 
 const Color _iconBg = Color(0x1A38835A);
 
@@ -13,6 +14,7 @@ class CeoDrawer extends StatelessWidget {
   final VoidCallback onTableauDeBord;
   final VoidCallback onProfil;
   final VoidCallback onutilisiateurs;
+  final VoidCallback onMessagerie;
   final VoidCallback onDeconnexion;
 
   const CeoDrawer({
@@ -25,6 +27,7 @@ class CeoDrawer extends StatelessWidget {
     required this.onTableauDeBord,
     required this.onProfil,
     required this.onutilisiateurs,
+    required this.onMessagerie,
     required this.onDeconnexion,
   });
 
@@ -152,6 +155,12 @@ class CeoDrawer extends StatelessWidget {
                     onTap: onutilisiateurs,
                   ),
                   _DrawerItem(
+                    icon: Icons.chat_bubble_outline,
+                    label: 'Messagerie',
+                    trailing: const MessagerieBadge(),
+                    onTap: onMessagerie,
+                  ),
+                  _DrawerItem(
                     icon: Icons.person_outline,
                     label: 'Profil',
                     onTap: onProfil,
@@ -214,12 +223,14 @@ class _DrawerItem extends StatelessWidget {
   final IconData? icon;
   final Widget? customIcon;
   final String label;
+  final Widget? trailing;
   final VoidCallback onTap;
 
   const _DrawerItem({
     this.icon,
     this.customIcon,
     required this.label,
+    this.trailing,
     required this.onTap,
   }) : assert(icon != null || customIcon != null);
 
@@ -247,14 +258,19 @@ class _DrawerItem extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 14),
-              Text(
-                label,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: kDark,
+              Expanded(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: kDark,
+                  ),
                 ),
               ),
+              if (trailing != null) ...[const SizedBox(width: 8), trailing!],
             ],
           ),
         ),
@@ -262,4 +278,3 @@ class _DrawerItem extends StatelessWidget {
     );
   }
 }
-

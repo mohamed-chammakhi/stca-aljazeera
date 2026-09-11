@@ -4,6 +4,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:project3/core/widgets/messagerie/conversations_page.dart';
 import 'models/echantillon_collecteur.dart';
 import 'services/echantillon_collecteur_service.dart';
 import 'widgets/card/echantillon_collecteur_card.dart' show EchantillonComCard;
@@ -636,7 +637,7 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
       backgroundColor: colBg,
       drawer: CollecteurDrawer(
         onMesEchantillons: () => Navigator.pop(context),
-        onMessagerie: () => goToPage(const Placeholder()),
+        onMessagerie: () => goToPage(const ConversationsPage()),
         onProfil: () => goToPage(const ProfileCollecteurPage()),
         onDeconnexion: goToLogin,
       ),

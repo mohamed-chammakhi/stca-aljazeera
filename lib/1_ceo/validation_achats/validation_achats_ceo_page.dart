@@ -7,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:project3/core/theme/app_colors.dart';
 import 'package:project3/core/utils/date_utils.dart';
 import 'package:project3/core/widgets/bandeau_demonstration.dart';
+import 'package:project3/core/widgets/messagerie/conversations_page.dart';
 import '../widgets/ceo_nav_mixin.dart';
 import '../widgets/ceo_drawer.dart';
 import 'package:project3/core/widgets/search_date_filter_bar.dart';
@@ -326,6 +327,7 @@ class _ValidationAchatsCeoPageState extends State<ValidationAchatsCeoPage>
         onTableauDeBord: () => Navigator.popUntil(context, (r) => r.isFirst),
         onProfil: () => goToPage(const ProfilceoPage()),
         onutilisiateurs: () => goToPage(const UtilisateursCeoPage()),
+        onMessagerie: () => goToPage(const ConversationsPage()),
         onDeconnexion: () => goToPage(LoginPage()),
       ),
       appBar: AppBar(

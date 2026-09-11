@@ -7,6 +7,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:project3/core/widgets/messagerie/conversations_page.dart';
 
 import 'widgets/app_drawer.dart';
 import '../utilisateurs/utilisateurs_chef_page.dart';
@@ -89,9 +90,7 @@ class _HomePageState extends State<HomePage> {
           MaterialPageRoute(
             builder: (_) => n.echantillonId == null
                 ? const EvaluationEchantillonsPage()
-                : EvaluationEchantillonsPage(
-                    echantillonCible: n.echantillonId,
-                  ),
+                : EvaluationEchantillonsPage(echantillonCible: n.echantillonId),
           ),
         );
         break;
@@ -205,6 +204,7 @@ class _HomePageState extends State<HomePage> {
         onUtilisateurs: () => _goTo(const UtilisateursChefPage()),
         onVueEnsembleEvaluations: () =>
             _goTo(const VueEnsembleEvaluationsPage()),
+        onMessagerie: () => _goTo(const ConversationsPage()),
         onProfil: () => _goTo(const ProfilePage()),
         onDeconnexion: _goToLogin,
       ),

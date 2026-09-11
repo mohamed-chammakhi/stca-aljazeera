@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:project3/core/widgets/messagerie/messagerie_badge.dart';
 import 'col_colors.dart';
 
 class CollecteurDrawer extends StatelessWidget {
@@ -94,7 +95,8 @@ class CollecteurDrawer extends StatelessWidget {
                   ),
                   _DrawerItem(
                     icon: Icons.chat_bubble_outline,
-                    label: 'Messagerie CEO',
+                    label: 'Messagerie Direction',
+                    trailing: const MessagerieBadge(),
                     onTap: onMessagerie,
                   ),
                   const SizedBox(height: 4),
@@ -160,12 +162,14 @@ class _DrawerItem extends StatelessWidget {
   final IconData? icon;
   final Widget? customIcon;
   final String label;
+  final Widget? trailing;
   final VoidCallback onTap;
 
   const _DrawerItem({
     this.icon,
     this.customIcon,
     required this.label,
+    this.trailing,
     required this.onTap,
   }) : assert(icon != null || customIcon != null);
 
@@ -192,14 +196,19 @@ class _DrawerItem extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 14),
-            Text(
-              label,
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: colDark,
+            Expanded(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: colDark,
+                ),
               ),
             ),
+            if (trailing != null) ...[const SizedBox(width: 8), trailing!],
           ],
         ),
       ),

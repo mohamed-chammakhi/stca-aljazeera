@@ -5,6 +5,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:project3/core/widgets/messagerie/conversations_page.dart';
 
 // ── Page imports ──────────────────────────────────────────────────────────────
 import '../tableau_de_bord/widgets/app_drawer.dart';
@@ -285,6 +286,7 @@ class _EvaluationEchantillonsPageState extends State<EvaluationEchantillonsPage>
         onUtilisateurs: () => goToPage(const UtilisateursChefPage()),
         onVueEnsembleEvaluations: () =>
             goToPage(const VueEnsembleEvaluationsPage()),
+        onMessagerie: () => goToPage(const ConversationsPage()),
         onProfil: () => goToPage(const ProfilePage()),
         onDeconnexion: goToLogin,
       ),

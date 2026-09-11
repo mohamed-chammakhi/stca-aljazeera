@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:project3/core/theme/app_colors.dart';
 import 'package:project3/core/utils/date_utils.dart';
 import 'package:project3/core/widgets/bandeau_demonstration.dart';
+import 'package:project3/core/widgets/messagerie/conversations_page.dart';
 import '../widgets/ceo_nav_mixin.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../widgets/ceo_drawer.dart';
@@ -189,6 +190,7 @@ class _AchatsConfirmesCeoPageState extends State<AchatsConfirmesCeoPage>
         onTableauDeBord: () => Navigator.pop(context),
         onProfil: () => goToPage(const ProfilceoPage()),
         onutilisiateurs: () => goToPage(const UtilisateursCeoPage()),
+        onMessagerie: () => goToPage(const ConversationsPage()),
         onDeconnexion: () => goToPage(LoginPage()),
       ),
       appBar: AppBar(

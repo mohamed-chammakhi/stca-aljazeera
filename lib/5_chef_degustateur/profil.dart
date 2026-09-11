@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:project3/core/services/profile_service.dart';
 import 'package:project3/core/widgets/change_password_dialog.dart';
+import 'package:project3/core/widgets/messagerie/conversations_page.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'tableau_de_bord/homepage_page.dart';
 import 'evaluation_echantillons/evaluation_echantillons_page.dart';
@@ -255,6 +256,7 @@ class _ProfilePageState extends State<ProfilePage> with ChefNavMixin {
         onUtilisateurs: () => goToPage(const UtilisateursChefPage()),
         onVueEnsembleEvaluations: () =>
             goToPage(const VueEnsembleEvaluationsPage()),
+        onMessagerie: () => goToPage(const ConversationsPage()),
         onProfil: () => goToPage(const ProfilePage()),
 
         onDeconnexion: goToLogin,

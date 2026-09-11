@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:project3/core/theme/app_colors.dart';
+import 'package:project3/core/widgets/messagerie/conversations_page.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../widgets/ceo_drawer.dart';
 import '../profil_ceo_page.dart';
@@ -272,6 +273,7 @@ class _HomePageCeoState extends State<HomePageCeo>
         onTableauDeBord: () => Navigator.pop(context),
         onProfil: () => _goTo(const ProfilceoPage()),
         onutilisiateurs: () => _goTo(const UtilisateursCeoPage()),
+        onMessagerie: () => _goTo(const ConversationsPage()),
         onDeconnexion: () => _goTo(const LoginPage()),
       ),
       appBar: AppBar(

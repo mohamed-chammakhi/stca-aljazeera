@@ -5,6 +5,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:project3/core/widgets/messagerie/conversations_page.dart';
 import 'package:project3/core/models/membre_panel.dart';
 import 'package:project3/core/services/membres_panel_service.dart';
 import 'package:project3/core/widgets/membres_panel/membre_card.dart';
@@ -182,7 +183,7 @@ class _MembresPanelPageState extends State<MembresPanelPage> with ChefNavMixin {
                     : Theme(
                         data: Theme.of(context).copyWith(
                           scrollbarTheme: ScrollbarThemeData(
-                          thumbColor: WidgetStateProperty.all(_gray),
+                            thumbColor: WidgetStateProperty.all(_gray),
                           ),
                         ),
                         child: Scrollbar(
@@ -224,6 +225,7 @@ class _MembresPanelPageState extends State<MembresPanelPage> with ChefNavMixin {
         onUtilisateurs: () => goToPage(const UtilisateursChefPage()),
         onVueEnsembleEvaluations: () =>
             goToPage(const VueEnsembleEvaluationsPage()),
+        onMessagerie: () => goToPage(const ConversationsPage()),
         onProfil: () => goToPage(const ProfilePage()),
 
         onDeconnexion: goToLogin,

@@ -16,3 +16,4 @@ export 'planification_livraison.dart';
 export 'evaluation_organoleptique.dart';
 export 'session_degustation.dart';
 export 'message.dart';
+export 'contact_messagerie.dart';

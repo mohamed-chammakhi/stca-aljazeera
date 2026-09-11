@@ -5,6 +5,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:project3/core/widgets/messagerie/conversations_page.dart';
 import '../../../core/analyses/ligne_analyse_labo.dart';
 import '../../../core/analyses/ligne_analyse_labo_service.dart';
 import '../widgets/statut_chip.dart';
@@ -278,6 +279,7 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage>
         onUtilisateurs: () => goToPage(const UtilisateursChefPage()),
         onVueEnsembleEvaluations: () =>
             goToPage(const VueEnsembleEvaluationsPage()),
+        onMessagerie: () => goToPage(const ConversationsPage()),
         onProfil: () => goToPage(const ProfilePage()),
         onDeconnexion: goToLogin,
       ),

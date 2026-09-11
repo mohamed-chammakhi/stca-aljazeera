@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:project3/core/widgets/messagerie/conversations_page.dart';
 
 import '../../../core/models/echantillon.dart';
 import '../../../core/models/enums.dart';
@@ -341,6 +342,7 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage>
         onUtilisateurs: () => goToPage(const UtilisateursChefPage()),
         onVueEnsembleEvaluations: () =>
             goToPage(const VueEnsembleEvaluationsPage()),
+        onMessagerie: () => goToPage(const ConversationsPage()),
         onProfil: () => goToPage(const ProfilePage()),
         onDeconnexion: goToLogin,
       ),

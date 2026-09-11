@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../core/models/enums.dart';
+import '../../core/widgets/messagerie/conversations_page.dart';
 
 import '../profil.dart';
 import '../tableau_de_bord/widgets/app_drawer.dart';
@@ -533,6 +534,7 @@ class _VueEnsembleEvaluationsPageState
         onMembredupanel: () => _goTo(const MembresPanelPage()),
         onUtilisateurs: () => _goTo(const UtilisateursChefPage()),
         onVueEnsembleEvaluations: () => Navigator.pop(context),
+        onMessagerie: () => _goTo(const ConversationsPage()),
         onProfil: () => _goTo(const ProfilePage()),
         onDeconnexion: _goToLogin,
       ),

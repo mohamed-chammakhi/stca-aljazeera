@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../core/utilisateurs/utilisateurs_page_body.dart';
+import '../../core/widgets/messagerie/conversations_page.dart';
 import '../analyse_labo/analyse_laboratoire_page.dart';
 import '../evaluation_echantillons/evaluation_echantillons_page.dart';
 import '../gestion_echantillons/gestion_echantillons_page.dart';
@@ -39,6 +40,7 @@ class _UtilisateursChefPageState extends State<UtilisateursChefPage>
         onUtilisateurs: () => Navigator.pop(context),
         onVueEnsembleEvaluations: () =>
             goToPage(const VueEnsembleEvaluationsPage()),
+        onMessagerie: () => goToPage(const ConversationsPage()),
         onProfil: () => goToPage(const ProfilePage()),
         onDeconnexion: goToLogin,
       ),
