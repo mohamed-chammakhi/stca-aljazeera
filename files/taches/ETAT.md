@@ -55,8 +55,8 @@ si son analyse est déjà en cours.
 | 25 | Audit des 32 pages utilisant VueResultatService : message contextuel quand une liste est vide, sans toucher à la vraie gestion d'erreur | **Terminée et commitée** | à vérifier à l'écran |
 | 26 | Notifications manquantes : collecteur (réception physique), laboratoire (nouvel échantillon), collecteur (négociation proposée/mise à jour), clic notification collecteur → page échantillon | **Terminée et commitée** (`9b3aca9`) | à vérifier à l'écran |
 | 27 | Permettre d'annuler une réception physique confirmée, avec notification dans les deux sens | **Terminée et commitée** (`39d7a35`) | à vérifier à l'écran |
-| 28 | Messagerie — backend : règles de contacts par rôle, liste des contacts, compteur de non-lus | **En cours** | Codex |
-| 29 | Messagerie — frontend : pages de conversation partagées, câblage dans les 3 Drawers concernés | En attente de la 28 | Claude |
+| 28 | Messagerie — backend : règles de contacts par rôle, liste des contacts, compteur de non-lus | **Terminée et commitée** (`5f9c4c6`) | personne |
+| 29 | Messagerie — frontend : pages de conversation partagées, câblage dans les 3 Drawers concernés | **En cours** | Codex |
 
 ---
 
