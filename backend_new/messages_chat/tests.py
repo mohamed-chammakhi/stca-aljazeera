@@ -1,12 +1,27 @@
+from pathlib import Path
+import shutil
+
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import override_settings
 from rest_framework import status
 from rest_framework.test import APITestCase
 
+from echantillons.models import Echantillon
 from users.models import User
 
 from .models import Message
 
 
+TEST_MEDIA_ROOT = Path(__file__).resolve().parent / 'test_media'
+
+
+@override_settings(MEDIA_ROOT=TEST_MEDIA_ROOT)
 class MessageApiTests(APITestCase):
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+        shutil.rmtree(TEST_MEDIA_ROOT, ignore_errors=True)
+
     def setUp(self):
         self.sender = User.objects.create_user(
             email='sender.messages@example.com',
@@ -54,6 +69,17 @@ class MessageApiTests(APITestCase):
     def authenticate(self, user):
         self.client.force_authenticate(user=user)
 
+    def create_sample(self, **extra):
+        data = {
+            'reference_bouteille': 'REF-MSG-001',
+            'collecteur': self.sender,
+            'gouvernorat': 'Sfax',
+            'delegation': 'Sfax Sud',
+            'variete': 'Chemlali',
+        }
+        data.update(extra)
+        return Echantillon.objects.create(**data)
+
     def test_user_can_send_message_and_sender_is_forced_from_token(self):
         self.authenticate(self.sender)
 
@@ -72,6 +98,66 @@ class MessageApiTests(APITestCase):
         self.assertEqual(message.expediteur, self.sender)
         self.assertEqual(message.destinataire, self.direction)
         self.assertFalse(message.lu)
+
+    def test_user_can_send_message_with_photo(self):
+        self.authenticate(self.sender)
+        image = SimpleUploadedFile(
+            'message.jpg',
+            b'fake-image-content',
+            content_type='image/jpeg',
+        )
+
+        response = self.client.post(
+            '/api/messages/',
+            {
+                'destinataire': str(self.direction.id),
+                'contenu': '',
+                'image': image,
+            },
+            format='multipart',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        data = response.json()
+        self.assertIn('messages/', data['photo_url'])
+        message = Message.objects.get(id=data['id'])
+        self.assertIn('messages/', message.photo_url)
+        self.assertEqual(message.contenu, '')
+
+    def test_user_can_send_message_with_sample_reference(self):
+        sample = self.create_sample(reference_bouteille='REF-MSG-777')
+        self.authenticate(self.sender)
+
+        response = self.client.post(
+            '/api/messages/',
+            {
+                'destinataire': str(self.direction.id),
+                'contenu': 'Voir cet echantillon',
+                'echantillon': str(sample.id),
+            },
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        data = response.json()
+        self.assertEqual(data['echantillon'], str(sample.id))
+        self.assertEqual(data['echantillon_numero'], sample.numero)
+        self.assertEqual(data['echantillon_reference_bouteille'], 'REF-MSG-777')
+
+    def test_cannot_send_empty_message_without_photo(self):
+        self.authenticate(self.sender)
+
+        response = self.client.post(
+            '/api/messages/',
+            {
+                'destinataire': str(self.direction.id),
+                'contenu': '   ',
+            },
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('texte ou une photo', str(response.json()))
 
     def test_user_lists_only_sent_or_received_messages(self):
         own_sent = Message.objects.create(
@@ -119,6 +205,99 @@ class MessageApiTests(APITestCase):
         self.assertTrue(message.lu)
         self.assertIsNotNone(message.lu_le)
         self.assertTrue(recipient_response.json()['is_read'])
+
+    def test_sender_can_update_message_content(self):
+        message = Message.objects.create(
+            expediteur=self.sender,
+            destinataire=self.recipient,
+            contenu='Ancien texte',
+        )
+        self.authenticate(self.sender)
+
+        response = self.client.patch(
+            f'/api/messages/{message.id}/',
+            {'contenu': 'Nouveau texte'},
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        message.refresh_from_db()
+        self.assertEqual(message.contenu, 'Nouveau texte')
+        self.assertTrue(message.modifie)
+        self.assertIsNotNone(message.modifie_le)
+        self.assertTrue(response.json()['modifie'])
+        self.assertIsNotNone(response.json()['modifie_le'])
+
+    def test_recipient_cannot_update_message_content(self):
+        message = Message.objects.create(
+            expediteur=self.sender,
+            destinataire=self.recipient,
+            contenu='Ancien texte',
+        )
+        self.authenticate(self.recipient)
+
+        response = self.client.patch(
+            f'/api/messages/{message.id}/',
+            {'contenu': 'Modification interdite'},
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        message.refresh_from_db()
+        self.assertEqual(message.contenu, 'Ancien texte')
+        self.assertFalse(message.modifie)
+
+    def test_sender_cannot_update_recipient_or_sample_reference(self):
+        sample = self.create_sample(reference_bouteille='REF-MSG-888')
+        message = Message.objects.create(
+            expediteur=self.sender,
+            destinataire=self.recipient,
+            contenu='Texte',
+        )
+        self.authenticate(self.sender)
+
+        recipient_response = self.client.patch(
+            f'/api/messages/{message.id}/',
+            {'destinataire': str(self.direction.id)},
+            format='json',
+        )
+        sample_response = self.client.patch(
+            f'/api/messages/{message.id}/',
+            {'echantillon': str(sample.id)},
+            format='json',
+        )
+
+        self.assertEqual(recipient_response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(sample_response.status_code, status.HTTP_400_BAD_REQUEST)
+        message.refresh_from_db()
+        self.assertEqual(message.destinataire, self.recipient)
+        self.assertIsNone(message.echantillon)
+
+    def test_sender_can_delete_own_message(self):
+        message = Message.objects.create(
+            expediteur=self.sender,
+            destinataire=self.recipient,
+            contenu='A supprimer',
+        )
+        self.authenticate(self.sender)
+
+        response = self.client.delete(f'/api/messages/{message.id}/')
+
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertFalse(Message.objects.filter(id=message.id).exists())
+
+    def test_recipient_cannot_delete_received_message(self):
+        message = Message.objects.create(
+            expediteur=self.sender,
+            destinataire=self.recipient,
+            contenu='A conserver',
+        )
+        self.authenticate(self.recipient)
+
+        response = self.client.delete(f'/api/messages/{message.id}/')
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertTrue(Message.objects.filter(id=message.id).exists())
 
     def test_cannot_send_message_to_self(self):
         self.authenticate(self.sender)

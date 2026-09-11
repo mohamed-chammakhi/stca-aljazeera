@@ -773,6 +773,36 @@ Verification:
   rerun `flutter analyze lib test` and `flutter test` locally once Flutter/Dart
   is responsive.
 
+### Messaging Media, Sample References, Edit and Delete Permissions
+
+Backend:
+
+- Message records now support:
+  - `photo_url`
+  - optional `echantillon` reference
+  - `modifie`
+  - `modifie_le`
+- Message creation accepts multipart `image` uploads and stores them under
+  `messages/` on local media storage, returning the resulting URL as
+  `photo_url`.
+- Message creation accepts an optional sample UUID through `echantillon` and
+  returns `echantillon_numero` plus `echantillon_reference_bouteille` for direct
+  chat display.
+- Message validation now requires at least text or a photo.
+- Message detail uses one route/view for read, update, and delete:
+  - `GET` remains available to sender and recipient.
+  - `PATCH` is sender-only and edits only `contenu`.
+  - `DELETE` is sender-only; recipients can no longer delete received messages.
+- Existing contact rules remain unchanged.
+
+Verification:
+
+- `makemigrations messages_chat` generated
+  `messages_chat.0003_message_echantillon_message_modifie_and_more`.
+- `migrate` applied the new `messages_chat` migration successfully.
+- Focused Django suite passed: 17 `messages_chat` tests.
+- Full Django suite passed: 187 tests.
+
 ## Next Recommended Backend Feature
 
 ### 1. Physical Phone Smoke Test

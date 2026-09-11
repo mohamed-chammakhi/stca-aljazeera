@@ -151,7 +151,113 @@ suite complète, 0 échec.
 
 ## RAPPORT
 
-Complète cette section : les champs ajoutés, la structure retenue pour
-modifier/supprimer (une vue ou deux), les décisions prises (modification de la photo
-incluse ou non, code de statut pour un refus de modification), les résultats chiffrés
-réels des vérifications, et tout écart avec cette consigne.
+### Fait
+
+- `backend_new/messages_chat/models.py` : les messages peuvent maintenant porter une photo, une reference optionnelle vers un echantillon, et un indicateur/date de modification.
+- `backend_new/messages_chat/migrations/0003_message_echantillon_message_modifie_and_more.py` : migration Django ajoutee pour `photo_url`, `echantillon`, `modifie`, `modifie_le`.
+- `backend_new/messages_chat/serializers.py` : creation acceptee avec texte seul, photo seule, ou texte + photo ; un message vide sans photo est refuse ; la reponse expose `echantillon`, `echantillon_numero` et `echantillon_reference_bouteille`.
+- `backend_new/messages_chat/views.py` : upload multipart `image` stocke dans `messages/`; `MessageDetailView` est devenu `RetrieveUpdateDestroyAPIView` pour garder une seule route detail.
+- `backend_new/messages_chat/views.py` : `GET` reste ouvert a l'expediteur et au destinataire ; `PATCH` est refuse au destinataire par `403`; `DELETE` ne cherche plus que les messages envoyes par l'utilisateur connecte, donc le destinataire recoit `404`.
+- `backend_new/messages_chat/views.py` : la modification porte uniquement sur `contenu`; `destinataire`, `expediteur` et `echantillon` sont rejetes en PATCH avec `400`; la modification/removal de photo n'est pas incluse.
+- `backend_new/messages_chat/tests.py` : tests ajoutes pour photo multipart, reference echantillon, message vide refuse, modification autorisee/refusee, champs immuables rejetes, suppression par expediteur et suppression refusee au destinataire.
+- `files/mapbackend.md` : checkpoint backend mis a jour avec la messagerie photo/reference/modification/suppression.
+
+### Verifie
+
+```bash
+cd backend_new
+$env:DEBUG='True'; $env:DB_ENGINE='sqlite'; .\venv\Scripts\python.exe manage.py makemigrations messages_chat
+```
+
+Sortie :
+
+```text
+Migrations for 'messages_chat':
+  messages_chat\migrations\0003_message_echantillon_message_modifie_and_more.py
+    + Add field echantillon to message
+    + Add field modifie to message
+    + Add field modifie_le to message
+    + Add field photo_url to message
+```
+
+```bash
+cd backend_new
+$env:DEBUG='True'; $env:DB_ENGINE='sqlite'; .\venv\Scripts\python.exe manage.py migrate
+```
+
+Sortie :
+
+```text
+Operations to perform:
+  Apply all migrations: admin, analyses, auth, contenttypes, echantillons, evaluations, fournisseurs, messages_chat, notifications, planifications, sessions, sessions_degustation, token_blacklist, users
+Running migrations:
+  Applying messages_chat.0003_message_echantillon_message_modifie_and_more... OK
+```
+
+```bash
+cd backend_new
+$env:DEBUG='True'; $env:DB_ENGINE='sqlite'; .\venv\Scripts\python.exe manage.py test messages_chat
+```
+
+Premiere execution interrompue par timeout outil a 120 s :
+
+```text
+command timed out after 120060 milliseconds
+Creating test database for alias 'default'...
+.............
+```
+
+Relance avec timeout plus long, sortie finale :
+
+```text
+Found 17 test(s).
+System check identified no issues (0 silenced).
+Creating test database for alias 'default'...
+.................
+----------------------------------------------------------------------
+Ran 17 tests in 161.027s
+
+OK
+Destroying test database for alias 'default'...
+```
+
+```bash
+cd backend_new
+$env:DEBUG='True'; $env:DB_ENGINE='sqlite'; .\venv\Scripts\python.exe manage.py test
+```
+
+Sortie :
+
+```text
+Found 187 test(s).
+System check identified no issues (0 silenced).
+Creating test database for alias 'default'...
+...........................................................................................................................................................................................
+----------------------------------------------------------------------
+Ran 187 tests in 954.159s
+
+OK
+Destroying test database for alias 'default'...
+```
+
+```bash
+cd backend_new
+$env:DEBUG='True'; $env:DB_ENGINE='sqlite'; .\venv\Scripts\python.exe manage.py makemigrations --check --dry-run
+```
+
+Sortie :
+
+```text
+No changes detected
+```
+
+### Non fait
+
+- Remplacer ou retirer la photo d'un message existant : optionnel dans la consigne, non implemente pour garder la tache centree sur la modification du texte.
+- Filtrer cote serveur les echantillons referencables par role : explicitement hors demande.
+- Frontend `lib/` : non touche, prevu pour la tache 31.
+
+### HORS PERIMETRE
+
+- `files/backend_sprint_plan.md` est reference par les consignes projet mais absent du workspace.
+- Des fichiers non suivis existaient hors perimetre et n'ont pas ete modifies : `backend_new/backup_propre.json`, `files/taches/codex_22.txt`, `files/taches/codex_25.txt`, `files/taches/codex_26.txt`.

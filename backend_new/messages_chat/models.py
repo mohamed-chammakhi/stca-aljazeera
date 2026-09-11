@@ -27,6 +27,22 @@ class Message(models.Model):
     # The actual message text
     contenu = models.TextField()
 
+    # Optional photo attached to the message, stored on local media storage.
+    photo_url = models.CharField(max_length=500, blank=True)
+
+    # Optional sample reference shared in the conversation.
+    echantillon = models.ForeignKey(
+        'echantillons.Echantillon',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='messages',
+    )
+
+    # Message edition tracking
+    modifie = models.BooleanField(default=False)
+    modifie_le = models.DateTimeField(null=True, blank=True)
+
     # False = not yet read by the recipient, True = already read
     lu    = models.BooleanField(default=False)
     lu_le = models.DateTimeField(null=True, blank=True)
