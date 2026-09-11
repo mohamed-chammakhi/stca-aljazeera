@@ -64,8 +64,8 @@ si son analyse est déjà en cours.
 | 27 | Permettre d'annuler une réception physique confirmée, avec notification dans les deux sens | **Terminée et commitée** (`39d7a35`) | à vérifier à l'écran |
 | 28 | Messagerie — backend : règles de contacts par rôle, liste des contacts, compteur de non-lus | **Terminée et commitée** (`5f9c4c6`) | personne |
 | 29 | Messagerie — frontend : pages de conversation partagées, câblage dans les 3 Drawers concernés | **Terminée et commitée** (`9d6c81f`) | à vérifier à l'écran |
-| 30 | Messagerie — backend : photo jointe, référence à un échantillon, modifier/supprimer un message (+ correction d'un bug de permission de suppression) | **En cours** | Codex |
-| 31 | Messagerie — frontend : bouton photo, sélecteur d'échantillon, menu modifier/supprimer, navigation au clic sur une référence | En attente de la 30 | Claude |
+| 30 | Messagerie — backend : photo jointe, référence à un échantillon, modifier/supprimer un message (+ correction d'un bug de permission de suppression) | **Terminée et commitée** (`c9a4dda`) | personne |
+| 31 | Messagerie — frontend : bouton photo, sélecteur d'échantillon, menu modifier/supprimer, navigation au clic sur une référence | **En cours** | Codex |
 
 ---
 
