@@ -52,6 +52,8 @@ si son analyse est déjà en cours.
 |---|---|---|---|
 | 05 | Texte d'aide de la recherche | **Terminée et commitée** (`8dd2e9c`) | personne |
 | 06 | Photo et remarque par bouteille | **Terminée et commitée** (`370ff0a`) | à vérifier à l'écran |
+| 33 | Les deux petits défauts connus : suppression de `test/widget_test.dart`, débordement de l'en-tête négociation sur la carte collecteur (+ test 360 px) | **Terminée et commitée** | personne |
+| 35 | Mise à jour des écrans : tirer vers le bas + rechargement automatique toutes les 30 s | Écrite, à lancer | à vérifier à l'écran |
 | 07 | Référence bouteille automatique | **Terminée et commitée** | personne |
 | 08 | Négociation en tonnes | **Terminée et commitée**, migration 0011 comprise | à vérifier à l'écran |
 | 09 | Filtre par dates unifié (+ reprise 3 : libellé "Livraison du stock", indications sous chaque choix, 4ᵉ type pour le collecteur) | **Terminée et commitée** (`b058ea4`) | à vérifier à l'écran |
@@ -115,10 +117,8 @@ Ils sont détaillés dans `docs/retours-utilisation-et-questions.md`, section 7.
 
 ## Défauts connus, non corrigés
 
-| Où | Quoi |
-|---|---|
-| `test/widget_test.dart` | Test modèle de Flutter, teste un compteur inexistant. Échoue depuis toujours |
-| `lib/2_collecteur/mes_echantillons/widgets/card/echantillon_collecteur_card.dart:517` | Débordement d'affichage signalé par Codex, hors périmètre de la tâche 05 |
+Aucun. Les deux défauts connus (`test/widget_test.dart`, débordement de la carte collecteur)
+ont été corrigés par la tâche 33.
 
 `chef.tests.ChefDashboardApiTests.test_delai_alignement_and_classifications_use_submitted_evaluations`
 ne se reproduit plus depuis la tâche 12 (163 tests Django, 0 échec) — probablement réglé en

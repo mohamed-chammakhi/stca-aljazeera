@@ -535,15 +535,16 @@ class _NegociationSection extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
             child: Row(
               children: [
-                Text(
-                  _label,
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: accentColor,
+                Expanded(
+                  child: Text(
+                    _label,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: accentColor,
+                    ),
                   ),
                 ),
-                const Spacer(),
                 AnimatedRotation(
                   turns: isExpanded ? 0.5 : 0.0,
                   duration: const Duration(milliseconds: 180),
