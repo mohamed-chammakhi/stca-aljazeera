@@ -69,6 +69,7 @@ si son analyse est déjà en cours.
 | 29 | Messagerie — frontend : pages de conversation partagées, câblage dans les 3 Drawers concernés | **Terminée et commitée** (`9d6c81f`) | à vérifier à l'écran |
 | 30 | Messagerie — backend : photo jointe, référence à un échantillon, modifier/supprimer un message (+ correction d'un bug de permission de suppression) | **Terminée et commitée** (`c9a4dda`) | personne |
 | 31 | Messagerie — frontend : bouton photo, sélecteur d'échantillon, menu modifier/supprimer, navigation au clic sur une référence | **Terminée et commitée** (`67ff348`) | à vérifier à l'écran |
+| 32 | Messagerie — chef dégustateur ↔ chef dégustateur, libellé "Messagerie" chez le collecteur (au lieu de "Messagerie Direction") | **En cours** | Codex |
 
 ---
 
