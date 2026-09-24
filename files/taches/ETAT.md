@@ -3,7 +3,14 @@
 Ce fichier est le tableau de bord. **Claude le tient à jour, personne d'autre.**
 Il répond à une seule question : où en est-on, et qui attend quoi.
 
-Dernière mise à jour : 11/09/2026, tâches 30 et 31 terminées. Le propriétaire avait
+Dernière mise à jour : 24/09/2026, tâche 32 terminée — le chef dégustateur peut
+maintenant écrire aux autres chefs dégustateurs (conversation individuelle, pas de
+groupe), et le libellé du collecteur est redevenu "Messagerie" (au lieu de "Messagerie
+Direction"). Bug latent corrigé au passage : un utilisateur se voyait lui-même dans sa
+propre liste de contacts, jamais visible avant puisqu'aucun rôle n'apparaissait dans sa
+propre liste jusqu'ici.
+
+Précédente mise à jour (11/09/2026), tâches 30 et 31 terminées. Le propriétaire avait
 demandé trois ajouts à la messagerie : joindre une photo (galerie ou appareil photo),
 référencer un échantillon dans un message (cliquable, ouvre la page adaptée au rôle de
 celui qui clique), et pouvoir modifier/supprimer ses propres messages. En creusant le
@@ -69,7 +76,7 @@ si son analyse est déjà en cours.
 | 29 | Messagerie — frontend : pages de conversation partagées, câblage dans les 3 Drawers concernés | **Terminée et commitée** (`9d6c81f`) | à vérifier à l'écran |
 | 30 | Messagerie — backend : photo jointe, référence à un échantillon, modifier/supprimer un message (+ correction d'un bug de permission de suppression) | **Terminée et commitée** (`c9a4dda`) | personne |
 | 31 | Messagerie — frontend : bouton photo, sélecteur d'échantillon, menu modifier/supprimer, navigation au clic sur une référence | **Terminée et commitée** (`67ff348`) | à vérifier à l'écran |
-| 32 | Messagerie — chef dégustateur ↔ chef dégustateur, libellé "Messagerie" chez le collecteur (au lieu de "Messagerie Direction") | **En cours** | Codex |
+| 32 | Messagerie — chef dégustateur ↔ chef dégustateur, libellé "Messagerie" chez le collecteur (au lieu de "Messagerie Direction") | **Terminée et commitée** (`8198c6f`) | à vérifier à l'écran |
 
 ---
 
