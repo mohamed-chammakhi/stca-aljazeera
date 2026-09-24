@@ -22,6 +22,7 @@ import '../vue_ensemble_evaluations/vue_ensemble_evaluations_page.dart';
 import '../../../core/theme/app_colors.dart';
 import '../widgets/chef_nav_mixin.dart';
 import '../../../core/utils/date_filter_utils.dart';
+import '../../../core/utils/rafraichissement_periodique.dart';
 import '../../../core/widgets/bandeau_demonstration.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -38,7 +39,7 @@ class GestionEchantillonsPage extends StatefulWidget {
 }
 
 class _GestionEchantillonsPageState extends State<GestionEchantillonsPage>
-    with ChefNavMixin {
+    with ChefNavMixin, RafraichissementPeriodique {
   // ───────────────────────────────────────────────────────────────────────────
   // 2. STATE
   // ───────────────────────────────────────────────────────────────────────────
@@ -95,6 +96,21 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage>
     } catch (erreur) {
       if (mounted) setState(() => _erreurChargement = erreur);
     }
+  }
+
+  @override
+  Future<void> rechargerEnSilence() async {
+    try {
+      final resultat = await _service.fetchEchantillons();
+      if (!mounted || (resultat.estDemonstration && !_estDemonstration)) {
+        return;
+      }
+      setState(() {
+        _echantillons = resultat.donnees;
+        _estDemonstration = resultat.estDemonstration;
+        _erreurChargement = null;
+      });
+    } catch (_) {}
   }
 
   // ───────────────────────────────────────────────────────────────────────────
@@ -433,6 +449,8 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage>
         estDemonstration: _estDemonstration,
         erreur: _erreurChargement,
         onReessayer: _loadData,
+        onRefresh: _loadData,
+        couleurRafraichissement: kGreen,
         child: Column(
           children: [
             // ── UNIFIED HEADER ZONE ─────────────────────────────────────────
@@ -576,10 +594,19 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage>
             // ── FLAT LIST ─────────────────────────────────────────────────────
             Expanded(
               child: items.isEmpty
-                  ? const EmptyState()
+                  ? ListView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      children: [
+                        SizedBox(
+                          height: MediaQuery.of(context).size.height * 0.5,
+                          child: const EmptyState(),
+                        ),
+                      ],
+                    )
                   : Scrollbar(
                       thumbVisibility: true,
                       child: ListView.builder(
+                        physics: const AlwaysScrollableScrollPhysics(),
                         padding: const EdgeInsets.fromLTRB(16, 10, 16, 100),
                         itemCount: items.length,
                         itemBuilder: (context, i) {

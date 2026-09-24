@@ -8,6 +8,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:project3/core/theme/app_colors.dart';
+import 'package:project3/core/utils/rafraichissement_periodique.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../models/user_profile.dart';
@@ -36,7 +37,8 @@ class UtilisateursPageBody extends StatefulWidget {
   State<UtilisateursPageBody> createState() => _UtilisateursPageBodyState();
 }
 
-class _UtilisateursPageBodyState extends State<UtilisateursPageBody> {
+class _UtilisateursPageBodyState extends State<UtilisateursPageBody>
+    with RafraichissementPeriodique {
   late final UtilisateursService _service;
   // ── Role accent colors ─────────────────────────────────────────────────────
   // CEO → blue, Laboratoire → orange, Dégustateur → kGreen, Collecteur → pink
@@ -107,6 +109,21 @@ class _UtilisateursPageBodyState extends State<UtilisateursPageBody> {
     }
   }
 
+  @override
+  Future<void> rechargerEnSilence() async {
+    try {
+      final resultat = await _service.fetchUsers();
+      if (!mounted || (resultat.estDemonstration && !_usesMockData)) {
+        return;
+      }
+      setState(() {
+        _utilisateurs = resultat.donnees;
+        _usesMockData = resultat.estDemonstration;
+        _loadError = null;
+      });
+    } catch (_) {}
+  }
+
   // ── Build ──────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
@@ -121,6 +138,8 @@ class _UtilisateursPageBodyState extends State<UtilisateursPageBody> {
               estDemonstration: _usesMockData,
               erreur: _loadError,
               onReessayer: _loadUsers,
+              onRefresh: rechargerEnSilence,
+              couleurRafraichissement: kGreen,
               child: Column(
                 children: [
                   // ── Unified header zone ──────────────────────────────────────
@@ -233,6 +252,7 @@ class _UtilisateursPageBodyState extends State<UtilisateursPageBody> {
                     child: filtered.isEmpty
                         ? _buildEmpty()
                         : ListView.builder(
+                            physics: const AlwaysScrollableScrollPhysics(),
                             padding: EdgeInsets.fromLTRB(
                               16,
                               8,
@@ -369,22 +389,34 @@ class _UtilisateursPageBodyState extends State<UtilisateursPageBody> {
 
   // ── Empty state ────────────────────────────────────────────────────────────
   Widget _buildEmpty() {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.search_off_rounded, size: 60, color: Colors.grey.shade300),
-          const SizedBox(height: 12),
-          Text(
-            'Aucun utilisateur trouvé',
-            style: GoogleFonts.domine(
-              fontSize: 16,
-              color: Colors.grey.shade500,
-              fontWeight: FontWeight.w600,
+    return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      children: [
+        SizedBox(
+          height: MediaQuery.of(context).size.height * 0.5,
+          child: Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.search_off_rounded,
+                  size: 60,
+                  color: Colors.grey.shade300,
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Aucun utilisateur trouvé',
+                  style: GoogleFonts.domine(
+                    fontSize: 16,
+                    color: Colors.grey.shade500,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 

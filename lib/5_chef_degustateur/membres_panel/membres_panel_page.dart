@@ -19,6 +19,7 @@ import '../sessions_degustation/sessions_degustation_page.dart';
 import '../analyse_labo/analyse_laboratoire_page.dart';
 import '../vue_ensemble_evaluations/vue_ensemble_evaluations_page.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/utils/rafraichissement_periodique.dart';
 import '../../../core/widgets/bandeau_demonstration.dart';
 import '../widgets/chef_nav_mixin.dart';
 
@@ -35,7 +36,8 @@ class MembresPanelPage extends StatefulWidget {
   State<MembresPanelPage> createState() => _MembresPanelPageState();
 }
 
-class _MembresPanelPageState extends State<MembresPanelPage> with ChefNavMixin {
+class _MembresPanelPageState extends State<MembresPanelPage>
+    with ChefNavMixin, RafraichissementPeriodique {
   final TextEditingController _searchCtrl = TextEditingController();
   String _recherche = '';
 
@@ -63,6 +65,21 @@ class _MembresPanelPageState extends State<MembresPanelPage> with ChefNavMixin {
       if (!mounted) return;
       setState(() => _erreurChargement = erreur);
     }
+  }
+
+  @override
+  Future<void> rechargerEnSilence() async {
+    try {
+      final resultat = await _service.fetchMembres();
+      if (!mounted || (resultat.estDemonstration && !_estDemonstration)) {
+        return;
+      }
+      setState(() {
+        _membres = resultat.donnees;
+        _estDemonstration = resultat.estDemonstration;
+        _erreurChargement = null;
+      });
+    } catch (_) {}
   }
 
   // ── FILTERED LIST based on search ─────────────────────────────────────────
@@ -105,6 +122,8 @@ class _MembresPanelPageState extends State<MembresPanelPage> with ChefNavMixin {
         estDemonstration: _estDemonstration,
         erreur: _erreurChargement,
         onReessayer: _loadData,
+        onRefresh: _loadData,
+        couleurRafraichissement: kGreen,
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -160,8 +179,13 @@ class _MembresPanelPageState extends State<MembresPanelPage> with ChefNavMixin {
               // ── LIST ───────────────────────────────────────────────────────
               Expanded(
                 child: _membresFiltres.isEmpty
-                    ? Center(
-                        child: Column(
+                    ? ListView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        children: [
+                          SizedBox(
+                            height: MediaQuery.of(context).size.height * 0.5,
+                            child: Center(
+                              child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Icon(
@@ -178,7 +202,10 @@ class _MembresPanelPageState extends State<MembresPanelPage> with ChefNavMixin {
                               ),
                             ),
                           ],
-                        ),
+                              ),
+                            ),
+                          ),
+                        ],
                       )
                     : Theme(
                         data: Theme.of(context).copyWith(
@@ -189,6 +216,7 @@ class _MembresPanelPageState extends State<MembresPanelPage> with ChefNavMixin {
                         child: Scrollbar(
                           thumbVisibility: true,
                           child: ListView.builder(
+                            physics: const AlwaysScrollableScrollPhysics(),
                             itemCount: _membresFiltres.length,
                             itemBuilder: (context, index) =>
                                 MembreCard(membre: _membresFiltres[index]),

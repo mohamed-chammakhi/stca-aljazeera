@@ -5,6 +5,7 @@
 import 'package:flutter/material.dart';
 import 'package:project3/core/theme/app_colors.dart';
 import 'package:project3/core/utils/date_utils.dart';
+import 'package:project3/core/utils/rafraichissement_periodique.dart';
 import 'package:project3/core/widgets/bandeau_demonstration.dart';
 import 'package:project3/core/widgets/messagerie/conversations_page.dart';
 import 'models/collecteur_group.dart';
@@ -47,7 +48,7 @@ class EchantillonsCeoPage extends StatefulWidget {
 }
 
 class _EchantillonsCeoPageState extends State<EchantillonsCeoPage>
-    with CeoNavMixin {
+    with CeoNavMixin, RafraichissementPeriodique {
   DateTime? _dateDebut;
   DateTime? _dateFin;
   DateFilterType _dateType = DateFilterType.enregistrement;
@@ -94,6 +95,23 @@ class _EchantillonsCeoPageState extends State<EchantillonsCeoPage>
         _chargement = false;
       });
     }
+  }
+
+  @override
+  Future<void> rechargerEnSilence() async {
+    try {
+      final resultat = await _service.fetchCeoViews(
+        () => List.of(mockEchantillons),
+      );
+      if (!mounted || (resultat.estDemonstration && !_estDemonstration)) {
+        return;
+      }
+      setState(() {
+        _allEchantillons = resultat.donnees;
+        _estDemonstration = resultat.estDemonstration;
+        _erreurChargement = null;
+      });
+    } catch (_) {}
   }
 
   @override
@@ -296,6 +314,8 @@ class _EchantillonsCeoPageState extends State<EchantillonsCeoPage>
               estDemonstration: _estDemonstration,
               erreur: _erreurChargement,
               onReessayer: _loadEchantillons,
+              onRefresh: rechargerEnSilence,
+              couleurRafraichissement: kGreen,
               child: Column(
                 children: [
                   // ── Unified header zone ──────────────────────────────────────
@@ -388,8 +408,14 @@ class _EchantillonsCeoPageState extends State<EchantillonsCeoPage>
                   // ── List ─────────────────────────────────────────────────────
                   Expanded(
                     child: groups.isEmpty
-                        ? Center(
-                            child: Column(
+                        ? ListView(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            children: [
+                              SizedBox(
+                                height:
+                                    MediaQuery.of(context).size.height * 0.5,
+                                child: Center(
+                                  child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Icon(
@@ -406,9 +432,13 @@ class _EchantillonsCeoPageState extends State<EchantillonsCeoPage>
                                   ),
                                 ),
                               ],
-                            ),
+                                  ),
+                                ),
+                              ),
+                            ],
                           )
                         : ListView.builder(
+                            physics: const AlwaysScrollableScrollPhysics(),
                             padding: const EdgeInsets.fromLTRB(16, 12, 16, 30),
                             itemCount: groups.length,
                             itemBuilder: (_, i) => CollecteurSection(

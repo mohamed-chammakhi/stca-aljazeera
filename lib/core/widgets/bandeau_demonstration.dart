@@ -98,6 +98,8 @@ class VueResultatService extends StatelessWidget {
   final bool estDemonstration;
   final Object? erreur;
   final VoidCallback onReessayer;
+  final Future<void> Function()? onRefresh;
+  final Color couleurRafraichissement;
 
   const VueResultatService({
     super.key,
@@ -105,18 +107,36 @@ class VueResultatService extends StatelessWidget {
     required this.estDemonstration,
     required this.erreur,
     required this.onReessayer,
+    this.onRefresh,
+    this.couleurRafraichissement = kGreen,
   });
 
   @override
   Widget build(BuildContext context) {
+    final contenu = erreur == null
+        ? child
+        : ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            children: [
+              SizedBox(
+                height: MediaQuery.of(context).size.height * 0.7,
+                child: ErreurChargement(onReessayer: onReessayer),
+              ),
+            ],
+          );
+
     return Column(
       children: [
         if (estDemonstration)
           BandeauDemonstration(onReessayer: onReessayer),
         Expanded(
-          child: erreur == null
-              ? child
-              : ErreurChargement(onReessayer: onReessayer),
+          child: onRefresh == null
+              ? contenu
+              : RefreshIndicator(
+                  color: couleurRafraichissement,
+                  onRefresh: onRefresh!,
+                  child: contenu,
+                ),
         ),
       ],
     );

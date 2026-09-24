@@ -33,6 +33,7 @@ import '../../../1_ceo/analyse_organoleptique/widgets/panel_widgets.dart'
 import '../../../main.dart';
 import '../widgets/chef_colors.dart';
 import '../../../core/api_client.dart';
+import '../../core/utils/rafraichissement_periodique.dart';
 import '../../core/widgets/grille_details.dart';
 import '../../core/services/resultat_service.dart';
 import '../../core/widgets/bandeau_demonstration.dart';
@@ -195,7 +196,7 @@ class VueEnsembleEvaluationsPage extends StatefulWidget {
 }
 
 class _VueEnsembleEvaluationsPageState
-    extends State<VueEnsembleEvaluationsPage> {
+    extends State<VueEnsembleEvaluationsPage> with RafraichissementPeriodique {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   DateTime? _dateDebut;
@@ -215,12 +216,7 @@ class _VueEnsembleEvaluationsPageState
   Future<void> _loadGroups() async {
     if (mounted) setState(() => _chargement = true);
     try {
-      final resultat = await avecSecours(() async {
-        final data = await apiClient.getList('/api/chef/evaluations/');
-        return data
-            .map((e) => _groupFromApi(e as Map<String, dynamic>))
-            .toList();
-      }, () => List.of(_mockGroups));
+      final resultat = await _fetchGroups();
       if (!mounted) return;
       setState(() {
         _groups = resultat.donnees;
@@ -235,6 +231,30 @@ class _VueEnsembleEvaluationsPageState
         _chargement = false;
       });
     }
+  }
+
+  Future<Resultat<List<_SampleEvalGroup>>> _fetchGroups() {
+    return avecSecours(() async {
+      final data = await apiClient.getList('/api/chef/evaluations/');
+      return data
+          .map((e) => _groupFromApi(e as Map<String, dynamic>))
+          .toList();
+    }, () => List.of(_mockGroups));
+  }
+
+  @override
+  Future<void> rechargerEnSilence() async {
+    try {
+      final resultat = await _fetchGroups();
+      if (!mounted || (resultat.estDemonstration && !_estDemonstration)) {
+        return;
+      }
+      setState(() {
+        _groups = resultat.donnees;
+        _estDemonstration = resultat.estDemonstration;
+        _erreurChargement = null;
+      });
+    } catch (_) {}
   }
 
   bool get _dateFilterActive => _dateDebut != null || _dateFin != null;
@@ -591,6 +611,8 @@ class _VueEnsembleEvaluationsPageState
               estDemonstration: _estDemonstration,
               erreur: _erreurChargement,
               onReessayer: _loadGroups,
+              onRefresh: rechargerEnSilence,
+              couleurRafraichissement: chefGreen,
               child: Column(
                 children: [
                   // ── Search bar ────────────────────────────────────────────────────
@@ -682,8 +704,14 @@ class _VueEnsembleEvaluationsPageState
                   // ── List ──────────────────────────────────────────────────────────
                   Expanded(
                     child: groups.isEmpty
-                        ? Center(
-                            child: Column(
+                        ? ListView(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            children: [
+                              SizedBox(
+                                height:
+                                    MediaQuery.of(context).size.height * 0.5,
+                                child: Center(
+                                  child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Icon(
@@ -700,9 +728,13 @@ class _VueEnsembleEvaluationsPageState
                                   ),
                                 ),
                               ],
-                            ),
+                                  ),
+                                ),
+                              ),
+                            ],
                           )
                         : ListView.builder(
+                            physics: const AlwaysScrollableScrollPhysics(),
                             padding: const EdgeInsets.fromLTRB(14, 14, 14, 30),
                             itemCount: groups.length,
                             itemBuilder: (_, i) {

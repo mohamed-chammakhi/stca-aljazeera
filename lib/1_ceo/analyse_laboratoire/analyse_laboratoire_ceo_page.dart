@@ -5,6 +5,7 @@
 import 'package:flutter/material.dart';
 import 'package:project3/core/theme/app_colors.dart';
 import 'package:project3/core/utils/date_utils.dart';
+import 'package:project3/core/utils/rafraichissement_periodique.dart';
 import 'package:project3/core/widgets/bandeau_demonstration.dart';
 import 'package:project3/core/widgets/messagerie/conversations_page.dart';
 import 'models/lab_row.dart';
@@ -40,7 +41,7 @@ class AnalyseLaboratoireCeoPage extends StatefulWidget {
 }
 
 class _AnalyseLaboratoireCeoPageState extends State<AnalyseLaboratoireCeoPage>
-    with CeoNavMixin {
+    with CeoNavMixin, RafraichissementPeriodique {
   final Set<String> _expandedRapport = {};
 
   // ── ADDED: active filter state (mirrors achats confirmes pattern) ──────────
@@ -84,6 +85,23 @@ class _AnalyseLaboratoireCeoPageState extends State<AnalyseLaboratoireCeoPage>
         _chargement = false;
       });
     }
+  }
+
+  @override
+  Future<void> rechargerEnSilence() async {
+    try {
+      final resultat = await _service.fetchCeoViews(
+        () => List.of(mockEchantillonsLabo),
+      );
+      if (!mounted || (resultat.estDemonstration && !_estDemonstration)) {
+        return;
+      }
+      setState(() {
+        _allSamples = resultat.donnees;
+        _estDemonstration = resultat.estDemonstration;
+        _erreurChargement = null;
+      });
+    } catch (_) {}
   }
 
   @override
@@ -269,6 +287,8 @@ class _AnalyseLaboratoireCeoPageState extends State<AnalyseLaboratoireCeoPage>
               estDemonstration: _estDemonstration,
               erreur: _erreurChargement,
               onReessayer: _loadSamples,
+              onRefresh: rechargerEnSilence,
+              couleurRafraichissement: kGreen,
               child: Column(
                 children: [
                   // ── Unified header zone ──────────────────────────────────────
@@ -374,8 +394,14 @@ class _AnalyseLaboratoireCeoPageState extends State<AnalyseLaboratoireCeoPage>
                   // List
                   Expanded(
                     child: samples.isEmpty
-                        ? Center(
-                            child: Column(
+                        ? ListView(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            children: [
+                              SizedBox(
+                                height:
+                                    MediaQuery.of(context).size.height * 0.5,
+                                child: Center(
+                                  child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Icon(
@@ -392,9 +418,13 @@ class _AnalyseLaboratoireCeoPageState extends State<AnalyseLaboratoireCeoPage>
                                   ),
                                 ),
                               ],
-                            ),
+                                  ),
+                                ),
+                              ),
+                            ],
                           )
                         : ListView.builder(
+                            physics: const AlwaysScrollableScrollPhysics(),
                             padding: const EdgeInsets.fromLTRB(14, 14, 14, 30),
                             itemCount: samples.length,
                             itemBuilder: (_, i) {

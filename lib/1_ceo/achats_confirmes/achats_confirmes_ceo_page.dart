@@ -5,6 +5,7 @@
 import 'package:flutter/material.dart';
 import 'package:project3/core/theme/app_colors.dart';
 import 'package:project3/core/utils/date_utils.dart';
+import 'package:project3/core/utils/rafraichissement_periodique.dart';
 import 'package:project3/core/widgets/bandeau_demonstration.dart';
 import 'package:project3/core/widgets/messagerie/conversations_page.dart';
 import '../widgets/ceo_nav_mixin.dart';
@@ -35,7 +36,7 @@ class AchatsConfirmesCeoPage extends StatefulWidget {
 }
 
 class _AchatsConfirmesCeoPageState extends State<AchatsConfirmesCeoPage>
-    with CeoNavMixin {
+    with CeoNavMixin, RafraichissementPeriodique {
   final Set<String> _expandedAchat = {};
 
   String _activeFilter = 'tout';
@@ -80,6 +81,25 @@ class _AchatsConfirmesCeoPageState extends State<AchatsConfirmesCeoPage>
         _chargement = false;
       });
     }
+  }
+
+  @override
+  Future<void> rechargerEnSilence() async {
+    try {
+      final resultat = await _service.fetchCeoViews(
+        () => List.of(mockAchatsConfirmes),
+      );
+      if (!mounted || (resultat.estDemonstration && !_estDemonstration)) {
+        return;
+      }
+      setState(() {
+        _allAchats = resultat.donnees
+            .where((e) => e.statut == StatutCeo.achatConfirme)
+            .toList();
+        _estDemonstration = resultat.estDemonstration;
+        _erreurChargement = null;
+      });
+    } catch (_) {}
   }
 
   @override
@@ -248,6 +268,8 @@ class _AchatsConfirmesCeoPageState extends State<AchatsConfirmesCeoPage>
               estDemonstration: _estDemonstration,
               erreur: _erreurChargement,
               onReessayer: _loadAchats,
+              onRefresh: rechargerEnSilence,
+              couleurRafraichissement: kGreen,
               child: Column(
                 children: [
                   // ── Unified header zone ──────────────────────────────────────
@@ -348,8 +370,14 @@ class _AchatsConfirmesCeoPageState extends State<AchatsConfirmesCeoPage>
                   ),
                   Expanded(
                     child: achats.isEmpty
-                        ? Center(
-                            child: Column(
+                        ? ListView(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            children: [
+                              SizedBox(
+                                height:
+                                    MediaQuery.of(context).size.height * 0.5,
+                                child: Center(
+                                  child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Icon(
@@ -366,9 +394,13 @@ class _AchatsConfirmesCeoPageState extends State<AchatsConfirmesCeoPage>
                                   ),
                                 ),
                               ],
-                            ),
+                                  ),
+                                ),
+                              ),
+                            ],
                           )
                         : ListView.builder(
+                            physics: const AlwaysScrollableScrollPhysics(),
                             padding: const EdgeInsets.fromLTRB(14, 14, 14, 30),
                             itemCount: achats.length,
                             itemBuilder: (_, i) {

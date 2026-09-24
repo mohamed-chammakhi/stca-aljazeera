@@ -5,6 +5,7 @@ import '../tableau_de_bord/homepage_page.dart';
 import '../../../core/models/echantillon.dart';
 import '../../../core/models/enums.dart';
 import '../../../core/utils/date_filter_utils.dart';
+import '../../../core/utils/rafraichissement_periodique.dart';
 import 'package:project3/core/services/gestion_echantillons_service.dart';
 import 'package:project3/core/widgets/gestion_echantillons/echantillon_card.dart';
 import '../../../core/widgets/empty_state.dart';
@@ -33,7 +34,7 @@ class GestionEchantillonsPage extends StatefulWidget {
 }
 
 class _GestionEchantillonsPageState extends State<GestionEchantillonsPage>
-    with DegustateurNavMixin {
+    with DegustateurNavMixin, RafraichissementPeriodique {
   // ───────────────────────────────────────────────────────────────────────────
   // 1. STATE
   // ───────────────────────────────────────────────────────────────────────────
@@ -81,6 +82,21 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage>
     } catch (erreur) {
       if (mounted) setState(() => _erreurChargement = erreur);
     }
+  }
+
+  @override
+  Future<void> rechargerEnSilence() async {
+    try {
+      final resultat = await _service.fetchEchantillons();
+      if (!mounted || (resultat.estDemonstration && !_estDemonstration)) {
+        return;
+      }
+      setState(() {
+        _echantillons = resultat.donnees;
+        _estDemonstration = resultat.estDemonstration;
+        _erreurChargement = null;
+      });
+    } catch (_) {}
   }
 
   // ───────────────────────────────────────────────────────────────────────────
@@ -415,6 +431,8 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage>
         estDemonstration: _estDemonstration,
         erreur: _erreurChargement,
         onReessayer: _loadData,
+        onRefresh: _loadData,
+        couleurRafraichissement: kGreen,
         child: Column(
           children: [
             // ── UNIFIED HEADER ZONE ─────────────────────────────────────────
@@ -558,10 +576,19 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage>
             // ── FLAT LIST ─────────────────────────────────────────────────────
             Expanded(
               child: items.isEmpty
-                  ? const EmptyState()
+                  ? ListView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      children: [
+                        SizedBox(
+                          height: MediaQuery.of(context).size.height * 0.5,
+                          child: const EmptyState(),
+                        ),
+                      ],
+                    )
                   : Scrollbar(
                       thumbVisibility: true,
                       child: ListView.builder(
+                        physics: const AlwaysScrollableScrollPhysics(),
                         padding: const EdgeInsets.fromLTRB(16, 10, 16, 100),
                         itemCount: items.length,
                         itemBuilder: (context, i) {

@@ -13,6 +13,7 @@ import '../../../core/widgets/statut_chip.dart';
 import '../../../core/widgets/bandeau_demonstration.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/date_filter_utils.dart';
+import '../../../core/utils/rafraichissement_periodique.dart';
 import '../widgets/degustateur_nav_mixin.dart';
 import '../tableau_de_bord/homepage_page.dart';
 import '../profil/profil_page.dart';
@@ -31,7 +32,7 @@ class AnalyseLaboratoirePage extends StatefulWidget {
 }
 
 class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage>
-    with DegustateurNavMixin {
+    with DegustateurNavMixin, RafraichissementPeriodique {
   final _service = LigneAnalyseLaboService();
 
   // ── STATE ────────────────────────────────────────────────────────────────────
@@ -75,6 +76,21 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage>
       if (!mounted) return;
       setState(() => _erreurChargement = erreur);
     }
+  }
+
+  @override
+  Future<void> rechargerEnSilence() async {
+    try {
+      final resultat = await _service.fetchAnalyses();
+      if (!mounted || (resultat.estDemonstration && !_estDemonstration)) {
+        return;
+      }
+      setState(() {
+        _analyses = resultat.donnees;
+        _estDemonstration = resultat.estDemonstration;
+        _erreurChargement = null;
+      });
+    } catch (_) {}
   }
 
   // ── FILTER LOGIC ─────────────────────────────────────────────────────────────
@@ -326,6 +342,8 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage>
         estDemonstration: _estDemonstration,
         erreur: _erreurChargement,
         onReessayer: _loadData,
+        onRefresh: _loadData,
+        couleurRafraichissement: kGreen,
         child: Column(
           children: [
             // ── UNIFIED HEADER ZONE ───────────────────────────────────────────────
@@ -460,8 +478,13 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage>
             // ── LIST ──────────────────────────────────────────────────────────────
             Expanded(
               child: filtres.isEmpty
-                  ? Center(
-                      child: Column(
+                  ? ListView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      children: [
+                        SizedBox(
+                          height: MediaQuery.of(context).size.height * 0.5,
+                          child: Center(
+                            child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(
@@ -478,11 +501,15 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage>
                             ),
                           ),
                         ],
-                      ),
+                            ),
+                          ),
+                        ),
+                      ],
                     )
                   : Scrollbar(
                       thumbVisibility: true,
                       child: ListView.builder(
+                        physics: const AlwaysScrollableScrollPhysics(),
                         padding: const EdgeInsets.fromLTRB(16, 10, 16, 24),
                         itemCount: filtres.length,
                         itemBuilder: (context, index) {

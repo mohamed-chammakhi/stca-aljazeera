@@ -13,6 +13,7 @@ import 'widgets/app_drawer.dart';
 import 'widgets/home_body.dart';
 
 import '../../../core/theme/app_colors.dart';
+import '../../../core/utils/rafraichissement_periodique.dart';
 import '../widgets/degustateur_nav_mixin.dart';
 import '../profil/profil_page.dart';
 import 'package:project3/core/models/notification_degustateur.dart';
@@ -37,7 +38,8 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> with DegustateurNavMixin {
+class _HomePageState extends State<HomePage>
+    with DegustateurNavMixin, RafraichissementPeriodique {
   // ── Notifications ─────────────────────────────────────────────────────────
   final _notifService = NotificationDegustateurService();
   int _unreadCount = 0;
@@ -62,6 +64,21 @@ class _HomePageState extends State<HomePage> with DegustateurNavMixin {
     } catch (erreur) {
       if (mounted) setState(() => _erreurChargement = erreur);
     }
+  }
+
+  @override
+  Future<void> rechargerEnSilence() async {
+    try {
+      final resultat = await _notifService.fetchUnreadCount();
+      if (!mounted || (resultat.estDemonstration && !_estDemonstration)) {
+        return;
+      }
+      setState(() {
+        _unreadCount = resultat.donnees;
+        _estDemonstration = resultat.estDemonstration;
+        _erreurChargement = null;
+      });
+    } catch (_) {}
   }
 
   // ── ACTIONS ───────────────────────────────────────────────────────────────
@@ -173,7 +190,9 @@ class _HomePageState extends State<HomePage> with DegustateurNavMixin {
         estDemonstration: _estDemonstration,
         erreur: _erreurChargement,
         onReessayer: _loadUnreadCount,
-        child: const HomeBody(),
+        onRefresh: _loadUnreadCount,
+        couleurRafraichissement: kGreen,
+        child: HomeBody(onRefreshParent: _loadUnreadCount),
       ),
       drawer: AppDrawer(
         onaccueil: () => Navigator.pop(context),

@@ -23,6 +23,7 @@ import '../vue_ensemble_evaluations/vue_ensemble_evaluations_page.dart';
 import '../../../core/theme/app_colors.dart';
 import '../widgets/chef_nav_mixin.dart';
 import '../../../core/utils/date_filter_utils.dart';
+import '../../../core/utils/rafraichissement_periodique.dart';
 import '../../../core/widgets/bandeau_demonstration.dart';
 
 // ── Own model ─────────────────────────────────────────────────────────────────
@@ -50,7 +51,7 @@ class EvaluationEchantillonsPage extends StatefulWidget {
 }
 
 class _EvaluationEchantillonsPageState extends State<EvaluationEchantillonsPage>
-    with ChefNavMixin {
+    with ChefNavMixin, RafraichissementPeriodique {
   // ── STATE ────────────────────────────────────────────────────────────────────
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
@@ -98,6 +99,21 @@ class _EvaluationEchantillonsPageState extends State<EvaluationEchantillonsPage>
     } catch (erreur) {
       if (mounted) setState(() => _erreurChargement = erreur);
     }
+  }
+
+  @override
+  Future<void> rechargerEnSilence() async {
+    try {
+      final resultat = await _service.fetchEchantillons();
+      if (!mounted || (resultat.estDemonstration && !_estDemonstration)) {
+        return;
+      }
+      setState(() {
+        _echantillons = resultat.donnees;
+        _estDemonstration = resultat.estDemonstration;
+        _erreurChargement = null;
+      });
+    } catch (_) {}
   }
 
   void _positionnerCible() {
@@ -343,6 +359,8 @@ class _EvaluationEchantillonsPageState extends State<EvaluationEchantillonsPage>
         estDemonstration: _estDemonstration,
         erreur: _erreurChargement,
         onReessayer: _loadData,
+        onRefresh: _loadData,
+        couleurRafraichissement: kGreen,
         child: Column(
           children: [
             // ── UNIFIED HEADER ZONE ────────────────────────────────────────────
@@ -488,12 +506,21 @@ class _EvaluationEchantillonsPageState extends State<EvaluationEchantillonsPage>
             // ── LIST ────────────────────────────────────────────────────────────
             Expanded(
               child: filtres.isEmpty
-                  ? const EmptyState()
+                  ? ListView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      children: [
+                        SizedBox(
+                          height: MediaQuery.of(context).size.height * 0.5,
+                          child: const EmptyState(),
+                        ),
+                      ],
+                    )
                   : Scrollbar(
                       controller: _scrollController,
                       thumbVisibility: true,
                       child: ListView.builder(
                         controller: _scrollController,
+                        physics: const AlwaysScrollableScrollPhysics(),
                         padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
                         itemCount: filtres.length,
                         itemBuilder: (context, index) {

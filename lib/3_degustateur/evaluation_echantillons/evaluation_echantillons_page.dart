@@ -29,6 +29,7 @@ import 'package:project3/core/widgets/search_date_filter_bar.dart';
 import '../../../core/widgets/statut_chip.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/date_filter_utils.dart';
+import '../../../core/utils/rafraichissement_periodique.dart';
 import '../widgets/degustateur_nav_mixin.dart';
 
 class EvaluationEchantillonsPage extends StatefulWidget {
@@ -47,7 +48,7 @@ class EvaluationEchantillonsPage extends StatefulWidget {
 }
 
 class _EvaluationEchantillonsPageState extends State<EvaluationEchantillonsPage>
-    with DegustateurNavMixin {
+    with DegustateurNavMixin, RafraichissementPeriodique {
   late final EvaluationService _service;
 
   // ── STATE ────────────────────────────────────────────────────────────────────
@@ -94,6 +95,21 @@ class _EvaluationEchantillonsPageState extends State<EvaluationEchantillonsPage>
     } catch (erreur) {
       if (mounted) setState(() => _erreurChargement = erreur);
     }
+  }
+
+  @override
+  Future<void> rechargerEnSilence() async {
+    try {
+      final resultat = await _service.fetchEchantillons();
+      if (!mounted || (resultat.estDemonstration && !_estDemonstration)) {
+        return;
+      }
+      setState(() {
+        _echantillons = resultat.donnees;
+        _estDemonstration = resultat.estDemonstration;
+        _erreurChargement = null;
+      });
+    } catch (_) {}
   }
 
   void _positionnerCible() {
@@ -335,6 +351,8 @@ class _EvaluationEchantillonsPageState extends State<EvaluationEchantillonsPage>
         estDemonstration: _estDemonstration,
         erreur: _erreurChargement,
         onReessayer: _loadData,
+        onRefresh: _loadData,
+        couleurRafraichissement: kGreen,
         child: Column(
           children: [
             // ── UNIFIED HEADER ZONE ────────────────────────────────────────────
@@ -480,12 +498,21 @@ class _EvaluationEchantillonsPageState extends State<EvaluationEchantillonsPage>
             // ── LIST ────────────────────────────────────────────────────────────
             Expanded(
               child: filtres.isEmpty
-                  ? const EmptyState()
+                  ? ListView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      children: [
+                        SizedBox(
+                          height: MediaQuery.of(context).size.height * 0.5,
+                          child: const EmptyState(),
+                        ),
+                      ],
+                    )
                   : Scrollbar(
                       controller: _scrollController,
                       thumbVisibility: true,
                       child: ListView.builder(
                         controller: _scrollController,
+                        physics: const AlwaysScrollableScrollPhysics(),
                         padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
                         itemCount: filtres.length,
                         itemBuilder: (context, index) {

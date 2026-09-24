@@ -9,6 +9,7 @@ import 'package:project3/core/models/membre_panel.dart';
 import 'package:project3/core/services/membres_panel_service.dart';
 import 'package:project3/core/widgets/membres_panel/membre_card.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/utils/rafraichissement_periodique.dart';
 import '../../../core/widgets/bandeau_demonstration.dart';
 import '../widgets/degustateur_nav_mixin.dart';
 import '../gestion_echantillons/gestion_echantillons_page.dart';
@@ -32,7 +33,7 @@ class MembresPanelPage extends StatefulWidget {
 }
 
 class _MembresPanelPageState extends State<MembresPanelPage>
-    with DegustateurNavMixin {
+    with DegustateurNavMixin, RafraichissementPeriodique {
   final _service = MembresPanelService();
   final TextEditingController _searchCtrl = TextEditingController();
   String _recherche = '';
@@ -59,6 +60,21 @@ class _MembresPanelPageState extends State<MembresPanelPage>
       if (!mounted) return;
       setState(() => _erreurChargement = erreur);
     }
+  }
+
+  @override
+  Future<void> rechargerEnSilence() async {
+    try {
+      final resultat = await _service.fetchMembres();
+      if (!mounted || (resultat.estDemonstration && !_estDemonstration)) {
+        return;
+      }
+      setState(() {
+        _membres = resultat.donnees;
+        _estDemonstration = resultat.estDemonstration;
+        _erreurChargement = null;
+      });
+    } catch (_) {}
   }
 
   // ── FILTERED LIST based on search ─────────────────────────────────────────
@@ -101,6 +117,8 @@ class _MembresPanelPageState extends State<MembresPanelPage>
         estDemonstration: _estDemonstration,
         erreur: _erreurChargement,
         onReessayer: _loadData,
+        onRefresh: _loadData,
+        couleurRafraichissement: kGreen,
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -156,8 +174,13 @@ class _MembresPanelPageState extends State<MembresPanelPage>
               // ── LIST ───────────────────────────────────────────────────────
               Expanded(
                 child: _membresFiltres.isEmpty
-                    ? Center(
-                        child: Column(
+                    ? ListView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        children: [
+                          SizedBox(
+                            height: MediaQuery.of(context).size.height * 0.5,
+                            child: Center(
+                              child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Icon(
@@ -174,7 +197,10 @@ class _MembresPanelPageState extends State<MembresPanelPage>
                               ),
                             ),
                           ],
-                        ),
+                              ),
+                            ),
+                          ),
+                        ],
                       )
                     : Theme(
                         data: Theme.of(context).copyWith(
@@ -187,6 +213,7 @@ class _MembresPanelPageState extends State<MembresPanelPage>
                         child: Scrollbar(
                           thumbVisibility: true,
                           child: ListView.builder(
+                            physics: const AlwaysScrollableScrollPhysics(),
                             itemCount: _membresFiltres.length,
                             itemBuilder: (context, index) =>
                                 MembreCard(membre: _membresFiltres[index]),

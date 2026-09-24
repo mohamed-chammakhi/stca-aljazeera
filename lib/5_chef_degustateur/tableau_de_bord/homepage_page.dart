@@ -8,6 +8,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:project3/core/widgets/messagerie/conversations_page.dart';
+import 'package:project3/core/utils/rafraichissement_periodique.dart';
 
 import 'widgets/app_drawer.dart';
 import '../utilisateurs/utilisateurs_chef_page.dart';
@@ -38,7 +39,7 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends State<HomePage> with RafraichissementPeriodique {
   static const Color _headerBg = Color.fromARGB(255, 220, 233, 226);
   static const Color _dark = Color(0xFF1A2E1F);
 
@@ -66,6 +67,21 @@ class _HomePageState extends State<HomePage> {
     } catch (erreur) {
       if (mounted) setState(() => _erreurChargement = erreur);
     }
+  }
+
+  @override
+  Future<void> rechargerEnSilence() async {
+    try {
+      final resultat = await _notifService.fetchUnreadCount();
+      if (!mounted || (resultat.estDemonstration && !_estDemonstration)) {
+        return;
+      }
+      setState(() {
+        _unreadCount = resultat.donnees;
+        _estDemonstration = resultat.estDemonstration;
+        _erreurChargement = null;
+      });
+    } catch (_) {}
   }
 
   // ── ACTIONS ───────────────────────────────────────────────────────────────
@@ -191,7 +207,12 @@ class _HomePageState extends State<HomePage> {
         estDemonstration: _estDemonstration,
         erreur: _erreurChargement,
         onReessayer: _loadUnreadCount,
-        child: HomeBody(onSimulerNotification: () {}),
+        onRefresh: _loadUnreadCount,
+        couleurRafraichissement: chefGreen,
+        child: HomeBody(
+          onSimulerNotification: () {},
+          onRefreshParent: _loadUnreadCount,
+        ),
       ),
       drawer: AppDrawer(
         onaccueil: () => Navigator.pop(context),

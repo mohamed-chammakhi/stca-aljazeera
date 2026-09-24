@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:project3/core/theme/app_colors.dart';
 import 'package:project3/core/utils/date_utils.dart';
+import 'package:project3/core/utils/rafraichissement_periodique.dart';
 import 'package:project3/core/widgets/bandeau_demonstration.dart';
 import 'package:project3/core/widgets/messagerie/conversations_page.dart';
 import '../widgets/ceo_nav_mixin.dart';
@@ -39,7 +40,7 @@ class ValidationAchatsCeoPage extends StatefulWidget {
 }
 
 class _ValidationAchatsCeoPageState extends State<ValidationAchatsCeoPage>
-    with CeoNavMixin {
+    with CeoNavMixin, RafraichissementPeriodique {
   static const _orangeActive = Color(0xFFD07B2F);
   static const _orangeTint = Color(0xFFFEF3E8);
   static const _greenTint = Color(0xFFE6F4ED);
@@ -105,6 +106,32 @@ class _ValidationAchatsCeoPageState extends State<ValidationAchatsCeoPage>
         _chargement = false;
       });
     }
+  }
+
+  @override
+  Future<void> rechargerEnSilence() async {
+    try {
+      final resultat = await _service.fetchCeoViews(
+        () => [...mockPropositionsEnAttente, ...mockPropositionsDecidees],
+      );
+      if (!mounted || (resultat.estDemonstration && !_estDemonstration)) {
+        return;
+      }
+      setState(() {
+        _enAttente = resultat.donnees
+            .where((e) => e.statut == StatutCeo.enNegociation)
+            .toList();
+        _decidees = resultat.donnees
+            .where(
+              (e) =>
+                  e.statut == StatutCeo.achatConfirme ||
+                  e.statut == StatutCeo.refuse,
+            )
+            .toList();
+        _estDemonstration = resultat.estDemonstration;
+        _erreurChargement = null;
+      });
+    } catch (_) {}
   }
 
   @override
@@ -383,6 +410,8 @@ class _ValidationAchatsCeoPageState extends State<ValidationAchatsCeoPage>
               estDemonstration: _estDemonstration,
               erreur: _erreurChargement,
               onReessayer: _loadPropositions,
+              onRefresh: rechargerEnSilence,
+              couleurRafraichissement: kGreen,
               child: Column(
                 children: [
                   Container(
@@ -489,8 +518,14 @@ class _ValidationAchatsCeoPageState extends State<ValidationAchatsCeoPage>
                   ),
                   Expanded(
                     child: items.isEmpty
-                        ? Center(
-                            child: Column(
+                        ? ListView(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            children: [
+                              SizedBox(
+                                height:
+                                    MediaQuery.of(context).size.height * 0.5,
+                                child: Center(
+                                  child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Icon(
@@ -511,9 +546,13 @@ class _ValidationAchatsCeoPageState extends State<ValidationAchatsCeoPage>
                                   ),
                                 ),
                               ],
-                            ),
+                                  ),
+                                ),
+                              ),
+                            ],
                           )
                         : ListView.builder(
+                            physics: const AlwaysScrollableScrollPhysics(),
                             padding: const EdgeInsets.fromLTRB(14, 14, 14, 30),
                             itemCount: items.length,
                             itemBuilder: (_, i) {

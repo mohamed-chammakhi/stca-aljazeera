@@ -17,6 +17,7 @@ import '../../services/auth_service.dart';
 import '../../services/gestion_echantillons_service.dart';
 import '../../services/messagerie_service.dart';
 import '../../theme/app_colors.dart';
+import '../../utils/rafraichissement_periodique.dart';
 
 class ConversationPage extends StatefulWidget {
   final ContactMessagerie contact;
@@ -34,7 +35,8 @@ class ConversationPage extends StatefulWidget {
   State<ConversationPage> createState() => _ConversationPageState();
 }
 
-class _ConversationPageState extends State<ConversationPage> {
+class _ConversationPageState extends State<ConversationPage>
+    with RafraichissementPeriodique {
   static const _demoActionMessage =
       'Action indisponible avec les données de démonstration. Réessayez lorsque le serveur répond.';
 
@@ -108,6 +110,40 @@ class _ConversationPageState extends State<ConversationPage> {
         _errorMessage = 'Impossible de charger cette conversation.';
       });
     }
+  }
+
+  @override
+  Future<void> rechargerEnSilence() async {
+    final etaitEnBas = _estProcheDuBas;
+    try {
+      final resultat = await _service.fetchMessages();
+      if (!mounted || (resultat.estDemonstration && !_estDemonstration)) {
+        return;
+      }
+      setState(() {
+        _messages = _sorted(
+          resultat.donnees
+              .where(
+                (m) =>
+                    m.expediteur == widget.contact.id ||
+                    m.destinataire == widget.contact.id,
+              )
+              .toList(),
+        );
+        _estDemonstration = resultat.estDemonstration;
+        _errorMessage = null;
+      });
+      _markUnreadAsRead();
+      if (etaitEnBas) {
+        WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
+      }
+    } catch (_) {}
+  }
+
+  bool get _estProcheDuBas {
+    if (!_scrollController.hasClients) return true;
+    final position = _scrollController.position;
+    return position.maxScrollExtent - position.pixels < 80;
   }
 
   Future<void> _loadCurrentUser() async {

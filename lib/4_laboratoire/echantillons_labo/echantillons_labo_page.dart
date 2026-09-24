@@ -7,10 +7,12 @@ import 'widgets/dialogs/formulaire_analyse_labo_dialog.dart';
 import '../analyse_labo.dart';
 import '../labo_drawer.dart';
 import '../notifications/notifications_labo_page.dart';
+import '../notifications/services/notification_labo_service.dart';
 import '../profil_labo_page.dart';
 import '../widgets/labo_nav_mixin.dart';
 import '../../main.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/utils/rafraichissement_periodique.dart';
 import '../../core/widgets/bandeau_demonstration.dart';
 
 // Scrollbar thumb — neutral dark not in the global palette.
@@ -24,20 +26,24 @@ class EchantillonsLaboPage extends StatefulWidget {
 }
 
 class _EchantillonsLaboPageState extends State<EchantillonsLaboPage>
-    with LaboNavMixin {
+    with LaboNavMixin, RafraichissementPeriodique {
   final _service = LaboService();
+  final _notifService = NotificationLaboService();
   final TextEditingController _searchCtrl = TextEditingController();
   String _recherche = '';
   StatutAnalyse? _filtreStatut;
   List<EchantillonLabo> _echantillons = [];
   bool _chargement = true;
   bool _estDemonstration = false;
+  bool _notificationsDemonstration = false;
   Object? _erreurChargement;
+  int _unreadCount = 0;
 
   @override
   void initState() {
     super.initState();
     _loadEchantillons();
+    _loadUnreadCount();
   }
 
   Future<void> _loadEchantillons() async {
@@ -58,6 +64,47 @@ class _EchantillonsLaboPageState extends State<EchantillonsLaboPage>
         _chargement = false;
       });
     }
+  }
+
+  Future<void> _loadUnreadCount() async {
+    try {
+      final resultat = await _notifService.fetchUnreadCount();
+      if (!mounted) return;
+      setState(() {
+        _unreadCount = resultat.donnees;
+        _notificationsDemonstration = resultat.estDemonstration;
+      });
+    } catch (erreur) {
+      if (mounted) setState(() => _erreurChargement = erreur);
+    }
+  }
+
+  Future<void> _reessayer() async {
+    await Future.wait([_loadEchantillons(), _loadUnreadCount()]);
+  }
+
+  @override
+  Future<void> rechargerEnSilence() async {
+    try {
+      final resultats = await Future.wait([
+        _service.fetchEchantillons(),
+        _notifService.fetchUnreadCount(),
+      ]);
+      final echantillons = resultats[0];
+      final notifications = resultats[1];
+      if (!mounted) return;
+      if ((echantillons.estDemonstration && !_estDemonstration) ||
+          (notifications.estDemonstration && !_notificationsDemonstration)) {
+        return;
+      }
+      setState(() {
+        _echantillons = echantillons.donnees as List<EchantillonLabo>;
+        _unreadCount = notifications.donnees as int;
+        _estDemonstration = echantillons.estDemonstration;
+        _notificationsDemonstration = notifications.estDemonstration;
+        _erreurChargement = null;
+      });
+    } catch (_) {}
   }
 
   // ── Filter logic ───────────────────────────────────────────────────────────
@@ -230,12 +277,40 @@ class _EchantillonsLaboPageState extends State<EchantillonsLaboPage>
         ),
         iconTheme: const IconThemeData(color: kDark),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_outlined, color: kDark),
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const NotificationsLaboPage()),
-            ),
+          Stack(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.notifications_outlined, color: kDark),
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const NotificationsLaboPage(),
+                  ),
+                ).then((_) => _loadUnreadCount()),
+              ),
+              if (_unreadCount > 0)
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: Container(
+                    width: _unreadCount > 9 ? 18 : 14,
+                    height: 14,
+                    decoration: BoxDecoration(
+                      color: Colors.orange,
+                      borderRadius: BorderRadius.circular(7),
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      _unreadCount > 9 ? '9+' : '$_unreadCount',
+                      style: const TextStyle(
+                        fontSize: 8,
+                        color: Colors.white,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
           ),
         ],
       ),
@@ -244,7 +319,9 @@ class _EchantillonsLaboPageState extends State<EchantillonsLaboPage>
           : VueResultatService(
               estDemonstration: _estDemonstration,
               erreur: _erreurChargement,
-              onReessayer: _loadEchantillons,
+              onReessayer: _reessayer,
+              onRefresh: rechargerEnSilence,
+              couleurRafraichissement: kGreen,
               child: Column(
                 children: [
                   // ── Header zone ──────────────────────────────────────────────────
@@ -391,8 +468,14 @@ class _EchantillonsLaboPageState extends State<EchantillonsLaboPage>
                   // ── List ──────────────────────────────────────────────────────────
                   Expanded(
                     child: items.isEmpty
-                        ? Center(
-                            child: Column(
+                        ? ListView(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            children: [
+                              SizedBox(
+                                height:
+                                    MediaQuery.of(context).size.height * 0.5,
+                                child: Center(
+                                  child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Icon(
@@ -409,7 +492,10 @@ class _EchantillonsLaboPageState extends State<EchantillonsLaboPage>
                                   ),
                                 ),
                               ],
-                            ),
+                                  ),
+                                ),
+                              ),
+                            ],
                           )
                         : Theme(
                             data: Theme.of(context).copyWith(
@@ -420,6 +506,7 @@ class _EchantillonsLaboPageState extends State<EchantillonsLaboPage>
                             child: Scrollbar(
                               thumbVisibility: true,
                               child: ListView.builder(
+                                physics: const AlwaysScrollableScrollPhysics(),
                                 padding: const EdgeInsets.fromLTRB(
                                   16,
                                   8,

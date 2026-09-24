@@ -131,3 +131,25 @@ Résultat attendu : 0 erreur, 0 test en échec.
 
 Dans ton rapport, donne la liste des écrans modifiés, écran par écran, avec une ligne :
 « tirer vers le bas : oui/non — automatique : oui/non — cloche : oui/non/sans objet ».
+
+## RAPPORT
+
+*(Écrit par Claude : Codex a atteint sa limite d'utilisation juste avant d'écrire son rapport.
+Le code était complet.)*
+
+- `lib/core/utils/rafraichissement_periodique.dart` : mixin, timer 30 s, pas de double appel, annulé au `dispose`.
+- `VueResultatService` (`bandeau_demonstration.dart`) porte le `RefreshIndicator` pour tous les écrans ; l'écran d'erreur peut aussi être tiré.
+- 29 écrans : tirer vers le bas + rechargement automatique silencieux. `conversation_page.dart` : automatique seulement, ne défile que si on est déjà en bas.
+- Cloche : rechargée sur les pages d'accueil de chaque rôle.
+
+### Correction faite par Claude
+
+Sur 16 écrans, le tirer-vers-le-bas appelait la fonction de chargement complète, qui remplace
+toute la page par un indicateur de chargement (liste effacée, position de défilement perdue).
+Ces écrans appellent maintenant `rechargerEnSilence` (mêmes données, sans effacer la page).
+`_rafraichirTout` du tableau de bord direction supprimé, devenu inutilisé.
+
+### Vérifié
+
+- `flutter analyze lib test` : 55 remarques, aucune nouvelle, 0 erreur.
+- `flutter test` : 118 réussis, 0 échec (3 nouveaux tests du mixin).

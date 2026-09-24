@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:fl_chart/fl_chart.dart';
 
 import '../../../core/services/resultat_service.dart';
+import '../../../core/utils/rafraichissement_periodique.dart';
 import '../../../core/widgets/bandeau_demonstration.dart';
 import '../models/dashboard_chef_degustateur.dart';
 import '../services/dashboard_chef_degustateur_service.dart';
@@ -36,13 +37,19 @@ String _fmtN(int n) => n >= 1000 ? '${(n / 1000).toStringAsFixed(1)}k' : '$n';
 
 class HomeBody extends StatefulWidget {
   final VoidCallback onSimulerNotification;
-  const HomeBody({super.key, required this.onSimulerNotification});
+  final Future<void> Function()? onRefreshParent;
+
+  const HomeBody({
+    super.key,
+    required this.onSimulerNotification,
+    this.onRefreshParent,
+  });
 
   @override
   State<HomeBody> createState() => _HomeBodyState();
 }
 
-class _HomeBodyState extends State<HomeBody> {
+class _HomeBodyState extends State<HomeBody> with RafraichissementPeriodique {
   final _service = DashboardChefDegustateurService();
 
   // ── State ─────────────────────────────────────────────────────────────────
@@ -136,6 +143,79 @@ class _HomeBodyState extends State<HomeBody> {
       if (mounted) setState(() => _erreurChargement = erreur);
     }
   }
+
+  Future<void> _rafraichirTout() async {
+    await widget.onRefreshParent?.call();
+    await _loadAll();
+  }
+
+  @override
+  Future<void> rechargerEnSilence() async {
+    try {
+      final pipeline = await _service.fetchPipeline();
+      final urgentes = await _service.fetchUrgentes();
+      final urgentesCeo = await _service.fetchUrgentesCeo();
+      final sessions = await _service.fetchSessionsEnAttente();
+      final presence = await _service.fetchPresence(
+        dateDebut: _presDateDebut,
+        dateFin: _presDateFin,
+      );
+      final delai = await _service.fetchDelai(
+        dateDebut: _delaiDateDebut,
+        dateFin: _delaiDateFin,
+      );
+      final alignement = await _service.fetchAlignement(
+        dateDebut: _alignDateDebut,
+        dateFin: _alignDateFin,
+      );
+      final classifications = await _service.fetchClassifications(
+        dateDebut: _classDateDebut,
+        dateFin: _classDateFin,
+      );
+      final activite = await _service.fetchActivite(
+        dateDebut: _actDateDebut,
+        dateFin: _actDateFin,
+        offset: 0,
+      );
+      if (!mounted ||
+          !_peutAppliquer('pipeline', pipeline) ||
+          !_peutAppliquer('urgentes', urgentes) ||
+          !_peutAppliquer('urgentes_ceo', urgentesCeo) ||
+          !_peutAppliquer('sessions', sessions) ||
+          !_peutAppliquer('presence', presence) ||
+          !_peutAppliquer('delai', delai) ||
+          !_peutAppliquer('alignement', alignement) ||
+          !_peutAppliquer('classifications', classifications) ||
+          !_peutAppliquer('activite', activite)) {
+        return;
+      }
+      setState(() {
+        _memoriserOrigine('pipeline', pipeline);
+        _memoriserOrigine('urgentes', urgentes);
+        _memoriserOrigine('urgentes_ceo', urgentesCeo);
+        _memoriserOrigine('sessions', sessions);
+        _memoriserOrigine('presence', presence);
+        _memoriserOrigine('delai', delai);
+        _memoriserOrigine('alignement', alignement);
+        _memoriserOrigine('classifications', classifications);
+        _memoriserOrigine('activite', activite);
+        _pipeline = pipeline.donnees;
+        _urgentes = urgentes.donnees;
+        _urgentesCeo = urgentesCeo.donnees;
+        _sessions = sessions.donnees;
+        _presence = presence.donnees;
+        _delai = delai.donnees;
+        _alignement = alignement.donnees;
+        _classifications = classifications.donnees;
+        _activite = activite.donnees.items;
+        _activiteTotal = activite.donnees.total;
+        _erreurChargement = null;
+      });
+    } catch (_) {}
+  }
+
+  bool _peutAppliquer<T>(String section, Resultat<T> resultat) =>
+      !resultat.estDemonstration || _sectionsDemonstration.contains(section);
 
   Future<void> _reloadPresence() async {
     await _recharger(
@@ -460,9 +540,12 @@ class _HomeBodyState extends State<HomeBody> {
       estDemonstration: _sectionsDemonstration.isNotEmpty,
       erreur: _erreurChargement,
       onReessayer: _loadAll,
+      onRefresh: _rafraichirTout,
+      couleurRafraichissement: chefGreen,
       child: Stack(
         children: [
           ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.fromLTRB(14, 14, 14, 52),
             children: [
               PipelineSection(pipeline: _pipeline),

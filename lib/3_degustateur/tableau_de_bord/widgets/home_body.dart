@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 
 import '../../../core/services/resultat_service.dart';
+import '../../../core/utils/rafraichissement_periodique.dart';
 import '../../../core/widgets/bandeau_demonstration.dart';
 import '../models/dashboard_degustateur.dart';
 import '../services/dashboard_degustateur_service.dart';
@@ -43,12 +44,15 @@ String _fmtDate(DateTime d) =>
     '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}';
 
 class HomeBody extends StatefulWidget {
-  const HomeBody({super.key});
+  final Future<void> Function()? onRefreshParent;
+
+  const HomeBody({super.key, this.onRefreshParent});
+
   @override
   State<HomeBody> createState() => _HomeBodyState();
 }
 
-class _HomeBodyState extends State<HomeBody> {
+class _HomeBodyState extends State<HomeBody> with RafraichissementPeriodique {
   final _service = DashboardDegustateurService();
 
   List<EvaluationUrgente> _urgentes = [];
@@ -135,6 +139,77 @@ class _HomeBodyState extends State<HomeBody> {
       if (mounted) setState(() => _erreurChargement = erreur);
     }
   }
+
+  Future<void> _rafraichirTout() async {
+    await widget.onRefreshParent?.call();
+    await _loadAll();
+  }
+
+  @override
+  Future<void> rechargerEnSilence() async {
+    try {
+      final fUrgentes = _service.fetchUrgentes();
+      final fPipeline = _service.fetchPipeline();
+      final fCls = _service.fetchClassifications(
+        dateDebut: _classDateDebut,
+        dateFin: _classDateFin,
+      );
+      final fPresence = _service.fetchPresence(
+        dateDebut: _presDateDebut,
+        dateFin: _presDateFin,
+      );
+      final fDelai = _service.fetchDelai(
+        dateDebut: _delaiDateDebut,
+        dateFin: _delaiDateFin,
+      );
+      final fAct = _service.fetchActivite(
+        dateDebut: _actDateDebut,
+        dateFin: _actDateFin,
+        offset: 0,
+      );
+      final results = await Future.wait([
+        fUrgentes,
+        fPipeline,
+        fCls,
+        fPresence,
+        fDelai,
+      ]);
+      final activite = await fAct;
+      final urgentes = results[0] as Resultat<List<EvaluationUrgente>>;
+      final pipeline = results[1] as Resultat<PipelineData>;
+      final classifications = results[2] as Resultat<List<ClassificationPoint>>;
+      final presence = results[3] as Resultat<PresenceData>;
+      final delai = results[4] as Resultat<DelaiSummary>;
+      if (!mounted ||
+          !_peutAppliquer('urgentes', urgentes) ||
+          !_peutAppliquer('pipeline', pipeline) ||
+          !_peutAppliquer('classifications', classifications) ||
+          !_peutAppliquer('presence', presence) ||
+          !_peutAppliquer('delai', delai) ||
+          !_peutAppliquer('activite', activite)) {
+        return;
+      }
+      setState(() {
+        _memoriserOrigine('urgentes', urgentes);
+        _memoriserOrigine('pipeline', pipeline);
+        _memoriserOrigine('classifications', classifications);
+        _memoriserOrigine('presence', presence);
+        _memoriserOrigine('delai', delai);
+        _memoriserOrigine('activite', activite);
+        _urgentes = urgentes.donnees;
+        _pipeline = pipeline.donnees;
+        _classifications = classifications.donnees;
+        _presence = presence.donnees;
+        _delai = delai.donnees;
+        _activite = activite.donnees.items;
+        _activiteTotal = activite.donnees.total;
+        _erreurChargement = null;
+      });
+    } catch (_) {}
+  }
+
+  bool _peutAppliquer<T>(String section, Resultat<T> resultat) =>
+      !resultat.estDemonstration || _sectionsDemonstration.contains(section);
 
   Future<void> _reloadClassifications() async {
     try {
@@ -482,9 +557,12 @@ class _HomeBodyState extends State<HomeBody> {
       estDemonstration: _sectionsDemonstration.isNotEmpty,
       erreur: _erreurChargement,
       onReessayer: _loadAll,
+      onRefresh: _rafraichirTout,
+      couleurRafraichissement: _green,
       child: Stack(
         children: [
           ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.fromLTRB(14, 14, 14, 52),
             children: [
               HomePipelineSection(pipeline: _pipeline),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:project3/core/theme/app_colors.dart';
+import 'package:project3/core/utils/rafraichissement_periodique.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/widgets/bandeau_demonstration.dart';
 import 'models/notification_ceo.dart';
@@ -21,7 +22,8 @@ class NotificationsCeoPage extends StatefulWidget {
   State<NotificationsCeoPage> createState() => _NotificationsCeoPageState();
 }
 
-class _NotificationsCeoPageState extends State<NotificationsCeoPage> {
+class _NotificationsCeoPageState extends State<NotificationsCeoPage>
+    with RafraichissementPeriodique {
   List<NotificationCeo> _all = [];
   bool _loading = true;
   bool _estDemonstration = false;
@@ -52,6 +54,21 @@ class _NotificationsCeoPageState extends State<NotificationsCeoPage> {
         _loading = false;
       });
     }
+  }
+
+  @override
+  Future<void> rechargerEnSilence() async {
+    try {
+      final resultat = await widget.service.fetchNotifications();
+      if (!mounted || (resultat.estDemonstration && !_estDemonstration)) {
+        return;
+      }
+      setState(() {
+        _all = resultat.donnees;
+        _estDemonstration = resultat.estDemonstration;
+        _erreurChargement = null;
+      });
+    } catch (_) {}
   }
 
   List<NotificationCeo> get _filtered =>
@@ -137,6 +154,8 @@ class _NotificationsCeoPageState extends State<NotificationsCeoPage> {
               estDemonstration: _estDemonstration,
               erreur: _erreurChargement,
               onReessayer: _load,
+              onRefresh: rechargerEnSilence,
+              couleurRafraichissement: kGreen,
               child: Column(
                 children: [
                   Container(
@@ -215,6 +234,7 @@ class _NotificationsCeoPageState extends State<NotificationsCeoPage> {
 
     final order = ["Aujourd'hui", 'Hier', 'Plus tôt'];
     return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 40),
       children: [
         for (final group in order)
@@ -236,30 +256,38 @@ class _NotificationsCeoPageState extends State<NotificationsCeoPage> {
     );
   }
 
-  Widget _buildEmpty() => Center(
-    child: Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(
-          Icons.notifications_off_outlined,
-          size: 52,
-          color: Colors.grey.shade300,
-        ),
-        const SizedBox(height: 12),
-        Text(
-          'Aucune notification',
-          style: TextStyle(
-            fontSize: 15,
-            color: Colors.grey.shade400,
-            fontWeight: FontWeight.w600,
+  Widget _buildEmpty() => ListView(
+    physics: const AlwaysScrollableScrollPhysics(),
+    children: [
+      SizedBox(
+        height: MediaQuery.of(context).size.height * 0.5,
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.notifications_off_outlined,
+                size: 52,
+                color: Colors.grey.shade300,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Aucune notification',
+                style: TextStyle(
+                  fontSize: 15,
+                  color: Colors.grey.shade400,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Tout est à jour.',
+                style: TextStyle(fontSize: 13, color: Colors.grey.shade400),
+              ),
+            ],
           ),
         ),
-        const SizedBox(height: 4),
-        Text(
-          'Tout est à jour.',
-          style: TextStyle(fontSize: 13, color: Colors.grey.shade400),
-        ),
-      ],
-    ),
+      ),
+    ],
   );
 }

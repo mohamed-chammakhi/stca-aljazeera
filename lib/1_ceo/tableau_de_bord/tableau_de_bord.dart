@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:project3/core/theme/app_colors.dart';
+import 'package:project3/core/utils/rafraichissement_periodique.dart';
 import 'package:project3/core/widgets/messagerie/conversations_page.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../widgets/ceo_drawer.dart';
@@ -42,7 +43,7 @@ class HomePageCeo extends StatefulWidget {
 }
 
 class _HomePageCeoState extends State<HomePageCeo>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, RafraichissementPeriodique {
   // ── Animations ──────────────────────────────────────────────────────────────
   late AnimationController _ctrl;
   late List<Animation<double>> _anims;
@@ -136,6 +137,32 @@ class _HomePageCeoState extends State<HomePageCeo>
   void _reessayer() {
     _loadUnreadCount();
     _loadDashboard();
+  }
+
+  @override
+  Future<void> rechargerEnSilence() async {
+    try {
+      final resultats = await Future.wait([
+        _notifService.fetchUnreadCount(),
+        _dashboardService.fetchDashboard(),
+      ]);
+      final notifications = resultats[0];
+      final dashboard = resultats[1];
+      if (!mounted) return;
+      final notificationsDemo = notifications.estDemonstration;
+      final dashboardDemo = dashboard.estDemonstration;
+      if ((notificationsDemo && !_demoNotifications) ||
+          (dashboardDemo && !_demoDashboard)) {
+        return;
+      }
+      setState(() {
+        _unreadCount = notifications.donnees as int;
+        _dashboard = dashboard.donnees as DashboardCeoSnapshot;
+        _demoNotifications = notificationsDemo;
+        _demoDashboard = dashboardDemo;
+        _erreurChargement = null;
+      });
+    } catch (_) {}
   }
 
   @override
@@ -329,6 +356,8 @@ class _HomePageCeoState extends State<HomePageCeo>
               estDemonstration: _estDemonstration,
               erreur: _erreurChargement,
               onReessayer: _reessayer,
+              onRefresh: rechargerEnSilence,
+              couleurRafraichissement: kGreen,
               child: Column(
                 children: [
                   Container(
@@ -337,6 +366,7 @@ class _HomePageCeoState extends State<HomePageCeo>
                   ),
                   Expanded(
                     child: ListView(
+                      physics: const AlwaysScrollableScrollPhysics(),
                       padding: const EdgeInsets.fromLTRB(14, 16, 14, 52),
                       children: [
                         _fs(

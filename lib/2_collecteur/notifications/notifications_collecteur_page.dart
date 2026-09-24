@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:project3/core/utils/rafraichissement_periodique.dart';
 import 'models/notification_collecteur.dart';
 import 'services/notification_collecteur_service.dart';
 import '../widgets/col_colors.dart';
@@ -22,7 +23,7 @@ class NotificationsCollecteurPage extends StatefulWidget {
 }
 
 class _NotificationsCollecteurPageState
-    extends State<NotificationsCollecteurPage> {
+    extends State<NotificationsCollecteurPage> with RafraichissementPeriodique {
   List<NotificationCollecteur> _all = [];
   bool _loading = true;
   bool _estDemonstration = false;
@@ -53,6 +54,21 @@ class _NotificationsCollecteurPageState
         _loading = false;
       });
     }
+  }
+
+  @override
+  Future<void> rechargerEnSilence() async {
+    try {
+      final resultat = await widget.service.fetchNotifications();
+      if (!mounted || (resultat.estDemonstration && !_estDemonstration)) {
+        return;
+      }
+      setState(() {
+        _all = resultat.donnees;
+        _estDemonstration = resultat.estDemonstration;
+        _erreurChargement = null;
+      });
+    } catch (_) {}
   }
 
   List<NotificationCollecteur> get _filtered =>
@@ -141,6 +157,8 @@ class _NotificationsCollecteurPageState
               estDemonstration: _estDemonstration,
               erreur: _erreurChargement,
               onReessayer: _load,
+              onRefresh: rechargerEnSilence,
+              couleurRafraichissement: colGreen,
               child: Column(
                 children: [
                   // ── Filter chips ────────────────────────────────────────────────
@@ -222,6 +240,7 @@ class _NotificationsCollecteurPageState
 
     final order = ["Aujourd'hui", 'Hier', 'Plus tôt'];
     return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 40),
       children: [
         for (final group in order)
@@ -243,31 +262,39 @@ class _NotificationsCollecteurPageState
     );
   }
 
-  Widget _buildEmpty() => Center(
-    child: Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(
-          Icons.notifications_off_outlined,
-          size: 52,
-          color: Colors.grey.shade300,
-        ),
-        const SizedBox(height: 12),
-        Text(
-          'Aucune notification',
-          style: TextStyle(
-            fontSize: 15,
-            color: Colors.grey.shade400,
-            fontWeight: FontWeight.w600,
+  Widget _buildEmpty() => ListView(
+    physics: const AlwaysScrollableScrollPhysics(),
+    children: [
+      SizedBox(
+        height: MediaQuery.of(context).size.height * 0.5,
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.notifications_off_outlined,
+                size: 52,
+                color: Colors.grey.shade300,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Aucune notification',
+                style: TextStyle(
+                  fontSize: 15,
+                  color: Colors.grey.shade400,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Tout est à jour.',
+                style: TextStyle(fontSize: 13, color: Colors.grey.shade400),
+              ),
+            ],
           ),
         ),
-        const SizedBox(height: 4),
-        Text(
-          'Tout est à jour.',
-          style: TextStyle(fontSize: 13, color: Colors.grey.shade400),
-        ),
-      ],
-    ),
+      ),
+    ],
   );
 }
 

@@ -29,6 +29,7 @@ import '../vue_ensemble_evaluations/vue_ensemble_evaluations_page.dart';
 import '../../../core/theme/app_colors.dart';
 import '../widgets/chef_nav_mixin.dart';
 import '../../../core/utils/date_utils.dart';
+import '../../../core/utils/rafraichissement_periodique.dart';
 
 class SessionsDegustationPage extends StatefulWidget {
   const SessionsDegustationPage({super.key});
@@ -39,7 +40,7 @@ class SessionsDegustationPage extends StatefulWidget {
 }
 
 class _SessionsDegustationPageState extends State<SessionsDegustationPage>
-    with ChefNavMixin {
+    with ChefNavMixin, RafraichissementPeriodique {
   final TextEditingController _searchController = TextEditingController();
   String _recherche = '';
   String? _filtreStatutLabel;
@@ -73,6 +74,21 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage>
     } catch (erreur) {
       if (mounted) setState(() => _erreurChargement = erreur);
     }
+  }
+
+  @override
+  Future<void> rechargerEnSilence() async {
+    try {
+      final resultat = await _service.fetchSessions();
+      if (!mounted || (resultat.estDemonstration && !_estDemonstration)) {
+        return;
+      }
+      setState(() {
+        _sessions = resultat.donnees;
+        _estDemonstration = resultat.estDemonstration;
+        _erreurChargement = null;
+      });
+    } catch (_) {}
   }
 
   StatutSession? _labelToStatut(String? label) {
@@ -345,6 +361,8 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage>
         estDemonstration: _estDemonstration,
         erreur: _erreurChargement,
         onReessayer: _loadData,
+        onRefresh: _loadData,
+        couleurRafraichissement: kGreen,
         child: Column(
           children: [
             // ── HEADER ZONE ────────────────────────────────────────────────────
@@ -498,8 +516,13 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage>
             ),
             Expanded(
               child: items.isEmpty
-                  ? Center(
-                      child: Column(
+                  ? ListView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      children: [
+                        SizedBox(
+                          height: MediaQuery.of(context).size.height * 0.5,
+                          child: Center(
+                            child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(
@@ -516,11 +539,15 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage>
                             ),
                           ),
                         ],
-                      ),
+                            ),
+                          ),
+                        ),
+                      ],
                     )
                   : Scrollbar(
                       thumbVisibility: true,
                       child: ListView.builder(
+                        physics: const AlwaysScrollableScrollPhysics(),
                         padding: const EdgeInsets.fromLTRB(16, 10, 16, 100),
                         itemCount: items.length,
                         itemBuilder: (context, i) {

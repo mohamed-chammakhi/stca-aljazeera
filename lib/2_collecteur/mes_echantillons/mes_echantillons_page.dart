@@ -26,6 +26,7 @@ import '../profilcom.dart';
 import '../carte_geo/services/geo_service.dart';
 import '../../core/widgets/bandeau_demonstration.dart';
 import '../../core/utils/date_filter_utils.dart';
+import '../../core/utils/rafraichissement_periodique.dart';
 
 class MesEchantillonsPage extends StatefulWidget {
   const MesEchantillonsPage({super.key, this.referenceInitiale});
@@ -37,7 +38,7 @@ class MesEchantillonsPage extends StatefulWidget {
 }
 
 class _MesEchantillonsPageState extends State<MesEchantillonsPage>
-    with CollecteurNavMixin {
+    with CollecteurNavMixin, RafraichissementPeriodique {
   final _service = EchantillonCollecteurService();
   final _notifService = NotificationCollecteurService();
   final TextEditingController _searchCtrl = TextEditingController();
@@ -113,9 +114,34 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
     }
   }
 
-  void _reessayer() {
-    _loadEchantillons();
-    _loadUnreadCount();
+  Future<void> _reessayer() async {
+    await Future.wait([_loadEchantillons(), _loadUnreadCount()]);
+  }
+
+  @override
+  Future<void> rechargerEnSilence() async {
+    try {
+      final resultats = await Future.wait([
+        _service.fetchEchantillons(),
+        _notifService.fetchUnreadCount(),
+      ]);
+      final echantillons = resultats[0];
+      final notifications = resultats[1];
+      if (!mounted) return;
+      if ((echantillons.estDemonstration && !_demoEchantillons) ||
+          (notifications.estDemonstration && !_demoNotifications)) {
+        return;
+      }
+      setState(() {
+        _echantillons =
+            echantillons.donnees as List<EchantillonCollecteur>;
+        _unreadNotifCount = notifications.donnees as int;
+        _demoEchantillons = echantillons.estDemonstration;
+        _demoNotifications = notifications.estDemonstration;
+        _erreurChargement = null;
+      });
+      _rebuildMap();
+    } catch (_) {}
   }
 
   void _openNotifications() async {
@@ -796,6 +822,8 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
               estDemonstration: _estDemonstration,
               erreur: _erreurChargement,
               onReessayer: _reessayer,
+              onRefresh: rechargerEnSilence,
+              couleurRafraichissement: colGreen,
               child: Column(
                 children: [
                   // ── Header zone ──────────────────────────────────────────────────
@@ -998,8 +1026,14 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
                     child: _loading
                         ? const Center(child: CircularProgressIndicator())
                         : items.isEmpty
-                        ? Center(
-                            child: Column(
+                        ? ListView(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            children: [
+                              SizedBox(
+                                height:
+                                    MediaQuery.of(context).size.height * 0.5,
+                                child: Center(
+                                  child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Icon(
@@ -1016,7 +1050,10 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
                                   ),
                                 ),
                               ],
-                            ),
+                                  ),
+                                ),
+                              ),
+                            ],
                           )
                         : Theme(
                             data: Theme.of(context).copyWith(
@@ -1027,6 +1064,7 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
                             child: Scrollbar(
                               thumbVisibility: true,
                               child: ListView.builder(
+                                physics: const AlwaysScrollableScrollPhysics(),
                                 padding: const EdgeInsets.fromLTRB(
                                   16,
                                   8,

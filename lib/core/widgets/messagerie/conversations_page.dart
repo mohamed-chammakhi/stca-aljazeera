@@ -5,6 +5,7 @@ import '../../models/contact_messagerie.dart';
 import '../../models/message.dart';
 import '../../services/messagerie_service.dart';
 import '../../theme/app_colors.dart';
+import '../../utils/rafraichissement_periodique.dart';
 import '../bandeau_demonstration.dart';
 import 'conversation_page.dart';
 
@@ -15,7 +16,8 @@ class ConversationsPage extends StatefulWidget {
   State<ConversationsPage> createState() => _ConversationsPageState();
 }
 
-class _ConversationsPageState extends State<ConversationsPage> {
+class _ConversationsPageState extends State<ConversationsPage>
+    with RafraichissementPeriodique {
   final _service = MessagerieService.instance;
   List<Message> _messages = [];
   List<ContactMessagerie> _contacts = [];
@@ -53,6 +55,26 @@ class _ConversationsPageState extends State<ConversationsPage> {
         _loading = false;
       });
     }
+  }
+
+  @override
+  Future<void> rechargerEnSilence() async {
+    try {
+      final messages = await _service.fetchMessages();
+      final contacts = await _service.fetchContacts();
+      if (!mounted ||
+          (messages.estDemonstration && !_messagesDemo) ||
+          (contacts.estDemonstration && !_contactsDemo)) {
+        return;
+      }
+      setState(() {
+        _messages = messages.donnees;
+        _contacts = contacts.donnees;
+        _messagesDemo = messages.estDemonstration;
+        _contactsDemo = contacts.estDemonstration;
+        _erreurChargement = null;
+      });
+    } catch (_) {}
   }
 
   Future<void> _openContactPicker() async {
@@ -179,6 +201,8 @@ class _ConversationsPageState extends State<ConversationsPage> {
               estDemonstration: _estDemonstration,
               erreur: _erreurChargement,
               onReessayer: _loadData,
+              onRefresh: rechargerEnSilence,
+              couleurRafraichissement: kGreen,
               child: Column(
                 children: [
                   Container(
@@ -214,8 +238,18 @@ class _ConversationsPageState extends State<ConversationsPage> {
                   ),
                   Expanded(
                     child: conversations.isEmpty
-                        ? const _EmptyConversations()
+                        ? ListView(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            children: [
+                              SizedBox(
+                                height:
+                                    MediaQuery.of(context).size.height * 0.5,
+                                child: const _EmptyConversations(),
+                              ),
+                            ],
+                          )
                         : ListView.separated(
+                            physics: const AlwaysScrollableScrollPhysics(),
                             padding: const EdgeInsets.fromLTRB(12, 4, 12, 16),
                             itemCount: conversations.length,
                             separatorBuilder: (_, __) => Divider(

@@ -5,6 +5,7 @@
 import 'package:flutter/material.dart';
 import 'package:project3/core/theme/app_colors.dart';
 import 'package:project3/core/utils/date_utils.dart';
+import 'package:project3/core/utils/rafraichissement_periodique.dart';
 import 'package:project3/core/widgets/bandeau_demonstration.dart';
 import 'package:project3/core/widgets/messagerie/conversations_page.dart';
 import 'models/sample_status.dart';
@@ -81,7 +82,7 @@ class AnalyseOrganoleptiqueCeoPage extends StatefulWidget {
 
 class _AnalyseOrganoleptiqueCeoPageState
     extends State<AnalyseOrganoleptiqueCeoPage>
-    with CeoNavMixin {
+    with CeoNavMixin, RafraichissementPeriodique {
   final Set<String> _expandedPanel = {};
   final Set<String> _urgentSent = {};
 
@@ -122,6 +123,23 @@ class _AnalyseOrganoleptiqueCeoPageState
         _chargement = false;
       });
     }
+  }
+
+  @override
+  Future<void> rechargerEnSilence() async {
+    try {
+      final resultat = await _service.fetchCeoViews(
+        () => List.of(mockEchantillonsOrganoleptique),
+      );
+      if (!mounted || (resultat.estDemonstration && !_estDemonstration)) {
+        return;
+      }
+      setState(() {
+        _allEchantillons = resultat.donnees;
+        _estDemonstration = resultat.estDemonstration;
+        _erreurChargement = null;
+      });
+    } catch (_) {}
   }
 
   @override
@@ -585,6 +603,8 @@ class _AnalyseOrganoleptiqueCeoPageState
               estDemonstration: _estDemonstration,
               erreur: _erreurChargement,
               onReessayer: _loadEchantillons,
+              onRefresh: rechargerEnSilence,
+              couleurRafraichissement: kGreen,
               child: Column(
                 children: [
                   // ── Unified header zone ──────────────────────────────────────
@@ -674,8 +694,14 @@ class _AnalyseOrganoleptiqueCeoPageState
                   // List
                   Expanded(
                     child: echantillons.isEmpty
-                        ? Center(
-                            child: Column(
+                        ? ListView(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            children: [
+                              SizedBox(
+                                height:
+                                    MediaQuery.of(context).size.height * 0.5,
+                                child: Center(
+                                  child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Icon(
@@ -692,9 +718,13 @@ class _AnalyseOrganoleptiqueCeoPageState
                                   ),
                                 ),
                               ],
-                            ),
+                                  ),
+                                ),
+                              ),
+                            ],
                           )
                         : ListView.builder(
+                            physics: const AlwaysScrollableScrollPhysics(),
                             padding: const EdgeInsets.fromLTRB(14, 14, 14, 30),
                             itemCount: echantillons.length,
                             itemBuilder: (_, i) {

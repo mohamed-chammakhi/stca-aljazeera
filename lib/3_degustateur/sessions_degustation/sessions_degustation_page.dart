@@ -38,6 +38,7 @@ import '../analyse_labo/analyse_laboratoire_page.dart';
 import '../../../core/widgets/statut_chip.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/date_utils.dart';
+import '../../../core/utils/rafraichissement_periodique.dart';
 import '../widgets/degustateur_nav_mixin.dart';
 
 class SessionsDegustationPage extends StatefulWidget {
@@ -49,7 +50,7 @@ class SessionsDegustationPage extends StatefulWidget {
 }
 
 class _SessionsDegustationPageState extends State<SessionsDegustationPage>
-    with DegustateurNavMixin {
+    with DegustateurNavMixin, RafraichissementPeriodique {
   final _service = SessionsService();
 
   // ───────────────────────────────────────────────────────────────────────────
@@ -85,6 +86,21 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage>
     } catch (erreur) {
       if (mounted) setState(() => _erreurChargement = erreur);
     }
+  }
+
+  @override
+  Future<void> rechargerEnSilence() async {
+    try {
+      final resultat = await _service.fetchSessions();
+      if (!mounted || (resultat.estDemonstration && !_estDemonstration)) {
+        return;
+      }
+      setState(() {
+        _sessions = List.from(resultat.donnees);
+        _estDemonstration = resultat.estDemonstration;
+        _erreurChargement = null;
+      });
+    } catch (_) {}
   }
 
   // ───────────────────────────────────────────────────────────────────────────
@@ -341,6 +357,8 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage>
         estDemonstration: _estDemonstration,
         erreur: _erreurChargement,
         onReessayer: _loadData,
+        onRefresh: _loadData,
+        couleurRafraichissement: kGreen,
         child: Column(
           children: [
             // ── UNIFIED HEADER ZONE ─────────────────────────────────────────
@@ -473,8 +491,13 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage>
             // ── LIST ─────────────────────────────────────────────────────────
             Expanded(
               child: items.isEmpty
-                  ? Center(
-                      child: Column(
+                  ? ListView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      children: [
+                        SizedBox(
+                          height: MediaQuery.of(context).size.height * 0.5,
+                          child: Center(
+                            child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(
@@ -491,11 +514,15 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage>
                             ),
                           ),
                         ],
-                      ),
+                            ),
+                          ),
+                        ),
+                      ],
                     )
                   : Scrollbar(
                       thumbVisibility: true,
                       child: ListView.builder(
+                        physics: const AlwaysScrollableScrollPhysics(),
                         padding: const EdgeInsets.fromLTRB(16, 10, 16, 100),
                         itemCount: items.length,
                         itemBuilder: (context, i) {
