@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../services/messagerie_service.dart';
+import '../../utils/rafraichissement_periodique.dart';
 
 class MessagerieBadge extends StatefulWidget {
   const MessagerieBadge({super.key});
@@ -9,7 +10,8 @@ class MessagerieBadge extends StatefulWidget {
   State<MessagerieBadge> createState() => _MessagerieBadgeState();
 }
 
-class _MessagerieBadgeState extends State<MessagerieBadge> {
+class _MessagerieBadgeState extends State<MessagerieBadge>
+    with RafraichissementPeriodique {
   int _count = 0;
 
   @override
@@ -19,10 +21,15 @@ class _MessagerieBadgeState extends State<MessagerieBadge> {
   }
 
   Future<void> _load() async {
-    final count = await MessagerieService.instance.fetchUnreadCount();
-    if (!mounted) return;
-    setState(() => _count = count);
+    try {
+      final count = await MessagerieService.instance.fetchUnreadCount();
+      if (!mounted) return;
+      setState(() => _count = count);
+    } catch (_) {}
   }
+
+  @override
+  Future<void> rechargerEnSilence() => _load();
 
   @override
   Widget build(BuildContext context) {
