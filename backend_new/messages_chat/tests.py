@@ -37,6 +37,13 @@ class MessageApiTests(APITestCase):
             prenom='User',
             role=User.Role.CHEF_DEGUSTATION,
         )
+        self.other_chef = User.objects.create_user(
+            email='other.chef.messages@example.com',
+            password='Test@12345',
+            nom='OtherChef',
+            prenom='User',
+            role=User.Role.CHEF_DEGUSTATION,
+        )
         self.other = User.objects.create_user(
             email='other.messages@example.com',
             password='Test@12345',
@@ -48,6 +55,13 @@ class MessageApiTests(APITestCase):
             email='direction.messages@example.com',
             password='Test@12345',
             nom='Direction',
+            prenom='User',
+            role=User.Role.DIRECTION,
+        )
+        self.other_direction = User.objects.create_user(
+            email='other.direction.messages@example.com',
+            password='Test@12345',
+            nom='OtherDirection',
             prenom='User',
             role=User.Role.DIRECTION,
         )
@@ -313,12 +327,28 @@ class MessageApiTests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
+    def test_chef_cannot_send_message_to_self(self):
+        self.authenticate(self.recipient)
+
+        response = self.client.post(
+            '/api/messages/',
+            {
+                'destinataire': str(self.recipient.id),
+                'contenu': 'Moi-meme',
+            },
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
     def test_allowed_contact_matrix_can_send_messages(self):
         scenarios = [
             (self.sender, self.recipient),
             (self.sender, self.direction),
             (self.recipient, self.sender),
             (self.recipient, self.direction),
+            (self.recipient, self.other_chef),
+            (self.other_chef, self.recipient),
             (self.direction, self.sender),
             (self.direction, self.recipient),
         ]
@@ -382,9 +412,13 @@ class MessageApiTests(APITestCase):
         response = self.client.get('/api/messages/contacts/')
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        ids = [item['id'] for item in response.json()]
-        self.assertEqual(ids, [str(self.direction.id), str(self.recipient.id)])
+        ids = {item['id'] for item in response.json()}
+        self.assertIn(str(self.direction.id), ids)
+        self.assertIn(str(self.other_direction.id), ids)
+        self.assertIn(str(self.recipient.id), ids)
+        self.assertIn(str(self.other_chef.id), ids)
         self.assertNotIn(str(self.other.id), ids)
+        self.assertNotIn(str(self.sender.id), ids)
         self.assertNotIn(str(inactive_direction.id), ids)
         self.assertEqual(set(response.json()[0].keys()), {'id', 'nom', 'prenom', 'role'})
 
@@ -393,6 +427,35 @@ class MessageApiTests(APITestCase):
 
         self.assertEqual(empty_response.status_code, status.HTTP_200_OK)
         self.assertEqual(empty_response.json(), [])
+
+    def test_contacts_list_for_chef_includes_other_chefs_but_not_self(self):
+        self.authenticate(self.recipient)
+
+        response = self.client.get('/api/messages/contacts/')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        ids = {item['id'] for item in response.json()}
+        self.assertIn(str(self.sender.id), ids)
+        self.assertIn(str(self.direction.id), ids)
+        self.assertIn(str(self.other_direction.id), ids)
+        self.assertIn(str(self.other_chef.id), ids)
+        self.assertNotIn(str(self.recipient.id), ids)
+        self.assertNotIn(str(self.degustateur.id), ids)
+        self.assertNotIn(str(self.laboratoire.id), ids)
+
+    def test_contacts_list_for_direction_does_not_include_other_direction(self):
+        self.authenticate(self.direction)
+
+        response = self.client.get('/api/messages/contacts/')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        ids = {item['id'] for item in response.json()}
+        self.assertIn(str(self.sender.id), ids)
+        self.assertIn(str(self.other.id), ids)
+        self.assertIn(str(self.recipient.id), ids)
+        self.assertIn(str(self.other_chef.id), ids)
+        self.assertNotIn(str(self.direction.id), ids)
+        self.assertNotIn(str(self.other_direction.id), ids)
 
     def test_unread_count_only_counts_unread_received_messages(self):
         Message.objects.create(

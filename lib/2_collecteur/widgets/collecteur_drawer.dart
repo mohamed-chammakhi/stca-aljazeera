@@ -95,7 +95,7 @@ class CollecteurDrawer extends StatelessWidget {
                   ),
                   _DrawerItem(
                     icon: Icons.chat_bubble_outline,
-                    label: 'Messagerie Direction',
+                    label: 'Messagerie',
                     trailing: const MessagerieBadge(),
                     onTap: onMessagerie,
                   ),

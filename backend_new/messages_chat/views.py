@@ -118,7 +118,7 @@ class MessageContactsView(generics.ListAPIView):
         return User.objects.filter(
             is_active=True,
             role__in=roles_autorises,
-        ).order_by('nom', 'prenom')
+        ).exclude(id=self.request.user.id).order_by('nom', 'prenom')
 
 
 class MessageUnreadCountView(APIView):
