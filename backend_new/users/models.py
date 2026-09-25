@@ -1,5 +1,6 @@
 import uuid
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
+from django.contrib.auth.hashers import check_password, make_password
 from django.db import models
 from django.utils import timezone
 
@@ -43,3 +44,33 @@ class User(AbstractBaseUser, PermissionsMixin):
     REQUIRED_FIELDS = ['nom', 'prenom', 'role']
 
     objects = UserManager()
+
+
+class CodeReinitialisation(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    utilisateur = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='codes_reinitialisation',
+    )
+    empreinte_code = models.CharField(max_length=128)
+    cree_le = models.DateTimeField(default=timezone.now)
+    expire_le = models.DateTimeField()
+    nombre_essais = models.PositiveSmallIntegerField(default=0)
+    utilise = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ['-cree_le']
+        indexes = [
+            models.Index(fields=['utilisateur', 'utilise', 'expire_le']),
+        ]
+
+    def set_code(self, code):
+        self.empreinte_code = make_password(code)
+
+    def check_code(self, code):
+        return check_password(code, self.empreinte_code)
+
+    @property
+    def est_expire_ou_epuise(self):
+        return self.utilise or self.expire_le <= timezone.now() or self.nombre_essais >= 4

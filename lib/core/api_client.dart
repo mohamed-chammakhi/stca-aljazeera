@@ -293,6 +293,19 @@ class ApiClient {
     return jsonDecode(response.body) as Map<String, dynamic>;
   }
 
+  Future<Map<String, dynamic>> postPublic(
+    String path,
+    Map<String, dynamic> body,
+  ) async {
+    final response = await _http.post(
+      _uri(path),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(body),
+    );
+    _assertSuccess(response);
+    return jsonDecode(response.body) as Map<String, dynamic>;
+  }
+
   // POST (multipart) — upload a file plus optional text fields.
   //
   // Used by sample creation when a bottle photo is attached.

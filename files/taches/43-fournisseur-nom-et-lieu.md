@@ -22,6 +22,10 @@ Un fournisseur, c'est **un nom + un lieu (gouvernorat + délégation)**.
 - Si, après avoir choisi « hami — Gabès », la personne change le gouvernorat ou la
   délégation, ce n'est **plus** le même fournisseur : à l'enregistrement, le serveur crée
   (ou retrouve) le fournisseur « hami » avec le **nouveau** lieu.
+- Deux fournisseurs différents avec le **même nom au même lieu** (même gouvernorat et même
+  délégation) : décision de la propriétaire (25/09/2026) — c'est au collecteur de préciser
+  le nom (« hami ben salah », « hami (fils) »). Pas de champ téléphone, pas d'autre
+  critère : même nom + même lieu = même fournisseur.
 - Pas de fenêtre de confirmation (la fenêtre « fournisseurs proches » a été supprimée en
   tâche 39 et ne revient pas).
 

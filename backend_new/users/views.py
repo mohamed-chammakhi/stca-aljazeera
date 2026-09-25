@@ -1,3 +1,13 @@
+import logging
+import secrets
+from datetime import timedelta
+
+from django.core import signing
+from django.core.cache import cache
+from django.core.mail import send_mail
+from django.db.models import F
+from django.conf import settings
+from django.utils import timezone
 from rest_framework import generics, status
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -6,10 +16,13 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
-from .models import User
+from .models import CodeReinitialisation, User
 from .permissions import IsChefDegustation, IsDirection
 from .serializers import (
     ChangePasswordSerializer,
+    ForgotPasswordNewPasswordSerializer,
+    ForgotPasswordRequestSerializer,
+    ForgotPasswordVerifySerializer,
     LoginSerializer,
     PanelMemberSerializer,
     UserAdminUpdateSerializer,
@@ -19,11 +32,163 @@ from .serializers import (
 )
 
 
+logger = logging.getLogger(__name__)
+FORGOT_PASSWORD_RESPONSE = 'Si un compte existe, un code a été envoyé.'
+FORGOT_PASSWORD_SALT = 'users.mot_de_passe_oublie'
+
+
 # POST /api/auth/login/
 # Returns access + refresh JWT tokens plus the current user profile.
 class LoginView(TokenObtainPairView):
     serializer_class = LoginSerializer
     permission_classes = [AllowAny]
+
+
+class ForgotPasswordRequestView(APIView):
+    permission_classes = [AllowAny]
+    authentication_classes = []
+
+    def post(self, request):
+        serializer = ForgotPasswordRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        email = User.objects.normalize_email(serializer.validated_data['email'])
+        cache_key = f'forgot_password_requests:{email.lower()}'
+        demandes = cache.get(cache_key, 0)
+        if demandes >= 3:
+            return Response({'detail': FORGOT_PASSWORD_RESPONSE}, status=status.HTTP_200_OK)
+        cache.set(cache_key, demandes + 1, timeout=3600)
+
+        user = User.objects.filter(email__iexact=email, is_active=True).first()
+        if user is not None:
+            CodeReinitialisation.objects.filter(
+                utilisateur=user,
+                utilise=False,
+            ).update(utilise=True)
+            code = f'{secrets.randbelow(1000000):06d}'
+            reset_code = CodeReinitialisation(
+                utilisateur=user,
+                expire_le=timezone.now() + timedelta(minutes=15),
+            )
+            reset_code.set_code(code)
+            reset_code.save()
+            # Same answer whether or not the mail leaves: a crash here would
+            # reveal which emails have an account.
+            try:
+                send_mail(
+                    'Votre code Al Jazeera STCA',
+                    (
+                        f'Votre code de réinitialisation est : {code}\n\n'
+                        'Il est valable 15 minutes.\n'
+                        "Si vous n'avez rien demandé, ignorez ce message."
+                    ),
+                    settings.DEFAULT_FROM_EMAIL,
+                    [user.email],
+                    fail_silently=False,
+                )
+            except Exception:
+                logger.exception('Envoi du code de réinitialisation impossible')
+
+        return Response({'detail': FORGOT_PASSWORD_RESPONSE}, status=status.HTTP_200_OK)
+
+
+class ForgotPasswordVerifyView(APIView):
+    permission_classes = [AllowAny]
+    authentication_classes = []
+
+    def post(self, request):
+        serializer = ForgotPasswordVerifySerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        email = User.objects.normalize_email(serializer.validated_data['email'])
+        code = serializer.validated_data['code']
+        reset_code = CodeReinitialisation.objects.filter(
+            utilisateur__email__iexact=email,
+            utilisateur__is_active=True,
+            utilise=False,
+        ).select_related('utilisateur').order_by('-cree_le').first()
+
+        if reset_code is None or reset_code.est_expire_ou_epuise:
+            return Response(
+                {'detail': 'Code expiré ou épuisé. Demandez un nouveau code.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if not reset_code.check_code(code):
+            # Atomic increment: parallel guesses cannot share one attempt.
+            CodeReinitialisation.objects.filter(pk=reset_code.pk).update(
+                nombre_essais=F('nombre_essais') + 1
+            )
+            reset_code.refresh_from_db(fields=['nombre_essais'])
+            if reset_code.est_expire_ou_epuise:
+                return Response(
+                    {'detail': 'Code expiré ou épuisé. Demandez un nouveau code.'},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            essais_restants = 4 - reset_code.nombre_essais
+            return Response(
+                {'detail': f'Code incorrect. Il vous reste {essais_restants} essai(s).'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        jeton = signing.dumps(
+            {'code_id': str(reset_code.id), 'user_id': str(reset_code.utilisateur_id)},
+            salt=FORGOT_PASSWORD_SALT,
+        )
+        return Response({'jeton': jeton}, status=status.HTTP_200_OK)
+
+
+class ForgotPasswordNewPasswordView(APIView):
+    permission_classes = [AllowAny]
+    authentication_classes = []
+
+    def post(self, request):
+        serializer = ForgotPasswordNewPasswordSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        try:
+            payload = signing.loads(
+                serializer.validated_data['jeton'],
+                salt=FORGOT_PASSWORD_SALT,
+                max_age=600,
+            )
+        except signing.BadSignature:
+            return Response(
+                {'detail': 'Jeton expiré ou invalide.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        reset_code = CodeReinitialisation.objects.filter(
+            pk=payload.get('code_id'),
+            utilisateur_id=payload.get('user_id'),
+            utilisateur__is_active=True,
+        ).select_related('utilisateur').first()
+        if reset_code is None or reset_code.est_expire_ou_epuise:
+            return Response(
+                {'detail': 'Code expiré ou épuisé. Demandez un nouveau code.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        user = reset_code.utilisateur
+        user.set_password(serializer.validated_data['nouveau_mot_de_passe'])
+        user.save(update_fields=['password'])
+        reset_code.utilise = True
+        reset_code.save(update_fields=['utilise'])
+        _blacklister_refresh_tokens(user)
+        return Response(
+            {'detail': 'Mot de passe modifié avec succès.'},
+            status=status.HTTP_200_OK,
+        )
+
+
+def _blacklister_refresh_tokens(user):
+    try:
+        from rest_framework_simplejwt.token_blacklist.models import (
+            BlacklistedToken,
+            OutstandingToken,
+        )
+    except ImportError:
+        return
+
+    for token in OutstandingToken.objects.filter(user=user):
+        BlacklistedToken.objects.get_or_create(token=token)
 
 
 # POST /api/auth/logout/

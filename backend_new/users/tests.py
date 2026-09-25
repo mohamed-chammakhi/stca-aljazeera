@@ -1,8 +1,14 @@
+import re
+from datetime import timedelta
+
+from django.core import mail
+from django.core.cache import cache
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APITestCase
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from .models import User
+from .models import CodeReinitialisation, User
 
 
 class CurrentUserProfileApiTests(APITestCase):
@@ -181,6 +187,176 @@ class ChangePasswordApiTests(APITestCase):
             response.data['detail'],
             "Le nouveau mot de passe doit être différent de l'ancien.",
         )
+
+
+class ForgotPasswordApiTests(APITestCase):
+    def setUp(self):
+        cache.clear()
+        self.user = User.objects.create_user(
+            email='reset@stca.tn',
+            password='Ancien@123',
+            nom='Reset',
+            prenom='Compte',
+            role=User.Role.COLLECTEUR,
+        )
+
+    def test_unknown_email_returns_same_response_and_sends_no_email(self):
+        response = self.client.post(
+            '/api/auth/mot-de-passe-oublie/',
+            {'email': 'inconnu@stca.tn'},
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            response.data['detail'],
+            'Si un compte existe, un code a été envoyé.',
+        )
+        self.assertEqual(len(mail.outbox), 0)
+
+    def test_known_email_sends_code_without_storing_plain_value(self):
+        response = self.client.post(
+            '/api/auth/mot-de-passe-oublie/',
+            {'email': self.user.email},
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(mail.outbox), 1)
+        code = self._code_from_email()
+        reset_code = CodeReinitialisation.objects.get(utilisateur=self.user)
+        self.assertNotEqual(reset_code.empreinte_code, code)
+        self.assertTrue(reset_code.check_code(code))
+
+    def test_good_code_returns_short_token(self):
+        code = self._request_code()
+
+        response = self.client.post(
+            '/api/auth/mot-de-passe-oublie/verifier/',
+            {'email': self.user.email, 'code': code},
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn('jeton', response.data)
+
+    def test_four_wrong_attempts_exhaust_code_even_with_good_code(self):
+        code = self._request_code()
+
+        for _ in range(4):
+            response = self.client.post(
+                '/api/auth/mot-de-passe-oublie/verifier/',
+                {'email': self.user.email, 'code': '000000'},
+                format='json',
+            )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.data['detail'],
+            'Code expiré ou épuisé. Demandez un nouveau code.',
+        )
+
+        good_response = self.client.post(
+            '/api/auth/mot-de-passe-oublie/verifier/',
+            {'email': self.user.email, 'code': code},
+            format='json',
+        )
+        self.assertEqual(good_response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            good_response.data['detail'],
+            'Code expiré ou épuisé. Demandez un nouveau code.',
+        )
+
+    def test_expired_code_is_rejected(self):
+        code = self._request_code()
+        reset_code = CodeReinitialisation.objects.get(utilisateur=self.user)
+        reset_code.expire_le = timezone.now() - timedelta(minutes=1)
+        reset_code.save(update_fields=['expire_le'])
+
+        response = self.client.post(
+            '/api/auth/mot-de-passe-oublie/verifier/',
+            {'email': self.user.email, 'code': code},
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.data['detail'],
+            'Code expiré ou épuisé. Demandez un nouveau code.',
+        )
+
+    def test_weak_new_password_is_rejected(self):
+        code = self._request_code()
+        token = self._verify_code(code)
+
+        response = self.client.post(
+            '/api/auth/mot-de-passe-oublie/nouveau/',
+            {'jeton': token, 'nouveau_mot_de_passe': 'Nouveau1'},
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('nouveau_mot_de_passe', response.data)
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.check_password('Ancien@123'))
+
+    def test_password_changed_allows_login_with_new_password(self):
+        code = self._request_code()
+        token = self._verify_code(code)
+
+        response = self.client.post(
+            '/api/auth/mot-de-passe-oublie/nouveau/',
+            {'jeton': token, 'nouveau_mot_de_passe': 'Nouveau@456'},
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.check_password('Nouveau@456'))
+
+        login_response = self.client.post(
+            '/api/auth/login/',
+            {'email': self.user.email, 'password': 'Nouveau@456'},
+            format='json',
+        )
+        self.assertEqual(login_response.status_code, status.HTTP_200_OK)
+        self.assertIn('access', login_response.data)
+
+    def test_rate_limit_keeps_same_response_after_three_requests(self):
+        for _ in range(4):
+            response = self.client.post(
+                '/api/auth/mot-de-passe-oublie/',
+                {'email': self.user.email},
+                format='json',
+            )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            response.data['detail'],
+            'Si un compte existe, un code a été envoyé.',
+        )
+        self.assertEqual(len(mail.outbox), 3)
+
+    def _request_code(self):
+        self.client.post(
+            '/api/auth/mot-de-passe-oublie/',
+            {'email': self.user.email},
+            format='json',
+        )
+        return self._code_from_email()
+
+    def _verify_code(self, code):
+        response = self.client.post(
+            '/api/auth/mot-de-passe-oublie/verifier/',
+            {'email': self.user.email, 'code': code},
+            format='json',
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        return response.data['jeton']
+
+    def _code_from_email(self):
+        match = re.search(r'\b(\d{6})\b', mail.outbox[-1].body)
+        self.assertIsNotNone(match)
+        return match.group(1)
 
 
 class PanelMemberApiTests(APITestCase):

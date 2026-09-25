@@ -121,6 +121,26 @@ class ChangePasswordSerializer(serializers.Serializer):
             )
         return value
 
+
+class ForgotPasswordRequestSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+
+class ForgotPasswordVerifySerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    code = serializers.RegexField(
+        regex=r'^\d{6}$',
+        error_messages={'invalid': 'Le code doit contenir 6 chiffres.'},
+    )
+
+
+class ForgotPasswordNewPasswordSerializer(serializers.Serializer):
+    jeton = serializers.CharField()
+    nouveau_mot_de_passe = serializers.CharField(write_only=True, trim_whitespace=False)
+
+    def validate_nouveau_mot_de_passe(self, value):
+        return ChangePasswordSerializer().validate_nouveau_mot_de_passe(value)
+
 class LoginSerializer(TokenObtainPairSerializer):
     @classmethod
     def get_token(cls, user):

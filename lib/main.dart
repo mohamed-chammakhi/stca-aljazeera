@@ -6,6 +6,7 @@ import '1_ceo/tableau_de_bord/tableau_de_bord.dart';
 import '4_laboratoire/echantillons_labo/echantillons_labo_page.dart';
 import '5_chef_degustateur/tableau_de_bord/homepage_page.dart' as chef;
 import 'core/api_client.dart';
+import 'core/auth/mot_de_passe_oublie_page.dart';
 import 'core/models/enums.dart';
 import 'core/password_validation.dart';
 import 'core/services/auth_service.dart';
@@ -227,18 +228,18 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  // Le backend ne propose pas encore de réinitialisation autonome.
-  void _forgotPassword() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text(
-          'Contactez votre administrateur pour réinitialiser votre mot de passe.',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+  Future<void> _forgotPassword() async {
+    final changed = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(builder: (_) => const MotDePasseOubliePage()),
+    );
+    if (!mounted || changed != true) return;
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const LoginPage(
+          messageInitial: 'Mot de passe modifié. Connectez-vous.',
         ),
-        backgroundColor: oliveGreen,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        margin: const EdgeInsets.all(20),
       ),
     );
   }
@@ -406,7 +407,7 @@ class _LoginPageState extends State<LoginPage> {
                                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                               ),
                               child: const Text(
-                                'Forgotten password?',
+                                'Mot de passe oublié ?',
                                 style: TextStyle(
                                   color: oliveGreen,
                                   fontSize: 13,

@@ -52,6 +52,13 @@ Backend:
 - JWT login is exposed at `POST /api/auth/login/`.
 - JWT refresh is exposed at `POST /api/auth/refresh/`.
 - JWT logout is exposed at `POST /api/auth/logout/`.
+- Forgotten-password reset is exposed through public endpoints:
+  - `POST /api/auth/mot-de-passe-oublie/`
+  - `POST /api/auth/mot-de-passe-oublie/verifier/`
+  - `POST /api/auth/mot-de-passe-oublie/nouveau/`
+- Reset codes are stored hashed in `users.CodeReinitialisation`, expire after
+  15 minutes, allow at most 4 attempts, and are consumed when the password is
+  changed.
 - Current user profile is exposed at `GET /api/users/me/`.
 - Login JWT payload includes `role`, `nom`, `prenom`, and `email`.
 - Login response includes `access`, `refresh`, and `user`.

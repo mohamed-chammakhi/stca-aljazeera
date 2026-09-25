@@ -67,3 +67,69 @@ Ton sandbox ne peut pas lancer Flutter : n'essaie pas. Claude lancera les tests 
 Django, et appliquera la migration.
 
 ## RAPPORT
+
+### Fait
+
+- `backend_new/users/models.py` : ajoute la table `CodeReinitialisation`, avec code stocké en empreinte, expiration à 15 minutes, compteur de 4 essais et indicateur d'utilisation.
+- `backend_new/users/migrations/0005_codereinitialisation.py` : crée la table des codes de réinitialisation.
+- `backend_new/users/serializers.py` : ajoute les validateurs des trois étapes de réinitialisation et réutilise la validation existante du nouveau mot de passe.
+- `backend_new/users/views.py` : ajoute l'envoi du code par email, la vérification du code, le jeton signé de 10 minutes, le changement de mot de passe et le blacklistage des refresh tokens existants.
+- `backend_new/aljazeera_stca/urls.py` : expose les trois routes publiques `/api/auth/mot-de-passe-oublie/`, `/verifier/` et `/nouveau/`.
+- `backend_new/aljazeera_stca/settings.py` : ajoute la configuration email par variables d'environnement, avec backend console par défaut.
+- `backend_new/users/tests.py` : couvre email inconnu, stockage non clair du code, bon code, 4 mauvais essais, code expiré, mot de passe faible et connexion avec le nouveau mot de passe.
+- `lib/core/api_client.dart` : ajoute `postPublic()` pour appeler les routes utilisables sans connexion.
+- `lib/core/services/mot_de_passe_oublie_service.dart` : ajoute le service Flutter pour demander le code, le vérifier et enregistrer le nouveau mot de passe.
+- `lib/core/auth/mot_de_passe_oublie_page.dart` : ajoute l'écran en trois étapes email, code, nouveau mot de passe, avec erreurs en `AlertDialog`.
+- `lib/main.dart` : remplace le snackbar par le lien `Mot de passe oublié ?` qui ouvre le nouvel écran et revient à la connexion avec `messageInitial`.
+- `test/mot_de_passe_oublie_page_test.dart` : ajoute un test widget de l'enchaînement complet avec faux `ApiClient`.
+- `files/mapbackend.md` : documente le nouveau checkpoint backend d'authentification.
+
+### Vérifié
+
+```bash
+cd backend_new
+$env:DEBUG='True'; $env:DB_ENGINE='sqlite'; .\venv\Scripts\python.exe manage.py makemigrations users
+```
+
+Sortie brute :
+
+```text
+Migrations for 'users':
+  users\migrations\0005_codereinitialisation.py
+    + Create model CodeReinitialisation
+```
+
+```bash
+cd backend_new
+$env:DEBUG='True'; $env:DB_ENGINE='sqlite'; .\venv\Scripts\python.exe manage.py test users -v 2
+```
+
+Sortie chiffrée :
+
+```text
+Found 33 test(s).
+Ran 33 tests in 63.098s
+OK
+```
+
+```bash
+cd backend_new
+$env:DEBUG='True'; $env:DB_ENGINE='sqlite'; .\venv\Scripts\python.exe manage.py makemigrations --check --dry-run
+```
+
+Sortie brute :
+
+```text
+No changes detected
+```
+
+Je n'ai pas lancé `flutter analyze lib test` ni `flutter test` : la tâche précise que le sandbox ne peut pas lancer Flutter et demande de ne pas essayer.
+
+### Non fait
+
+- Migration non appliquée en base : la consigne indique que Claude l'appliquera.
+- Tests Flutter non exécutés : interdits par la section `Vérification attendue` de cette tâche.
+
+### HORS PÉRIMÈTRE
+
+- L'arbre contenait déjà des fichiers non liés avant cette tâche, notamment `files/taches/43-fournisseur-nom-et-lieu.md`, des fichiers `files/taches/codex_*.txt`, `backend_new/backup_propre.json`, `backend_new/sauvegarde_avant_nettoyage_2026-09-25.json` et `backend_new/media/`. Je n'y ai pas touché.
