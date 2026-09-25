@@ -503,7 +503,7 @@ class _EvaluationEchantillonsPageState extends State<EvaluationEchantillonsPage>
                       children: [
                         SizedBox(
                           height: MediaQuery.of(context).size.height * 0.5,
-                          child: const EmptyState(),
+                          child: EmptyState(systemeNeuf: _echantillons.isEmpty),
                         ),
                       ],
                     )

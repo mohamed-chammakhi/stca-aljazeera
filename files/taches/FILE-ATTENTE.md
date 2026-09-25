@@ -15,6 +15,10 @@ Claude tient cette liste à jour. Codex ne travaille que sur la tâche marquée 
 | 4 | Écran rouge en cherchant par date (collecteur, « Jour exact ») | Claude | Terminée et commitée |
 | 5 | Tâche 37 : les formulaires ne se ferment plus en touchant à côté | Codex | Terminée et commitée |
 | 6 | Rester connecté : 8 h sans utilisation, puis reconnexion | Claude | Terminée et commitée |
+| 7 | Tâche 38 : suggestions fournisseur / variété visibles + ordre réf, citerne, quantité, variété | Codex | Terminée et commitée |
+| 8 | Suppression des données d'essai de la base (4 fournisseurs, 5 échantillons) — sauvegarde : `backend_new/sauvegarde_avant_nettoyage_2026-09-25.json` | Claude | Terminée |
+| 9 | Tâche 39 : plus de fenêtre « fournisseurs proches », référence avec le nom, fenêtre « ancienne / nouvelle référence » en modification | Codex | Terminée et commitée |
+| 10 | Message « Impossible de charger les données » remplacé : cause claire (session, serveur) ; liste vide = « le système est tout neuf » | Claude | Terminée et commitée |
 
 **Accord git (25/09/2026) :** la propriétaire a donné son accord pour commiter les
 lignes 1 à 6 en une seule fois, quand la tâche 37 est finie et que `flutter analyze` +

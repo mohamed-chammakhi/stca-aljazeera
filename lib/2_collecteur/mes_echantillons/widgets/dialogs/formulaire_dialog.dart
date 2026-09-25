@@ -15,7 +15,7 @@ import '../../../../core/services/fournisseur_service.dart';
 import '../../../../core/services/variete_service.dart';
 import '../../../../core/utils/reference_bouteille.dart';
 import '../../../../core/widgets/champ_autocomplete.dart';
-import '../../../../core/widgets/dialog_doublon_fournisseur.dart';
+import '../../../../core/widgets/dialog_reference_bouteille.dart';
 import '../../../../core/widgets/photo_plein_ecran.dart';
 import '../../../../core/widgets/saisie_protegee.dart';
 import '../../../../2_collecteur/carte_geo/services/geo_service.dart';
@@ -228,10 +228,9 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
   DateTime? get _livDate =>
       _livMode == ModePlanificationUI.dateExacte ? _livExacte : _livDebut;
 
-  String get _fournisseurPourReference {
-    final code = _fournisseurChoisi?.codeFournisseur.trim() ?? '';
-    return code.isNotEmpty ? code : _codeFournisseurCtrl.text;
-  }
+  String get _fournisseurPourReference => fournisseurPourReferenceBouteille(
+    texteChampFournisseur: _codeFournisseurCtrl.text,
+  );
 
   void _actualiserReference(BouteilleRow row) {
     final nouvelleReference = construireReferenceBouteille(
@@ -294,36 +293,28 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
     return error.toString();
   }
 
-  /// Keeps duplicate detection at save time without creating the supplier in a
-  /// separate request. The sample endpoint resolves the final typed name.
-  Future<void> _verifierFournisseur() async {
-    final saisi = _codeFournisseurCtrl.text.trim();
-    if (saisi.isEmpty) return;
+  Future<void> _confirmerReferenceSiRecalculee(BouteilleRow row) async {
+    final e = widget.echantillon;
+    if (e == null) return;
 
-    // Picked from the suggestions and left untouched since: already a known
-    // entry, nothing to ask.
-    if (_fournisseurChoisi != null && _fournisseurChoisi!.nom.trim() == saisi) {
-      return;
-    }
+    final decision = referenceRecalculeeAConfirmer(
+      estModification: true,
+      ancienneReference: e.referenceBouteille,
+      referenceActuelle: row.refCtrl.text,
+      fournisseur: _fournisseurPourReference,
+      numeroCiterne: row.numCiterneCtrl.text,
+      quantite: row.qteCtrl.text,
+    );
+    if (decision == null) return;
 
-    final resultatProches = await FournisseurService.instance
-        .findNearDuplicates(saisi);
-    if (resultatProches.estDemonstration) {
-      return;
-    }
-    final proches = resultatProches.donnees;
-    if (proches.isNotEmpty && mounted) {
-      final choisi = await DialogDoublonFournisseur.afficher(
-        context,
-        nomSaisi: saisi,
-        proches: proches,
-      );
-      if (choisi != null) {
-        _codeFournisseurCtrl.text = choisi.nom;
-        _fournisseurChoisi = choisi;
-        _actualiserToutesLesReferences();
-        return;
-      }
+    final choix = await demanderChoixReferenceBouteilleRecalculee(
+      context,
+      ancienneReference: decision.ancienneReference,
+      nouvelleReference: decision.nouvelleReference,
+      couleurPrincipale: kGreen,
+    );
+    if (choix == ChoixReferenceBouteille.garderAncienne) {
+      row.refCtrl.text = decision.ancienneReference;
     }
   }
 
@@ -348,11 +339,6 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
     }
 
     try {
-      // Checked before closing: it may need to ask the collector a question,
-      // and a dialog cannot open on a form that is already gone.
-      await _verifierFournisseur();
-      if (!mounted) return;
-
       final gouvernorat = _gouvernorat ?? '';
       final collecteur = _collecteurCtrl.text.trim().isEmpty
           ? null
@@ -365,6 +351,8 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
       if (_isModification) {
         final e = widget.echantillon!;
         final b = _bouteilles.first;
+        await _confirmerReferenceSiRecalculee(b);
+        if (!mounted) return;
         e.referenceBouteille = b.refCtrl.text.trim();
         e.variete = b.varieteCtrl.text.trim().isEmpty
             ? null
@@ -983,21 +971,6 @@ class _BouteilleCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    ChampAutocomplete<String>(
-                      label: "Variété d'olive",
-                      controller: row.varieteCtrl,
-                      hint: 'Chemlali, Chetoui...',
-                      chercher: VarieteService.instance.suggest,
-                      libelle: (v) => v,
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
                     _InlineLabel(label: 'N° citerne'),
                     const SizedBox(height: 5),
                     TextField(
@@ -1009,21 +982,38 @@ class _BouteilleCard extends StatelessWidget {
                   ],
                 ),
               ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _InlineLabel(label: 'Quantité estimée'),
+                    const SizedBox(height: 5),
+                    TextField(
+                      controller: row.qteCtrl,
+                      onChanged: (_) => onDonneesReferenceChangees(),
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(RegExp(r'[\d.,]')),
+                      ],
+                      style: const TextStyle(fontSize: 13, color: kDarkText),
+                      decoration: _fieldDec('Ex: 5000', suffixText: 'T'),
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 8),
 
-          _InlineLabel(label: 'Quantité estimée'),
-          const SizedBox(height: 5),
-          TextField(
-            controller: row.qteCtrl,
-            onChanged: (_) => onDonneesReferenceChangees(),
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            inputFormatters: [
-              FilteringTextInputFormatter.allow(RegExp(r'[\d.,]')),
-            ],
-            style: const TextStyle(fontSize: 13, color: kDarkText),
-            decoration: _fieldDec('Ex: 5000', suffixText: 'T'),
+          ChampAutocomplete<String>(
+            label: "Variété d'olive",
+            controller: row.varieteCtrl,
+            hint: 'Chemlali, Chetoui...',
+            chercher: VarieteService.instance.suggest,
+            libelle: (v) => v,
           ),
           const SizedBox(height: 8),
 

@@ -28,6 +28,7 @@ import '../../core/widgets/bandeau_demonstration.dart';
 import '../../core/utils/date_filter_utils.dart';
 import '../../core/utils/rafraichissement_periodique.dart';
 import '../../core/widgets/saisie_protegee.dart';
+import '../../core/widgets/empty_state.dart';
 
 class MesEchantillonsPage extends StatefulWidget {
   const MesEchantillonsPage({super.key, this.referenceInitiale});
@@ -379,160 +380,160 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
               vertical: 24,
             ),
             child: ConstrainedBox(
-            constraints: BoxConstraints(
-              maxHeight: MediaQuery.of(ctx).size.height * 0.85,
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Header
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.fromLTRB(20, 18, 16, 16),
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFE9F4EE),
-                    borderRadius: BorderRadius.vertical(
-                      top: Radius.circular(16),
-                    ),
-                  ),
-                  child: const Row(
-                    children: [
-                      Icon(Icons.schedule_outlined, color: colDark, size: 20),
-                      SizedBox(width: 10),
-                      Expanded(
-                        child: Text(
-                          'Planifier l\'arrivée de l\'échantillon',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                            color: colDark,
-                          ),
-                        ),
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(ctx).size.height * 0.85,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Header
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.fromLTRB(20, 18, 16, 16),
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFE9F4EE),
+                      borderRadius: BorderRadius.vertical(
+                        top: Radius.circular(16),
                       ),
-                    ],
-                  ),
-                ),
-                // Body
-                Flexible(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.all(20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    ),
+                    child: const Row(
                       children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text(
-                              'Arrivée de la bouteille',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                color: colDark,
-                              ),
+                        Icon(Icons.schedule_outlined, color: colDark, size: 20),
+                        SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            'Planifier l\'arrivée de l\'échantillon',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              color: colDark,
                             ),
-                            Switch(
-                              value: active,
-                              onChanged: (_) =>
-                                  setDialogState(() => active = !active),
-                              activeThumbColor: colGreen,
-                            ),
-                          ],
-                        ),
-                        if (active) ...[
-                          const SizedBox(height: 8),
-                          DateLivraisonSection(
-                            mode: mode,
-                            onModeChanged: (m) =>
-                                setDialogState(() => mode = m),
-                            dateExacte: dateExacte,
-                            periodeDebut: periodeDebut,
-                            periodeFin: periodeFin,
-                            onDateExacteChanged: (dt) =>
-                                setDialogState(() => dateExacte = dt),
-                            onPeriodeDebutChanged: (dt) =>
-                                setDialogState(() => periodeDebut = dt),
-                            onPeriodeFinChanged: (dt) =>
-                                setDialogState(() => periodeFin = dt),
                           ),
-                        ],
+                        ),
                       ],
                     ),
                   ),
-                ),
-                // Footer
-                Container(
-                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF9F6EF),
-                    borderRadius: const BorderRadius.vertical(
-                      bottom: Radius.circular(16),
-                    ),
-                    border: Border(
-                      top: BorderSide(color: Colors.grey.shade100),
+                  // Body
+                  Flexible(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                'Arrivée de la bouteille',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: colDark,
+                                ),
+                              ),
+                              Switch(
+                                value: active,
+                                onChanged: (_) =>
+                                    setDialogState(() => active = !active),
+                                activeThumbColor: colGreen,
+                              ),
+                            ],
+                          ),
+                          if (active) ...[
+                            const SizedBox(height: 8),
+                            DateLivraisonSection(
+                              mode: mode,
+                              onModeChanged: (m) =>
+                                  setDialogState(() => mode = m),
+                              dateExacte: dateExacte,
+                              periodeDebut: periodeDebut,
+                              periodeFin: periodeFin,
+                              onDateExacteChanged: (dt) =>
+                                  setDialogState(() => dateExacte = dt),
+                              onPeriodeDebutChanged: (dt) =>
+                                  setDialogState(() => periodeDebut = dt),
+                              onPeriodeFinChanged: (dt) =>
+                                  setDialogState(() => periodeFin = dt),
+                            ),
+                          ],
+                        ],
+                      ),
                     ),
                   ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: () => Navigator.pop(ctx),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: Colors.grey.shade600,
-                            side: BorderSide(color: Colors.grey.shade300),
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                          child: const Text('Annuler'),
-                        ),
+                  // Footer
+                  Container(
+                    padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF9F6EF),
+                      borderRadius: const BorderRadius.vertical(
+                        bottom: Radius.circular(16),
                       ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: () {
-                            Navigator.pop(ctx);
-                            if (!active) {
-                              setState(() => e.dateArriveeEchantillon = null);
-                              _saveEchantillon(e);
-                              return;
-                            }
-                            final dt = mode == ModePlanificationUI.dateExacte
-                                ? dateExacte
-                                : periodeDebut;
-                            if (dt == null) return;
-                            setState(() => e.dateArriveeEchantillon = dt);
-                            _saveEchantillon(
-                              e,
-                              successMessage:
-                                  'Arrivee planifiee pour "${e.referenceBouteille}"',
-                            );
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color.fromARGB(
-                              255,
-                              197,
-                              206,
-                              201,
+                      border: Border(
+                        top: BorderSide(color: Colors.grey.shade100),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () => Navigator.pop(ctx),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: Colors.grey.shade600,
+                              side: BorderSide(color: Colors.grey.shade300),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
                             ),
-                            foregroundColor: colDark,
-                            elevation: 0,
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                          child: const Text(
-                            'Enregistrer',
-                            style: TextStyle(fontWeight: FontWeight.w700),
+                            child: const Text('Annuler'),
                           ),
                         ),
-                      ),
-                    ],
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () {
+                              Navigator.pop(ctx);
+                              if (!active) {
+                                setState(() => e.dateArriveeEchantillon = null);
+                                _saveEchantillon(e);
+                                return;
+                              }
+                              final dt = mode == ModePlanificationUI.dateExacte
+                                  ? dateExacte
+                                  : periodeDebut;
+                              if (dt == null) return;
+                              setState(() => e.dateArriveeEchantillon = dt);
+                              _saveEchantillon(
+                                e,
+                                successMessage:
+                                    'Arrivee planifiee pour "${e.referenceBouteille}"',
+                              );
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color.fromARGB(
+                                255,
+                                197,
+                                206,
+                                201,
+                              ),
+                              foregroundColor: colDark,
+                              elevation: 0,
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                            child: const Text(
+                              'Enregistrer',
+                              style: TextStyle(fontWeight: FontWeight.w700),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
-            ),
+                ],
+              ),
             ),
           ),
         ),
@@ -1049,12 +1050,32 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
                                       ),
                                       const SizedBox(height: 12),
                                       Text(
-                                        'Aucun échantillon trouvé',
+                                        _echantillons.isEmpty
+                                            ? kTitreSystemeNeuf
+                                            : 'Aucun échantillon trouvé',
+                                        textAlign: TextAlign.center,
                                         style: TextStyle(
                                           color: Colors.grey.shade400,
                                           fontSize: 14,
                                         ),
                                       ),
+                                      if (_echantillons.isEmpty)
+                                        Padding(
+                                          padding: const EdgeInsets.fromLTRB(
+                                            32,
+                                            6,
+                                            32,
+                                            0,
+                                          ),
+                                          child: Text(
+                                            kTexteSystemeNeuf,
+                                            textAlign: TextAlign.center,
+                                            style: TextStyle(
+                                              color: Colors.grey.shade400,
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                        ),
                                     ],
                                   ),
                                 ),

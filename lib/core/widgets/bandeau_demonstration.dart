@@ -1,6 +1,24 @@
-import 'package:flutter/material.dart';
+import 'dart:async';
+import 'dart:io';
 
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+
+import '../api_client.dart';
 import '../theme/app_colors.dart';
+
+/// Says in plain words why a screen could not load, instead of a vague error.
+String messagePourErreur(Object? erreur) {
+  if (erreur is ApiException && erreur.statusCode == 401) {
+    return 'Votre session a expiré. Reconnectez-vous.';
+  }
+  if (erreur is SocketException ||
+      erreur is TimeoutException ||
+      erreur is http.ClientException) {
+    return 'Le serveur ne répond pas. Vérifiez la connexion, puis réessayez.';
+  }
+  return 'Un problème est survenu. Réessayez dans un instant.';
+}
 
 class BandeauDemonstration extends StatelessWidget {
   final VoidCallback onReessayer;
@@ -60,7 +78,7 @@ class ErreurChargement extends StatelessWidget {
   const ErreurChargement({
     super.key,
     required this.onReessayer,
-    this.message = 'Impossible de charger les données.',
+    this.message = 'Un problème est survenu. Réessayez dans un instant.',
   });
 
   @override
@@ -120,7 +138,10 @@ class VueResultatService extends StatelessWidget {
             children: [
               SizedBox(
                 height: MediaQuery.of(context).size.height * 0.7,
-                child: ErreurChargement(onReessayer: onReessayer),
+                child: ErreurChargement(
+                  onReessayer: onReessayer,
+                  message: messagePourErreur(erreur),
+                ),
               ),
             ],
           );

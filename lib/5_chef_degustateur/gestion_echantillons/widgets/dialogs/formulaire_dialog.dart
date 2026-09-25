@@ -17,9 +17,10 @@ import '../../../../core/models/enums.dart';
 import '../../../../core/models/fournisseur.dart';
 import '../../../../core/services/fournisseur_service.dart';
 import '../../../../core/services/variete_service.dart';
+import '../../../../core/utils/reference_bouteille.dart';
 import '../../../../core/widgets/champ_autocomplete.dart';
 import '../../../../core/widgets/date_input_field.dart';
-import '../../../../core/widgets/dialog_doublon_fournisseur.dart';
+import '../../../../core/widgets/dialog_reference_bouteille.dart';
 import '../../../../core/widgets/saisie_protegee.dart';
 // TODO(core): move GeoService to lib/core/services/ — cross-module import from 2_collecteur
 import '../../../../2_collecteur/carte_geo/services/geo_service.dart';
@@ -116,7 +117,6 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
   // ── GeoService ────────────────────────────────────────────────────────────
   final GeoService _geo = GeoService.instance;
   bool _geoLoaded = false;
-  Fournisseur? _fournisseurChoisi;
 
   // ── Shared controllers ───────────────────────────────────────────────────
   late final TextEditingController _codeFournisseurCtrl;
@@ -142,7 +142,7 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
     final e = widget.echantillon;
 
     _codeFournisseurCtrl = TextEditingController(
-      text: e?.codeFournisseur ?? '',
+      text: e?.fournisseurNom ?? e?.codeFournisseur ?? '',
     );
     _collecteurCtrl = TextEditingController(text: e?.collecteurNom ?? '');
     _dateAjoutCtrl = TextEditingController(text: e?.dateAjout ?? _todayStr());
@@ -181,7 +181,35 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
         '${n.month.toString().padLeft(2, '0')}/${n.year}';
   }
 
-  void _addRow() => setState(() => _bouteilles.add(_BouteilleRow.empty()));
+  String get _fournisseurPourReference => fournisseurPourReferenceBouteille(
+    texteChampFournisseur: _codeFournisseurCtrl.text,
+  );
+
+  void _actualiserReference(_BouteilleRow row) {
+    final nouvelleReference = construireReferenceBouteille(
+      fournisseur: _fournisseurPourReference,
+      numeroCiterne: row.numCiterneCtrl.text,
+      quantite: row.qteCtrl.text,
+    );
+    if (nouvelleReference == row.refCtrl.text) return;
+
+    row.refCtrl.value = TextEditingValue(
+      text: nouvelleReference,
+      selection: TextSelection.collapsed(offset: nouvelleReference.length),
+    );
+  }
+
+  void _actualiserToutesLesReferences() {
+    for (final row in _bouteilles) {
+      _actualiserReference(row);
+    }
+  }
+
+  void _addRow() => setState(() {
+    final row = _BouteilleRow.empty();
+    _bouteilles.add(row);
+    _actualiserReference(row);
+  });
 
   void _removeRow(int index) {
     setState(() {
@@ -195,29 +223,28 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
     return _bouteilles.every((b) => b.refCtrl.text.trim().isNotEmpty);
   }
 
-  Future<void> _verifierFournisseur() async {
-    final saisi = _codeFournisseurCtrl.text.trim();
-    if (saisi.isEmpty) return;
+  Future<void> _confirmerReferenceSiRecalculee(_BouteilleRow row) async {
+    final e = widget.echantillon;
+    if (e == null) return;
 
-    if (_fournisseurChoisi != null && _fournisseurChoisi!.nom.trim() == saisi) {
-      return;
-    }
+    final decision = referenceRecalculeeAConfirmer(
+      estModification: true,
+      ancienneReference: e.referenceBouteille,
+      referenceActuelle: row.refCtrl.text,
+      fournisseur: _fournisseurPourReference,
+      numeroCiterne: row.numCiterneCtrl.text,
+      quantite: row.qteCtrl.text,
+    );
+    if (decision == null) return;
 
-    final resultatProches = await FournisseurService.instance
-        .findNearDuplicates(saisi);
-    if (resultatProches.estDemonstration) return;
-
-    final proches = resultatProches.donnees;
-    if (proches.isNotEmpty && mounted) {
-      final choisi = await DialogDoublonFournisseur.afficher(
-        context,
-        nomSaisi: saisi,
-        proches: proches,
-      );
-      if (choisi != null) {
-        _codeFournisseurCtrl.text = choisi.nom;
-        _fournisseurChoisi = choisi;
-      }
+    final choix = await demanderChoixReferenceBouteilleRecalculee(
+      context,
+      ancienneReference: decision.ancienneReference,
+      nouvelleReference: decision.nouvelleReference,
+      couleurPrincipale: chefGreen,
+    );
+    if (choix == ChoixReferenceBouteille.garderAncienne) {
+      row.refCtrl.text = decision.ancienneReference;
     }
   }
 
@@ -243,9 +270,6 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
     }
 
     try {
-      await _verifierFournisseur();
-      if (!mounted) return;
-
       final gouvernorat = _gouvernorat ?? '';
       final collecteur = _collecteurCtrl.text.trim().isEmpty
           ? null
@@ -258,6 +282,8 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
       if (_isModification) {
         final e = widget.echantillon!;
         final b = _bouteilles.first;
+        await _confirmerReferenceSiRecalculee(b);
+        if (!mounted) return;
         e.referenceBouteille = b.refCtrl.text.trim();
         e.variete = b.varieteCtrl.text.trim().isEmpty
             ? null
@@ -410,8 +436,8 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
                       chercher: FournisseurService.instance.suggest,
                       libelle: (f) => f.nom,
                       sousTitre: (f) => f.region,
-                      onSelection: (f) => _fournisseurChoisi = f,
-                      onSaisieLibre: () => _fournisseurChoisi = null,
+                      onSelection: (_) => _actualiserToutesLesReferences(),
+                      onSaisieLibre: _actualiserToutesLesReferences,
                     ),
                     const SizedBox(height: 12),
                     _FormField(
@@ -468,6 +494,7 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
                       isModification: _isModification,
                       onAddRow: _addRow,
                       onRemoveRow: _removeRow,
+                      onDonneesReferenceChangees: _actualiserReference,
                     ),
 
                     const SizedBox(height: 12),
@@ -701,12 +728,14 @@ class _BouteillesSection extends StatelessWidget {
   final bool isModification;
   final VoidCallback onAddRow;
   final ValueChanged<int> onRemoveRow;
+  final ValueChanged<_BouteilleRow> onDonneesReferenceChangees;
 
   const _BouteillesSection({
     required this.bouteilles,
     required this.isModification,
     required this.onAddRow,
     required this.onRemoveRow,
+    required this.onDonneesReferenceChangees,
   });
 
   @override
@@ -801,6 +830,8 @@ class _BouteillesSection extends StatelessWidget {
             index: i,
             showRemove: !isModification && count > 1,
             onRemove: () => onRemoveRow(i),
+            onDonneesReferenceChangees: () =>
+                onDonneesReferenceChangees(bouteilles[i]),
           ),
         ),
       ],
@@ -816,12 +847,14 @@ class _BouteilleCard extends StatelessWidget {
   final int index;
   final bool showRemove;
   final VoidCallback onRemove;
+  final VoidCallback onDonneesReferenceChangees;
 
   const _BouteilleCard({
     required this.row,
     required this.index,
     required this.showRemove,
     required this.onRemove,
+    required this.onDonneesReferenceChangees,
   });
 
   InputDecoration _fieldDec(String hint, {String? suffixText}) =>
@@ -916,19 +949,20 @@ class _BouteilleCard extends StatelessWidget {
           ),
           const SizedBox(height: 8),
 
-          // Variété + numCiterne (side by side)
+          // N° citerne + quantité estimée (side by side)
           Row(
             children: [
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    ChampAutocomplete<String>(
-                      label: "Variété d'olive",
-                      controller: row.varieteCtrl,
-                      hint: 'Chemlali, Chetoui...',
-                      chercher: VarieteService.instance.suggest,
-                      libelle: (v) => v,
+                    _InlineLabel(label: 'N° citerne'),
+                    const SizedBox(height: 5),
+                    TextField(
+                      controller: row.numCiterneCtrl,
+                      onChanged: (_) => onDonneesReferenceChangees(),
+                      style: const TextStyle(fontSize: 13, color: chefDark),
+                      decoration: _fieldDec('Ex: Z1'),
                     ),
                   ],
                 ),
@@ -938,12 +972,19 @@ class _BouteilleCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _InlineLabel(label: 'N° citerne'),
+                    _InlineLabel(label: 'Quantité estimée'),
                     const SizedBox(height: 5),
                     TextField(
-                      controller: row.numCiterneCtrl,
+                      controller: row.qteCtrl,
+                      onChanged: (_) => onDonneesReferenceChangees(),
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(RegExp(r'[\d.,]')),
+                      ],
                       style: const TextStyle(fontSize: 13, color: chefDark),
-                      decoration: _fieldDec('Ex: Z1'),
+                      decoration: _fieldDec('Ex: 5000', suffixText: 'T'),
                     ),
                   ],
                 ),
@@ -952,17 +993,12 @@ class _BouteilleCard extends StatelessWidget {
           ),
           const SizedBox(height: 8),
 
-          // Quantité estimée
-          _InlineLabel(label: 'Quantité estimée'),
-          const SizedBox(height: 5),
-          TextField(
-            controller: row.qteCtrl,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            inputFormatters: [
-              FilteringTextInputFormatter.allow(RegExp(r'[\d.,]')),
-            ],
-            style: const TextStyle(fontSize: 13, color: chefDark),
-            decoration: _fieldDec('Ex: 5000', suffixText: 'T'),
+          ChampAutocomplete<String>(
+            label: "Variété d'olive",
+            controller: row.varieteCtrl,
+            hint: 'Chemlali, Chetoui...',
+            chercher: VarieteService.instance.suggest,
+            libelle: (v) => v,
           ),
         ],
       ),

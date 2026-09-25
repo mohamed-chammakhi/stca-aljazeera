@@ -39,13 +39,22 @@ class VarieteService {
   }
 
   /// Suggestions for what has been typed so far, best match first.
+  ///
+  /// An empty query returns the first known varieties so the user can pick
+  /// from existing values as soon as the field opens.
   Future<Resultat<List<String>>> suggest(
     String saisie, {
     int limite = 6,
   }) async {
     final q = saisie.trim().toLowerCase();
-    if (q.isEmpty) return const Resultat([]);
     final resultat = await fetchAll();
+    if (q.isEmpty) {
+      return Resultat(
+        resultat.donnees.take(limite).toList(),
+        estDemonstration: resultat.estDemonstration,
+        messageErreur: resultat.messageErreur,
+      );
+    }
 
     final debut = <String>[];
     final ailleurs = <String>[];

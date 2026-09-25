@@ -7,6 +7,7 @@ import 'package:project3/core/theme/app_colors.dart';
 import 'package:project3/core/utils/date_utils.dart';
 import 'package:project3/core/utils/rafraichissement_periodique.dart';
 import 'package:project3/core/widgets/bandeau_demonstration.dart';
+import 'package:project3/core/widgets/empty_state.dart';
 import 'package:project3/core/widgets/messagerie/conversations_page.dart';
 import 'models/collecteur_group.dart';
 import '../widgets/ceo_nav_mixin.dart';
@@ -416,22 +417,42 @@ class _EchantillonsCeoPageState extends State<EchantillonsCeoPage>
                                     MediaQuery.of(context).size.height * 0.5,
                                 child: Center(
                                   child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.search_off_rounded,
-                                  size: 48,
-                                  color: Colors.grey.shade300,
-                                ),
-                                const SizedBox(height: 10),
-                                Text(
-                                  'Aucun échantillon trouvé',
-                                  style: TextStyle(
-                                    color: Colors.grey.shade400,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                              ],
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.search_off_rounded,
+                                        size: 48,
+                                        color: Colors.grey.shade300,
+                                      ),
+                                      const SizedBox(height: 10),
+                                      Text(
+                                        _allEchantillons.isEmpty
+                                            ? kTitreSystemeNeuf
+                                            : 'Aucun échantillon trouvé',
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                          color: Colors.grey.shade400,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                      if (_allEchantillons.isEmpty)
+                                        Padding(
+                                          padding: const EdgeInsets.fromLTRB(
+                                            32,
+                                            6,
+                                            32,
+                                            0,
+                                          ),
+                                          child: Text(
+                                            kTexteSystemeNeuf,
+                                            textAlign: TextAlign.center,
+                                            style: TextStyle(
+                                              color: Colors.grey.shade400,
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                        ),
+                                    ],
                                   ),
                                 ),
                               ),

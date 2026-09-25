@@ -14,6 +14,7 @@ import '../../main.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/rafraichissement_periodique.dart';
 import '../../core/widgets/bandeau_demonstration.dart';
+import '../../core/widgets/empty_state.dart';
 
 // Scrollbar thumb — neutral dark not in the global palette.
 const Color _gray = Color.fromARGB(255, 81, 82, 81);
@@ -476,22 +477,42 @@ class _EchantillonsLaboPageState extends State<EchantillonsLaboPage>
                                     MediaQuery.of(context).size.height * 0.5,
                                 child: Center(
                                   child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.science_outlined,
-                                  size: 52,
-                                  color: Colors.grey.shade300,
-                                ),
-                                const SizedBox(height: 12),
-                                Text(
-                                  'Aucun échantillon trouvé',
-                                  style: TextStyle(
-                                    color: Colors.grey.shade400,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                              ],
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.science_outlined,
+                                        size: 52,
+                                        color: Colors.grey.shade300,
+                                      ),
+                                      const SizedBox(height: 12),
+                                      Text(
+                                        _echantillons.isEmpty
+                                            ? kTitreSystemeNeuf
+                                            : 'Aucun échantillon trouvé',
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                          color: Colors.grey.shade400,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                      if (_echantillons.isEmpty)
+                                        Padding(
+                                          padding: const EdgeInsets.fromLTRB(
+                                            32,
+                                            6,
+                                            32,
+                                            0,
+                                          ),
+                                          child: Text(
+                                            kTexteSystemeNeuf,
+                                            textAlign: TextAlign.center,
+                                            style: TextStyle(
+                                              color: Colors.grey.shade400,
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                        ),
+                                    ],
                                   ),
                                 ),
                               ),

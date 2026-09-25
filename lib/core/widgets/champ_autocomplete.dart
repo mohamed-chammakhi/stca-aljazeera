@@ -64,6 +64,7 @@ class ChampAutocomplete<T> extends StatefulWidget {
 }
 
 class _ChampAutocompleteState<T> extends State<ChampAutocomplete<T>> {
+  final GlobalKey _blocKey = GlobalKey();
   final FocusNode _focus = FocusNode();
   List<T> _suggestions = const [];
   Timer? _debounce;
@@ -75,15 +76,27 @@ class _ChampAutocompleteState<T> extends State<ChampAutocomplete<T>> {
   void initState() {
     super.initState();
     widget.controller.addListener(_onTexteChange);
-    _focus.addListener(() => setState(() {}));
+    _focus.addListener(_onFocusChange);
   }
 
   @override
   void dispose() {
     _debounce?.cancel();
     widget.controller.removeListener(_onTexteChange);
+    _focus.removeListener(_onFocusChange);
     _focus.dispose();
     super.dispose();
+  }
+
+  void _onFocusChange() {
+    if (_focus.hasFocus && widget.enabled) {
+      setState(() {});
+      _debounce?.cancel();
+      _rechercher();
+      return;
+    }
+
+    setState(() => _suggestions = const []);
   }
 
   void _onTexteChange() {
@@ -107,6 +120,9 @@ class _ChampAutocompleteState<T> extends State<ChampAutocomplete<T>> {
         _estDemonstration = resultat.estDemonstration;
         _erreur = null;
       });
+      if (_focus.hasFocus && _suggestions.isNotEmpty && widget.enabled) {
+        _rendreVisible();
+      }
     } catch (erreur) {
       if (!mounted) return;
       setState(() {
@@ -114,6 +130,22 @@ class _ChampAutocompleteState<T> extends State<ChampAutocomplete<T>> {
         _erreur = erreur;
       });
     }
+  }
+
+  void _rendreVisible() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final blocContext = _blocKey.currentContext;
+      if (blocContext == null || Scrollable.maybeOf(blocContext) == null) {
+        return;
+      }
+
+      Scrollable.ensureVisible(
+        blocContext,
+        alignment: 0.1,
+        duration: const Duration(milliseconds: 200),
+      );
+    });
   }
 
   void _choisir(T valeur) {
@@ -133,93 +165,99 @@ class _ChampAutocompleteState<T> extends State<ChampAutocomplete<T>> {
   Widget build(BuildContext context) {
     final ouvert = _focus.hasFocus && _suggestions.isNotEmpty && widget.enabled;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          widget.label,
-          style: GoogleFonts.alegreya(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: kOlive,
-          ),
-        ),
-        const SizedBox(height: 5),
-        TextField(
-          controller: widget.controller,
-          focusNode: _focus,
-          enabled: widget.enabled,
-          style: const TextStyle(fontSize: 14, color: kDark),
-          decoration: InputDecoration(
-            hintText: widget.hint,
-            hintStyle: const TextStyle(color: Color(0xFF9E9E9E), fontSize: 13),
-            filled: true,
-            fillColor: const Color(0xFFFAFAF7),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 12,
-              vertical: 12,
-            ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: BorderSide.none,
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: kGreen, width: 1.8),
+    return KeyedSubtree(
+      key: _blocKey,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            widget.label,
+            style: GoogleFonts.alegreya(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: kOlive,
             ),
           ),
-        ),
-        if (_estDemonstration) ...[
-          const SizedBox(height: 4),
-          BandeauDemonstration(onReessayer: _rechercher),
-        ],
-        if (_erreur != null) ...[
-          const SizedBox(height: 4),
-          Row(
-            children: [
-              const Expanded(
-                child: Text(
-                  'Suggestions indisponibles.',
-                  style: TextStyle(color: kRed, fontSize: 12),
-                ),
+          const SizedBox(height: 5),
+          TextField(
+            controller: widget.controller,
+            focusNode: _focus,
+            enabled: widget.enabled,
+            style: const TextStyle(fontSize: 14, color: kDark),
+            decoration: InputDecoration(
+              hintText: widget.hint,
+              hintStyle: const TextStyle(
+                color: Color(0xFF9E9E9E),
+                fontSize: 13,
               ),
-              TextButton(
-                onPressed: _rechercher,
-                child: const Text('Réessayer'),
+              filled: true,
+              fillColor: const Color(0xFFFAFAF7),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 12,
               ),
-            ],
-          ),
-        ],
-        // Inline rather than floating: the field lives inside a scrolling form,
-        // and an overlay would drift away from it as the form scrolls.
-        if (ouvert)
-          Container(
-            margin: const EdgeInsets.only(top: 4),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: Colors.black.withValues(alpha: 0.08)),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide.none,
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: const BorderSide(color: kGreen, width: 1.8),
+              ),
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
+          ),
+          if (_estDemonstration) ...[
+            const SizedBox(height: 4),
+            BandeauDemonstration(onReessayer: _rechercher),
+          ],
+          if (_erreur != null) ...[
+            const SizedBox(height: 4),
+            Row(
               children: [
-                for (var i = 0; i < _suggestions.length; i++) ...[
-                  if (i > 0)
-                    Divider(
-                      height: 1,
-                      thickness: 1,
-                      color: Colors.black.withValues(alpha: 0.05),
-                    ),
-                  _LigneSuggestion(
-                    titre: widget.libelle(_suggestions[i]),
-                    sousTitre: widget.sousTitre?.call(_suggestions[i]),
-                    onTap: () => _choisir(_suggestions[i]),
+                const Expanded(
+                  child: Text(
+                    'Suggestions indisponibles.',
+                    style: TextStyle(color: kRed, fontSize: 12),
                   ),
-                ],
+                ),
+                TextButton(
+                  onPressed: _rechercher,
+                  child: const Text('Réessayer'),
+                ),
               ],
             ),
-          ),
-      ],
+          ],
+          // Inline rather than floating: the field lives inside a scrolling form,
+          // and an overlay would drift away from it as the form scrolls.
+          if (ouvert)
+            Container(
+              margin: const EdgeInsets.only(top: 4),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: Colors.black.withValues(alpha: 0.08)),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  for (var i = 0; i < _suggestions.length; i++) ...[
+                    if (i > 0)
+                      Divider(
+                        height: 1,
+                        thickness: 1,
+                        color: Colors.black.withValues(alpha: 0.05),
+                      ),
+                    _LigneSuggestion(
+                      titre: widget.libelle(_suggestions[i]),
+                      sousTitre: widget.sousTitre?.call(_suggestions[i]),
+                      onTap: () => _choisir(_suggestions[i]),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+        ],
+      ),
     );
   }
 }

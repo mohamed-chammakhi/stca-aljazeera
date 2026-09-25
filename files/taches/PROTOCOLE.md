@@ -125,3 +125,12 @@ dégustateur (`5_chef_degustateur/`). Backend Django dans `backend_new/`, Python
 
 Nous sommes en **phase de correction locale**, pas de déploiement. La feuille de route est
 dans [`plan_correction.md`](../plan_correction.md).
+
+## Même correction pour tous les rôles
+
+Beaucoup d'écrans existent en plusieurs copies : collecteur (`lib/2_collecteur`),
+dégustateur (`lib/3_degustateur`), chef dégustateur (`lib/5_chef_degustateur`), et parfois
+direction (`lib/1_ceo`) et labo (`lib/4_laboratoire`). Quand une tâche corrige un écran,
+cherche avec `grep` le même code dans les autres dossiers de rôle. S'il a le même défaut,
+corrige-le aussi dans la même tâche et liste-le dans ton rapport. La propriétaire ne veut
+pas refaire les mêmes vérifications rôle par rôle.

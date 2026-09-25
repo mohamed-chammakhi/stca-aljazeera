@@ -1,14 +1,14 @@
 // ═════════════════════════════════════════════════════════════════════════════
 // FILE    : core/services/fournisseur_service.dart
-// PURPOSE : The supplier reference list — read, create, and catch near-duplicates.
+// PURPOSE : The supplier reference list — read, create, and suggest names.
 //
 //           Why suppliers are an entity and not free text: the CEO dashboard
 //           aggregates purchases per supplier. If the same supplier is typed
 //           "Ben Ali", "ben ali" and "BenAli", the dashboard counts three
 //           suppliers instead of one and every figure on that card is wrong.
 //
-//           The collector still types freely — see findNearDuplicates. The ID is
-//           internal plumbing; no field is ever a closed dropdown here.
+//           The collector still types freely. The ID is internal plumbing; no
+//           field is ever a closed dropdown here.
 // ═════════════════════════════════════════════════════════════════════════════
 
 import '../api_client.dart';
@@ -47,20 +47,27 @@ class FournisseurService {
 
   /// Suggestions for what the user has typed so far, best match first.
   ///
-  /// An empty query returns nothing rather than the whole list: a suggestion
-  /// panel that opens before the user types anything is in the way, not helpful.
+  /// An empty query returns the first known suppliers so the user can pick
+  /// from existing values as soon as the field opens.
   Future<Resultat<List<Fournisseur>>> suggest(
     String saisie, {
     int limite = 6,
   }) async {
     final q = _normaliser(saisie);
-    if (q.isEmpty) return const Resultat([]);
     final resultat = await fetchAll();
+    if (q.isEmpty) {
+      return Resultat(
+        resultat.donnees.take(limite).toList(),
+        estDemonstration: resultat.estDemonstration,
+        messageErreur: resultat.messageErreur,
+      );
+    }
 
     final debut = <Fournisseur>[];
     final ailleurs = <Fournisseur>[];
     for (final f in resultat.donnees) {
       final n = _normaliser(f.nom);
+      if (n == q) continue; // already typed in full - nothing to suggest
       if (n.startsWith(q)) {
         debut.add(f);
       } else if (n.contains(q)) {
@@ -70,33 +77,6 @@ class FournisseurService {
     // A supplier whose name starts with what was typed is what the user meant.
     return Resultat(
       [...debut, ...ailleurs].take(limite).toList(),
-      estDemonstration: resultat.estDemonstration,
-      messageErreur: resultat.messageErreur,
-    );
-  }
-
-  /// Suppliers close enough to [nom] that creating a new one is probably a typo.
-  ///
-  /// Called just before creating, so the collector can be asked
-  /// "Agricole Ben Ali already exists — is that the one?" instead of silently
-  /// producing a second record for the same company.
-  Future<Resultat<List<Fournisseur>>> findNearDuplicates(String nom) async {
-    final cible = _normaliser(nom);
-    if (cible.isEmpty) return const Resultat([]);
-    final resultat = await fetchAll();
-
-    final proches = resultat.donnees.where((f) {
-      final n = _normaliser(f.nom);
-      if (n == cible) return true;
-      // "Ben Ali" vs "Agricole Ben Ali" — same company, longer label.
-      if (n.contains(cible) || cible.contains(n)) return true;
-      // Two typos apart at most; the threshold grows with the name length so
-      // short names are not matched to everything.
-      final seuil = cible.length <= 6 ? 1 : 2;
-      return _distance(n, cible) <= seuil;
-    }).toList();
-    return Resultat(
-      proches,
       estDemonstration: resultat.estDemonstration,
       messageErreur: resultat.messageErreur,
     );
@@ -136,32 +116,6 @@ class FournisseurService {
       if (RegExp(r'[a-z0-9]').hasMatch(c)) buffer.write(c);
     }
     return buffer.toString();
-  }
-
-  /// Levenshtein distance — how many single-character edits separate two strings.
-  static int _distance(String a, String b) {
-    if (a == b) return 0;
-    if (a.isEmpty) return b.length;
-    if (b.isEmpty) return a.length;
-
-    var precedente = List<int>.generate(b.length + 1, (i) => i);
-    var courante = List<int>.filled(b.length + 1, 0);
-
-    for (var i = 0; i < a.length; i++) {
-      courante[0] = i + 1;
-      for (var j = 0; j < b.length; j++) {
-        final cout = a[i] == b[j] ? 0 : 1;
-        courante[j + 1] = [
-          courante[j] + 1, // insertion
-          precedente[j + 1] + 1, // suppression
-          precedente[j] + cout, // substitution
-        ].reduce((x, y) => x < y ? x : y);
-      }
-      final tmp = precedente;
-      precedente = courante;
-      courante = tmp;
-    }
-    return precedente[b.length];
   }
 
   /// "Agricole Ben Ali" → "AGR-BEN". Only a fallback: the backend rejects an
