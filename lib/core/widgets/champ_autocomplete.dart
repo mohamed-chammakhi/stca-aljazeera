@@ -25,6 +25,9 @@ class ChampAutocomplete<T> extends StatefulWidget {
   final TextEditingController controller;
   final String label;
   final String? hint;
+  final Widget? titre;
+  final InputDecoration? decoration;
+  final TextStyle? styleTexte;
 
   /// Returns what to propose for the text typed so far.
   final Future<Resultat<List<T>>> Function(String saisie) chercher;
@@ -53,6 +56,9 @@ class ChampAutocomplete<T> extends StatefulWidget {
     required this.chercher,
     required this.libelle,
     this.hint,
+    this.titre,
+    this.decoration,
+    this.styleTexte,
     this.sousTitre,
     this.onSelection,
     this.onSaisieLibre,
@@ -170,41 +176,45 @@ class _ChampAutocompleteState<T> extends State<ChampAutocomplete<T>> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            widget.label,
-            style: GoogleFonts.alegreya(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: kOlive,
-            ),
-          ),
+          widget.titre ??
+              Text(
+                widget.label,
+                style: GoogleFonts.alegreya(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: kOlive,
+                ),
+              ),
           const SizedBox(height: 5),
           TextField(
             controller: widget.controller,
             focusNode: _focus,
             enabled: widget.enabled,
-            style: const TextStyle(fontSize: 14, color: kDark),
-            decoration: InputDecoration(
-              hintText: widget.hint,
-              hintStyle: const TextStyle(
-                color: Color(0xFF9E9E9E),
-                fontSize: 13,
-              ),
-              filled: true,
-              fillColor: const Color(0xFFFAFAF7),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 12,
-              ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: BorderSide.none,
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: const BorderSide(color: kGreen, width: 1.8),
-              ),
-            ),
+            style:
+                widget.styleTexte ?? const TextStyle(fontSize: 14, color: kDark),
+            decoration:
+                widget.decoration ??
+                InputDecoration(
+                  hintText: widget.hint,
+                  hintStyle: const TextStyle(
+                    color: Color(0xFF9E9E9E),
+                    fontSize: 13,
+                  ),
+                  filled: true,
+                  fillColor: const Color(0xFFFAFAF7),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 12,
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide.none,
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: kGreen, width: 1.8),
+                  ),
+                ),
           ),
           if (_estDemonstration) ...[
             const SizedBox(height: 4),

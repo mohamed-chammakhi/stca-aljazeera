@@ -163,6 +163,7 @@ class _EchantillonsCeoPageState extends State<EchantillonsCeoPage>
       result = result.where((e) {
         return e.referenceBouteille.toLowerCase().contains(q) ||
             e.codeFournisseur.toLowerCase().contains(q) ||
+                (e.fournisseurNom?.toLowerCase().contains(q) ?? false) ||
             e.id.toLowerCase().contains(q) ||
             e.gouvernorat.toLowerCase().contains(q) ||
             (e.variete?.toLowerCase().contains(q) ?? false) ||

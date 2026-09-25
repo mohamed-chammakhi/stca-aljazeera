@@ -21,6 +21,7 @@ import '../../../../core/models/fournisseur.dart';
 import '../../../../core/services/fournisseur_service.dart';
 import '../../../../core/services/variete_service.dart';
 import '../../../../core/utils/reference_bouteille.dart';
+import '../../../../core/utils/validation_echantillon_formulaire.dart';
 import '../../../../core/widgets/champ_autocomplete.dart';
 import '../../../../core/widgets/date_input_field.dart';
 import '../../../../core/widgets/dialog_reference_bouteille.dart';
@@ -35,6 +36,9 @@ const Color _olive = Color(0xFF6B8143);
 const Color _dark = Color(0xFF1A2E1F);
 const Color _cream = Color(0xFFF9F6EF);
 const Color _fieldFill = Color(0xFFF7FAF8);
+final Color _hintColor = Colors.grey.shade600;
+final Color _inlineLabelColor = Colors.grey.shade800;
+const Color _labelOlive = Color(0xFF46542B);
 
 // Section accent colors
 const Color _sectionBouteille = Color(0xFF38835A); // green
@@ -352,7 +356,7 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
                 _photoName ?? 'photo.jpg',
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                style: TextStyle(fontSize: 12, color: _inlineLabelColor),
               ),
             ),
             TextButton.icon(
@@ -381,9 +385,12 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
     );
   }
 
-  bool get _isValid {
-    if (_bouteilles.isEmpty) return false;
-    return _bouteilles.every((b) => b.refCtrl.text.trim().isNotEmpty);
+  String? _messageValidation() {
+    return validerFormulaireEchantillon(
+      nombreBouteilles: _bouteilles.length,
+      fournisseur: _codeFournisseurCtrl.text,
+      referencesBouteilles: _bouteilles.map((b) => b.refCtrl.text).toList(),
+    );
   }
 
   Future<void> _confirmerReferenceSiRecalculee(_BouteilleRow row) async {
@@ -414,12 +421,11 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
   Future<void> _save() async {
     if (_saving) return;
     setState(() => _saving = true);
-    if (!_isValid) {
+    final validation = _messageValidation();
+    if (validation != null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text(
-            'La référence est obligatoire pour chaque bouteille',
-          ),
+          content: Text(validation),
           backgroundColor: Colors.red.shade400,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
@@ -593,9 +599,19 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
                     children: [
                       // ── SHARED: FOURNISSEUR & COLLECTEUR ─────────────────
                       ChampAutocomplete<Fournisseur>(
-                        label: 'Nom / Code fournisseur',
+                        label: 'Fournisseur',
+                        titre: const _InlineLabel(
+                          label: 'Fournisseur',
+                          required: true,
+                        ),
                         controller: _codeFournisseurCtrl,
-                        hint: 'Ex: Domaine Bel-Air',
+                        decoration: _FormField.decoration(
+                          'Ex: Domaine Bel-Air',
+                        ),
+                        styleTexte: const TextStyle(
+                          fontSize: 14,
+                          color: _dark,
+                        ),
                         chercher: FournisseurService.instance.suggest,
                         libelle: (f) => f.nom,
                         sousTitre: (f) => f.region,
@@ -697,7 +713,7 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w600,
-                                  color: _olive,
+                                  color: _labelOlive,
                                 ),
                               ),
                               Text(
@@ -891,7 +907,7 @@ class _BouteillesSection extends StatelessWidget {
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color: _olive,
+                color: _labelOlive,
               ),
             ),
             const Spacer(),
@@ -997,10 +1013,10 @@ class _BouteilleCard extends StatelessWidget {
   InputDecoration _fieldDec(String hint, {String? suffixText}) =>
       InputDecoration(
         hintText: hint,
-        hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 13),
+        hintStyle: TextStyle(color: _hintColor, fontSize: 13),
         suffixText: suffixText,
         suffixStyle: const TextStyle(
-          color: _olive,
+          color: _labelOlive,
           fontWeight: FontWeight.w700,
           fontSize: 14,
         ),
@@ -1132,7 +1148,10 @@ class _BouteilleCard extends StatelessWidget {
 
           ChampAutocomplete<String>(
             label: "Variété d'olive",
+            titre: const _InlineLabel(label: "Variété d'olive"),
             controller: row.varieteCtrl,
+            decoration: _fieldDec('Chemlali, Chetoui...'),
+            styleTexte: const TextStyle(fontSize: 13, color: _dark),
             hint: 'Chemlali, Chetoui...',
             chercher: VarieteService.instance.suggest,
             libelle: (v) => v,
@@ -1160,7 +1179,7 @@ class _InlineLabel extends StatelessWidget {
         style: TextStyle(
           fontSize: 11,
           fontWeight: FontWeight.w600,
-          color: Colors.grey.shade600,
+          color: _inlineLabelColor,
         ),
       ),
       if (required)
@@ -1184,7 +1203,7 @@ class _FieldLabel extends StatelessWidget {
         style: const TextStyle(
           fontSize: 12,
           fontWeight: FontWeight.w600,
-          color: _olive,
+          color: _labelOlive,
         ),
       ),
     ],
@@ -1205,9 +1224,9 @@ class _FormField extends StatelessWidget {
     required this.hint,
   });
 
-  InputDecoration _dec() => InputDecoration(
+  static InputDecoration decoration(String hint) => InputDecoration(
     hintText: hint,
-    hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 13),
+    hintStyle: TextStyle(color: _hintColor, fontSize: 13),
     filled: true,
     fillColor: _fieldFill,
     contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 14),
@@ -1225,6 +1244,8 @@ class _FormField extends StatelessWidget {
     ),
   );
 
+  InputDecoration _dec() => decoration(hint);
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -1235,7 +1256,7 @@ class _FormField extends StatelessWidget {
           style: const TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w600,
-            color: _olive,
+            color: _labelOlive,
           ),
         ),
         const SizedBox(height: 6),
@@ -1279,7 +1300,7 @@ class _DropdownField extends StatelessWidget {
               style: const TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color: _olive,
+                color: _labelOlive,
               ),
             ),
           ],
@@ -1353,7 +1374,7 @@ class _ReadOnlyField extends StatelessWidget {
         style: const TextStyle(
           fontSize: 12,
           fontWeight: FontWeight.w600,
-          color: _olive,
+          color: _labelOlive,
         ),
       ),
       const SizedBox(height: 6),

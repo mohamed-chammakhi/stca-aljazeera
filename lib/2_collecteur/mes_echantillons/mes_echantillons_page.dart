@@ -193,6 +193,7 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
           e.numero.toLowerCase().contains(q) ||
           e.referenceBouteille.toLowerCase().contains(q) ||
           e.codeFournisseur.toLowerCase().contains(q) ||
+          (e.fournisseurNom?.toLowerCase().contains(q) ?? false) ||
           e.gouvernorat.toLowerCase().contains(q) ||
           (e.variete?.toLowerCase().contains(q) ?? false);
       final matchStatut = _filtreStatut == null || e.statut == _filtreStatut;

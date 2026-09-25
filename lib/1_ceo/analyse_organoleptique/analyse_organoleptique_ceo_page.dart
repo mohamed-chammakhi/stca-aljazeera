@@ -189,6 +189,7 @@ class _AnalyseOrganoleptiqueCeoPageState
             (e) =>
                 e.referenceBouteille.toLowerCase().contains(q) ||
                 e.codeFournisseur.toLowerCase().contains(q) ||
+                (e.fournisseurNom?.toLowerCase().contains(q) ?? false) ||
                 e.id.toLowerCase().contains(q) ||
                 e.gouvernorat.toLowerCase().contains(q) ||
                 (e.variete?.toLowerCase().contains(q) ?? false) ||
@@ -760,7 +761,7 @@ class _AnalyseOrganoleptiqueCeoPageState
                                     'Gouvernorat',
                                     '${e.gouvernorat}${e.delegation != null ? " — ${e.delegation}" : ""}',
                                   ),
-                                  DetailItem('Fournisseur', e.codeFournisseur),
+                                  DetailItem('Fournisseur', e.fournisseurAffichage),
                                   if (e.variete != null)
                                     DetailItem('Variété', e.variete!),
                                   if (e.quantiteEstimee != null)

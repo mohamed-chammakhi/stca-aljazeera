@@ -62,7 +62,7 @@ class EchantillonLabo {
         ref: _stringValue(json['ref'] ?? json['numero']),
         gouvernorat: _stringValue(json['gouvernorat']),
         codeFournisseur: _stringValue(
-          json['code_fournisseur'] ?? json['fournisseur_nom'],
+          json['fournisseur_nom'] ?? json['code_fournisseur'],
         ),
         collecteurNom: _stringValue(json['collecteur_nom']),
         referenceBouteille: _stringValue(json['reference_bouteille']),

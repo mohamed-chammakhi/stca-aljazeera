@@ -1,5 +1,7 @@
 import '../api_client.dart';
 import '../models/user_profile.dart';
+import 'fournisseur_service.dart';
+import 'variete_service.dart';
 
 class AuthService {
   const AuthService();
@@ -8,7 +10,9 @@ class AuthService {
     required String email,
     required String password,
   }) async {
+    _invalidateSuggestionCaches();
     await apiClient.login(email, password);
+    _invalidateSuggestionCaches();
     return currentUser();
   }
 
@@ -17,7 +21,15 @@ class AuthService {
     return UserProfile.fromJson(data);
   }
 
-  Future<void> logout() => apiClient.logout();
+  Future<void> logout() async {
+    await apiClient.logout();
+    _invalidateSuggestionCaches();
+  }
+
+  void _invalidateSuggestionCaches() {
+    FournisseurService.instance.invalidateCache();
+    VarieteService.instance.invalidateCache();
+  }
 }
 
 const authService = AuthService();

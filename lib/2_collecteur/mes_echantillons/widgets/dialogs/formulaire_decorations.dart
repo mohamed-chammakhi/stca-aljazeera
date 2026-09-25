@@ -12,6 +12,8 @@ const Color kGreen    = Color(0xFF38835A);
 const Color kDarkText = Color(0xFF1A2E1F);
 const Color kOlive    = Color(0xFF6B8143);
 const Color kFieldFill = Color(0xFFF7FAF8);
+final Color kFieldHint = Colors.grey.shade600;
+final Color kInlineLabel = Colors.grey.shade800;
 
 // ── Section label widget ───────────────────────────────────────────────────────
 class SectionLabel extends StatelessWidget {
@@ -64,7 +66,7 @@ InputDecoration dropdownDeco(IconData icon, {bool disabled = false}) =>
 // ── Multi-line text-area decoration ───────────────────────────────────────────
 InputDecoration textAreaDeco(String hint) => InputDecoration(
   hintText: hint,
-  hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 13),
+  hintStyle: TextStyle(color: kFieldHint, fontSize: 13),
   filled: true,
   fillColor: kFieldFill,
   contentPadding: const EdgeInsets.all(12),
@@ -85,7 +87,7 @@ InputDecoration textAreaDeco(String hint) => InputDecoration(
 // ── Date text-field decoration ─────────────────────────────────────────────────
 InputDecoration dateDeco() => InputDecoration(
   hintText: 'JJ/MM/AAAA',
-  hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 13),
+  hintStyle: TextStyle(color: kFieldHint, fontSize: 13),
   prefixIcon: const Icon(
     Icons.calendar_today_outlined,
     color: kGreen,

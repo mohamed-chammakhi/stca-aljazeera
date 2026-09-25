@@ -112,6 +112,11 @@ class Echantillon {
       statutCollecteur == StatutCollecteur.receptionne && !recuPhysiquement;
   bool get canNegocier => statutCollecteur == StatutCollecteur.enNegociation;
   bool get canPlanifier => statutCollecteur == StatutCollecteur.achatConfirme;
+  String get fournisseurAffichage {
+    final nom = fournisseurNom?.trim() ?? '';
+    if (nom.isNotEmpty) return nom;
+    return codeFournisseur?.trim() ?? '';
+  }
 
   // ── Serialization ─────────────────────────────────────────────────────────────
   factory Echantillon.fromJson(Map<String, dynamic> json) => Echantillon(

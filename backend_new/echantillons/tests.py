@@ -153,6 +153,24 @@ class CollectorEchantillonApiTests(APITestCase):
             1,
         )
 
+    def test_collector_can_create_sample_with_only_supplier_and_reference(self):
+        self.authenticate(self.collector)
+
+        response = self.client.post(
+            '/api/echantillons/',
+            {
+                'reference_bouteille': 'MIN-001',
+                'fournisseur_nom': 'Fournisseur Minimal',
+            },
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        sample = Echantillon.objects.get(id=response.data['id'])
+        self.assertEqual(sample.reference_bouteille, 'MIN-001')
+        self.assertEqual(sample.fournisseur.nom, 'Fournisseur Minimal')
+        self.assertEqual(sample.gouvernorat, '')
+
     def test_update_without_supplier_fields_keeps_the_existing_supplier(self):
         # Le degustateur qui corrige une variete envoie sa mise a jour sans
         # aucun champ fournisseur. Le lien doit survivre : l'effacer ici

@@ -14,6 +14,7 @@ import '../../../../core/models/fournisseur.dart';
 import '../../../../core/services/fournisseur_service.dart';
 import '../../../../core/services/variete_service.dart';
 import '../../../../core/utils/reference_bouteille.dart';
+import '../../../../core/utils/validation_echantillon_formulaire.dart';
 import '../../../../core/widgets/champ_autocomplete.dart';
 import '../../../../core/widgets/dialog_reference_bouteille.dart';
 import '../../../../core/widgets/photo_plein_ecran.dart';
@@ -265,13 +266,11 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
   }
 
   String? _messageValidation() {
-    if (_bouteilles.isEmpty) return 'Ajoutez au moins une bouteille.';
-    for (var i = 0; i < _bouteilles.length; i++) {
-      if (_bouteilles[i].refCtrl.text.trim().isEmpty) {
-        return 'La référence bouteille est obligatoire pour la bouteille ${i + 1}.';
-      }
-    }
-    return null;
+    return validerFormulaireEchantillon(
+      nombreBouteilles: _bouteilles.length,
+      fournisseur: _codeFournisseurCtrl.text,
+      referencesBouteilles: _bouteilles.map((b) => b.refCtrl.text).toList(),
+    );
   }
 
   bool get _isValid => _messageValidation() == null;
@@ -504,9 +503,19 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
                   children: [
                     // Fournisseur & collecteur
                     ChampAutocomplete<Fournisseur>(
-                      label: 'Nom / Code fournisseur',
+                      label: 'Fournisseur',
+                      titre: const _InlineLabel(
+                        label: 'Fournisseur',
+                        required: true,
+                      ),
                       controller: _codeFournisseurCtrl,
-                      hint: 'Ex: Domaine Bel-Air',
+                      decoration: _FormField.decoration(
+                        'Ex: Domaine Bel-Air',
+                      ),
+                      styleTexte: const TextStyle(
+                        fontSize: 14,
+                        color: kDarkText,
+                      ),
                       chercher: FournisseurService.instance.suggest,
                       libelle: (f) => f.nom,
                       sousTitre: (f) => f.region,
@@ -856,7 +865,7 @@ class _BouteilleCard extends StatelessWidget {
     String? helperText,
   }) => InputDecoration(
     hintText: hint,
-    hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 13),
+    hintStyle: TextStyle(color: kFieldHint, fontSize: 13),
     helperText: helperText,
     helperMaxLines: 2,
     helperStyle: TextStyle(color: Colors.grey.shade600, fontSize: 11),
@@ -1010,7 +1019,10 @@ class _BouteilleCard extends StatelessWidget {
 
           ChampAutocomplete<String>(
             label: "Variété d'olive",
+            titre: const _InlineLabel(label: "Variété d'olive"),
             controller: row.varieteCtrl,
+            decoration: _fieldDec('Chemlali, Chetoui...'),
+            styleTexte: const TextStyle(fontSize: 13, color: kDarkText),
             hint: 'Chemlali, Chetoui...',
             chercher: VarieteService.instance.suggest,
             libelle: (v) => v,
@@ -1096,7 +1108,7 @@ class _InlineLabel extends StatelessWidget {
         style: TextStyle(
           fontSize: 11,
           fontWeight: FontWeight.w600,
-          color: Colors.grey.shade600,
+          color: kInlineLabel,
         ),
       ),
       if (required)
@@ -1138,9 +1150,9 @@ class _FormField extends StatelessWidget {
     required this.hint,
   });
 
-  InputDecoration _dec() => InputDecoration(
+  static InputDecoration decoration(String hint) => InputDecoration(
     hintText: hint,
-    hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 13),
+    hintStyle: TextStyle(color: kFieldHint, fontSize: 13),
     filled: true,
     fillColor: kFieldFill,
     contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 14),
@@ -1157,6 +1169,8 @@ class _FormField extends StatelessWidget {
       borderSide: const BorderSide(color: kGreen, width: 1.8),
     ),
   );
+
+  InputDecoration _dec() => decoration(hint);
 
   @override
   Widget build(BuildContext context) {

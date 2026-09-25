@@ -161,6 +161,7 @@ class EchantillonCollecteurService {
           if (!e.numero.toLowerCase().contains(q) &&
               !e.referenceBouteille.toLowerCase().contains(q) &&
               !e.codeFournisseur.toLowerCase().contains(q) &&
+              !(e.fournisseurNom?.toLowerCase().contains(q) ?? false) &&
               !(e.variete?.toLowerCase().contains(q) ?? false)) {
             return false;
           }

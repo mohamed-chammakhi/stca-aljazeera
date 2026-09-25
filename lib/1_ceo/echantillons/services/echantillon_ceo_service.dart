@@ -149,8 +149,8 @@ class EchantillonCeoService {
       delegation: sample['delegation'] as String?,
       codeFournisseur:
           sample['code_fournisseur'] as String? ??
-          sample['fournisseur_nom'] as String? ??
           '',
+      fournisseurNom: sample['fournisseur_nom'] as String?,
       numCiterne: sample['num_citerne'] as String?,
       variete: sample['variete'] as String?,
       quantiteEstimee: sample['quantite_estimee']?.toString(),

@@ -261,6 +261,11 @@ class EchantillonCollecteur {
       statut == StatutCollecteur.receptionne && !recuPhysiquement;
   bool get canConfirm => statut == StatutCollecteur.enNegociation;
   bool get canPlanifier => statut == StatutCollecteur.achatConfirme;
+  String get fournisseurAffichage {
+    final nom = fournisseurNom?.trim() ?? '';
+    if (nom.isNotEmpty) return nom;
+    return codeFournisseur.trim();
+  }
   bool get canScheduleArrivee =>
       statut == StatutCollecteur.receptionne && !recuPhysiquement;
 }

@@ -387,8 +387,8 @@ class _DetailPanel extends StatelessWidget {
                 items: [
                   DetailItem('N° échantillon', e.ref),
                   DetailItem('Réf. bouteille', e.referenceBouteille),
-                  if (e.codeFournisseur != null)
-                    DetailItem('Fournisseur', e.codeFournisseur!),
+                  if (e.fournisseurAffichage.isNotEmpty)
+                    DetailItem('Fournisseur', e.fournisseurAffichage),
                   if (e.variete != null && e.variete!.isNotEmpty)
                     DetailItem('Variété', e.variete!),
                   DetailItem(

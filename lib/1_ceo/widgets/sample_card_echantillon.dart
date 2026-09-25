@@ -135,7 +135,7 @@ class _SampleDetailsState extends State<SampleDetails> {
                 'Gouvernorat',
                 '${e.gouvernorat}${e.delegation != null ? " — ${e.delegation}" : ""}',
               ),
-              DetailItem('Fournisseur', e.codeFournisseur),
+              DetailItem('Fournisseur', e.fournisseurAffichage),
               if (e.variete != null) DetailItem('Variété', e.variete!),
               if (e.numCiterne != null) DetailItem('N° citerne', e.numCiterne!),
               if (e.quantiteEstimee != null)

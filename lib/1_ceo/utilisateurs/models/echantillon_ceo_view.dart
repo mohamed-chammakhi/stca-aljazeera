@@ -23,6 +23,7 @@ class EchantillonCeoView {
   final String gouvernorat;
   final String? delegation;
   final String codeFournisseur;
+  final String? fournisseurNom;
   final String? numCiterne;
   final String? variete;
   final String? quantiteEstimee;
@@ -63,6 +64,7 @@ class EchantillonCeoView {
     required this.gouvernorat,
     this.delegation,
     required this.codeFournisseur,
+    this.fournisseurNom,
     this.numCiterne,
     this.variete,
     this.quantiteEstimee,
@@ -93,6 +95,11 @@ class EchantillonCeoView {
 
   int get nombreEvaluations => evaluations.length;
   bool get tousEvalue => evaluations.length >= totalTasteurs;
+  String get fournisseurAffichage {
+    final nom = fournisseurNom?.trim() ?? '';
+    if (nom.isNotEmpty) return nom;
+    return codeFournisseur.trim();
+  }
 
   ClassificationHuile? get classificationMajoritaire {
     if (evaluations.isEmpty) return null;

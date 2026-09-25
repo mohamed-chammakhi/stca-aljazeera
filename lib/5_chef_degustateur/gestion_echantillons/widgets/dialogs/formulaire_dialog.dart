@@ -18,6 +18,7 @@ import '../../../../core/models/fournisseur.dart';
 import '../../../../core/services/fournisseur_service.dart';
 import '../../../../core/services/variete_service.dart';
 import '../../../../core/utils/reference_bouteille.dart';
+import '../../../../core/utils/validation_echantillon_formulaire.dart';
 import '../../../../core/widgets/champ_autocomplete.dart';
 import '../../../../core/widgets/date_input_field.dart';
 import '../../../../core/widgets/dialog_reference_bouteille.dart';
@@ -31,6 +32,9 @@ const Color _beige = Color(0xFFE9F4EE);
 const Color _olive = Color(0xFF6B8143);
 const Color _cream = Color(0xFFF9F6EF);
 const Color _fieldFill = Color(0xFFF7FAF8);
+final Color _hintColor = Colors.grey.shade600;
+final Color _inlineLabelColor = Colors.grey.shade800;
+const Color _labelOlive = Color(0xFF46542B);
 
 // Section accent colors
 const Color _sectionFournisseur = Color(0xFF2E7D98); // teal-blue
@@ -218,9 +222,12 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
     });
   }
 
-  bool get _isValid {
-    if (_bouteilles.isEmpty) return false;
-    return _bouteilles.every((b) => b.refCtrl.text.trim().isNotEmpty);
+  String? _messageValidation() {
+    return validerFormulaireEchantillon(
+      nombreBouteilles: _bouteilles.length,
+      fournisseur: _codeFournisseurCtrl.text,
+      referencesBouteilles: _bouteilles.map((b) => b.refCtrl.text).toList(),
+    );
   }
 
   Future<void> _confirmerReferenceSiRecalculee(_BouteilleRow row) async {
@@ -251,12 +258,11 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
   Future<void> _save() async {
     if (_saving) return;
     setState(() => _saving = true);
-    if (!_isValid) {
+    final validation = _messageValidation();
+    if (validation != null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text(
-            'La référence est obligatoire pour chaque bouteille',
-          ),
+          content: Text(validation),
           backgroundColor: Colors.red.shade400,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
@@ -375,311 +381,327 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
         child: ConstrainedBox(
-        constraints: BoxConstraints(
-          maxHeight: MediaQuery.of(context).size.height * 0.88,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // ── Dialog header ─────────────────────────────────────────────
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.fromLTRB(20, 18, 16, 16),
-              decoration: const BoxDecoration(
-                color: _beige,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    _isModification
-                        ? Icons.edit_outlined
-                        : Icons.add_circle_outline,
-                    color: chefDark,
-                    size: 20,
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      _isModification
-                          ? "Modifier l'échantillon"
-                          : 'Nouvel échantillon',
-                      style: GoogleFonts.domine(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w700,
-                        color: chefDark,
-                      ),
-                    ),
-                  ),
-                  // ID badge — add mode only
-                  if (!_isModification)
-                    _IdBadge(
-                      prochainNumero: widget.prochainNumero,
-                      bottleCount: _bottleCount,
-                    ),
-                ],
-              ),
-            ),
-
-            // ── Scrollable body ───────────────────────────────────────────
-            Flexible(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.88,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // ── Dialog header ─────────────────────────────────────────────
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.fromLTRB(20, 18, 16, 16),
+                decoration: const BoxDecoration(
+                  color: _beige,
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                ),
+                child: Row(
                   children: [
-                    // ── SHARED: FOURNISSEUR & COLLECTEUR ─────────────────
-                    ChampAutocomplete<Fournisseur>(
-                      label: 'Nom / Code fournisseur',
-                      controller: _codeFournisseurCtrl,
-                      hint: 'Ex: Domaine Bel-Air',
-                      chercher: FournisseurService.instance.suggest,
-                      libelle: (f) => f.nom,
-                      sousTitre: (f) => f.region,
-                      onSelection: (_) => _actualiserToutesLesReferences(),
-                      onSaisieLibre: _actualiserToutesLesReferences,
+                    Icon(
+                      _isModification
+                          ? Icons.edit_outlined
+                          : Icons.add_circle_outline,
+                      color: chefDark,
+                      size: 20,
                     ),
-                    const SizedBox(height: 12),
-                    _FormField(
-                      label: 'Collecteur',
-                      controller: _collecteurCtrl,
-                      hint: 'Ex: Ahmed Dridi',
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    // ── SHARED: LOCALISATION ─────────────────────────────
-                    _DropdownField(
-                      label: 'Gouvernorat',
-                      value: _gouvernorat,
-                      items: _geoLoaded
-                          ? _geo.gouvernorats.toSet().toList()
-                          : [],
-                      hint: _geoLoaded
-                          ? 'Sélectionner un gouvernorat'
-                          : 'Chargement…',
-                      onChanged: (v) => setState(() {
-                        _gouvernorat = v;
-                        _delegation = null;
-                      }),
-                    ),
-                    const SizedBox(height: 12),
-
-                    _DropdownField(
-                      label: 'Délégation',
-                      value: _delegation,
-                      items: (_geoLoaded && _gouvernorat != null)
-                          ? _geo.delegationsFor(_gouvernorat!).toSet().toList()
-                          : [],
-                      hint: _gouvernorat == null
-                          ? "Choisir un gouvernorat d'abord"
-                          : 'Sélectionner une délégation',
-                      onChanged: _gouvernorat == null
-                          ? null
-                          : (v) => setState(() => _delegation = v),
-                    ),
-
-                    const SizedBox(height: 12),
-                    _FormField(
-                      label: 'Lieu précis (optionnel)',
-                      controller: _citeCtrl,
-                      hint: 'Ex: nom du village, du lieu-dit...',
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    // ── PER-BOUTEILLE SECTION ─────────────────────────────
-                    _BouteillesSection(
-                      bouteilles: _bouteilles,
-                      isModification: _isModification,
-                      onAddRow: _addRow,
-                      onRemoveRow: _removeRow,
-                      onDonneesReferenceChangees: _actualiserReference,
-                    ),
-
-                    const SizedBox(height: 12),
-                    // ── SHARED: DATE ──────────────────────────────────────
-                    DateInputField(controller: _dateAjoutCtrl),
-                    const SizedBox(height: 12),
-
-                    // ── SHARED: STATUT (read-only) ────────────────────────
-                    _ReadOnlyField(
-                      label: 'Statut',
-                      icon: Icons.flag_outlined,
-                      value: _isModification
-                          ? (widget.echantillon!.statutDegustateur?.label ??
-                                'En attente')
-                          : 'En attente',
-                    ),
-
-                    const SizedBox(height: 16),
-                    // ── SHARED: PHOTO (placeholder) ───────────────────────
-                    _FieldLabel(label: 'Photo'),
-                    const SizedBox(height: 10),
-                    Container(
-                      width: double.infinity,
-                      height: 64,
-                      decoration: BoxDecoration(
-                        color: chefGreen.withValues(alpha: 0.05),
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(
-                          color: chefGreen.withValues(alpha: 0.25),
-                          style: BorderStyle.solid,
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        _isModification
+                            ? "Modifier l'échantillon"
+                            : 'Nouvel échantillon',
+                        style: GoogleFonts.domine(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w700,
+                          color: chefDark,
                         ),
                       ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.add_photo_alternate_outlined,
-                            color: chefGreen.withValues(alpha: 0.55),
-                            size: 22,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Ajouter une photo ',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: chefGreen.withValues(alpha: 0.55),
-                            ),
-                          ),
-                        ],
-                      ),
                     ),
+                    // ID badge — add mode only
+                    if (!_isModification)
+                      _IdBadge(
+                        prochainNumero: widget.prochainNumero,
+                        bottleCount: _bottleCount,
+                      ),
+                  ],
+                ),
+              ),
 
-                    const SizedBox(height: 12),
+              // ── Scrollable body ───────────────────────────────────────────
+              Flexible(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // ── SHARED: FOURNISSEUR & COLLECTEUR ─────────────────
+                      ChampAutocomplete<Fournisseur>(
+                        label: 'Fournisseur',
+                        titre: const _InlineLabel(
+                          label: 'Fournisseur',
+                          required: true,
+                        ),
+                        controller: _codeFournisseurCtrl,
+                        decoration: _FormField.decoration(
+                          'Ex: Domaine Bel-Air',
+                        ),
+                        styleTexte: const TextStyle(
+                          fontSize: 14,
+                          color: chefDark,
+                        ),
+                        chercher: FournisseurService.instance.suggest,
+                        libelle: (f) => f.nom,
+                        sousTitre: (f) => f.region,
+                        onSelection: (_) => _actualiserToutesLesReferences(),
+                        onSaisieLibre: _actualiserToutesLesReferences,
+                      ),
+                      const SizedBox(height: 12),
+                      _FormField(
+                        label: 'Collecteur',
+                        controller: _collecteurCtrl,
+                        hint: 'Ex: Ahmed Dridi',
+                      ),
 
-                    // ── SHARED: REMARQUES ─────────────────────────────────
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
+                      const SizedBox(height: 12),
+
+                      // ── SHARED: LOCALISATION ─────────────────────────────
+                      _DropdownField(
+                        label: 'Gouvernorat',
+                        value: _gouvernorat,
+                        items: _geoLoaded
+                            ? _geo.gouvernorats.toSet().toList()
+                            : [],
+                        hint: _geoLoaded
+                            ? 'Sélectionner un gouvernorat'
+                            : 'Chargement…',
+                        onChanged: (v) => setState(() {
+                          _gouvernorat = v;
+                          _delegation = null;
+                        }),
+                      ),
+                      const SizedBox(height: 12),
+
+                      _DropdownField(
+                        label: 'Délégation',
+                        value: _delegation,
+                        items: (_geoLoaded && _gouvernorat != null)
+                            ? _geo
+                                  .delegationsFor(_gouvernorat!)
+                                  .toSet()
+                                  .toList()
+                            : [],
+                        hint: _gouvernorat == null
+                            ? "Choisir un gouvernorat d'abord"
+                            : 'Sélectionner une délégation',
+                        onChanged: _gouvernorat == null
+                            ? null
+                            : (v) => setState(() => _delegation = v),
+                      ),
+
+                      const SizedBox(height: 12),
+                      _FormField(
+                        label: 'Lieu précis (optionnel)',
+                        controller: _citeCtrl,
+                        hint: 'Ex: nom du village, du lieu-dit...',
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      // ── PER-BOUTEILLE SECTION ─────────────────────────────
+                      _BouteillesSection(
+                        bouteilles: _bouteilles,
+                        isModification: _isModification,
+                        onAddRow: _addRow,
+                        onRemoveRow: _removeRow,
+                        onDonneesReferenceChangees: _actualiserReference,
+                      ),
+
+                      const SizedBox(height: 12),
+                      // ── SHARED: DATE ──────────────────────────────────────
+                      DateInputField(controller: _dateAjoutCtrl),
+                      const SizedBox(height: 12),
+
+                      // ── SHARED: STATUT (read-only) ────────────────────────
+                      _ReadOnlyField(
+                        label: 'Statut',
+                        icon: Icons.flag_outlined,
+                        value: _isModification
+                            ? (widget.echantillon!.statutDegustateur?.label ??
+                                  'En attente')
+                            : 'En attente',
+                      ),
+
+                      const SizedBox(height: 16),
+                      // ── SHARED: PHOTO (placeholder) ───────────────────────
+                      _FieldLabel(label: 'Photo'),
+                      const SizedBox(height: 10),
+                      Container(
+                        width: double.infinity,
+                        height: 64,
+                        decoration: BoxDecoration(
+                          color: chefGreen.withValues(alpha: 0.05),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: chefGreen.withValues(alpha: 0.25),
+                            style: BorderStyle.solid,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Text(
-                              'Remarques',
+                            Icon(
+                              Icons.add_photo_alternate_outlined,
+                              color: chefGreen.withValues(alpha: 0.55),
+                              size: 22,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Ajouter une photo ',
                               style: TextStyle(
                                 fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: _olive,
-                              ),
-                            ),
-                            Text(
-                              ' (optionnel)',
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: Colors.grey.shade400,
+                                color: chefGreen.withValues(alpha: 0.55),
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 6),
-                        TextField(
-                          controller: _remarquesCtrl,
-                          maxLines: 3,
-                          minLines: 2,
-                          style: const TextStyle(fontSize: 14, color: chefDark),
-                          decoration: InputDecoration(
-                            hintText: 'Notes, observations particulières...',
-                            hintStyle: TextStyle(
-                              color: Colors.grey.shade400,
-                              fontSize: 13,
-                            ),
-                            filled: true,
-                            fillColor: _fieldFill,
-                            contentPadding: const EdgeInsets.all(12),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              borderSide: BorderSide(
-                                color: Colors.grey.shade200,
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      // ── SHARED: REMARQUES ─────────────────────────────────
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              const Text(
+                                'Remarques',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: _labelOlive,
+                                ),
                               ),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              borderSide: BorderSide(
-                                color: Colors.grey.shade200,
+                              Text(
+                                ' (optionnel)',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: Colors.grey.shade400,
+                                ),
                               ),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          TextField(
+                            controller: _remarquesCtrl,
+                            maxLines: 3,
+                            minLines: 2,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: chefDark,
                             ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              borderSide: const BorderSide(
-                                color: chefGreen,
-                                width: 1.8,
+                            decoration: InputDecoration(
+                              hintText: 'Notes, observations particulières...',
+                              hintStyle: TextStyle(
+                                color: Colors.grey.shade400,
+                                fontSize: 13,
+                              ),
+                              filled: true,
+                              fillColor: _fieldFill,
+                              contentPadding: const EdgeInsets.all(12),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                borderSide: BorderSide(
+                                  color: Colors.grey.shade200,
+                                ),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                borderSide: BorderSide(
+                                  color: Colors.grey.shade200,
+                                ),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                borderSide: const BorderSide(
+                                  color: chefGreen,
+                                  width: 1.8,
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      ],
-                    ),
+                        ],
+                      ),
 
-                    const SizedBox(height: 8),
+                      const SizedBox(height: 8),
+                    ],
+                  ),
+                ),
+              ),
+
+              // ── Action buttons ────────────────────────────────────────────
+              Container(
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
+                decoration: BoxDecoration(
+                  color: _cream,
+                  borderRadius: const BorderRadius.vertical(
+                    bottom: Radius.circular(16),
+                  ),
+                  border: Border(top: BorderSide(color: Colors.grey.shade100)),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.pop(context),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Colors.grey.shade600,
+                          side: BorderSide(color: Colors.grey.shade300),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        child: const Text('Annuler'),
+                      ),
+                    ),
+                    const SizedBox(width: 20),
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: _saving ? null : _save,
+                        icon: Icon(
+                          _isModification ? Icons.check : Icons.add,
+                          size: 16,
+                        ),
+                        label: Text(
+                          _isModification
+                              ? 'Enregistrer'
+                              : _bottleCount > 1
+                              ? 'Ajouter $_bottleCount échantillons'
+                              : 'Ajouter',
+                          style: const TextStyle(fontWeight: FontWeight.w700),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color.fromARGB(
+                            255,
+                            197,
+                            206,
+                            201,
+                          ),
+                          foregroundColor: chefDark,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
-            ),
-
-            // ── Action buttons ────────────────────────────────────────────
-            Container(
-              padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
-              decoration: BoxDecoration(
-                color: _cream,
-                borderRadius: const BorderRadius.vertical(
-                  bottom: Radius.circular(16),
-                ),
-                border: Border(top: BorderSide(color: Colors.grey.shade100)),
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () => Navigator.pop(context),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.grey.shade600,
-                        side: BorderSide(color: Colors.grey.shade300),
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      child: const Text('Annuler'),
-                    ),
-                  ),
-                  const SizedBox(width: 20),
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: _saving ? null : _save,
-                      icon: Icon(
-                        _isModification ? Icons.check : Icons.add,
-                        size: 16,
-                      ),
-                      label: Text(
-                        _isModification
-                            ? 'Enregistrer'
-                            : _bottleCount > 1
-                            ? 'Ajouter $_bottleCount échantillons'
-                            : 'Ajouter',
-                        style: const TextStyle(fontWeight: FontWeight.w700),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color.fromARGB(
-                          255,
-                          197,
-                          206,
-                          201,
-                        ),
-                        foregroundColor: chefDark,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+            ],
+          ),
         ),
       ),
     );
@@ -754,7 +776,7 @@ class _BouteillesSection extends StatelessWidget {
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color: _olive,
+                color: _labelOlive,
               ),
             ),
             const Spacer(),
@@ -860,10 +882,10 @@ class _BouteilleCard extends StatelessWidget {
   InputDecoration _fieldDec(String hint, {String? suffixText}) =>
       InputDecoration(
         hintText: hint,
-        hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 13),
+        hintStyle: TextStyle(color: _hintColor, fontSize: 13),
         suffixText: suffixText,
         suffixStyle: const TextStyle(
-          color: _olive,
+          color: _labelOlive,
           fontWeight: FontWeight.w700,
           fontSize: 14,
         ),
@@ -995,7 +1017,10 @@ class _BouteilleCard extends StatelessWidget {
 
           ChampAutocomplete<String>(
             label: "Variété d'olive",
+            titre: const _InlineLabel(label: "Variété d'olive"),
             controller: row.varieteCtrl,
+            decoration: _fieldDec('Chemlali, Chetoui...'),
+            styleTexte: const TextStyle(fontSize: 13, color: chefDark),
             hint: 'Chemlali, Chetoui...',
             chercher: VarieteService.instance.suggest,
             libelle: (v) => v,
@@ -1023,7 +1048,7 @@ class _InlineLabel extends StatelessWidget {
         style: TextStyle(
           fontSize: 11,
           fontWeight: FontWeight.w600,
-          color: Colors.grey.shade600,
+          color: _inlineLabelColor,
         ),
       ),
       if (required)
@@ -1053,7 +1078,7 @@ class _FieldLabel extends StatelessWidget {
         style: TextStyle(
           fontSize: fontSize,
           fontWeight: FontWeight.w600,
-          color: _olive,
+          color: _labelOlive,
         ),
       ),
     ],
@@ -1082,31 +1107,37 @@ class _FormField extends StatelessWidget {
     this.optional = false,
   });
 
-  InputDecoration _dec() => InputDecoration(
-    hintText: hint,
-    hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 13),
-    suffixText: suffixText,
-    suffixStyle: const TextStyle(
-      color: _olive,
-      fontWeight: FontWeight.w700,
-      fontSize: 14,
-    ),
-    filled: true,
-    fillColor: _fieldFill,
-    contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 14),
-    border: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(10),
-      borderSide: BorderSide(color: Colors.grey.shade200),
-    ),
-    enabledBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(10),
-      borderSide: BorderSide(color: Colors.grey.shade200),
-    ),
-    focusedBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(10),
-      borderSide: const BorderSide(color: chefGreen, width: 1.8),
-    ),
-  );
+  static InputDecoration decoration(String hint, {String? suffixText}) =>
+      InputDecoration(
+        hintText: hint,
+        hintStyle: TextStyle(color: _hintColor, fontSize: 13),
+        suffixText: suffixText,
+        suffixStyle: const TextStyle(
+          color: _labelOlive,
+          fontWeight: FontWeight.w700,
+          fontSize: 14,
+        ),
+        filled: true,
+        fillColor: _fieldFill,
+        contentPadding: const EdgeInsets.symmetric(
+          vertical: 12,
+          horizontal: 14,
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide(color: Colors.grey.shade200),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide(color: Colors.grey.shade200),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(color: chefGreen, width: 1.8),
+        ),
+      );
+
+  InputDecoration _dec() => decoration(hint, suffixText: suffixText);
 
   @override
   Widget build(BuildContext context) {
@@ -1120,7 +1151,7 @@ class _FormField extends StatelessWidget {
               style: const TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color: _olive,
+                color: _labelOlive,
               ),
             ),
             if (required)
@@ -1174,7 +1205,7 @@ class _DropdownField extends StatelessWidget {
               style: const TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color: _olive,
+                color: _labelOlive,
               ),
             ),
           ],
@@ -1246,7 +1277,7 @@ class _ReadOnlyField extends StatelessWidget {
         style: const TextStyle(
           fontSize: 12,
           fontWeight: FontWeight.w600,
-          color: _olive,
+          color: _labelOlive,
         ),
       ),
       const SizedBox(height: 6),

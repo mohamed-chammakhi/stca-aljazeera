@@ -38,6 +38,18 @@ class EchantillonSerializer(serializers.ModelSerializer):
             'nb_renegociations', 'date_reception_echantillon',
             'date_ajout', 'updated_at',
         ]
+        extra_kwargs = {
+            'gouvernorat': {'required': False, 'allow_blank': True},
+            'delegation': {'required': False, 'allow_blank': True},
+            'cite': {'required': False, 'allow_blank': True},
+            'variete': {'required': False, 'allow_blank': True},
+            'num_citerne': {'required': False, 'allow_blank': True},
+            'quantite_estimee': {'required': False, 'allow_blank': True},
+            'image_url': {'required': False, 'allow_blank': True},
+            'date_arrivee_echantillon': {'required': False, 'allow_null': True},
+            'classification': {'required': False, 'allow_blank': True},
+            'remarques': {'required': False, 'allow_blank': True},
+        }
 
     def to_representation(self, instance):
         data = super().to_representation(instance)

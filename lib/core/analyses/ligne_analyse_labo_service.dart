@@ -50,7 +50,9 @@ class LigneAnalyseLaboService {
       technicienNom:
           (analyse?['technicien_nom'] as String?) ?? 'En attente laboratoire',
       statut: estSoumise ? StatutAnalyse.soumise : StatutAnalyse.enAttente,
-      fournisseurNom: json['code_fournisseur'] as String?,
+      fournisseurNom:
+          json['fournisseur_nom'] as String? ??
+          json['code_fournisseur'] as String?,
       gouvernorat: json['gouvernorat'] as String?,
       delegation: json['delegation'] as String?,
       collecteurNom: json['collecteur_nom'] as String?,
