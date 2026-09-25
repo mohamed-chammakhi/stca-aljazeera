@@ -9,6 +9,9 @@ import 'core/api_client.dart';
 import 'core/models/enums.dart';
 import 'core/password_validation.dart';
 import 'core/services/auth_service.dart';
+import 'core/session_expiration.dart';
+
+final GlobalKey<NavigatorState> appNavigatorKey = sessionNavigatorKey;
 
 // ENTRY POINT
 void main() {
@@ -24,8 +27,25 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   @override
+  void initState() {
+    super.initState();
+    registerSessionExpiredHandler(_retourConnexionSessionExpiree);
+  }
+
+  void _retourConnexionSessionExpiree(String message) {
+    final navigator = appNavigatorKey.currentState;
+    if (navigator == null) return;
+
+    navigator.pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => LoginPage(messageInitial: message)),
+      (_) => false,
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      navigatorKey: appNavigatorKey,
       title: 'Tasting Panel',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
@@ -97,7 +117,9 @@ class _AuthGateState extends State<AuthGate> {
 
 // LOGIN PAGE — StatefulWidget because it manages password visibility + form state
 class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+  final String? messageInitial;
+
+  const LoginPage({super.key, this.messageInitial});
   @override
   State<LoginPage> createState() => _LoginPageState();
 }
@@ -109,6 +131,12 @@ class _LoginPageState extends State<LoginPage> {
   bool _obscurePassword = true;
   bool _isLoading = false;
   String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _errorMessage = widget.messageInitial;
+  }
 
   // Brand colors
   static const Color green = Color(0xFF38835A);

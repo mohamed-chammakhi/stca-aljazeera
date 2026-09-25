@@ -265,6 +265,7 @@ class _ValidationAchatsCeoPageState extends State<ValidationAchatsCeoPage>
   Future<void> _refuser(EchantillonCeoView e) async {
     final decision = await showDialog<DecisionRefus>(
       context: context,
+      barrierDismissible: false,
       builder: (_) => RefusDecisionDialog(
         referenceBouteille: e.referenceBouteille,
         nbRenegociations: e.nbRenegociations,

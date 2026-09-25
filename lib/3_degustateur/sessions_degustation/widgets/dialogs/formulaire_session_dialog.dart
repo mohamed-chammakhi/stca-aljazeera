@@ -10,6 +10,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:project3/core/models/session_degustation.dart';
 import 'package:project3/core/models/membre_panel.dart';
 import 'package:project3/core/services/membres_panel_service.dart';
+import 'package:project3/core/widgets/saisie_protegee.dart';
 import '../../../../../core/widgets/bandeau_demonstration.dart';
 import '../../../../../core/services/resultat_service.dart';
 
@@ -353,6 +354,8 @@ Future<void> showFormulaireSessionDialog(
   return showModalBottomSheet(
     context: context,
     isScrollControlled: true,
+    isDismissible: false,
+    enableDrag: false,
     backgroundColor: Colors.transparent,
     builder: (_) => StatefulBuilder(
       builder: (ctx, setSheetState) {
@@ -625,11 +628,12 @@ Future<void> showFormulaireSessionDialog(
           Navigator.pop(ctx);
         }
 
-        return Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(ctx).viewInsets.bottom,
-          ),
-          child: Container(
+        return SaisieProtegee(
+          child: Padding(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(ctx).viewInsets.bottom,
+            ),
+            child: Container(
             decoration: const BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
@@ -890,6 +894,7 @@ Future<void> showFormulaireSessionDialog(
                   ),
                 ],
               ),
+            ),
             ),
           ),
         );

@@ -79,6 +79,8 @@ si son analyse est déjà en cours.
 | 32 | Messagerie — chef dégustateur ↔ chef dégustateur, libellé "Messagerie" chez le collecteur (au lieu de "Messagerie Direction") | **Terminée et commitée** (`8198c6f`) | à vérifier à l'écran |
 | 33 | Les deux petits défauts connus : suppression de `test/widget_test.dart`, débordement de l'en-tête négociation sur la carte collecteur (+ test 360 px) | **Terminée et commitée** | personne |
 | 35 | Mise à jour des écrans : tirer vers le bas + rechargement automatique toutes les 30 s | **Terminée et commitée** | à vérifier à l'écran (téléphone) |
+| 36 | Session expirée → retour à la connexion, photo en grand, suggestions variété, bouton Ajouter qui affiche l'erreur ; + dates de livraison sur la carte dégustateur/chef, suppression des données de démonstration | **Terminée et commitée** | à vérifier à l'écran (téléphone) |
+| 37 | Les formulaires ne se ferment plus en touchant à côté ; retour Android demande confirmation ; + écran rouge du filtre « Jour exact » (collecteur) ; + rester connecté 8 h sans utilisation | **Terminée et commitée** | à vérifier à l'écran (téléphone) |
 
 ---
 

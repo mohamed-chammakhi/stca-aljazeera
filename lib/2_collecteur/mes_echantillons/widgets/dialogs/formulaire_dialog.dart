@@ -8,12 +8,16 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../models/echantillon_collecteur.dart';
+import '../../../../core/api_client.dart';
 import '../../../../core/models/enums.dart';
 import '../../../../core/models/fournisseur.dart';
 import '../../../../core/services/fournisseur_service.dart';
+import '../../../../core/services/variete_service.dart';
 import '../../../../core/utils/reference_bouteille.dart';
 import '../../../../core/widgets/champ_autocomplete.dart';
 import '../../../../core/widgets/dialog_doublon_fournisseur.dart';
+import '../../../../core/widgets/photo_plein_ecran.dart';
+import '../../../../core/widgets/saisie_protegee.dart';
 import '../../../../2_collecteur/carte_geo/services/geo_service.dart';
 import 'bouteille_row.dart';
 import 'date_livraison_section.dart';
@@ -30,7 +34,7 @@ class SamplePhoto {
 // Save callback. Carries one optional photo per bottle row so each created
 // sample keeps its optional bottle-label photo.
 typedef SaveSamplesCb =
-    void Function(
+    Future<void> Function(
       List<EchantillonCollecteur> samples, {
       List<SamplePhoto?>? photos,
     });
@@ -48,6 +52,7 @@ void showFormulaireDialog(
 }) {
   showDialog(
     context: context,
+    barrierDismissible: false,
     builder: (_) => _FormulaireDialog(
       echantillon: echantillon,
       prochainNumero: prochainNumero,
@@ -102,6 +107,7 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
 
   // ── Per-bouteille rows ────────────────────────────────────────────────────
   final List<BouteilleRow> _bouteilles = [];
+  bool _saving = false;
 
   // ── Bottle photos (optional, one per sample) ──────────────────────────────
   final ImagePicker _picker = ImagePicker();
@@ -259,9 +265,34 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
     });
   }
 
-  bool get _isValid =>
-      _bouteilles.isNotEmpty &&
-      _bouteilles.every((b) => b.refCtrl.text.trim().isNotEmpty);
+  String? _messageValidation() {
+    if (_bouteilles.isEmpty) return 'Ajoutez au moins une bouteille.';
+    for (var i = 0; i < _bouteilles.length; i++) {
+      if (_bouteilles[i].refCtrl.text.trim().isEmpty) {
+        return 'La référence bouteille est obligatoire pour la bouteille ${i + 1}.';
+      }
+    }
+    return null;
+  }
+
+  bool get _isValid => _messageValidation() == null;
+
+  void _showErrorMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red.shade400,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        margin: const EdgeInsets.all(16),
+      ),
+    );
+  }
+
+  String _messageErreur(Object error) {
+    if (error is ApiException) return error.message;
+    return error.toString();
+  }
 
   /// Keeps duplicate detection at save time without creating the supplier in a
   /// separate request. The sample endpoint resolves the final typed name.
@@ -297,12 +328,13 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
   }
 
   Future<void> _save() async {
-    if (!_isValid) {
+    if (_saving) return;
+    setState(() => _saving = true);
+    final validation = _messageValidation();
+    if (validation != null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text(
-            'La référence est obligatoire pour chaque bouteille',
-          ),
+          content: Text(validation),
           backgroundColor: Colors.red.shade400,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
@@ -311,110 +343,125 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
           margin: const EdgeInsets.all(16),
         ),
       );
+      if (mounted) setState(() => _saving = false);
       return;
     }
 
-    // Checked before closing: it may need to ask the collector a question,
-    // and a dialog cannot open on a form that is already gone.
-    await _verifierFournisseur();
-    if (!mounted) return;
+    try {
+      // Checked before closing: it may need to ask the collector a question,
+      // and a dialog cannot open on a form that is already gone.
+      await _verifierFournisseur();
+      if (!mounted) return;
 
-    Navigator.pop(context);
+      final gouvernorat = _gouvernorat ?? '';
+      final collecteur = _collecteurCtrl.text.trim().isEmpty
+          ? null
+          : _collecteurCtrl.text.trim();
+      final fournisseurNom = _codeFournisseurCtrl.text.trim().isEmpty
+          ? null
+          : _codeFournisseurCtrl.text.trim();
+      final cite = _citeCtrl.text.trim().isEmpty ? null : _citeCtrl.text.trim();
 
-    final gouvernorat = _gouvernorat ?? '';
-    final collecteur = _collecteurCtrl.text.trim().isEmpty
-        ? null
-        : _collecteurCtrl.text.trim();
-    final fournisseurNom = _codeFournisseurCtrl.text.trim().isEmpty
-        ? null
-        : _codeFournisseurCtrl.text.trim();
-    final cite = _citeCtrl.text.trim().isEmpty ? null : _citeCtrl.text.trim();
-
-    if (_isModification) {
-      final e = widget.echantillon!;
-      final b = _bouteilles.first;
-      e.referenceBouteille = b.refCtrl.text.trim();
-      e.variete = b.varieteCtrl.text.trim().isEmpty
-          ? null
-          : b.varieteCtrl.text.trim();
-      e.numCiterne = b.numCiterneCtrl.text.trim().isEmpty
-          ? null
-          : b.numCiterneCtrl.text.trim();
-      e.quantiteEstimee = b.qteCtrl.text.trim().isEmpty
-          ? null
-          : b.qteCtrl.text.trim();
-      e.gouvernorat = gouvernorat;
-      e.delegation = _delegation;
-      e.cite = cite;
-      e.remarques = b.remarqueCtrl.text.trim().isEmpty
-          ? null
-          : b.remarqueCtrl.text.trim();
-      e.dateArriveeEchantillon = _livDate;
-      e.fournisseurId = _fournisseurChoisi?.id ?? e.fournisseurId;
-      e.fournisseurNom = fournisseurNom;
-      e.codeFournisseur = fournisseurNom ?? '';
-      widget.onSaveMultiple([e]); // modification: photo unchanged here
-    } else {
-      final now = DateTime.now();
-      final samples = _bouteilles.asMap().entries.map((entry) {
-        final idx = entry.key;
-        final b = entry.value;
-        final numero = widget.prochainNumero + idx;
-        return EchantillonCollecteur(
-          id: 'new-${now.millisecondsSinceEpoch}-$idx',
-          numero:
-              '${now.year}/${(widget.prochainNumero + idx).toString().padLeft(4, '0')}',
-          fournisseurId: _fournisseurChoisi?.id,
-          codeFournisseur: fournisseurNom ?? '',
-          fournisseurNom: fournisseurNom,
-          collecteurId: 'collecteur-placeholder',
-          collecteurNom: collecteur ?? '',
-          referenceBouteille: b.refCtrl.text.trim(),
-          variete: b.varieteCtrl.text.trim().isEmpty
-              ? null
-              : b.varieteCtrl.text.trim(),
-          numCiterne: b.numCiterneCtrl.text.trim().isEmpty
-              ? null
-              : b.numCiterneCtrl.text.trim(),
-          gouvernorat: gouvernorat,
-          delegation: _delegation,
-          cite: cite,
-          remarques: b.remarqueCtrl.text.trim().isEmpty
-              ? null
-              : b.remarqueCtrl.text.trim(),
-          quantiteEstimee: b.qteCtrl.text.trim().isEmpty
-              ? null
-              : b.qteCtrl.text.trim(),
-          dateAjout: DateTime.now(),
-          dateArriveeEchantillon: _livDate,
-          achatConfirme: false,
-          statut: StatutCollecteur.receptionne,
+      if (_isModification) {
+        final e = widget.echantillon!;
+        final b = _bouteilles.first;
+        e.referenceBouteille = b.refCtrl.text.trim();
+        e.variete = b.varieteCtrl.text.trim().isEmpty
+            ? null
+            : b.varieteCtrl.text.trim();
+        e.numCiterne = b.numCiterneCtrl.text.trim().isEmpty
+            ? null
+            : b.numCiterneCtrl.text.trim();
+        e.quantiteEstimee = b.qteCtrl.text.trim().isEmpty
+            ? null
+            : b.qteCtrl.text.trim();
+        e.gouvernorat = gouvernorat;
+        e.delegation = _delegation;
+        e.cite = cite;
+        e.remarques = b.remarqueCtrl.text.trim().isEmpty
+            ? null
+            : b.remarqueCtrl.text.trim();
+        e.dateArriveeEchantillon = _livDate;
+        e.fournisseurId = _fournisseurChoisi?.id ?? e.fournisseurId;
+        e.fournisseurNom = fournisseurNom;
+        e.codeFournisseur = fournisseurNom ?? '';
+        await widget.onSaveMultiple([e]); // modification: photo unchanged here
+      } else {
+        final now = DateTime.now();
+        final samples = _bouteilles.asMap().entries.map((entry) {
+          final idx = entry.key;
+          final b = entry.value;
+          final numero = widget.prochainNumero + idx;
+          return EchantillonCollecteur(
+            id: 'new-${now.millisecondsSinceEpoch}-$idx',
+            numero:
+                '${now.year}/${(widget.prochainNumero + idx).toString().padLeft(4, '0')}',
+            fournisseurId: _fournisseurChoisi?.id,
+            codeFournisseur: fournisseurNom ?? '',
+            fournisseurNom: fournisseurNom,
+            collecteurId: 'collecteur-placeholder',
+            collecteurNom: collecteur ?? '',
+            referenceBouteille: b.refCtrl.text.trim(),
+            variete: b.varieteCtrl.text.trim().isEmpty
+                ? null
+                : b.varieteCtrl.text.trim(),
+            numCiterne: b.numCiterneCtrl.text.trim().isEmpty
+                ? null
+                : b.numCiterneCtrl.text.trim(),
+            gouvernorat: gouvernorat,
+            delegation: _delegation,
+            cite: cite,
+            remarques: b.remarqueCtrl.text.trim().isEmpty
+                ? null
+                : b.remarqueCtrl.text.trim(),
+            quantiteEstimee: b.qteCtrl.text.trim().isEmpty
+                ? null
+                : b.qteCtrl.text.trim(),
+            dateAjout: DateTime.now(),
+            dateArriveeEchantillon: _livDate,
+            achatConfirme: false,
+            statut: StatutCollecteur.receptionne,
+          );
+        }).toList();
+        await widget.onSaveMultiple(
+          samples,
+          photos: _bouteilles
+              .map(
+                (b) => b.photoBytes == null
+                    ? null
+                    : SamplePhoto(
+                        bytes: b.photoBytes!,
+                        filename: b.photoName ?? 'etiquette.jpg',
+                      ),
+              )
+              .toList(),
         );
-      }).toList();
-      widget.onSaveMultiple(
-        samples,
-        photos: _bouteilles
-            .map(
-              (b) => b.photoBytes == null
-                  ? null
-                  : SamplePhoto(
-                      bytes: b.photoBytes!,
-                      filename: b.photoName ?? 'etiquette.jpg',
-                    ),
-            )
-            .toList(),
-      );
+      }
+      FournisseurService.instance.invalidateCache();
+      VarieteService.instance.invalidateCache();
+      if (mounted) {
+        setState(() => _saving = false);
+        Navigator.pop(context);
+      }
+    } catch (error) {
+      if (mounted) {
+        _showErrorMessage(
+          'Enregistrement impossible : ${_messageErreur(error)}',
+        );
+        setState(() => _saving = false);
+      }
     }
   }
 
   // ── Build ─────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
-    return Dialog(
-      backgroundColor: Colors.white,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-      child: ConstrainedBox(
+    return SaisieProtegee(
+      child: Dialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+        child: ConstrainedBox(
         constraints: BoxConstraints(
           maxHeight: MediaQuery.of(context).size.height * 0.88,
         ),
@@ -598,7 +645,7 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
                   const SizedBox(width: 20),
                   Expanded(
                     child: ElevatedButton.icon(
-                      onPressed: _save,
+                      onPressed: _saving ? null : _save,
                       icon: Icon(
                         _isModification ? Icons.check : Icons.add,
                         size: 16,
@@ -631,6 +678,7 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
               ),
             ),
           ],
+        ),
         ),
       ),
     );
@@ -935,12 +983,12 @@ class _BouteilleCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _InlineLabel(label: "Variété d'olive"),
-                    const SizedBox(height: 5),
-                    TextField(
+                    ChampAutocomplete<String>(
+                      label: "Variété d'olive",
                       controller: row.varieteCtrl,
-                      style: const TextStyle(fontSize: 13, color: kDarkText),
-                      decoration: _fieldDec('Ex: Chemlali'),
+                      hint: 'Chemlali, Chetoui...',
+                      chercher: VarieteService.instance.suggest,
+                      libelle: (v) => v,
                     ),
                   ],
                 ),
@@ -999,14 +1047,10 @@ class _BouteilleCard extends StatelessWidget {
               style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
             )
           else ...[
-            ClipRRect(
+            PhotoPleinEcran.memory(
+              bytes: row.photoBytes!,
+              height: 130,
               borderRadius: BorderRadius.circular(8),
-              child: Image.memory(
-                row.photoBytes!,
-                width: double.infinity,
-                height: 130,
-                fit: BoxFit.cover,
-              ),
             ),
             const SizedBox(height: 6),
             Row(

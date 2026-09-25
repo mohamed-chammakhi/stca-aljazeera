@@ -5,6 +5,7 @@ import '../../core/classification/classification_interne.dart';
 import '../../core/models/enums.dart';
 import '../../core/widgets/carte_classification.dart';
 import '../../core/widgets/bandeau_demonstration.dart';
+import '../../core/widgets/saisie_protegee.dart';
 import 'package:project3/core/services/evaluation_service.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -236,21 +237,28 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
     super.dispose();
   }
 
+  Future<void> _quitterAvecConfirmation() async {
+    final quitter = _estSoumis || await confirmerAbandonSaisie(context);
+    if (quitter && mounted) Navigator.pop(context);
+  }
+
   // ─────────────────────────────────────────────────────────────────────────
   // BUILD
   // ─────────────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: _bg,
-      appBar: AppBar(
+    return SaisieProtegee(
+      actif: !_estSoumis,
+      child: Scaffold(
+        backgroundColor: _bg,
+        appBar: AppBar(
         backgroundColor: _headerBg,
         elevation: 0,
         centerTitle: false,
         toolbarHeight: 65,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: darkText),
-          onPressed: () => Navigator.pop(context),
+          onPressed: _quitterAvecConfirmation,
         ),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -727,6 +735,7 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
                 ),
               ),
             ),
+      ),
     );
   }
 

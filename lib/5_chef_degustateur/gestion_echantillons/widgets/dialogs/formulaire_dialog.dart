@@ -11,6 +11,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../../core/api_client.dart';
 import '../../../../core/models/echantillon.dart';
 import '../../../../core/models/enums.dart';
 import '../../../../core/models/fournisseur.dart';
@@ -19,6 +20,7 @@ import '../../../../core/services/variete_service.dart';
 import '../../../../core/widgets/champ_autocomplete.dart';
 import '../../../../core/widgets/date_input_field.dart';
 import '../../../../core/widgets/dialog_doublon_fournisseur.dart';
+import '../../../../core/widgets/saisie_protegee.dart';
 // TODO(core): move GeoService to lib/core/services/ — cross-module import from 2_collecteur
 import '../../../../2_collecteur/carte_geo/services/geo_service.dart';
 import '../../../widgets/chef_colors.dart';
@@ -79,10 +81,11 @@ void showFormulaireDialog(
   BuildContext context, {
   Echantillon? echantillon,
   required int prochainNumero,
-  required Function(List<Echantillon>) onSaveMultiple,
+  required Future<void> Function(List<Echantillon>) onSaveMultiple,
 }) {
   showDialog(
     context: context,
+    barrierDismissible: false,
     builder: (_) => _FormulaireDialog(
       echantillon: echantillon,
       prochainNumero: prochainNumero,
@@ -97,7 +100,7 @@ void showFormulaireDialog(
 class _FormulaireDialog extends StatefulWidget {
   final Echantillon? echantillon;
   final int prochainNumero;
-  final Function(List<Echantillon>) onSaveMultiple;
+  final Future<void> Function(List<Echantillon>) onSaveMultiple;
 
   const _FormulaireDialog({
     required this.echantillon,
@@ -128,6 +131,7 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
 
   // ── Per-bouteille rows ────────────────────────────────────────────────────
   final List<_BouteilleRow> _bouteilles = [];
+  bool _saving = false;
 
   bool get _isModification => widget.echantillon != null;
   int get _bottleCount => _bouteilles.length;
@@ -218,6 +222,8 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
   }
 
   Future<void> _save() async {
+    if (_saving) return;
+    setState(() => _saving = true);
     if (!_isValid) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -232,91 +238,117 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
           margin: const EdgeInsets.all(16),
         ),
       );
+      if (mounted) setState(() => _saving = false);
       return;
     }
 
-    await _verifierFournisseur();
-    if (!mounted) return;
+    try {
+      await _verifierFournisseur();
+      if (!mounted) return;
 
-    Navigator.pop(context);
+      final gouvernorat = _gouvernorat ?? '';
+      final collecteur = _collecteurCtrl.text.trim().isEmpty
+          ? null
+          : _collecteurCtrl.text.trim();
+      final codeFournisseur = _codeFournisseurCtrl.text.trim().isEmpty
+          ? null
+          : _codeFournisseurCtrl.text.trim();
+      final cite = _citeCtrl.text.trim().isEmpty ? null : _citeCtrl.text.trim();
 
-    final gouvernorat = _gouvernorat ?? '';
-    final collecteur = _collecteurCtrl.text.trim().isEmpty
-        ? null
-        : _collecteurCtrl.text.trim();
-    final codeFournisseur = _codeFournisseurCtrl.text.trim().isEmpty
-        ? null
-        : _codeFournisseurCtrl.text.trim();
-    final cite = _citeCtrl.text.trim().isEmpty ? null : _citeCtrl.text.trim();
-
-    if (_isModification) {
-      final e = widget.echantillon!;
-      final b = _bouteilles.first;
-      e.referenceBouteille = b.refCtrl.text.trim();
-      e.variete = b.varieteCtrl.text.trim().isEmpty
-          ? null
-          : b.varieteCtrl.text.trim();
-      e.numCiterne = b.numCiterneCtrl.text.trim().isEmpty
-          ? null
-          : b.numCiterneCtrl.text.trim();
-      e.quantiteEstimee = b.qteCtrl.text.trim().isEmpty
-          ? null
-          : b.qteCtrl.text.trim();
-      e.gouvernorat = gouvernorat;
-      e.delegation = _delegation;
-      e.cite = cite;
-      e.remarques = _remarquesCtrl.text.trim().isEmpty
-          ? null
-          : _remarquesCtrl.text.trim();
-      // codeFournisseur, dateAjout, collecteurNom are API-assigned — not mutated
-      widget.onSaveMultiple([e]);
-    } else {
-      final now = DateTime.now();
-      final samples = _bouteilles.asMap().entries.map((entry) {
-        final idx = entry.key;
-        final b = entry.value;
-        final numero = widget.prochainNumero + idx;
-        return Echantillon(
-          id: 'new-${now.millisecondsSinceEpoch}-$idx',
-          ref: '${now.year}/${numero.toString().padLeft(4, '0')}',
-          fournisseurId: 'fournisseur-placeholder',
-          collecteurId: 'collecteur-placeholder',
-          codeFournisseur: codeFournisseur,
-          collecteurNom: collecteur,
-          referenceBouteille: b.refCtrl.text.trim(),
-          variete: b.varieteCtrl.text.trim().isEmpty
-              ? null
-              : b.varieteCtrl.text.trim(),
-          numCiterne: b.numCiterneCtrl.text.trim().isEmpty
-              ? null
-              : b.numCiterneCtrl.text.trim(),
-          gouvernorat: gouvernorat,
-          delegation: _delegation,
-          cite: cite,
-          remarques: _remarquesCtrl.text.trim().isEmpty
-              ? null
-              : _remarquesCtrl.text.trim(),
-          quantiteEstimee: b.qteCtrl.text.trim().isEmpty
-              ? null
-              : b.qteCtrl.text.trim(),
-          dateAjout: _dateAjoutCtrl.text,
-          statutCollecteur: StatutCollecteur.receptionne,
-          statutDegustateur: StatutDegustateur.nonEvaluee,
-          recuPhysiquement: true,
+      if (_isModification) {
+        final e = widget.echantillon!;
+        final b = _bouteilles.first;
+        e.referenceBouteille = b.refCtrl.text.trim();
+        e.variete = b.varieteCtrl.text.trim().isEmpty
+            ? null
+            : b.varieteCtrl.text.trim();
+        e.numCiterne = b.numCiterneCtrl.text.trim().isEmpty
+            ? null
+            : b.numCiterneCtrl.text.trim();
+        e.quantiteEstimee = b.qteCtrl.text.trim().isEmpty
+            ? null
+            : b.qteCtrl.text.trim();
+        e.gouvernorat = gouvernorat;
+        e.delegation = _delegation;
+        e.cite = cite;
+        e.remarques = _remarquesCtrl.text.trim().isEmpty
+            ? null
+            : _remarquesCtrl.text.trim();
+        // codeFournisseur, dateAjout, collecteurNom are API-assigned — not mutated
+        await widget.onSaveMultiple([e]);
+      } else {
+        final now = DateTime.now();
+        final samples = _bouteilles.asMap().entries.map((entry) {
+          final idx = entry.key;
+          final b = entry.value;
+          final numero = widget.prochainNumero + idx;
+          return Echantillon(
+            id: 'new-${now.millisecondsSinceEpoch}-$idx',
+            ref: '${now.year}/${numero.toString().padLeft(4, '0')}',
+            fournisseurId: 'fournisseur-placeholder',
+            collecteurId: 'collecteur-placeholder',
+            codeFournisseur: codeFournisseur,
+            collecteurNom: collecteur,
+            referenceBouteille: b.refCtrl.text.trim(),
+            variete: b.varieteCtrl.text.trim().isEmpty
+                ? null
+                : b.varieteCtrl.text.trim(),
+            numCiterne: b.numCiterneCtrl.text.trim().isEmpty
+                ? null
+                : b.numCiterneCtrl.text.trim(),
+            gouvernorat: gouvernorat,
+            delegation: _delegation,
+            cite: cite,
+            remarques: _remarquesCtrl.text.trim().isEmpty
+                ? null
+                : _remarquesCtrl.text.trim(),
+            quantiteEstimee: b.qteCtrl.text.trim().isEmpty
+                ? null
+                : b.qteCtrl.text.trim(),
+            dateAjout: _dateAjoutCtrl.text,
+            statutCollecteur: StatutCollecteur.receptionne,
+            statutDegustateur: StatutDegustateur.nonEvaluee,
+            recuPhysiquement: true,
+          );
+        }).toList();
+        await widget.onSaveMultiple(samples);
+      }
+      FournisseurService.instance.invalidateCache();
+      VarieteService.instance.invalidateCache();
+      if (mounted) {
+        setState(() => _saving = false);
+        Navigator.pop(context);
+      }
+    } catch (error) {
+      if (mounted) {
+        final message = error is ApiException
+            ? error.message
+            : error.toString();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Enregistrement impossible : $message'),
+            backgroundColor: Colors.red.shade400,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+            margin: const EdgeInsets.all(16),
+          ),
         );
-      }).toList();
-      widget.onSaveMultiple(samples);
+        setState(() => _saving = false);
+      }
     }
   }
 
   // ── Build ─────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
-    return Dialog(
-      backgroundColor: Colors.white,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-      child: ConstrainedBox(
+    return SaisieProtegee(
+      child: Dialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+        child: ConstrainedBox(
         constraints: BoxConstraints(
           maxHeight: MediaQuery.of(context).size.height * 0.88,
         ),
@@ -587,7 +619,7 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
                   const SizedBox(width: 20),
                   Expanded(
                     child: ElevatedButton.icon(
-                      onPressed: _save,
+                      onPressed: _saving ? null : _save,
                       icon: Icon(
                         _isModification ? Icons.check : Icons.add,
                         size: 16,
@@ -620,6 +652,7 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
               ),
             ),
           ],
+        ),
         ),
       ),
     );

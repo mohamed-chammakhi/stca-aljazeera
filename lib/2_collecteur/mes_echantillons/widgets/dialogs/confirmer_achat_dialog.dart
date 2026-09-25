@@ -11,6 +11,7 @@ import 'date_livraison_section.dart'
     show DateLivraisonSection, ModePlanificationUI;
 import '../../../widgets/col_colors.dart';
 import '../../../../core/utils/montant_achat.dart';
+import '../../../../core/widgets/saisie_protegee.dart';
 
 String? _dateStockStr(EchantillonCollecteur e) {
   final d = e.dateStockSouhaiteeDebut;
@@ -36,6 +37,7 @@ Future<void> showConfirmerAchatDialog({
 }) async {
   await showDialog<void>(
     context: context,
+    barrierDismissible: false,
     builder: (_) =>
         _ConfirmerAchatDialog(echantillon: echantillon, onConfirm: onConfirm),
   );
@@ -117,11 +119,12 @@ class _ConfirmerAchatDialogState extends State<_ConfirmerAchatDialog> {
   @override
   Widget build(BuildContext context) {
     final e = widget.echantillon;
-    return Dialog(
-      backgroundColor: Colors.white,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-      child: ConstrainedBox(
+    return SaisieProtegee(
+      child: Dialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+        child: ConstrainedBox(
         constraints: BoxConstraints(
           maxHeight: MediaQuery.of(context).size.height * 0.88,
         ),
@@ -369,6 +372,7 @@ class _ConfirmerAchatDialogState extends State<_ConfirmerAchatDialog> {
               ),
             ),
           ],
+        ),
         ),
       ),
     );

@@ -8,6 +8,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:project3/core/models/session_degustation.dart';
+import 'package:project3/core/widgets/saisie_protegee.dart';
 import '../../../widgets/chef_colors.dart';
 
 const Color _fieldFill = Color(0xFFF7FAF8);
@@ -338,6 +339,8 @@ Future<void> showFormulaireSessionDialog(
   return showModalBottomSheet(
     context: context,
     isScrollControlled: true,
+    isDismissible: false,
+    enableDrag: false,
     backgroundColor: Colors.transparent,
     builder: (_) => StatefulBuilder(
       builder: (ctx, setSheetState) {
@@ -611,11 +614,12 @@ Future<void> showFormulaireSessionDialog(
           Navigator.pop(ctx);
         }
 
-        return Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(ctx).viewInsets.bottom,
-          ),
-          child: Container(
+        return SaisieProtegee(
+          child: Padding(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(ctx).viewInsets.bottom,
+            ),
+            child: Container(
             decoration: const BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
@@ -851,6 +855,7 @@ Future<void> showFormulaireSessionDialog(
                   ),
                 ],
               ),
+            ),
             ),
           ),
         );

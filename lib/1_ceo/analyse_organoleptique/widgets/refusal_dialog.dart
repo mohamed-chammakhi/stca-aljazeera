@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:project3/core/widgets/saisie_protegee.dart';
 
 /// Refusal dialog for rejecting a sample.
 /// Manages its own text controller for the optional reason field.
@@ -36,7 +37,8 @@ class _RefusalDialogState extends State<RefusalDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
+    return SaisieProtegee(
+      child: AlertDialog(
       title: const Text(
         "Refuser l'échantillon",
         style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
@@ -83,6 +85,7 @@ class _RefusalDialogState extends State<RefusalDialog> {
           ),
         ),
       ],
+      ),
     );
   }
 }

@@ -16,15 +16,14 @@ void main() {
       },
     );
 
-    test('signale les données de secours en développement', () async {
-      final resultat = await avecSecours<int>(
-        () async => throw StateError('serveur indisponible'),
-        () => 7,
+    test("laisse remonter l'erreur au lieu d'inventer des données", () async {
+      await expectLater(
+        avecSecours<int>(
+          () async => throw StateError('serveur indisponible'),
+          () => 7,
+        ),
+        throwsStateError,
       );
-
-      expect(resultat.donnees, 7);
-      expect(resultat.estDemonstration, isTrue);
-      expect(resultat.messageErreur, contains('serveur indisponible'));
     });
   });
 

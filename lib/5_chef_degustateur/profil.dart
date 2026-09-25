@@ -573,6 +573,7 @@ class _ProfilePageState extends State<ProfilePage> with ChefNavMixin {
   Future<void> _showChangePasswordDialog() async {
     final changed = await showDialog<bool>(
       context: context,
+      barrierDismissible: false,
       builder: (_) => const ChangePasswordDialog(
         accentColor: chefGreen,
         labelColor: oliveGreen,

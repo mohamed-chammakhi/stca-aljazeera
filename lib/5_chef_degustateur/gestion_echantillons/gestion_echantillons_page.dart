@@ -166,6 +166,7 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage>
     } catch (error) {
       await _loadData();
       if (mounted) _showError('Modification impossible : $error');
+      rethrow;
     }
   }
 
@@ -187,6 +188,7 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage>
       _showSuccess(label);
     } catch (error) {
       if (mounted) _showError('Ajout impossible : $error');
+      rethrow;
     }
   }
 

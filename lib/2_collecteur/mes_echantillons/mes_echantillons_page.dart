@@ -27,6 +27,7 @@ import '../carte_geo/services/geo_service.dart';
 import '../../core/widgets/bandeau_demonstration.dart';
 import '../../core/utils/date_filter_utils.dart';
 import '../../core/utils/rafraichissement_periodique.dart';
+import '../../core/widgets/saisie_protegee.dart';
 
 class MesEchantillonsPage extends StatefulWidget {
   const MesEchantillonsPage({super.key, this.referenceInitiale});
@@ -109,8 +110,8 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
         _unreadNotifCount = resultat.donnees;
         _demoNotifications = resultat.estDemonstration;
       });
-    } catch (erreur) {
-      if (mounted) setState(() => _erreurChargement = erreur);
+    } catch (_) {
+      if (mounted) setState(() => _demoNotifications = false);
     }
   }
 
@@ -133,8 +134,7 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
         return;
       }
       setState(() {
-        _echantillons =
-            echantillons.donnees as List<EchantillonCollecteur>;
+        _echantillons = echantillons.donnees as List<EchantillonCollecteur>;
         _unreadNotifCount = notifications.donnees as int;
         _demoEchantillons = echantillons.estDemonstration;
         _demoNotifications = notifications.estDemonstration;
@@ -220,10 +220,11 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
       context,
       echantillon: e,
       prochainNumero: _prochainNumero,
-      onSaveMultiple: (_, {photos}) {
-        _saveEchantillon(
+      onSaveMultiple: (_, {photos}) async {
+        await _saveEchantillon(
           e,
           successMessage: '"${e.referenceBouteille}" modifie',
+          rethrowError: true,
         );
         _rebuildMap();
       },
@@ -365,17 +366,19 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
 
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (_) => StatefulBuilder(
-        builder: (ctx, setDialogState) => Dialog(
-          backgroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          insetPadding: const EdgeInsets.symmetric(
-            horizontal: 20,
-            vertical: 24,
-          ),
-          child: ConstrainedBox(
+        builder: (ctx, setDialogState) => SaisieProtegee(
+          child: Dialog(
+            backgroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            insetPadding: const EdgeInsets.symmetric(
+              horizontal: 20,
+              vertical: 24,
+            ),
+            child: ConstrainedBox(
             constraints: BoxConstraints(
               maxHeight: MediaQuery.of(ctx).size.height * 0.85,
             ),
@@ -530,6 +533,7 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
                 ),
               ],
             ),
+            ),
           ),
         ),
       ),
@@ -560,6 +564,7 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
   Future<void> _saveEchantillon(
     EchantillonCollecteur e, {
     String? successMessage,
+    bool rethrowError = false,
   }) async {
     try {
       final saved = await _service.updateEchantillon(e);
@@ -572,6 +577,7 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
       if (successMessage != null) _showSuccess(successMessage);
     } catch (error) {
       if (mounted) _showError(_service.messageFor(error));
+      if (rethrowError) rethrow;
     }
   }
 
@@ -804,6 +810,7 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
                 _showSuccess(label);
               } catch (error) {
                 if (mounted) _showError(_service.messageFor(error));
+                rethrow;
               }
             },
           );
@@ -1004,8 +1011,7 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
                           const SizedBox(width: 4),
                           Flexible(
                             child: Text(
-                              _dateDebut != null &&
-                                      _dateFin != null &&
+                              _dateFin == null ||
                                       _dateDebut!.isAtSameMomentAs(_dateFin!)
                                   ? 'Le ${fmtDate(_dateDebut!)}'
                                   : 'Du ${fmtDate(_dateDebut!)}  →  ${fmtDate(_dateFin!)}',
@@ -1034,22 +1040,22 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
                                     MediaQuery.of(context).size.height * 0.5,
                                 child: Center(
                                   child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.inventory_2_outlined,
-                                  size: 52,
-                                  color: Colors.grey.shade300,
-                                ),
-                                const SizedBox(height: 12),
-                                Text(
-                                  'Aucun échantillon trouvé',
-                                  style: TextStyle(
-                                    color: Colors.grey.shade400,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                              ],
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.inventory_2_outlined,
+                                        size: 52,
+                                        color: Colors.grey.shade300,
+                                      ),
+                                      const SizedBox(height: 12),
+                                      Text(
+                                        'Aucun échantillon trouvé',
+                                        style: TextStyle(
+                                          color: Colors.grey.shade400,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ),

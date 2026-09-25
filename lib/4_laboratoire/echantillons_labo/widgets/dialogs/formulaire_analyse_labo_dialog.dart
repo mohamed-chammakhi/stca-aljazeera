@@ -14,6 +14,7 @@ import 'package:flutter/services.dart';
 import '../../../analyse_labo.dart';
 import '../../../../core/analyses/normes_coi.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/saisie_protegee.dart';
 
 String _todayLabel() {
   final now = DateTime.now();
@@ -47,14 +48,19 @@ Future<void> showFormulaireAnalyseLaboDialog(
   return showModalBottomSheet(
     context: context,
     isScrollControlled: true,
+    isDismissible: readOnly,
+    enableDrag: readOnly,
     backgroundColor: Colors.transparent,
-    builder: (_) => _FormulaireSheet(
-      echantillonRef: echantillonRef,
-      echantillonId: echantillonId,
-      analyse: analyse,
-      readOnly: readOnly,
-      onSave: onSave,
-    ),
+    builder: (_) {
+      final sheet = _FormulaireSheet(
+        echantillonRef: echantillonRef,
+        echantillonId: echantillonId,
+        analyse: analyse,
+        readOnly: readOnly,
+        onSave: onSave,
+      );
+      return readOnly ? sheet : SaisieProtegee(child: sheet);
+    },
   );
 }
 

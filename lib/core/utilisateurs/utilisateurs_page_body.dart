@@ -9,6 +9,7 @@
 import 'package:flutter/material.dart';
 import 'package:project3/core/theme/app_colors.dart';
 import 'package:project3/core/utils/rafraichissement_periodique.dart';
+import 'package:project3/core/widgets/saisie_protegee.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../models/user_profile.dart';
@@ -707,12 +708,15 @@ class _UtilisateursPageBodyState extends State<UtilisateursPageBody>
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      isDismissible: false,
+      enableDrag: false,
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setSheet) => SingleChildScrollView(
+      builder: (ctx) => SaisieProtegee(
+        child: StatefulBuilder(
+          builder: (ctx, setSheet) => SingleChildScrollView(
           padding: EdgeInsets.only(
             left: 20,
             right: 20,
@@ -998,6 +1002,7 @@ class _UtilisateursPageBodyState extends State<UtilisateursPageBody>
                 ],
               ),
             ],
+          ),
           ),
         ),
       ),

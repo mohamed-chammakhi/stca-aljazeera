@@ -513,6 +513,7 @@ class _ProfilLaboPageState extends State<ProfilLaboPage> with LaboNavMixin {
   Future<void> _showChangePasswordDialog() async {
     final changed = await showDialog<bool>(
       context: context,
+      barrierDismissible: false,
       builder: (_) => const ChangePasswordDialog(
         accentColor: kGreen,
         labelColor: kOlive,

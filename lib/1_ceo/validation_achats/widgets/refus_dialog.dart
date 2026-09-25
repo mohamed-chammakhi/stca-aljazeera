@@ -14,6 +14,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:project3/core/theme/app_colors.dart';
+import 'package:project3/core/widgets/saisie_protegee.dart';
 
 import '../../../2_collecteur/mes_echantillons/widgets/dialogs/date_livraison_section.dart'
     show DateLivraisonSection, ModePlanificationUI;
@@ -156,7 +157,8 @@ class _RefusDecisionDialogState extends State<RefusDecisionDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
+    return SaisieProtegee(
+      child: AlertDialog(
       backgroundColor: Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
@@ -231,6 +233,7 @@ class _RefusDecisionDialogState extends State<RefusDecisionDialog> {
           child: const Text('Valider'),
         ),
       ],
+      ),
     );
   }
 

@@ -13,6 +13,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 // config.dart holds kApiBaseUrl — the base address of our Django server (e.g. "http://192.168.1.10:8000").
 // We keep it in one place so changing the server address is a one-line fix.
 import '../config.dart';
+import 'session_expiration.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ApiClient
@@ -39,12 +40,18 @@ class ApiClient {
 
   // The encrypted safe where we store the tokens on the device.
   final FlutterSecureStorage _storage;
+  final http.Client _http;
+  bool _sessionExpirationEnCours = false;
 
   // Constructor — if no baseUrl or storage is provided, use the defaults from config.dart.
   // This makes the class easy to test by injecting a fake storage or a test server URL.
-  ApiClient({String? baseUrl, FlutterSecureStorage? storage})
-    : baseUrl = baseUrl ?? kApiBaseUrl,
-      _storage = storage ?? const FlutterSecureStorage();
+  ApiClient({
+    String? baseUrl,
+    FlutterSecureStorage? storage,
+    http.Client? httpClient,
+  }) : baseUrl = baseUrl ?? kApiBaseUrl,
+       _storage = storage ?? const FlutterSecureStorage(),
+       _http = httpClient ?? http.Client();
 
   // ── Token management ──────────────────────────────────────────────────────
   //
@@ -65,6 +72,7 @@ class ApiClient {
     required String access,
     required String refresh,
   }) async {
+    _sessionExpirationEnCours = false;
     await _storage.write(key: _tokenKey, value: access);
     await _storage.write(key: _refreshKey, value: refresh);
   }
@@ -122,14 +130,24 @@ class ApiClient {
   // Asks the server for a new access token using the refresh token.
   // Returns true if it worked, false if the refresh token is also expired
   // (in that case the user must log in again).
-  Future<bool> _refreshAccessToken() async {
+  // One refresh at a time: the server rotates the refresh token, so a second
+  // parallel refresh would send an already-used token and log the user out.
+  Future<bool>? _refreshEnCours;
+
+  Future<bool> _refreshAccessToken() {
+    return _refreshEnCours ??= _demanderNouveauxJetons().whenComplete(
+      () => _refreshEnCours = null,
+    );
+  }
+
+  Future<bool> _demanderNouveauxJetons() async {
     final refresh = await refreshToken;
     if (refresh == null) {
       return false; // not logged in at all — nothing to refresh
     }
 
     // Send the refresh token to the server's dedicated refresh endpoint.
-    final response = await http.post(
+    final response = await _http.post(
       _uri('/api/auth/refresh/'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({'refresh': refresh}),
@@ -139,6 +157,11 @@ class ApiClient {
       // Server accepted it — extract the new access token and save it.
       final data = jsonDecode(response.body) as Map<String, dynamic>;
       await _storage.write(key: _tokenKey, value: data['access'] as String);
+      // The server sends a new refresh token each time: the 8 h count restarts.
+      final nouveauRefresh = data['refresh'] as String?;
+      if (nouveauRefresh != null) {
+        await _storage.write(key: _refreshKey, value: nouveauRefresh);
+      }
       return true;
     }
     return false; // refresh token also expired → user must log in again
@@ -153,11 +176,22 @@ class ApiClient {
   //   4. Return whatever response we end up with.
   //
   // The caller (get / post / put / …) never has to think about token expiry.
+  Future<void> _handleExpiredSession() async {
+    if (_sessionExpirationEnCours) return;
+    _sessionExpirationEnCours = true;
+    await clearTokens();
+    showSessionExpiredLogin('Votre session a expiré. Reconnectez-vous.');
+  }
+
   Future<http.Response> _send(Future<http.Response> Function() request) async {
     var response = await request();
     if (response.statusCode == 401) {
       final refreshed = await _refreshAccessToken();
-      if (refreshed) response = await request(); // retry with fresh token
+      if (refreshed) {
+        response = await request(); // retry with fresh token
+      } else {
+        await _handleExpiredSession();
+      }
     }
     return response;
   }
@@ -199,8 +233,9 @@ class ApiClient {
   // GET — fetch a single object from the server.
   // Example: apiClient.get('/api/samples/abc-123/') → returns one sample as a Map.
   Future<Map<String, dynamic>> get(String path) async {
-    final headers = await _headers();
-    final response = await _send(() => http.get(_uri(path), headers: headers));
+    final response = await _send(
+      () async => _http.get(_uri(path), headers: await _headers()),
+    );
     _assertSuccess(response);
     return jsonDecode(response.body) as Map<String, dynamic>;
   }
@@ -213,14 +248,14 @@ class ApiClient {
   // This method unwraps that envelope and returns just the items list,
   // so callers never have to deal with the wrapper themselves.
   Future<List<dynamic>> getList(String path) async {
-    final headers = await _headers();
     String? nextUrl = path;
     final allItems = <dynamic>[];
 
     while (nextUrl != null) {
       final currentUrl = nextUrl;
       final response = await _send(
-        () => http.get(_uriFromPathOrUrl(currentUrl), headers: headers),
+        () async =>
+            _http.get(_uriFromPathOrUrl(currentUrl), headers: await _headers()),
       );
       _assertSuccess(response);
       final decoded = jsonDecode(response.body);
@@ -246,10 +281,13 @@ class ApiClient {
     String path,
     Map<String, dynamic> body,
   ) async {
-    final headers = await _headers();
     final response = await _send(
       // jsonEncode converts the Dart Map into a JSON string that the server understands.
-      () => http.post(_uri(path), headers: headers, body: jsonEncode(body)),
+      () async => _http.post(
+        _uri(path),
+        headers: await _headers(),
+        body: jsonEncode(body),
+      ),
     );
     _assertSuccess(response);
     return jsonDecode(response.body) as Map<String, dynamic>;
@@ -280,11 +318,7 @@ class ApiClient {
       return http.Response.fromStream(streamed);
     }
 
-    var response = await build();
-    if (response.statusCode == 401) {
-      final refreshed = await _refreshAccessToken();
-      if (refreshed) response = await build();
-    }
+    final response = await _send(build);
     _assertSuccess(response);
     return jsonDecode(response.body) as Map<String, dynamic>;
   }
@@ -296,9 +330,12 @@ class ApiClient {
     String path,
     Map<String, dynamic> body,
   ) async {
-    final headers = await _headers();
     final response = await _send(
-      () => http.put(_uri(path), headers: headers, body: jsonEncode(body)),
+      () async => _http.put(
+        _uri(path),
+        headers: await _headers(),
+        body: jsonEncode(body),
+      ),
     );
     _assertSuccess(response);
     return jsonDecode(response.body) as Map<String, dynamic>;
@@ -311,9 +348,12 @@ class ApiClient {
     String path,
     Map<String, dynamic> body,
   ) async {
-    final headers = await _headers();
     final response = await _send(
-      () => http.patch(_uri(path), headers: headers, body: jsonEncode(body)),
+      () async => _http.patch(
+        _uri(path),
+        headers: await _headers(),
+        body: jsonEncode(body),
+      ),
     );
     _assertSuccess(response);
     return jsonDecode(response.body) as Map<String, dynamic>;
@@ -322,9 +362,8 @@ class ApiClient {
   // DELETE — permanently remove a record from the server.
   // Example: apiClient.delete('/api/samples/abc-123/')
   Future<void> delete(String path) async {
-    final headers = await _headers();
     final response = await _send(
-      () => http.delete(_uri(path), headers: headers),
+      () async => _http.delete(_uri(path), headers: await _headers()),
     );
     _assertSuccess(response);
   }
@@ -339,7 +378,7 @@ class ApiClient {
   //
   // After this call succeeds, all subsequent requests will automatically carry the token.
   Future<Map<String, dynamic>> login(String email, String password) async {
-    final response = await http.post(
+    final response = await _http.post(
       _uri('/api/auth/login/'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({'email': email, 'password': password}),
@@ -360,7 +399,7 @@ class ApiClient {
     try {
       if (refresh != null) {
         final headers = await _headers();
-        await http.post(
+        await _http.post(
           _uri('/api/auth/logout/'),
           headers: headers,
           body: jsonEncode({'refresh': refresh}),

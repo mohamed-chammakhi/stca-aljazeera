@@ -1,5 +1,3 @@
-import 'package:flutter/foundation.dart' show kReleaseMode;
-
 /// Ce qu'un service renvoie : la donnée et son origine.
 class Resultat<T> {
   final T donnees;
@@ -13,23 +11,15 @@ class Resultat<T> {
   });
 }
 
-/// Enveloppe un appel réseau et rend explicite le recours aux démonstrations.
+/// Enveloppe un appel réseau.
 ///
-/// En développement, une erreur renvoie les données de secours en le signalant.
-/// En production, elle remonte jusqu'à l'écran : aucune donnée inventée ne doit
-/// être présentée à un utilisateur réel.
+/// Une erreur remonte toujours jusqu'à l'écran, en développement comme en
+/// production : aucune donnée inventée ne doit être présentée à l'utilisateur.
+/// `secours` n'est plus appelé ; il reste dans la signature pour ne pas
+/// toucher aux 22 appels existants.
 Future<Resultat<T>> avecSecours<T>(
   Future<T> Function() appel,
   T Function() secours,
 ) async {
-  try {
-    return Resultat(await appel());
-  } catch (e) {
-    if (kReleaseMode) rethrow;
-    return Resultat(
-      secours(),
-      estDemonstration: true,
-      messageErreur: e.toString(),
-    );
-  }
+  return Resultat(await appel());
 }

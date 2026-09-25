@@ -6,17 +6,22 @@
 
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:project3/core/models/echantillon.dart';
 import 'package:project3/core/models/enums.dart';
-import 'package:project3/config.dart';
+import 'package:project3/core/utils/date_utils.dart';
 import 'package:project3/core/widgets/grille_details.dart';
+import 'package:project3/core/widgets/photo_plein_ecran.dart';
 import 'package:project3/core/widgets/quantity_pill.dart';
 
 const Color _dark = Color(0xFF1A2E1F);
 const Color _white = Color.fromARGB(255, 255, 255, 255);
 const Color _olive = Color(0xFF6B8143);
 const Color _green = Color(0xFF38835A);
+
+String _dateOuTiret(String? iso) {
+  final texte = DegDateUtils.formaterAffichage(iso);
+  return texte.isEmpty ? '—' : texte;
+}
 
 // ── Status palette ────────────────────────────────────────────────────────────
 Color _statusColor(StatutDegustateur? s) {
@@ -373,7 +378,7 @@ class _DetailPanel extends StatelessWidget {
             children: [
               // ── Bottle photo (helps tasters tell bottles apart) ────────
               if (e.imageUrl != null && e.imageUrl!.isNotEmpty) ...[
-                _BottlePhotoThumb(url: e.imageUrl!),
+                PhotoPleinEcran.network(imageUrl: e.imageUrl!),
                 const SizedBox(height: 12),
               ],
 
@@ -399,6 +404,19 @@ class _DetailPanel extends StatelessWidget {
                   DetailItem(
                     'Reçu physiquement',
                     e.recuPhysiquement ? 'Oui' : 'Non',
+                  ),
+                  DetailItem(
+                    'Arrivée prévue',
+                    _dateOuTiret(e.dateArriveeEchantillon),
+                  ),
+                  if (e.dateReceptionEchantillon != null)
+                    DetailItem(
+                      'Reçu le',
+                      _dateOuTiret(e.dateReceptionEchantillon),
+                    ),
+                  DetailItem(
+                    'Livraison du stock',
+                    _dateOuTiret(e.dateLivraisonStock),
                   ),
                 ],
               ),
@@ -545,99 +563,6 @@ class _RecuConfirmDialog extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// DETAIL ITEM
-// ─────────────────────────────────────────────────────────────────────────────
-
-// ─────────────────────────────────────────────────────────────────────────────
-// BOTTLE PHOTO THUMBNAIL
-//
-// Shows the photo the collector took of the bottle so the taster can visually
-// tell physically-received bottles apart. Tap to view full size.
-// ─────────────────────────────────────────────────────────────────────────────
-class _BottlePhotoThumb extends StatelessWidget {
-  final String url;
-  const _BottlePhotoThumb({required this.url});
-
-  String get _fullUrl {
-    if (url.startsWith('http')) return url;
-    // Normalise: exactly one '/' between baseUrl and the stored path,
-    // regardless of which side carries the slash.
-    final base = kApiBaseUrl.endsWith('/')
-        ? kApiBaseUrl.substring(0, kApiBaseUrl.length - 1)
-        : kApiBaseUrl;
-    final path = url.startsWith('/') ? url : '/$url';
-    return '$base$path';
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => showDialog<void>(
-        context: context,
-        builder: (_) => Dialog(
-          backgroundColor: Colors.black,
-          insetPadding: const EdgeInsets.all(16),
-          child: Stack(
-            children: [
-              InteractiveViewer(
-                child: CachedNetworkImage(
-                  imageUrl: _fullUrl,
-                  fit: BoxFit.contain,
-                  errorWidget: (context, url, error) => const Padding(
-                    padding: EdgeInsets.all(40),
-                    child: Icon(
-                      Icons.broken_image_outlined,
-                      color: Colors.white54,
-                      size: 40,
-                    ),
-                  ),
-                ),
-              ),
-              Positioned(
-                top: 4,
-                right: 4,
-                child: IconButton(
-                  icon: const Icon(Icons.close, color: Colors.white),
-                  onPressed: () => Navigator.pop(context),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(10),
-        child: CachedNetworkImage(
-          imageUrl: _fullUrl,
-          width: double.infinity,
-          height: 140,
-          fit: BoxFit.cover,
-          placeholder: (context, url) => Container(
-            height: 140,
-            color: Colors.grey.shade100,
-            child: const Center(
-              child: SizedBox(
-                width: 18,
-                height: 18,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ),
-            ),
-          ),
-          errorWidget: (context, url, error) => Container(
-            height: 140,
-            color: Colors.grey.shade100,
-            child: Icon(
-              Icons.image_not_supported_outlined,
-              color: Colors.grey.shade400,
-            ),
-          ),
-        ),
       ),
     );
   }

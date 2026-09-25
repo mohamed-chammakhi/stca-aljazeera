@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:project3/core/widgets/saisie_protegee.dart';
 import '../../../../2_collecteur/mes_echantillons/widgets/dialogs/date_livraison_section.dart'
     show DateLivraisonSection, ModePlanificationUI;
 
@@ -79,11 +80,12 @@ class _ApprovalDialogState extends State<ApprovalDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return Dialog(
-      backgroundColor: Colors.white,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-      child: ConstrainedBox(
+    return SaisieProtegee(
+      child: Dialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+        child: ConstrainedBox(
         constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.90),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -222,6 +224,7 @@ class _ApprovalDialogState extends State<ApprovalDialog> {
               ),
             ),
           ],
+        ),
         ),
       ),
     );

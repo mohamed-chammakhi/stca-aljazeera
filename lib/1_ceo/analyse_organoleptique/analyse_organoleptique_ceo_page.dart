@@ -428,6 +428,7 @@ class _AnalyseOrganoleptiqueCeoPageState
     if (!mounted) return;
     await showDialog<void>(
       context: context,
+      barrierDismissible: false,
       builder: (_) => ApprovalDialog(
         reference: e.referenceBouteille,
         isEdit: isEdit,
@@ -515,6 +516,7 @@ class _AnalyseOrganoleptiqueCeoPageState
     if (!mounted) return;
     await showDialog<void>(
       context: context,
+      barrierDismissible: false,
       builder: (_) => RefusalDialog(
         reference: e.referenceBouteille,
         initialRaison: e.raisonRefus,

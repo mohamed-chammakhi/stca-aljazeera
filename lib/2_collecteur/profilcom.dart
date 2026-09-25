@@ -545,6 +545,7 @@ class _ProfileCollecteurPageState extends State<ProfileCollecteurPage>
   Future<void> _showChangePasswordDialog() async {
     final changed = await showDialog<bool>(
       context: context,
+      barrierDismissible: false,
       builder: (_) => const ChangePasswordDialog(
         accentColor: colGreen,
         labelColor: colOlive,

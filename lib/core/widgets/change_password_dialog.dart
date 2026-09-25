@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../password_validation.dart';
 import '../services/profile_service.dart';
+import 'saisie_protegee.dart';
 
 class ChangePasswordDialog extends StatefulWidget {
   const ChangePasswordDialog({
@@ -89,7 +90,8 @@ class _ChangePasswordDialogState extends State<ChangePasswordDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
+    return SaisieProtegee(
+      child: AlertDialog(
       title: Text(
         'Changer le mot de passe',
         style: GoogleFonts.domine(
@@ -185,6 +187,7 @@ class _ChangePasswordDialogState extends State<ChangePasswordDialog> {
                 ),
         ),
       ],
+      ),
     );
   }
 }
