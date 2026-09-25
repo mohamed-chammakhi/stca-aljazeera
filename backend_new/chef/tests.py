@@ -63,6 +63,7 @@ class ChefEvaluationOverviewApiTests(APITestCase):
             variete='Chemlali',
             recu_physiquement=True,
             date_arrivee_echantillon=self.received_at,
+            date_reception_echantillon=self.received_at,
         )
 
     def authenticate(self, user):
@@ -131,6 +132,7 @@ class ChefEvaluationOverviewApiTests(APITestCase):
             variete='Chetoui',
             recu_physiquement=True,
             date_arrivee_echantillon=timezone.now() - timedelta(days=30),
+            date_reception_echantillon=timezone.now() - timedelta(days=30),
         )
         self._submitted_eval(self.taster_one, self.sample, '3.0')
         self._submitted_eval(self.taster_one, old_sample, '3.0')
@@ -145,6 +147,29 @@ class ChefEvaluationOverviewApiTests(APITestCase):
         data = response.json()
         self.assertEqual(len(data), 1)
         self.assertEqual(data[0]['echantillon_id'], str(self.sample.id))
+
+    def test_overview_returns_physical_reception_not_scheduled_delivery(self):
+        scheduled = timezone.now() - timedelta(days=5)
+        received = timezone.now() - timedelta(days=1)
+        self.sample.date_arrivee_echantillon = scheduled
+        self.sample.date_reception_echantillon = received
+        self.sample.save(
+            update_fields=[
+                'date_arrivee_echantillon',
+                'date_reception_echantillon',
+                'updated_at',
+            ]
+        )
+        self._submitted_eval(self.taster_one, self.sample, '3.0')
+        self.authenticate(self.chef)
+
+        response = self.client.get('/api/chef/evaluations/')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            response.json()[0]['date_reception_physique'],
+            received.isoformat(),
+        )
 
     def test_drafts_are_not_exposed_in_chef_overview(self):
         EvaluationOrganoleptique.objects.create(

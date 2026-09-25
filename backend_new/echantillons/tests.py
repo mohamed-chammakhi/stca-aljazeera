@@ -1,4 +1,5 @@
 from datetime import timedelta
+from unittest.mock import patch
 
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
@@ -10,6 +11,29 @@ from notifications.models import Notification
 from users.models import User
 
 from .models import Echantillon
+
+
+class EchantillonNumeroGenerationTests(APITestCase):
+    def test_numero_continues_numerically_after_9999(self):
+        Echantillon.objects.create(
+            numero='2026/9999',
+            reference_bouteille='NUM-9999',
+            gouvernorat='Sfax',
+        )
+
+        with patch('echantillons.models.datetime') as mocked_datetime:
+            mocked_datetime.now.return_value.year = 2026
+            first = Echantillon.objects.create(
+                reference_bouteille='NUM-10000',
+                gouvernorat='Sfax',
+            )
+            second = Echantillon.objects.create(
+                reference_bouteille='NUM-10001',
+                gouvernorat='Sfax',
+            )
+
+        self.assertEqual(first.numero, '2026/10000')
+        self.assertEqual(second.numero, '2026/10001')
 
 
 class CollectorEchantillonApiTests(APITestCase):

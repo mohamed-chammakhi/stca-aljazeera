@@ -1,5 +1,6 @@
 import uuid
 from datetime import datetime
+from django.db import IntegrityError, transaction
 from django.db import models
 from django.conf import settings
 
@@ -113,16 +114,35 @@ class Echantillon(models.Model):
     date_ajout = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    @classmethod
+    def _next_numero_for_year(cls, year):
+        prefix = f"{year}/"
+        max_sequence = 0
+        for numero in cls.objects.filter(
+            numero__startswith=prefix
+        ).values_list('numero', flat=True):
+            try:
+                sequence = int(numero.split('/', 1)[1])
+            except (IndexError, ValueError):
+                continue
+            max_sequence = max(max_sequence, sequence)
+        return f"{year}/{max_sequence + 1:04d}"
+
     def save(self, *args, **kwargs):
-        if not self.numero:
-            year = datetime.now().year
-            prefix = f"{year}/"
-            last = Echantillon.objects.filter(
-                numero__startswith=prefix
-            ).order_by('-numero').first()
-            next_num = (int(last.numero.split('/')[1]) + 1) if last else 1
-            self.numero = f"{year}/{str(next_num).zfill(4)}"
-        super().save(*args, **kwargs)
+        if self.numero:
+            return super().save(*args, **kwargs)
+
+        for attempt in range(10):
+            self.numero = self._next_numero_for_year(datetime.now().year)
+            try:
+                # Savepoint: a clash on the number must not break the caller's
+                # transaction, or the retry below could not run.
+                with transaction.atomic():
+                    return super().save(*args, **kwargs)
+            except IntegrityError:
+                self.numero = ''
+                if attempt == 9:
+                    raise
 
     def __str__(self):
         return self.numero

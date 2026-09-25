@@ -20,9 +20,9 @@ Claude tient cette liste à jour. Codex ne travaille que sur la tâche marquée 
 | 9 | Tâche 39 : plus de fenêtre « fournisseurs proches », référence avec le nom, fenêtre « ancienne / nouvelle référence » en modification | Codex | Terminée et commitée |
 | 10 | Message « Impossible de charger les données » remplacé : cause claire (session, serveur) ; liste vide = « le système est tout neuf » | Claude | Terminée et commitée |
 | 11 | Tâche 40 : (1) variété même couleur que les autres champs ; (2) suggestions limitées aux fournisseurs / variétés du collecteur ; (3) titres et indications plus foncés ; (4) obligatoires = 1 bouteille, fournisseur, référence ; (5) nom du fournisseur au lieu de F-000x | Codex | Terminée et commitée |
-| 12 | Tâche 41 : filtre « Livraison échantillon » = date annoncée même après achat conclu ; fenêtres d'erreur du changement de mot de passe ; numéro après 2026/9999 → 2026/10000 (bug de tri) | Codex | **EN COURS** |
-| 13 | Tâche 42 : mot de passe oublié — code à 6 chiffres envoyé à l'email du compte, 15 min, 4 essais | Codex | En attente (après 41) — adresse d'envoi à fournir |
-| 14 | Tâche 43 : fournisseur = nom + gouvernorat + délégation (« hami — Gabès »), deux homonymes restent distincts ; suppression du code fournisseur F-000x | Codex | En attente (après 42) — suppression du code à confirmer |
+| 12 | Tâche 41 : filtre « Livraison échantillon » = date annoncée même après achat conclu ; fenêtres d'erreur du changement de mot de passe ; numéro après 2026/9999 → 2026/10000 (bug de tri) | Codex | Terminée et commitée |
+| 13 | Tâche 42 : mot de passe oublié — code à 6 chiffres envoyé à l'email du compte, 15 min, 4 essais | Codex | **EN COURS** — adresse d'envoi à fournir plus tard |
+| 14 | Tâche 43 : fournisseur = nom + gouvernorat + délégation (« hami — Gabès »), deux homonymes restent distincts ; suppression du code fournisseur F-000x | Codex | En attente (après 42) — suppression du code confirmée le 25/09 |
 
 **Accord git (25/09/2026) :** la propriétaire a donné son accord pour commiter les
 lignes 1 à 6 en une seule fois, quand la tâche 37 est finie et que `flutter analyze` +

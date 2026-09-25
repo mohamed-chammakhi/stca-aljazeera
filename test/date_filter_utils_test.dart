@@ -69,6 +69,34 @@ void main() {
       );
     });
 
+    test('livraison echantillon reste la date annoncee apres achat confirme', () {
+      final echantillon = gestion.Echantillon(
+        id: 'sample-achat',
+        ref: '2026/10000',
+        fournisseurId: 'supplier-1',
+        collecteurId: 'collector-1',
+        gouvernorat: 'Sfax',
+        referenceBouteille: 'CHEMLALI-C10000',
+        statutCollecteur: StatutCollecteur.achatConfirme,
+        dateAjout: '2026-10-01',
+        dateArriveeEchantillon: '2026-10-10T08:00:00Z',
+        dateReceptionEchantillon: '2026-10-12T09:30:00Z',
+      );
+      final livraison = dateGestionEchantillon(
+        echantillon,
+        DateFilterType.livraisonEchantillon,
+      );
+
+      expect(
+        dateCorrespondAuFiltre(livraison, debut: DateTime(2026, 10, 10)),
+        isTrue,
+      );
+      expect(
+        dateCorrespondAuFiltre(livraison, debut: DateTime(2026, 10, 12)),
+        isFalse,
+      );
+    });
+
     test('resout les trois dates devaluation echantillon', () {
       final echantillon = evaluation.Echantillon(
         id: 'sample-1',

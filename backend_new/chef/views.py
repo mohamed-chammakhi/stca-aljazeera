@@ -58,9 +58,9 @@ class ChefEvaluationsView(APIView):
             'echantillon', 'echantillon__fournisseur', 'degustateur'
         ).filter(statut=EvaluationOrganoleptique.Statut.SOUMIS)
         if date_debut:
-            qs = qs.filter(echantillon__date_arrivee_echantillon__date__gte=date_debut)
+            qs = qs.filter(echantillon__date_reception_echantillon__date__gte=date_debut)
         if date_fin:
-            qs = qs.filter(echantillon__date_arrivee_echantillon__date__lte=date_fin)
+            qs = qs.filter(echantillon__date_reception_echantillon__date__lte=date_fin)
         if search:
             qs = qs.filter(
                 Q(echantillon__numero__icontains=search) |
@@ -69,7 +69,7 @@ class ChefEvaluationsView(APIView):
                 Q(echantillon__fournisseur__nom__icontains=search) |
                 Q(echantillon__fournisseur__code_fournisseur__icontains=search)
             )
-        qs = qs.order_by('-echantillon__date_arrivee_echantillon', 'degustateur__nom')
+        qs = qs.order_by('-echantillon__date_reception_echantillon', 'degustateur__nom')
 
         active_panel_members = list(
             User.objects.filter(
@@ -93,7 +93,7 @@ class ChefEvaluationsView(APIView):
                     'variete': sample.variete,
                     'date_ajout': _iso_or_none(sample.date_ajout),
                     'recu_physiquement': sample.recu_physiquement,
-                    'date_reception_physique': _iso_or_none(sample.date_arrivee_echantillon),
+                    'date_reception_physique': _iso_or_none(sample.date_reception_echantillon),
                     'fournisseur_nom': sample.fournisseur.nom if sample.fournisseur else None,
                     'evaluations': [],
                     '_submitted_by_user': {},

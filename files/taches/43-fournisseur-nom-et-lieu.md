@@ -42,7 +42,7 @@ Un fournisseur, c'est **un nom + un lieu (gouvernorat + délégation)**.
    S'il a des échantillons dans **plusieurs** lieux différents, sépare-le : un fournisseur
    par lieu, et chaque échantillon rattaché à celui de son lieu. Écris dans le rapport ce
    que la migration fait sur la base actuelle (3 fournisseurs : omar, hami, omarr).
-4. **Suppression de `code_fournisseur`** : c'est un reste de la première conception (le
+4. **Suppression de `code_fournisseur`** (confirmée par la propriétaire le 25/09/2026) : c'est un reste de la première conception (le
    collecteur tapait un code). Il n'est la clé de rien : la clé primaire est `id` (UUID).
    Supprime le champ (migration), `_create_supplier_with_generated_code` (remplace par une
    simple création), et partout où il apparaît dans les serializers, vues (`search_fields`,

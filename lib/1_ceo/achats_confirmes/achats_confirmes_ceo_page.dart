@@ -115,7 +115,7 @@ class _AchatsConfirmesCeoPageState extends State<AchatsConfirmesCeoPage>
       case DateFilterType.livraisonEchantillon:
         return e.dateArriveeEchantillon ?? e.dateLivraisonPrevue;
       case DateFilterType.receptionPhysique:
-        return e.dateReceptionEchantillon ?? e.dateArriveeEchantillon;
+        return e.dateReceptionEchantillon;
       case DateFilterType.arriveeStock:
         return e.dateLivraisonStock;
     }
