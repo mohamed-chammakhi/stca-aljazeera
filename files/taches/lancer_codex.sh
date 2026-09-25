@@ -7,6 +7,10 @@
 # jusqu'à cette heure + 5 min (60 min si l'heure est illisible), puis relance Codex
 # sur la même tâche avec l'ordre de reprendre. Il s'arrête quand Codex finit sans
 # limite (ou après 12 relances). Claude est prévenu à la fin et vérifie.
+#
+# Refus de connexion (« 401 Unauthorized », vu le 25-26/09/2026, venait des serveurs
+# d'OpenAI) : le script patiente 30 min et réessaie, pendant 24 h au plus, sans compter
+# ces essais dans les 12 relances.
 
 set -u
 NUM="$1"
@@ -25,10 +29,25 @@ LOG="files/taches/codex_${NUM}.log"
 : > "$LOG"
 ordre="$ORDRE"
 
-for essai in $(seq 1 12); do
+essai=0
+while [ "$essai" -lt 12 ]; do
+  essai=$((essai + 1))
   echo "=== essai $essai — $(date '+%d/%m %H:%M') ===" | tee -a "$LOG"
   "$CODEX" exec -C . -s workspace-write -o "files/taches/codex_${NUM}.txt" "$ordre" < /dev/null >> "$LOG" 2>&1
   code=$?
+
+  if tail -n 40 "$LOG" | grep -qE "401 Unauthorized"; then
+    refus=$(( ${refus:-0} + 1 ))
+    if [ "$refus" -gt 48 ]; then
+      echo "=== refus de connexion (401) depuis 24 h : abandon ===" | tee -a "$LOG"
+      exit 2
+    fi
+    echo "=== refus de connexion (401), essai $refus/48 ; nouvel essai vers $(date -d '+30 min' '+%d/%m %H:%M') ===" | tee -a "$LOG"
+    sleep 1800
+    ordre="$REPRISE"
+    essai=$((essai - 1))   # un refus de connexion ne compte pas dans les 12 relances
+    continue
+  fi
 
   if ! tail -n 40 "$LOG" | grep -qiE "usage limit|rate limit"; then
     echo "=== fin (code $code) — $(date '+%d/%m %H:%M') ===" | tee -a "$LOG"
