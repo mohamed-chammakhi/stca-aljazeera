@@ -22,7 +22,13 @@ Claude tient cette liste à jour. Codex ne travaille que sur la tâche marquée 
 | 11 | Tâche 40 : (1) variété même couleur que les autres champs ; (2) suggestions limitées aux fournisseurs / variétés du collecteur ; (3) titres et indications plus foncés ; (4) obligatoires = 1 bouteille, fournisseur, référence ; (5) nom du fournisseur au lieu de F-000x | Codex | Terminée et commitée |
 | 12 | Tâche 41 : filtre « Livraison échantillon » = date annoncée même après achat conclu ; fenêtres d'erreur du changement de mot de passe ; numéro après 2026/9999 → 2026/10000 (bug de tri) | Codex | Terminée et commitée |
 | 13 | Tâche 42 : mot de passe oublié — code à 6 chiffres envoyé à l'email du compte, 15 min, 4 essais | Codex | Terminée et commitée — adresse d'envoi à configurer (docs/MISE-EN-SERVICE.md) |
-| 14 | Tâche 43 : fournisseur = nom + gouvernorat + délégation (« hami — Gabès »), deux homonymes restent distincts ; suppression du code fournisseur F-000x | Codex | **EN COURS** — suppression du code confirmée le 25/09 |
+| 14 | Tâche 43 : fournisseur = nom + gouvernorat + délégation (« hami — Gabès »), deux homonymes restent distincts ; suppression du code fournisseur F-000x | Codex | Limite Codex atteinte — relance automatique à 23h33 (suppression du code confirmée le 25/09) |
+| 15 | Tâche 44 : messagerie — citer une bouteille : recherche sur le serveur (tous les champs), 15 plus récentes, détails (référence, fournisseur, lieu, citerne, quantité, variété), fenêtre qui ne passe plus sous la barre du téléphone | Codex | En attente (après 43) |
+| 16 | Mot de passe du compte direction@stca.tn remis à « test123 » | Claude | Terminée |
+| 17 | Tâche 45 : message vertical → bandeau 3 s ; compteurs « total » retirés (tous rôles) ; phrase « Consultation seule » retirée ; Utilisateurs : toucher = fiche, statut dans la fiche, date lisible ; utilisateur supprimé gardé dans la liste ; profil : retour au tableau de bord + « Mot de passe oublié ? » | Codex | En attente (après 44) |
+| 18 | Chef : tableau de bord « Bad state: No element » + « Un problème est survenu » sur Gestion des échantillons (classification vide) | Claude | Terminée et commitée |
+| 19 | Deux comptes de test : test1@stca.tn et test2@stca.tn (dégustateurs, mot de passe test123) | Claude | Terminée |
+| 20 | Tâche 46 : déconnexion qui ferme tout ; valeurs vides sans plantage ; suggestions dégustateurs ; enregistrement impossible en dégustateur ; formulaire dégustateur = collecteur (+ collecteur facultatif avec suggestions) ; évaluation (numéro, date, photo, débordement) ; textes longs ; sessions (obligatoires, date) ; chef : sans Membres du panel, Utilisateurs inchangée sauf total, rôle en liste, fenêtre de succès, email unique ; mot de passe généré envoyé par email | Codex | En attente (après 45) |
 
 **Accord git (25/09/2026) :** la propriétaire a donné son accord pour commiter les
 lignes 1 à 6 en une seule fois, quand la tâche 37 est finie et que `flutter analyze` +
