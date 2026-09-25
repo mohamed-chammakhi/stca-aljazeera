@@ -53,6 +53,7 @@ class SessionDegustation {
   StatutSession statut;
   String? notes;
   final String createdBy; // UUID FK → users (who created the session)
+  final String? createdByNom; // what the screens show — never the UUID
   final String createdAt; // ISO 8601 timestamp
 
   /// Planned number of samples for this session (informational, set at creation).
@@ -83,6 +84,7 @@ class SessionDegustation {
     this.notes,
     this.nombreEchantillonsPrevus,
     required this.createdBy,
+    this.createdByNom,
     required this.createdAt,
     this.echantillonIds = const [],
     this.participantIds = const [],
@@ -104,6 +106,7 @@ class SessionDegustation {
         statut: StatutSessionX.fromJson(_stringValue(json['statut'])),
         notes: json['notes'] as String?,
         createdBy: _stringValue(json['created_by'] ?? json['cree_par']),
+        createdByNom: json['created_by_nom'] as String?,
         createdAt: _stringValue(json['created_at'] ?? json['date_creation']),
         nombreEchantillonsPrevus: _intValue(json['nombre_echantillons_prevus']),
         echantillonIds: _stringList(

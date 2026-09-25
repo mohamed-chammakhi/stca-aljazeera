@@ -40,7 +40,11 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage>
   // ───────────────────────────────────────────────────────────────────────────
 
   final TextEditingController _searchController = TextEditingController();
-  final GestionEchantillonsService _service = GestionEchantillonsService();
+  // Every sample, not only received ones: this is the page where reception
+  // is confirmed, so filtering on it would leave the list empty forever.
+  final GestionEchantillonsService _service = const GestionEchantillonsService(
+    uniquementRecusPhysiquement: false,
+  );
   String _recherche = '';
   String? _filtreStatut;
   DateTime? _dateDebut;

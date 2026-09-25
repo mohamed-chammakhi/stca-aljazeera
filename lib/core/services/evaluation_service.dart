@@ -118,6 +118,7 @@ class EvaluationService {
     return {
       'id': id,
       'ref': api['reference_bouteille'] ?? api['numero'] ?? '',
+      'numero': api['numero'],
       'fournisseur':
           api['fournisseur_nom'] ?? api['code_fournisseur'] ?? 'Non specifie',
       'date_arrivee':

@@ -8,6 +8,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:project3/core/models/echantillon_evaluation.dart';
+import 'package:project3/core/utils/date_utils.dart';
 import 'package:project3/core/widgets/grille_details.dart';
 import 'package:project3/core/widgets/quantity_pill.dart';
 
@@ -122,7 +123,7 @@ class _EchantillonCardState extends State<EchantillonCard> {
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  e.id,
+                                  e.numero ?? '',
                                   style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w500,
@@ -259,7 +260,7 @@ class _DetailPanel extends StatelessWidget {
           ),
           child: GrilleDetails(
             items: [
-              DetailItem('N° échantillon', e.id),
+              DetailItem('N° échantillon', e.numero ?? '—'),
               DetailItem('Réf. bouteille', e.ref.isNotEmpty ? e.ref : '—'),
               DetailItem('Fournisseur', e.fournisseur),
               DetailItem('Variété', e.variete),
@@ -270,7 +271,12 @@ class _DetailPanel extends StatelessWidget {
                 ),
               if (e.quantite != null && e.quantite!.isNotEmpty)
                 DetailItem('Quantité', '${e.quantite} T'),
-              DetailItem('Date arrivée', e.date),
+              DetailItem(
+                'Date arrivée',
+                DegDateUtils.formaterAffichage(e.date).isEmpty
+                    ? '—'
+                    : DegDateUtils.formaterAffichage(e.date),
+              ),
               if (e.collecteur != null && e.collecteur!.isNotEmpty)
                 DetailItem('Collecteur', e.collecteur!),
               if (isSoumis && e.classification != null)

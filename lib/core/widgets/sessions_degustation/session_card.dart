@@ -225,18 +225,10 @@ class _SessionCardState extends State<SessionCard> {
 
                           const SizedBox(height: 2),
 
-                          // Row 2: session ID + action icons (expanded only)
+                          // Row 2: action icons (expanded only) — the raw session ID is never shown
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              Text(
-                                s.id,
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500,
-                                  color: Colors.grey.shade500,
-                                ),
-                              ),
                               const Spacer(),
                               if (_expanded &&
                                   widget.session.statut !=
@@ -435,7 +427,12 @@ class _DetailPanel extends StatelessWidget {
                     'Échantillons',
                     '${s.nbEchantillons} échantillon${s.nbEchantillons > 1 ? "s" : ""}',
                   ),
-                  DetailItem('Organisé par', s.createdBy),
+                  DetailItem(
+                    'Organisé par',
+                    (s.createdByNom?.isNotEmpty ?? false)
+                        ? s.createdByNom!
+                        : '—',
+                  ),
                 ],
               ),
               // ── Participants with presence status ─────────────────────

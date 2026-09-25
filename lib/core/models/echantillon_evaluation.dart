@@ -21,6 +21,7 @@ enum StatutEchantillon { enAttente, enCours, soumis }
 class Echantillon {
   final String id;
   final String ref;
+  final String? numero; // sample number shown to people, e.g. 2026/0012
   final String fournisseur;
   final String date;
   final String? dateEnregistrement;
@@ -39,6 +40,7 @@ class Echantillon {
   Echantillon({
     required this.id,
     required this.ref,
+    this.numero,
     required this.fournisseur,
     required this.date,
     this.dateEnregistrement,
@@ -59,6 +61,7 @@ class Echantillon {
     return Echantillon(
       id: json['id'] as String,
       ref: json['ref'] as String,
+      numero: json['numero'] as String?,
       fournisseur: json['fournisseur'] as String,
       date: json['date_arrivee'] as String,
       dateEnregistrement: json['date_ajout'] as String?,
