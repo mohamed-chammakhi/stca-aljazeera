@@ -64,3 +64,5 @@ backend_new/.env.ocr-archive
 # Bases SQLite locales — la vraie base est PostgreSQL (voir backend_new/.env)
 *.sqlite3
 backend_new/db_avant_*.sqlite3
+files/taches/codex_*.log
+files/taches/codex_*.txt

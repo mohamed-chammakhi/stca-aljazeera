@@ -34,6 +34,13 @@ Un réveil = une vérification courte. Pas de relecture complète du projet à c
 5. File vide et Codex arrêté → réveil toutes les 60 min seulement pour voir si la
    propriétaire a ajouté des demandes.
 
+## Lancement de Codex
+
+Toujours avec `bash files/taches/lancer_codex.sh NN files/taches/NN-….md` (en arrière-plan).
+Le script gère seul la limite de Codex (attend l'heure de retour + 5 min, relance avec
+« reprends »). Il utilise le Codex de l'extension VS Code : la commande `codex` globale est
+cassée depuis le 26/09 (téléchargement interrompu). Journal : `files/taches/codex_NN.log`.
+
 ## Serveur du téléphone
 
 Le téléphone parle au serveur lancé depuis `../project3-serveur` (copie git séparée, même
