@@ -34,6 +34,14 @@ Un réveil = une vérification courte. Pas de relecture complète du projet à c
 5. File vide et Codex arrêté → réveil toutes les 60 min seulement pour voir si la
    propriétaire a ajouté des demandes.
 
+## Serveur du téléphone
+
+Le téléphone parle au serveur lancé depuis `../project3-serveur` (copie git séparée, même
+base `backend_new/db.sqlite3`, même dossier `media`), en `--noreload`. Codex travaille dans
+`project3/` : ses fichiers à moitié finis ne touchent plus le téléphone.
+Après chaque commit vérifié : `git -C ../project3-serveur checkout --detach main`,
+sauvegarde de la base, `migrate` depuis `project3-serveur`, puis redémarrage du serveur.
+
 ## Ce que Claude ne fait JAMAIS seul la nuit
 
 - Décider une règle métier, un texte vu par les clients finaux, ou un choix que la
