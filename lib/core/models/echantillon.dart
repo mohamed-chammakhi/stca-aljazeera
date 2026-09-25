@@ -157,7 +157,8 @@ class Echantillon {
     raisonRefus: json['raison_refus'] as String?,
     stockArrive: (json['stock_arrive'] as bool?) ?? false,
     dateLivraisonStock: json['date_livraison_stock'] as String?,
-    classification: json['classification'] != null
+    // The server sends '' for a sample not classified yet: same as null.
+    classification: (json['classification'] as String?)?.isNotEmpty == true
         ? ClassificationHuileX.fromJson(json['classification'] as String)
         : null,
     remarques: json['remarques'] as String?,

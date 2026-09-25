@@ -126,6 +126,15 @@ Widget buildScrollableRows<T>({
   required String Function(T) getLabel,
   required String Function(T) getName,
 }) {
+  // Nothing recorded yet: an empty list has no first element to measure.
+  if (items.isEmpty) {
+    return const Center(
+      child: Text(
+        'Aucune donnée',
+        style: TextStyle(fontSize: 12, color: Color(0xFFAAAAAA)),
+      ),
+    );
+  }
   final maxVal = getMax(items.first);
   return ListView.builder(
     itemCount: items.length,
