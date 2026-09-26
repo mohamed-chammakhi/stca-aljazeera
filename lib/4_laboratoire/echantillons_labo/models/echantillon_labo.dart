@@ -8,7 +8,7 @@ import 'package:project3/core/utils/date_utils.dart';
 
 class EchantillonLabo {
   final String id;
-  final String ref;
+  final String numero;
 
   // ── Origin ────────────────────────────────────────────────────────────────
   final String gouvernorat;
@@ -34,7 +34,7 @@ class EchantillonLabo {
 
   EchantillonLabo({
     required this.id,
-    required this.ref,
+    required this.numero,
     required this.gouvernorat,
     required this.codeFournisseur,
     required this.collecteurNom,
@@ -60,7 +60,7 @@ class EchantillonLabo {
   factory EchantillonLabo.fromJson(Map<String, dynamic> json) =>
       EchantillonLabo(
         id: _stringValue(json['id']),
-        ref: _stringValue(json['ref'] ?? json['numero']),
+        numero: _stringValue(json['numero']),
         gouvernorat: _stringValue(json['gouvernorat']),
         codeFournisseur: _stringValue(
           json['fournisseur_nom'] ?? json['code_fournisseur'],
@@ -71,7 +71,7 @@ class EchantillonLabo {
         quantiteEstimee: json['quantite_estimee']?.toString(),
         // Shown as-is on screen: JJ/MM/AAAA, never the raw ISO text.
         dateArrivee: DegDateUtils.formaterAffichage(
-          json['date_arrivee'] ?? json['date_arrivee_echantillon'],
+          json['date_arrivee_echantillon'],
         ),
         numeroLot: json['numero_lot'] as String?,
         origineCampagne: json['origine_campagne'] as String?,
@@ -87,14 +87,14 @@ class EchantillonLabo {
 
   Map<String, dynamic> toJson() => {
     'id': id,
-    'ref': ref,
+    'numero': numero,
     'gouvernorat': gouvernorat,
     'code_fournisseur': codeFournisseur,
     'collecteur_nom': collecteurNom,
     'reference_bouteille': referenceBouteille,
     'variete': variete,
     'quantite_estimee': quantiteEstimee,
-    'date_arrivee': dateArrivee,
+    'date_arrivee_echantillon': dateArrivee,
     'numero_lot': numeroLot,
     'origine_campagne': origineCampagne,
     'priorite': priorite.name,

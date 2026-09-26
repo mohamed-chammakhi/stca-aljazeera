@@ -19,7 +19,7 @@ class EchantillonCollecteurService {
   // We build an intermediate map that satisfies the model's fromJson contract.
   //
   // Key renames:
-  //   numero                   → ref
+  //   numero                   -> numero
   //   statut_collecteur        → statut  (+ value conversion to Dart enum name)
   //   collecteur               → collecteur_id
   //   camion_reserve           → camion_livraison

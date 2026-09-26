@@ -182,13 +182,13 @@ void _assertNoRawDisplayIds(Object parsed, String source) {
       parsed.collecteurNom,
     ],
     if (parsed is gestion.Echantillon) ...[
-      parsed.ref,
+      parsed.referenceBouteille,
       parsed.referenceBouteille,
       parsed.fournisseurAffichage,
       parsed.collecteurNom ?? '',
     ],
     if (parsed is EchantillonLabo) ...[
-      parsed.ref,
+      parsed.referenceBouteille,
       parsed.referenceBouteille,
       parsed.codeFournisseur,
       parsed.collecteurNom,
@@ -235,9 +235,9 @@ void _assertNoRawDisplayIds(Object parsed, String source) {
       parsed.technicienNom,
       parsed.fournisseurNom ?? '',
       parsed.collecteurNom ?? '',
-      parsed.dateEnregistrement ?? '',
-      parsed.dateLivraisonEchantillon ?? '',
-      parsed.dateReceptionPhysique ?? '',
+      parsed.dateAjout ?? '',
+      parsed.dateArriveeEchantillon ?? '',
+      parsed.dateReceptionEchantillon ?? '',
     ],
   ];
 

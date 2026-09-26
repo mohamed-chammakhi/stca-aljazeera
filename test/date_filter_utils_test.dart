@@ -41,7 +41,7 @@ void main() {
     test('resout les trois dates de gestion echantillon', () {
       final echantillon = gestion.Echantillon(
         id: 'sample-1',
-        ref: '2026/0001',
+        numero: '2026/0001',
         fournisseurId: 'supplier-1',
         collecteurId: 'collector-1',
         gouvernorat: 'Sfax',
@@ -69,43 +69,46 @@ void main() {
       );
     });
 
-    test('livraison echantillon reste la date annoncee apres achat confirme', () {
-      final echantillon = gestion.Echantillon(
-        id: 'sample-achat',
-        ref: '2026/10000',
-        fournisseurId: 'supplier-1',
-        collecteurId: 'collector-1',
-        gouvernorat: 'Sfax',
-        referenceBouteille: 'CHEMLALI-C10000',
-        statutCollecteur: StatutCollecteur.achatConfirme,
-        dateAjout: '2026-10-01',
-        dateArriveeEchantillon: '2026-10-10T08:00:00Z',
-        dateReceptionEchantillon: '2026-10-12T09:30:00Z',
-      );
-      final livraison = dateGestionEchantillon(
-        echantillon,
-        DateFilterType.livraisonEchantillon,
-      );
+    test(
+      'livraison echantillon reste la date annoncee apres achat confirme',
+      () {
+        final echantillon = gestion.Echantillon(
+          id: 'sample-achat',
+          numero: '2026/10000',
+          fournisseurId: 'supplier-1',
+          collecteurId: 'collector-1',
+          gouvernorat: 'Sfax',
+          referenceBouteille: 'CHEMLALI-C10000',
+          statutCollecteur: StatutCollecteur.achatConfirme,
+          dateAjout: '2026-10-01',
+          dateArriveeEchantillon: '2026-10-10T08:00:00Z',
+          dateReceptionEchantillon: '2026-10-12T09:30:00Z',
+        );
+        final livraison = dateGestionEchantillon(
+          echantillon,
+          DateFilterType.livraisonEchantillon,
+        );
 
-      expect(
-        dateCorrespondAuFiltre(livraison, debut: DateTime(2026, 10, 10)),
-        isTrue,
-      );
-      expect(
-        dateCorrespondAuFiltre(livraison, debut: DateTime(2026, 10, 12)),
-        isFalse,
-      );
-    });
+        expect(
+          dateCorrespondAuFiltre(livraison, debut: DateTime(2026, 10, 10)),
+          isTrue,
+        );
+        expect(
+          dateCorrespondAuFiltre(livraison, debut: DateTime(2026, 10, 12)),
+          isFalse,
+        );
+      },
+    );
 
     test('resout les trois dates devaluation echantillon', () {
       final echantillon = evaluation.Echantillon(
         id: 'sample-1',
-        ref: '2026/0001',
+        referenceBouteille: 'REF-1',
+        numero: '2026/0001',
         fournisseur: 'Domaine Test',
-        date: '2026-03-10',
-        dateEnregistrement: '2026-03-01',
-        dateLivraisonEchantillon: '2026-03-10',
-        dateReceptionPhysique: '2026-03-12',
+        dateArriveeEchantillon: '2026-03-10',
+        dateAjout: '2026-03-01',
+        dateReceptionEchantillon: '2026-03-12',
         variete: 'Chemlali',
         statut: evaluation.StatutEchantillon.enAttente,
       );
@@ -139,9 +142,9 @@ void main() {
         echantillonNom: 'Chemlali - Sfax',
         technicienNom: 'Technicien Test',
         statut: analyse.StatutAnalyse.enAttente,
-        dateEnregistrement: '01/03/2026',
-        dateLivraisonEchantillon: '10/03/2026',
-        dateReceptionPhysique: '12/03/2026',
+        dateAjout: '01/03/2026',
+        dateArriveeEchantillon: '10/03/2026',
+        dateReceptionEchantillon: '12/03/2026',
       );
 
       expect(

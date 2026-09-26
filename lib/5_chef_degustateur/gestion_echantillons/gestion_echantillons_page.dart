@@ -29,9 +29,14 @@ import '../../../core/widgets/bandeau_demonstration.dart';
 // PAGE
 // ─────────────────────────────────────────────────────────────────────────────
 class GestionEchantillonsPage extends StatefulWidget {
-  const GestionEchantillonsPage({super.key, this.referenceInitiale});
+  const GestionEchantillonsPage({
+    super.key,
+    this.referenceInitiale,
+    this.service,
+  });
 
   final String? referenceInitiale;
+  final GestionEchantillonsService? service;
 
   @override
   _GestionEchantillonsPageState createState() =>
@@ -66,9 +71,7 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage>
   // 4. DATA
   // ───────────────────────────────────────────────────────────────────────────
 
-  final _service = const GestionEchantillonsService(
-    uniquementRecusPhysiquement: false,
-  );
+  late final GestionEchantillonsService _service;
   List<Echantillon> _echantillons = [];
   bool _estDemonstration = false;
   Object? _erreurChargement;
@@ -76,6 +79,9 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage>
   @override
   void initState() {
     super.initState();
+    _service =
+        widget.service ??
+        const GestionEchantillonsService(uniquementRecusPhysiquement: false);
     final referenceInitiale = widget.referenceInitiale?.trim();
     if (referenceInitiale != null && referenceInitiale.isNotEmpty) {
       _recherche = referenceInitiale;
@@ -124,7 +130,7 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage>
           _recherche.isEmpty ||
           e.id.toLowerCase().contains(q) ||
           e.referenceBouteille.toLowerCase().contains(q) ||
-          e.ref.toLowerCase().contains(q) ||
+          e.numero.toLowerCase().contains(q) ||
           (e.codeFournisseur?.toLowerCase().contains(q) ?? false) ||
           (e.fournisseurNom?.toLowerCase().contains(q) ?? false) ||
           (e.variete?.toLowerCase().contains(q) ?? false) ||
@@ -205,7 +211,7 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage>
       builder: (_) => AlertDialog(
         title: const Text('Supprimer l\'échantillon'),
         content: Text(
-          'Voulez-vous supprimer "${e.referenceBouteille}" (${e.ref}) ?',
+          'Voulez-vous supprimer "${e.referenceBouteille}" (${e.numero}) ?',
         ),
         actions: [
           TextButton(

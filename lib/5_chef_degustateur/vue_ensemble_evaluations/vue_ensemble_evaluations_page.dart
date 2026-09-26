@@ -71,7 +71,7 @@ class _SampleEvalGroup {
   final String variete;
   final String dateAjout;
   final bool recuPhysiquement;
-  final String? dateReceptionPhysique;
+  final String? dateReceptionEchantillon;
   final List<_TasterEval> evaluations;
 
   const _SampleEvalGroup({
@@ -81,7 +81,7 @@ class _SampleEvalGroup {
     required this.variete,
     required this.dateAjout,
     required this.recuPhysiquement,
-    this.dateReceptionPhysique,
+    this.dateReceptionEchantillon,
     required this.evaluations,
   });
 
@@ -102,7 +102,7 @@ final _mockGroups = [
     variete: 'Chemlali',
     dateAjout: '20/02/2026',
     recuPhysiquement: true,
-    dateReceptionPhysique: '18/02/2026',
+    dateReceptionEchantillon: '18/02/2026',
     evaluations: [
       _TasterEval(
         tasterName: 'Ichrak C.',
@@ -195,8 +195,8 @@ class VueEnsembleEvaluationsPage extends StatefulWidget {
       _VueEnsembleEvaluationsPageState();
 }
 
-class _VueEnsembleEvaluationsPageState
-    extends State<VueEnsembleEvaluationsPage> with RafraichissementPeriodique {
+class _VueEnsembleEvaluationsPageState extends State<VueEnsembleEvaluationsPage>
+    with RafraichissementPeriodique {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   DateTime? _dateDebut;
@@ -236,9 +236,7 @@ class _VueEnsembleEvaluationsPageState
   Future<Resultat<List<_SampleEvalGroup>>> _fetchGroups() {
     return avecSecours(() async {
       final data = await apiClient.getList('/api/chef/evaluations/');
-      return data
-          .map((e) => _groupFromApi(e as Map<String, dynamic>))
-          .toList();
+      return data.map((e) => _groupFromApi(e as Map<String, dynamic>)).toList();
     }, () => List.of(_mockGroups));
   }
 
@@ -286,10 +284,10 @@ class _VueEnsembleEvaluationsPageState
     var list = _groups;
     if (_dateFilterActive) {
       list = list.where((g) {
-        if (!g.recuPhysiquement || g.dateReceptionPhysique == null) {
+        if (!g.recuPhysiquement || g.dateReceptionEchantillon == null) {
           return false;
         }
-        final d = _parseDate(g.dateReceptionPhysique!);
+        final d = _parseDate(g.dateReceptionEchantillon!);
         if (d == null) return false;
         final day = DateTime(d.year, d.month, d.day);
         final debut = _dateDebut != null
@@ -333,7 +331,7 @@ class _VueEnsembleEvaluationsPageState
       variete: json['variete'] as String? ?? '',
       dateAjout: _formatDate(json['date_ajout']),
       recuPhysiquement: json['recu_physiquement'] as bool? ?? false,
-      dateReceptionPhysique: _formatDate(json['date_reception_physique']),
+      dateReceptionEchantillon: _formatDate(json['date_reception_echantillon']),
       evaluations: ((json['evaluations'] as List<dynamic>?) ?? const [])
           .map((e) => _tasterEvalFromApi(e as Map<String, dynamic>))
           .toList(),
@@ -712,22 +710,22 @@ class _VueEnsembleEvaluationsPageState
                                     MediaQuery.of(context).size.height * 0.5,
                                 child: Center(
                                   child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.assessment_outlined,
-                                  size: 52,
-                                  color: Colors.grey.shade300,
-                                ),
-                                const SizedBox(height: 12),
-                                Text(
-                                  'Aucun échantillon trouvé',
-                                  style: TextStyle(
-                                    color: Colors.grey.shade400,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                              ],
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.assessment_outlined,
+                                        size: 52,
+                                        color: Colors.grey.shade300,
+                                      ),
+                                      const SizedBox(height: 12),
+                                      Text(
+                                        'Aucun échantillon trouvé',
+                                        style: TextStyle(
+                                          color: Colors.grey.shade400,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ),

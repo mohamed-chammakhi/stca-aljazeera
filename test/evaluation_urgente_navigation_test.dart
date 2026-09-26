@@ -16,9 +16,9 @@ List<Echantillon> _echantillons() => List.generate(
   12,
   (index) => Echantillon(
     id: 'ech-$index',
-    ref: 'REF-$index',
+    referenceBouteille: 'REF-$index',
     fournisseur: 'Fournisseur',
-    date: '05/08/2026',
+    dateArriveeEchantillon: '05/08/2026',
     variete: 'Chemlali',
     statut: StatutEchantillon.enAttente,
   ),
@@ -68,29 +68,30 @@ void main() {
     expect(api.corps, {'echantillon': 'echantillon-uuid'});
   });
 
-  testWidgets('le dégustateur défile vers la carte ciblée et la met en évidence', (
-    tester,
-  ) async {
-    await tester.pumpWidget(
-      MaterialApp(
-        home: degustateur.EvaluationEchantillonsPage(
-          echantillonCible: 'ech-11',
-          service: _EvaluationServiceFaux(_echantillons()),
+  testWidgets(
+    'le dégustateur défile vers la carte ciblée et la met en évidence',
+    (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: degustateur.EvaluationEchantillonsPage(
+            echantillonCible: 'ech-11',
+            service: _EvaluationServiceFaux(_echantillons()),
+          ),
         ),
-      ),
-    );
-    await tester.pumpAndSettle();
+      );
+      await tester.pumpAndSettle();
 
-    expect(
-      find.byWidgetPredicate(
-        (widget) =>
-            widget is carte_evaluation.EchantillonCard &&
-            widget.echantillon.id == 'ech-11' &&
-            widget.isHighlighted,
-      ),
-      findsOneWidget,
-    );
-  });
+      expect(
+        find.byWidgetPredicate(
+          (widget) =>
+              widget is carte_evaluation.EchantillonCard &&
+              widget.echantillon.id == 'ech-11' &&
+              widget.isHighlighted,
+        ),
+        findsOneWidget,
+      );
+    },
+  );
 
   testWidgets('le chef défile vers la carte ciblée et la met en évidence', (
     tester,
@@ -133,7 +134,9 @@ void main() {
 
     expect(find.text('Évaluation des échantillons'), findsOneWidget);
     expect(
-      find.text("L'échantillon demandé n'est plus disponible dans cette liste."),
+      find.text(
+        "L'échantillon demandé n'est plus disponible dans cette liste.",
+      ),
       findsOneWidget,
     );
   });
@@ -153,7 +156,9 @@ void main() {
 
     expect(find.text('Évaluation des échantillons'), findsOneWidget);
     expect(
-      find.text("L'échantillon demandé n'est plus disponible dans cette liste."),
+      find.text(
+        "L'échantillon demandé n'est plus disponible dans cette liste.",
+      ),
       findsOneWidget,
     );
   });

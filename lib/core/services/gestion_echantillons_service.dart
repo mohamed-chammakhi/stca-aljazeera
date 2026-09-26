@@ -9,7 +9,7 @@ Map<String, dynamic> echantillonApiToGestionFlutterMap(
 ) {
   return {
     'id': api['id'],
-    'ref': api['numero'] ?? '',
+    'numero': api['numero'] ?? '',
     'fournisseur_id': api['fournisseur'] ?? '',
     'collecteur_id': api['collecteur'] ?? '',
     'code_fournisseur': api['code_fournisseur'],
@@ -52,7 +52,7 @@ class GestionEchantillonsService {
   // ── Field mapping: Django API → Echantillon.fromJson ─────────────────────
   //
   // Django returns:   numero, fournisseur (UUID), collecteur (UUID), ...
-  // fromJson expects: ref,    fournisseur_id,      collecteur_id, ...
+  // fromJson expects: numero, fournisseur_id,      collecteur_id, ...
   // ─────────────────────────────────────────────────────────────────────────
   Map<String, dynamic> _toFlutterMap(Map<String, dynamic> api) {
     return echantillonApiToGestionFlutterMap(api);

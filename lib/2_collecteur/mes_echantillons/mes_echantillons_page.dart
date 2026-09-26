@@ -31,9 +31,16 @@ import '../../core/widgets/saisie_protegee.dart';
 import '../../core/widgets/empty_state.dart';
 
 class MesEchantillonsPage extends StatefulWidget {
-  const MesEchantillonsPage({super.key, this.referenceInitiale});
+  const MesEchantillonsPage({
+    super.key,
+    this.referenceInitiale,
+    this.service,
+    this.notificationService,
+  });
 
   final String? referenceInitiale;
+  final EchantillonCollecteurService? service;
+  final NotificationCollecteurService? notificationService;
 
   @override
   State<MesEchantillonsPage> createState() => _MesEchantillonsPageState();
@@ -41,8 +48,8 @@ class MesEchantillonsPage extends StatefulWidget {
 
 class _MesEchantillonsPageState extends State<MesEchantillonsPage>
     with CollecteurNavMixin, RafraichissementPeriodique {
-  final _service = EchantillonCollecteurService();
-  final _notifService = NotificationCollecteurService();
+  late final EchantillonCollecteurService _service;
+  late final NotificationCollecteurService _notifService;
   final TextEditingController _searchCtrl = TextEditingController();
 
   List<EchantillonCollecteur> _echantillons = [];
@@ -73,6 +80,9 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
   @override
   void initState() {
     super.initState();
+    _service = widget.service ?? EchantillonCollecteurService();
+    _notifService =
+        widget.notificationService ?? NotificationCollecteurService();
     final referenceInitiale = widget.referenceInitiale?.trim();
     if (referenceInitiale != null && referenceInitiale.isNotEmpty) {
       _recherche = referenceInitiale;

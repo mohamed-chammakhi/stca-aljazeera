@@ -22,7 +22,7 @@ Claude tient cette liste à jour. Codex ne travaille que sur la tâche marquée 
 | 11 | Tâche 40 : (1) variété même couleur que les autres champs ; (2) suggestions limitées aux fournisseurs / variétés du collecteur ; (3) titres et indications plus foncés ; (4) obligatoires = 1 bouteille, fournisseur, référence ; (5) nom du fournisseur au lieu de F-000x | Codex | Terminée et commitée |
 | 12 | Tâche 41 : filtre « Livraison échantillon » = date annoncée même après achat conclu ; fenêtres d'erreur du changement de mot de passe ; numéro après 2026/9999 → 2026/10000 (bug de tri) | Codex | Terminée et commitée |
 | 13 | Tâche 42 : mot de passe oublié — code à 6 chiffres envoyé à l'email du compte, 15 min, 4 essais | Codex | Terminée et commitée — adresse d'envoi à configurer (docs/MISE-EN-SERVICE.md) |
-| 14 | Tâche 43 : fournisseur = nom + gouvernorat + délégation (« hami — Gabès »), deux homonymes restent distincts ; suppression du code fournisseur F-000x | Codex | Interrompue (Codex déconnecté, erreur 401) — travail partiel sur la branche `wip/tache43-codex-interrompue` ; reprise après la tâche 47 |
+| 14 | Tâche 43 : fournisseur = nom + gouvernorat + délégation (« hami — Gabès »), deux homonymes restent distincts ; suppression du code fournisseur F-000x | Codex | Interrompue (Codex déconnecté, erreur 401) — travail partiel sur la branche `wip/tache43-codex-interrompue` ; **EN COURS** |
 | 15 | Tâche 44 : messagerie — citer une bouteille : recherche sur le serveur (tous les champs), 15 plus récentes, détails (référence, fournisseur, lieu, citerne, quantité, variété), fenêtre qui ne passe plus sous la barre du téléphone | Codex | En attente (après 43) |
 | 16 | Mot de passe du compte direction@stca.tn remis à « test123 » | Claude | Terminée |
 | 17 | Tâche 45 : message vertical → bandeau 3 s ; compteurs « total » retirés (tous rôles) ; phrase « Consultation seule » retirée ; Utilisateurs : toucher = fiche, statut dans la fiche, date lisible ; utilisateur supprimé gardé dans la liste ; profil : retour au tableau de bord + « Mot de passe oublié ? » | Codex | En attente (après 44) |
@@ -32,7 +32,7 @@ Claude tient cette liste à jour. Codex ne travaille que sur la tâche marquée 
 | 21 | Dégustateur : Gestion des échantillons vide (filtre « reçus » sur la page qui confirme la réception) ; sessions sans UUID + nom de l'organisateur ; évaluation : numéro et date lisibles | Claude | Terminée et commitée |
 | 22 | Serveur du téléphone séparé du code en cours : il tourne depuis `../project3-serveur` (dernier commit vérifié), plus depuis les fichiers que Codex modifie | Claude | Terminée |
 | 23 | **Tâche 47 : audit du câblage de bout en bout (PRIORITAIRE, avant 43-46)** : parcours réel d'un échantillon sur tous les rôles, lecture de chaque réponse par l'application, plus aucun UUID ni date brute à l'écran, même chose = même nom, pages vides expliquées | Codex + Claude | Partie 1 terminée et commitée (0 défaut sur 567 réponses ; plantage des nombres et dates brutes corrigés) |
-| 24 | Tâche 47b : un seul nom par idée côté Flutter (`ref` supprimé), un test par écran principal, champs serveur inutilisés listés | Codex | **EN COURS** |
+| 24 | Tâche 47b : un seul nom par idée côté Flutter (`ref` supprimé), un test par écran principal, champs serveur inutilisés listés | Codex + Claude | Terminée et commitée (153 tests ; 9 écrans vérifiés à 360 px) |
 
 **Accord git (25/09/2026) :** la propriétaire a donné son accord pour commiter les
 lignes 1 à 6 en une seule fois, quand la tâche 37 est finie et que `flutter analyze` +

@@ -1302,7 +1302,7 @@ class _EchantillonMessageRef {
   factory _EchantillonMessageRef.fromEchantillon(Echantillon echantillon) =>
       _EchantillonMessageRef(
         id: echantillon.id,
-        numero: echantillon.ref,
+        numero: echantillon.numero,
         referenceBouteille: echantillon.referenceBouteille,
         fournisseur:
             echantillon.fournisseurNom ?? echantillon.codeFournisseur ?? '',

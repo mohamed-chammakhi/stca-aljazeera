@@ -86,7 +86,7 @@ class _EchantillonLaboCardState extends State<EchantillonLaboCard> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // ── Row 1: bottle ref + qty pill + chevron ──────
+                          // ── Row 1: bottle reference + qty pill + chevron ──────
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
@@ -123,12 +123,12 @@ class _EchantillonLaboCardState extends State<EchantillonLaboCard> {
 
                           const SizedBox(height: 2),
 
-                          // ── Row 2: ref + action icons (only when expanded)
+                          // ── Row 2: numero + action icons (only when expanded)
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               Text(
-                                e.ref,
+                                e.numero,
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w500,
@@ -310,7 +310,7 @@ class _DetailPanel extends StatelessWidget {
             children: [
               GrilleDetails(
                 items: [
-                  DetailItem('N° échantillon', e.ref),
+                  DetailItem('N° échantillon', e.numero),
                   DetailItem('Réf. bouteille', e.referenceBouteille),
                   DetailItem('Gouvernorat', e.gouvernorat),
                   DetailItem('Fournisseur', e.codeFournisseur),

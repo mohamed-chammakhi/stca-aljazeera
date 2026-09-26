@@ -117,14 +117,13 @@ class EvaluationService {
     final classification = evaluation?['classification'] as String?;
     return {
       'id': id,
-      'ref': api['reference_bouteille'] ?? api['numero'] ?? '',
+      'reference_bouteille': api['reference_bouteille'] ?? api['numero'] ?? '',
       'numero': api['numero'],
       'fournisseur':
           api['fournisseur_nom'] ?? api['code_fournisseur'] ?? 'Non specifie',
-      'date_arrivee':
-          api['date_arrivee_echantillon'] ?? api['date_ajout'] ?? '',
       'date_ajout': api['date_ajout'],
-      'date_arrivee_echantillon': api['date_arrivee_echantillon'],
+      'date_arrivee_echantillon':
+          api['date_arrivee_echantillon'] ?? api['date_ajout'] ?? '',
       'date_reception_echantillon': api['date_reception_echantillon'],
       'variete': api['variete'] ?? '',
       'gouvernorat': api['gouvernorat'],

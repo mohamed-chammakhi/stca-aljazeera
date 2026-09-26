@@ -40,9 +40,10 @@ String _initials(String name) {
 // ─────────────────────────────────────────────────────────────────────────────
 // ─────────────────────────────────────────────────────────────────────────────
 class EchantillonsCeoPage extends StatefulWidget {
-  const EchantillonsCeoPage({super.key, this.referenceInitiale});
+  const EchantillonsCeoPage({super.key, this.referenceInitiale, this.service});
 
   final String? referenceInitiale;
+  final EchantillonCeoService? service;
 
   @override
   State<EchantillonsCeoPage> createState() => _EchantillonsCeoPageState();
@@ -59,7 +60,7 @@ class _EchantillonsCeoPageState extends State<EchantillonsCeoPage>
   final Set<String> _expandedCollecteurs = {};
   final Set<String> _expandedSamples = {};
 
-  final _service = EchantillonCeoService();
+  late final EchantillonCeoService _service;
   List<EchantillonCeoView> _allEchantillons = [];
   bool _chargement = true;
   bool _estDemonstration = false;
@@ -68,6 +69,7 @@ class _EchantillonsCeoPageState extends State<EchantillonsCeoPage>
   @override
   void initState() {
     super.initState();
+    _service = widget.service ?? EchantillonCeoService();
     final referenceInitiale = widget.referenceInitiale?.trim();
     if (referenceInitiale != null && referenceInitiale.isNotEmpty) {
       _searchQuery = referenceInitiale;
@@ -163,7 +165,7 @@ class _EchantillonsCeoPageState extends State<EchantillonsCeoPage>
       result = result.where((e) {
         return e.referenceBouteille.toLowerCase().contains(q) ||
             e.codeFournisseur.toLowerCase().contains(q) ||
-                (e.fournisseurNom?.toLowerCase().contains(q) ?? false) ||
+            (e.fournisseurNom?.toLowerCase().contains(q) ?? false) ||
             e.id.toLowerCase().contains(q) ||
             e.gouvernorat.toLowerCase().contains(q) ||
             (e.variete?.toLowerCase().contains(q) ?? false) ||
@@ -236,9 +238,6 @@ class _EchantillonsCeoPageState extends State<EchantillonsCeoPage>
       ),
     );
   }
-
-  int get _totalFiltered =>
-      _groups.fold(0, (sum, g) => sum + g.echantillons.length);
 
   bool get _dateFilterActive => _dateDebut != null || _dateFin != null;
   bool get _anyFilter => _dateFilterActive || _searchQuery.isNotEmpty;
@@ -380,31 +379,6 @@ class _EchantillonsCeoPageState extends State<EchantillonsCeoPage>
                   Container(
                     height: 1,
                     color: Colors.black.withValues(alpha: 0.06),
-                  ),
-
-                  // ── Stats strip ──────────────────────────────────────────────
-                  Container(
-                    color: kBg,
-                    padding: const EdgeInsets.fromLTRB(16, 9, 16, 6),
-                    child: Row(
-                      children: [
-                        const Icon(
-                          Icons.inventory_2_outlined,
-                          size: 13,
-                          color: Color.fromARGB(255, 156, 156, 156),
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          '$_totalFiltered échantillon${_totalFiltered > 1 ? "s" : ""}'
-                          ' — ${groups.length} collecteur${groups.length > 1 ? "s" : ""}',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: Color.fromARGB(255, 156, 156, 156),
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
                   ),
 
                   // ── List ─────────────────────────────────────────────────────

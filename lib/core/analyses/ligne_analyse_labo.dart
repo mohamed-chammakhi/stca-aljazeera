@@ -18,9 +18,9 @@ class LigneAnalyseLabo {
   final String? collecteurNom;
   final String? variete;
   final String? quantiteEstimee;
-  final String? dateEnregistrement;
-  final String? dateLivraisonEchantillon;
-  final String? dateReceptionPhysique;
+  final String? dateAjout;
+  final String? dateArriveeEchantillon;
+  final String? dateReceptionEchantillon;
   final RapportLabo? rapport;
 
   const LigneAnalyseLabo({
@@ -37,9 +37,9 @@ class LigneAnalyseLabo {
     this.collecteurNom,
     this.variete,
     this.quantiteEstimee,
-    this.dateEnregistrement,
-    this.dateLivraisonEchantillon,
-    this.dateReceptionPhysique,
+    this.dateAjout,
+    this.dateArriveeEchantillon,
+    this.dateReceptionEchantillon,
     this.rapport,
   });
 
@@ -61,9 +61,9 @@ class LigneAnalyseLabo {
       collecteurNom: json['collecteur_nom'] as String?,
       variete: json['variete'] as String?,
       quantiteEstimee: json['quantite_estimee'] as String?,
-      dateEnregistrement: json['date_enregistrement'] as String?,
-      dateLivraisonEchantillon: json['date_livraison_echantillon'] as String?,
-      dateReceptionPhysique: json['date_reception_physique'] as String?,
+      dateAjout: json['date_ajout'] as String?,
+      dateArriveeEchantillon: json['date_arrivee_echantillon'] as String?,
+      dateReceptionEchantillon: json['date_reception_echantillon'] as String?,
       rapport: rapportJson == null ? null : RapportLabo.fromJson(rapportJson),
     );
   }
@@ -82,9 +82,9 @@ class LigneAnalyseLabo {
     'collecteur_nom': collecteurNom,
     'variete': variete,
     'quantite_estimee': quantiteEstimee,
-    'date_enregistrement': dateEnregistrement,
-    'date_livraison_echantillon': dateLivraisonEchantillon,
-    'date_reception_physique': dateReceptionPhysique,
+    'date_ajout': dateAjout,
+    'date_arrivee_echantillon': dateArriveeEchantillon,
+    'date_reception_echantillon': dateReceptionEchantillon,
     'rapport': rapport?.toJson(),
   };
 }

@@ -1,8 +1,18 @@
 // Dashboard-specific data models.
 
 const _moisAbr = [
-  'Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun',
-  'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc',
+  'Jan',
+  'Fév',
+  'Mar',
+  'Avr',
+  'Mai',
+  'Jun',
+  'Jul',
+  'Aoû',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Déc',
 ];
 
 /// Inclusive date range displayed on per-card date chips.
@@ -46,13 +56,13 @@ class CollecteurDashStat {
 
 /// One row in the urgent-decisions panel.
 class UrgentDecision {
-  final String ref;
+  final String numero;
   final String collecteur;
   final String fournisseur;
   final int joursEnAttente;
 
   const UrgentDecision(
-    this.ref,
+    this.numero,
     this.collecteur,
     this.fournisseur,
     this.joursEnAttente,
@@ -126,13 +136,21 @@ class DashboardCeoSnapshot {
     return DashboardCeoSnapshot(
       totalSamples: _int(json['echantillons_total'] ?? kpis['total']),
       selectedSamples: _int(json['echantillons_selectionnes']),
-      confirmedPurchases: _int(json['achats_confirmes'] ?? kpis['achat_confirme']),
+      confirmedPurchases: _int(
+        json['achats_confirmes'] ?? kpis['achat_confirme'],
+      ),
       arrivedStocks: _int(json['stocks_arrives'] ?? kpis['stocks_arrives']),
-      pendingEvaluations: _int(json['evaluations_en_attente'] ?? kpis['evaluations_en_attente']),
-      submittedAnalyses: _int(json['analyses_soumises'] ?? kpis['analyses_soumises']),
+      pendingEvaluations: _int(
+        json['evaluations_en_attente'] ?? kpis['evaluations_en_attente'],
+      ),
+      submittedAnalyses: _int(
+        json['analyses_soumises'] ?? kpis['analyses_soumises'],
+      ),
       totalInvestment: _double(kpis['investissement_total']),
       pipelineReceptionne: _int(pipeline['receptionne']),
-      pipelineRecu: _int(json['evaluations_en_attente'] ?? kpis['evaluations_en_attente']),
+      pipelineRecu: _int(
+        json['evaluations_en_attente'] ?? kpis['evaluations_en_attente'],
+      ),
       pipelineNegotiation: _int(pipeline['en_negociation']),
       pipelineConfirmed: _int(pipeline['achat_confirme']),
       stockTransit: _int(stock['en_transit']),
@@ -143,73 +161,75 @@ class DashboardCeoSnapshot {
         'Ordinaire': _int(classifications['vierge_ordinaire']),
         'Lampante': _int(classifications['lampante']),
       },
-      collectors: _list(json['performance_collecteurs'] ?? json['collecteurs'])
-          .map((item) => _collector(_map(item)))
-          .toList(),
-      urgentItems: _list(json['decisions_urgentes'])
-          .map((item) => _urgent(_map(item)))
-          .toList(),
-      suppliers: _list(json['fournisseurs'])
-          .map((item) => _supplier(_map(item)))
-          .toList(),
-      purchaseEvolution: _list(json['evolution_achats'])
-          .map((item) => _evolution(_map(item)))
-          .toList(),
+      collectors: _list(
+        json['performance_collecteurs'] ?? json['collecteurs'],
+      ).map((item) => _collector(_map(item))).toList(),
+      urgentItems: _list(
+        json['decisions_urgentes'],
+      ).map((item) => _urgent(_map(item))).toList(),
+      suppliers: _list(
+        json['fournisseurs'],
+      ).map((item) => _supplier(_map(item))).toList(),
+      purchaseEvolution: _list(
+        json['evolution_achats'],
+      ).map((item) => _evolution(_map(item))).toList(),
     );
   }
 
   static DashboardCeoSnapshot mock() => const DashboardCeoSnapshot(
-        totalSamples: 11,
-        selectedSamples: 4,
-        confirmedPurchases: 5,
-        arrivedStocks: 2,
-        pendingEvaluations: 3,
-        submittedAnalyses: 6,
-        totalInvestment: 284500,
-        pipelineReceptionne: 12,
-        pipelineRecu: 8,
-        pipelineNegotiation: 5,
-        pipelineConfirmed: 9,
-        stockTransit: 3,
-        stockReceived: 6,
-        classifications: {
-          'Extra Vierge': 9,
-          'Vierge': 4,
-          'Ordinaire': 0,
-          'Lampante': 2,
-        },
-        collectors: [
-          CollecteurDashStat('Ahmed Dridi', 'AD', 8, 0.75, 92400, 6),
-          CollecteurDashStat('Fatma Bouzid', 'FB', 5, 0.80, 68900, 4),
-          CollecteurDashStat('Sami Kraiem', 'SK', 6, 0.67, 71200, 8),
-          CollecteurDashStat('Khalil Maalej', 'KM', 4, 0.50, 38000, 11),
-        ],
-        urgentItems: [
-          UrgentDecision('ECH-2026-031', 'Ahmed Dridi', 'Henchir Errouss', 3),
-          UrgentDecision('ECH-2026-028', 'Sami Kraiem', 'Domaine Zitoun', 2),
-        ],
-        suppliers: [
-          FournisseurStat('Henchir Errouss', 'Sfax', 7, 143200),
-          FournisseurStat('Domaine Zitoun', 'Gafsa', 5, 98400),
-          FournisseurStat('Ferme El Baraka', 'Sousse', 4, 76100),
-          FournisseurStat('Agricole Ben Ali', 'Nabeul', 3, 55300),
-          FournisseurStat('Coop. Nour', 'Sidi Bz', 2, 32000),
-        ],
-        purchaseEvolution: [
-          PurchaseEvolutionPoint('Oct', 18000),
-          PurchaseEvolutionPoint('Nov', 32000),
-          PurchaseEvolutionPoint('Dec', 55000),
-          PurchaseEvolutionPoint('Jan', 68000),
-          PurchaseEvolutionPoint('Feb', 72000),
-          PurchaseEvolutionPoint('Mar', 54000),
-          PurchaseEvolutionPoint('Apr', 38000),
-        ],
-      );
+    totalSamples: 11,
+    selectedSamples: 4,
+    confirmedPurchases: 5,
+    arrivedStocks: 2,
+    pendingEvaluations: 3,
+    submittedAnalyses: 6,
+    totalInvestment: 284500,
+    pipelineReceptionne: 12,
+    pipelineRecu: 8,
+    pipelineNegotiation: 5,
+    pipelineConfirmed: 9,
+    stockTransit: 3,
+    stockReceived: 6,
+    classifications: {
+      'Extra Vierge': 9,
+      'Vierge': 4,
+      'Ordinaire': 0,
+      'Lampante': 2,
+    },
+    collectors: [
+      CollecteurDashStat('Ahmed Dridi', 'AD', 8, 0.75, 92400, 6),
+      CollecteurDashStat('Fatma Bouzid', 'FB', 5, 0.80, 68900, 4),
+      CollecteurDashStat('Sami Kraiem', 'SK', 6, 0.67, 71200, 8),
+      CollecteurDashStat('Khalil Maalej', 'KM', 4, 0.50, 38000, 11),
+    ],
+    urgentItems: [
+      UrgentDecision('ECH-2026-031', 'Ahmed Dridi', 'Henchir Errouss', 3),
+      UrgentDecision('ECH-2026-028', 'Sami Kraiem', 'Domaine Zitoun', 2),
+    ],
+    suppliers: [
+      FournisseurStat('Henchir Errouss', 'Sfax', 7, 143200),
+      FournisseurStat('Domaine Zitoun', 'Gafsa', 5, 98400),
+      FournisseurStat('Ferme El Baraka', 'Sousse', 4, 76100),
+      FournisseurStat('Agricole Ben Ali', 'Nabeul', 3, 55300),
+      FournisseurStat('Coop. Nour', 'Sidi Bz', 2, 32000),
+    ],
+    purchaseEvolution: [
+      PurchaseEvolutionPoint('Oct', 18000),
+      PurchaseEvolutionPoint('Nov', 32000),
+      PurchaseEvolutionPoint('Dec', 55000),
+      PurchaseEvolutionPoint('Jan', 68000),
+      PurchaseEvolutionPoint('Feb', 72000),
+      PurchaseEvolutionPoint('Mar', 54000),
+      PurchaseEvolutionPoint('Apr', 38000),
+    ],
+  );
 }
 
 Map<String, dynamic> _map(dynamic value) {
   if (value is Map<String, dynamic>) return value;
-  if (value is Map) return value.map((key, value) => MapEntry(key.toString(), value));
+  if (value is Map) {
+    return value.map((key, value) => MapEntry(key.toString(), value));
+  }
   return {};
 }
 
@@ -218,7 +238,9 @@ List<dynamic> _list(dynamic value) => value is List ? value : const [];
 int _int(dynamic value) {
   if (value is int) return value;
   if (value is double) return value.round();
-  if (value is String) return int.tryParse(value) ?? double.tryParse(value)?.round() ?? 0;
+  if (value is String) {
+    return int.tryParse(value) ?? double.tryParse(value)?.round() ?? 0;
+  }
   return 0;
 }
 
@@ -229,27 +251,27 @@ double _double(dynamic value) {
 }
 
 CollecteurDashStat _collector(Map<String, dynamic> json) => CollecteurDashStat(
-      (json['name'] ?? json['nom'] ?? 'Collecteur').toString(),
-      (json['initials'] ?? '--').toString(),
-      _int(json['samples'] ?? json['nb']),
-      _double(json['approval_rate']),
-      _int(json['total_value']),
-      _int(json['avg_days_to_close']),
-    );
+  (json['name'] ?? json['nom'] ?? 'Collecteur').toString(),
+  (json['initials'] ?? '--').toString(),
+  _int(json['samples'] ?? json['nb']),
+  _double(json['approval_rate']),
+  _int(json['total_value']),
+  _int(json['avg_days_to_close']),
+);
 
 UrgentDecision _urgent(Map<String, dynamic> json) => UrgentDecision(
-      (json['ref'] ?? json['numero'] ?? json['reference_bouteille'] ?? '').toString(),
-      (json['collecteur'] ?? json['collecteur_nom'] ?? '').toString(),
-      (json['fournisseur'] ?? json['fournisseur_nom'] ?? '').toString(),
-      _int(json['jours_en_attente']),
-    );
+  (json['numero'] ?? '').toString(),
+  (json['collecteur'] ?? json['collecteur_nom'] ?? '').toString(),
+  (json['fournisseur'] ?? json['fournisseur_nom'] ?? '').toString(),
+  _int(json['jours_en_attente']),
+);
 
 FournisseurStat _supplier(Map<String, dynamic> json) => FournisseurStat(
-      (json['name'] ?? json['nom'] ?? 'Fournisseur').toString(),
-      (json['region'] ?? '').toString(),
-      _int(json['achats']),
-      _double(json['valeur']),
-    );
+  (json['name'] ?? json['nom'] ?? 'Fournisseur').toString(),
+  (json['region'] ?? '').toString(),
+  _int(json['achats']),
+  _double(json['valeur']),
+);
 
 PurchaseEvolutionPoint _evolution(Map<String, dynamic> json) =>
     PurchaseEvolutionPoint(

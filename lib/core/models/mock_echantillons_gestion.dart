@@ -5,7 +5,7 @@ import 'enums.dart';
 final List<Echantillon> mockEchantillonsGestion = [
   Echantillon(
     id: 'aaa00000-0000-0000-0000-000000000001',
-    ref: '2026/0001',
+    numero: '2026/0001',
     fournisseurId: 'faa00000-0000-0000-0000-000000000001',
     collecteurId: 'caa00000-0000-0000-0000-000000000001',
     codeFournisseur: 'Domaine Bel-Air',
@@ -23,7 +23,7 @@ final List<Echantillon> mockEchantillonsGestion = [
   ),
   Echantillon(
     id: 'aaa00000-0000-0000-0000-000000000002',
-    ref: '2026/0002',
+    numero: '2026/0002',
     fournisseurId: 'faa00000-0000-0000-0000-000000000002',
     collecteurId: 'caa00000-0000-0000-0000-000000000001',
     codeFournisseur: 'SF-17',
@@ -39,7 +39,7 @@ final List<Echantillon> mockEchantillonsGestion = [
   ),
   Echantillon(
     id: 'aaa00000-0000-0000-0000-000000000003',
-    ref: '2026/0003',
+    numero: '2026/0003',
     fournisseurId: 'faa00000-0000-0000-0000-000000000003',
     collecteurId: 'caa00000-0000-0000-0000-000000000002',
     codeFournisseur: 'Ferme Al Jazira',
@@ -57,7 +57,7 @@ final List<Echantillon> mockEchantillonsGestion = [
   ),
   Echantillon(
     id: 'aaa00000-0000-0000-0000-000000000004',
-    ref: '2026/0004',
+    numero: '2026/0004',
     fournisseurId: 'faa00000-0000-0000-0000-000000000004',
     collecteurId: 'caa00000-0000-0000-0000-000000000003',
     codeFournisseur: 'Green Valley',

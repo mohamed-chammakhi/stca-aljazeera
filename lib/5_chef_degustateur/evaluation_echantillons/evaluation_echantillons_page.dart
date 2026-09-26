@@ -179,7 +179,7 @@ class _EvaluationEchantillonsPageState extends State<EvaluationEchantillonsPage>
       final matchRecherche =
           _recherche.isEmpty ||
           e.id.toLowerCase().contains(q) ||
-          e.ref.toLowerCase().contains(q) ||
+          e.referenceBouteille.toLowerCase().contains(q) ||
           e.fournisseur.toLowerCase().contains(q) ||
           e.variete.toLowerCase().contains(q) ||
           (e.gouvernorat?.toLowerCase().contains(q) ?? false) ||
@@ -214,7 +214,7 @@ class _EvaluationEchantillonsPageState extends State<EvaluationEchantillonsPage>
           fournisseur: e.fournisseur,
           variete: e.variete,
           origine: e.gouvernorat ?? 'Non spécifiée',
-          dateArrivee: e.date,
+          dateArrivee: e.dateArriveeEchantillon,
           photoUrl: e.photoUrl,
         ),
       ),
@@ -238,7 +238,7 @@ class _EvaluationEchantillonsPageState extends State<EvaluationEchantillonsPage>
           fournisseur: e.fournisseur,
           variete: e.variete,
           origine: e.gouvernorat ?? 'Non spécifiée',
-          dateArrivee: e.date,
+          dateArrivee: e.dateArriveeEchantillon,
           photoUrl: e.photoUrl,
           readOnly: true,
           classification: e.classification,

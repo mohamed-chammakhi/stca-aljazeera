@@ -20,13 +20,12 @@ enum StatutEchantillon { enAttente, enCours, soumis }
 
 class Echantillon {
   final String id;
-  final String ref;
+  final String referenceBouteille;
   final String? numero; // sample number shown to people, e.g. 2026/0012
   final String fournisseur;
-  final String date;
-  final String? dateEnregistrement;
-  final String? dateLivraisonEchantillon;
-  final String? dateReceptionPhysique;
+  final String dateArriveeEchantillon;
+  final String? dateAjout;
+  final String? dateReceptionEchantillon;
   final String variete;
   final String? gouvernorat; // Tunisian governorate (replaces origine)
   final String? delegation; // sub-region — optional, cascades from gouvernorat
@@ -39,13 +38,12 @@ class Echantillon {
 
   Echantillon({
     required this.id,
-    required this.ref,
+    required this.referenceBouteille,
     this.numero,
     required this.fournisseur,
-    required this.date,
-    this.dateEnregistrement,
-    this.dateLivraisonEchantillon,
-    this.dateReceptionPhysique,
+    required this.dateArriveeEchantillon,
+    this.dateAjout,
+    this.dateReceptionEchantillon,
     required this.variete,
     this.gouvernorat,
     this.delegation,
@@ -60,13 +58,12 @@ class Echantillon {
   factory Echantillon.fromJson(Map<String, dynamic> json) {
     return Echantillon(
       id: json['id'] as String,
-      ref: json['ref'] as String,
+      referenceBouteille: json['reference_bouteille'] as String,
       numero: json['numero'] as String?,
       fournisseur: json['fournisseur'] as String,
-      date: json['date_arrivee'] as String,
-      dateEnregistrement: json['date_ajout'] as String?,
-      dateLivraisonEchantillon: json['date_arrivee_echantillon'] as String?,
-      dateReceptionPhysique: json['date_reception_echantillon'] as String?,
+      dateArriveeEchantillon: json['date_arrivee_echantillon'] as String,
+      dateAjout: json['date_ajout'] as String?,
+      dateReceptionEchantillon: json['date_reception_echantillon'] as String?,
       variete: json['variete'] as String,
       gouvernorat: json['gouvernorat'] as String?,
       delegation: json['delegation'] as String?,
@@ -81,12 +78,11 @@ class Echantillon {
 
   Map<String, dynamic> toJson() => {
     'id': id,
-    'ref': ref,
+    'reference_bouteille': referenceBouteille,
     'fournisseur': fournisseur,
-    'date_arrivee': date,
-    'date_ajout': dateEnregistrement,
-    'date_arrivee_echantillon': dateLivraisonEchantillon,
-    'date_reception_echantillon': dateReceptionPhysique,
+    'date_ajout': dateAjout,
+    'date_arrivee_echantillon': dateArriveeEchantillon,
+    'date_reception_echantillon': dateReceptionEchantillon,
     'variete': variete,
     'gouvernorat': gouvernorat,
     'delegation': delegation,

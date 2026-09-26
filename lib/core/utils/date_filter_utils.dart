@@ -64,11 +64,11 @@ String? dateEvaluationEchantillon(
 ) {
   switch (type) {
     case DateFilterType.enregistrement:
-      return echantillon.dateEnregistrement;
+      return echantillon.dateAjout;
     case DateFilterType.livraisonEchantillon:
-      return echantillon.dateLivraisonEchantillon;
+      return echantillon.dateArriveeEchantillon;
     case DateFilterType.receptionPhysique:
-      return echantillon.dateReceptionPhysique;
+      return echantillon.dateReceptionEchantillon;
     case DateFilterType.arriveeStock:
       return null;
   }
@@ -77,11 +77,11 @@ String? dateEvaluationEchantillon(
 String? dateAnalyseLabo(LigneAnalyseLabo analyse, DateFilterType type) {
   switch (type) {
     case DateFilterType.enregistrement:
-      return analyse.dateEnregistrement;
+      return analyse.dateAjout;
     case DateFilterType.livraisonEchantillon:
-      return analyse.dateLivraisonEchantillon;
+      return analyse.dateArriveeEchantillon;
     case DateFilterType.receptionPhysique:
-      return analyse.dateReceptionPhysique;
+      return analyse.dateReceptionEchantillon;
     case DateFilterType.arriveeStock:
       return null;
   }

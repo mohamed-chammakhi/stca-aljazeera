@@ -5,7 +5,7 @@
 //
 // Layout:
 //   Header (always visible, tap to expand):
-//     Left  : referenceBouteille (bold) + ref code (small gray)
+//     Left  : referenceBouteille (bold) + numero code (small gray)
 //     Right : qty pill + received ✓ (if applicable)
 //     Far right: chevron
 //   [Confirmer l'achat button — always visible when enNegociation]
@@ -136,7 +136,7 @@ class _EchantillonComCardState extends State<EchantillonComCard> {
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          // Left: ref bouteille + sample ID
+                          // Left: reference bouteille + sample ID
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,

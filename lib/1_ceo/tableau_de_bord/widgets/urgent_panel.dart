@@ -39,25 +39,44 @@ class UrgentPanel extends StatelessWidget {
     child: Row(
       children: [
         Container(
-          width: 8, height: 8,
+          width: 8,
+          height: 8,
           decoration: BoxDecoration(
-            color: _red, shape: BoxShape.circle,
-            boxShadow: [BoxShadow(color: _red.withValues(alpha: 0.3), blurRadius: 6, spreadRadius: 2)],
+            color: _red,
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: _red.withValues(alpha: 0.3),
+                blurRadius: 6,
+                spreadRadius: 2,
+              ),
+            ],
           ),
         ),
         const SizedBox(width: 10),
         const Expanded(
           child: Text(
             'Décisions en attente',
-            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: _red),
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: _red,
+            ),
           ),
         ),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-          decoration: BoxDecoration(color: _red, borderRadius: BorderRadius.circular(6)),
+          decoration: BoxDecoration(
+            color: _red,
+            borderRadius: BorderRadius.circular(6),
+          ),
           child: Text(
             '${items.length}',
-            style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: Colors.white),
+            style: const TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
+            ),
           ),
         ),
       ],
@@ -75,7 +94,9 @@ class UrgentPanel extends StatelessWidget {
           color: Colors.white,
           border: Border(
             top: BorderSide(color: Colors.grey.shade50),
-            bottom: i < items.length - 1 ? BorderSide(color: Colors.grey.shade50) : BorderSide.none,
+            bottom: i < items.length - 1
+                ? BorderSide(color: Colors.grey.shade50)
+                : BorderSide.none,
           ),
         ),
         child: Row(
@@ -84,7 +105,14 @@ class UrgentPanel extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(u.ref, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: _dark)),
+                  Text(
+                    u.numero,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: _dark,
+                    ),
+                  ),
                   const SizedBox(height: 3),
                   Text(
                     '${u.collecteur}  ·  ${u.fournisseur}',
@@ -101,8 +129,14 @@ class UrgentPanel extends StatelessWidget {
                 border: Border.all(color: badgeColor.withValues(alpha: 0.18)),
               ),
               child: Text(
-                isLate ? '${u.joursEnAttente}j — urgent' : '${u.joursEnAttente}j en attente',
-                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: badgeColor),
+                isLate
+                    ? '${u.joursEnAttente}j — urgent'
+                    : '${u.joursEnAttente}j en attente',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: badgeColor,
+                ),
               ),
             ),
             const SizedBox(width: 8),
@@ -122,7 +156,11 @@ class UrgentPanel extends StatelessWidget {
         'Appuyez pour voir l\'évaluation organoleptique',
         textAlign: TextAlign.center,
         softWrap: true,
-        style: TextStyle(fontSize: 13, color: Colors.grey.shade500, fontStyle: FontStyle.italic),
+        style: TextStyle(
+          fontSize: 13,
+          color: Colors.grey.shade500,
+          fontStyle: FontStyle.italic,
+        ),
       ),
     ),
   );

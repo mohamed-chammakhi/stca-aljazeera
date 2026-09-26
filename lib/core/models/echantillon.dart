@@ -13,7 +13,7 @@ import 'package:project3/core/utils/json_utils.dart';
 class Echantillon {
   // ── Primary key & display reference ──────────────────────────────────────────
   final String id; // UUID — backend primary key, opaque to the UI
-  String ref; // "2026/0001" — sequential human-readable reference
+  String numero; // "2026/0001" — sequential human-readable reference
 
   // ── Foreign keys (UUIDs) ─────────────────────────────────────────────────────
   final String fournisseurId;
@@ -70,7 +70,7 @@ class Echantillon {
 
   Echantillon({
     required this.id,
-    required this.ref,
+    required this.numero,
     required this.fournisseurId,
     required this.collecteurId,
     this.codeFournisseur,
@@ -122,7 +122,7 @@ class Echantillon {
   // ── Serialization ─────────────────────────────────────────────────────────────
   factory Echantillon.fromJson(Map<String, dynamic> json) => Echantillon(
     id: json['id'] as String,
-    ref: json['ref'] as String,
+    numero: json['numero'] as String,
     fournisseurId: json['fournisseur_id'] as String,
     collecteurId: json['collecteur_id'] as String,
     codeFournisseur: json['code_fournisseur'] as String?,
@@ -173,7 +173,7 @@ class Echantillon {
 
   Map<String, dynamic> toJson() => {
     'id': id,
-    'ref': ref,
+    'numero': numero,
     'fournisseur_id': fournisseurId,
     'collecteur_id': collecteurId,
     'gouvernorat': gouvernorat,

@@ -132,7 +132,7 @@ class _EchantillonCardState extends State<EchantillonCard> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // ── Row 1: ref + qty pill + tick + chevron ─────
+                          // ── Row 1: numero + qty pill + tick + chevron ─────
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
@@ -174,7 +174,7 @@ class _EchantillonCardState extends State<EchantillonCard> {
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               Text(
-                                e.ref,
+                                e.numero,
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w500,
@@ -385,7 +385,7 @@ class _DetailPanel extends StatelessWidget {
               // ── Attribute grid ─────────────────────────────────────────
               GrilleDetails(
                 items: [
-                  DetailItem('N° échantillon', e.ref),
+                  DetailItem('N° échantillon', e.numero),
                   DetailItem('Réf. bouteille', e.referenceBouteille),
                   if (e.fournisseurAffichage.isNotEmpty)
                     DetailItem('Fournisseur', e.fournisseurAffichage),

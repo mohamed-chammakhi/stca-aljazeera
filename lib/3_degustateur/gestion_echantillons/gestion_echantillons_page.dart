@@ -26,7 +26,9 @@ import '../widgets/degustateur_nav_mixin.dart';
 // PAGE
 // ─────────────────────────────────────────────────────────────────────────────
 class GestionEchantillonsPage extends StatefulWidget {
-  const GestionEchantillonsPage({super.key});
+  final GestionEchantillonsService? service;
+
+  const GestionEchantillonsPage({super.key, this.service});
 
   @override
   State<GestionEchantillonsPage> createState() =>
@@ -42,9 +44,7 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage>
   final TextEditingController _searchController = TextEditingController();
   // Every sample, not only received ones: this is the page where reception
   // is confirmed, so filtering on it would leave the list empty forever.
-  final GestionEchantillonsService _service = const GestionEchantillonsService(
-    uniquementRecusPhysiquement: false,
-  );
+  late final GestionEchantillonsService _service;
   String _recherche = '';
   String? _filtreStatut;
   DateTime? _dateDebut;
@@ -71,6 +71,9 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage>
   @override
   void initState() {
     super.initState();
+    _service =
+        widget.service ??
+        const GestionEchantillonsService(uniquementRecusPhysiquement: false);
     _loadData();
   }
 
@@ -113,7 +116,7 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage>
       final matchRecherche =
           _recherche.isEmpty ||
           e.referenceBouteille.toLowerCase().contains(q) ||
-          e.ref.toLowerCase().contains(q) ||
+          e.numero.toLowerCase().contains(q) ||
           (e.codeFournisseur?.toLowerCase().contains(q) ?? false) ||
           (e.fournisseurNom?.toLowerCase().contains(q) ?? false) ||
           (e.variete?.toLowerCase().contains(q) ?? false) ||
@@ -194,7 +197,7 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage>
       builder: (_) => AlertDialog(
         title: const Text('Supprimer l\'échantillon'),
         content: Text(
-          'Voulez-vous supprimer "${e.referenceBouteille}" (${e.ref}) ?',
+          'Voulez-vous supprimer "${e.referenceBouteille}" (${e.numero}) ?',
         ),
         actions: [
           TextButton(

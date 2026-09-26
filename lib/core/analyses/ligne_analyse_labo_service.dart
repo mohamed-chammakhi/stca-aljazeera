@@ -26,7 +26,7 @@ class LigneAnalyseLaboService {
   LigneAnalyseLabo ligneFromApi(Map<String, dynamic> json) {
     final analyse = json['analyse'] as Map<String, dynamic>?;
     final sampleId = json['id'] as String;
-    final numero = (json['numero'] ?? json['ref'] ?? '').toString();
+    final numero = (json['numero'] ?? '').toString();
     final reference =
         (analyse?['echantillon_ref'] ?? json['reference_bouteille'] ?? '')
             .toString();
@@ -58,12 +58,10 @@ class LigneAnalyseLaboService {
       collecteurNom: json['collecteur_nom'] as String?,
       variete: json['variete'] as String?,
       quantiteEstimee: json['quantite_estimee']?.toString(),
-      dateEnregistrement: _formaterDate(json['date_ajout']),
-      dateLivraisonEchantillon: _formaterDate(
-        json['date_arrivee_echantillon'] ?? json['date_arrivee'],
-      ),
-      dateReceptionPhysique: _formaterDate(
-        json['date_reception_echantillon'] ?? json['date_reception_physique'],
+      dateAjout: _formaterDate(json['date_ajout']),
+      dateArriveeEchantillon: _formaterDate(json['date_arrivee_echantillon']),
+      dateReceptionEchantillon: _formaterDate(
+        json['date_reception_echantillon'],
       ),
       rapport: estSoumise ? rapport : null,
     );
@@ -126,9 +124,9 @@ const List<LigneAnalyseLabo> _analysesDemonstration = [
     collecteurNom: 'Ahmed Dridi',
     variete: 'Chemlali',
     quantiteEstimee: '25',
-    dateEnregistrement: '01/03/2026',
-    dateLivraisonEchantillon: '10/03/2026',
-    dateReceptionPhysique: '15/03/2026',
+    dateAjout: '01/03/2026',
+    dateArriveeEchantillon: '10/03/2026',
+    dateReceptionEchantillon: '15/03/2026',
     rapport: RapportLabo(
       valeurs: _valeursCertificat188,
       numeroCertificat: '188-2026',
@@ -151,8 +149,8 @@ const List<LigneAnalyseLabo> _analysesDemonstration = [
     collecteurNom: 'Rania Hammami',
     variete: 'Oueslati',
     quantiteEstimee: '18',
-    dateEnregistrement: '23/02/2026',
-    dateLivraisonEchantillon: '01/03/2026',
-    dateReceptionPhysique: '05/03/2026',
+    dateAjout: '23/02/2026',
+    dateArriveeEchantillon: '01/03/2026',
+    dateReceptionEchantillon: '05/03/2026',
   ),
 ];

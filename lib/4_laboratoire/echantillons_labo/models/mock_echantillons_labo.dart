@@ -5,7 +5,7 @@ import '../../analyse_labo.dart';
 final List<EchantillonLabo> mockEchantillonsLabo = [
   EchantillonLabo(
     id: 'aaa00000-0000-0000-0000-000000000001',
-    ref: '2026/0001',
+    numero: '2026/0001',
     gouvernorat: 'Sfax',
     codeFournisseur: 'Domaine Bel-Air',
     collecteurNom: 'Ahmed Dridi',
@@ -35,7 +35,7 @@ final List<EchantillonLabo> mockEchantillonsLabo = [
   ),
   EchantillonLabo(
     id: 'aaa00000-0000-0000-0000-000000000002',
-    ref: '2026/0002',
+    numero: '2026/0002',
     gouvernorat: 'Sfax',
     codeFournisseur: 'SF-17',
     collecteurNom: 'Ahmed Dridi',
@@ -59,7 +59,7 @@ final List<EchantillonLabo> mockEchantillonsLabo = [
   ),
   EchantillonLabo(
     id: 'aaa00000-0000-0000-0000-000000000003',
-    ref: '2026/0003',
+    numero: '2026/0003',
     gouvernorat: 'Béja',
     codeFournisseur: 'Ferme Al Jazira',
     collecteurNom: 'Rania Hammami',
@@ -95,7 +95,7 @@ final List<EchantillonLabo> mockEchantillonsLabo = [
   ),
   EchantillonLabo(
     id: 'aaa00000-0000-0000-0000-000000000004',
-    ref: '2026/0004',
+    numero: '2026/0004',
     gouvernorat: 'Kairouan',
     codeFournisseur: 'Green Valley',
     collecteurNom: 'Nour Messaoud',
@@ -107,7 +107,7 @@ final List<EchantillonLabo> mockEchantillonsLabo = [
   ),
   EchantillonLabo(
     id: 'aaa00000-0000-0000-0000-000000000005',
-    ref: '2026/0005',
+    numero: '2026/0005',
     gouvernorat: 'Sfax',
     codeFournisseur: 'Domaine Bel-Air',
     collecteurNom: 'Ahmed Dridi',
@@ -131,7 +131,7 @@ final List<EchantillonLabo> mockEchantillonsLabo = [
   ),
   EchantillonLabo(
     id: 'aaa00000-0000-0000-0000-000000000006',
-    ref: '2026/0006',
+    numero: '2026/0006',
     gouvernorat: 'Medenine',
     codeFournisseur: 'Huilerie Ben Salah',
     collecteurNom: 'Sami Toumi',

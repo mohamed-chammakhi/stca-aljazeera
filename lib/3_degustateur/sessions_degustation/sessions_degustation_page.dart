@@ -42,7 +42,9 @@ import '../../../core/utils/rafraichissement_periodique.dart';
 import '../widgets/degustateur_nav_mixin.dart';
 
 class SessionsDegustationPage extends StatefulWidget {
-  const SessionsDegustationPage({super.key});
+  final SessionsService? service;
+
+  const SessionsDegustationPage({super.key, this.service});
 
   @override
   State<SessionsDegustationPage> createState() =>
@@ -51,7 +53,7 @@ class SessionsDegustationPage extends StatefulWidget {
 
 class _SessionsDegustationPageState extends State<SessionsDegustationPage>
     with DegustateurNavMixin, RafraichissementPeriodique {
-  final _service = SessionsService();
+  late final SessionsService _service;
 
   // ───────────────────────────────────────────────────────────────────────────
   // 1. STATE
@@ -71,6 +73,7 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage>
   @override
   void initState() {
     super.initState();
+    _service = widget.service ?? const SessionsService();
     _loadData();
   }
 
@@ -498,22 +501,22 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage>
                           height: MediaQuery.of(context).size.height * 0.5,
                           child: Center(
                             child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.event_busy_outlined,
-                            size: 52,
-                            color: Colors.grey.shade300,
-                          ),
-                          const SizedBox(height: 12),
-                          Text(
-                            'Aucune session trouvée',
-                            style: TextStyle(
-                              color: Colors.grey.shade400,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ],
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.event_busy_outlined,
+                                  size: 52,
+                                  color: Colors.grey.shade300,
+                                ),
+                                const SizedBox(height: 12),
+                                Text(
+                                  'Aucune session trouvée',
+                                  style: TextStyle(
+                                    color: Colors.grey.shade400,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ),

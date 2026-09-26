@@ -106,13 +106,15 @@ class _EchantillonCardState extends State<EchantillonCard> {
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          // Left: ref stacked above id
+                          // Left: reference stacked above id
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  e.ref.isNotEmpty ? e.ref : '—',
+                                  e.referenceBouteille.isNotEmpty
+                                      ? e.referenceBouteille
+                                      : '—',
                                   style: const TextStyle(
                                     fontSize: 15,
                                     fontWeight: FontWeight.w700,
@@ -261,7 +263,10 @@ class _DetailPanel extends StatelessWidget {
           child: GrilleDetails(
             items: [
               DetailItem('N° échantillon', e.numero ?? '—'),
-              DetailItem('Réf. bouteille', e.ref.isNotEmpty ? e.ref : '—'),
+              DetailItem(
+                'Réf. bouteille',
+                e.referenceBouteille.isNotEmpty ? e.referenceBouteille : '—',
+              ),
               DetailItem('Fournisseur', e.fournisseur),
               DetailItem('Variété', e.variete),
               if (e.gouvernorat != null)
@@ -273,9 +278,9 @@ class _DetailPanel extends StatelessWidget {
                 DetailItem('Quantité', '${e.quantite} T'),
               DetailItem(
                 'Date arrivée',
-                DegDateUtils.formaterAffichage(e.date).isEmpty
+                DegDateUtils.formaterAffichage(e.dateArriveeEchantillon).isEmpty
                     ? '—'
-                    : DegDateUtils.formaterAffichage(e.date),
+                    : DegDateUtils.formaterAffichage(e.dateArriveeEchantillon),
               ),
               if (e.collecteur != null && e.collecteur!.isNotEmpty)
                 DetailItem('Collecteur', e.collecteur!),

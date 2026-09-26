@@ -20,7 +20,14 @@ import '../../core/widgets/empty_state.dart';
 const Color _gray = Color.fromARGB(255, 81, 82, 81);
 
 class EchantillonsLaboPage extends StatefulWidget {
-  const EchantillonsLaboPage({super.key});
+  const EchantillonsLaboPage({
+    super.key,
+    this.service,
+    this.notificationService,
+  });
+
+  final LaboService? service;
+  final NotificationLaboService? notificationService;
 
   @override
   State<EchantillonsLaboPage> createState() => _EchantillonsLaboPageState();
@@ -28,8 +35,8 @@ class EchantillonsLaboPage extends StatefulWidget {
 
 class _EchantillonsLaboPageState extends State<EchantillonsLaboPage>
     with LaboNavMixin, RafraichissementPeriodique {
-  final _service = LaboService();
-  final _notifService = NotificationLaboService();
+  late final LaboService _service;
+  late final NotificationLaboService _notifService;
   final TextEditingController _searchCtrl = TextEditingController();
   String _recherche = '';
   StatutAnalyse? _filtreStatut;
@@ -43,6 +50,8 @@ class _EchantillonsLaboPageState extends State<EchantillonsLaboPage>
   @override
   void initState() {
     super.initState();
+    _service = widget.service ?? LaboService();
+    _notifService = widget.notificationService ?? NotificationLaboService();
     _loadEchantillons();
     _loadUnreadCount();
   }
@@ -118,7 +127,7 @@ class _EchantillonsLaboPageState extends State<EchantillonsLaboPage>
           e.codeFournisseur.toLowerCase().contains(q) ||
           e.gouvernorat.toLowerCase().contains(q) ||
           (e.variete?.toLowerCase().contains(q) ?? false) ||
-          e.ref.toLowerCase().contains(q) ||
+          e.numero.toLowerCase().contains(q) ||
           e.collecteurNom.toLowerCase().contains(q);
       final matchStatut =
           _filtreStatut == null || e.statutAnalyse == _filtreStatut;

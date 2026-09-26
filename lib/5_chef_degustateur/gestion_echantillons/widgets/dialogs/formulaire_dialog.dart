@@ -45,34 +45,34 @@ const Color _sectionDate = Color(0xFF5C6BC0); // muted indigo
 // BOUTEILLE ROW — one row per bottle in the list
 // ─────────────────────────────────────────────────────────────────────────────
 class _BouteilleRow {
-  final TextEditingController refCtrl;
+  final TextEditingController referenceCtrl;
   final TextEditingController varieteCtrl;
   final TextEditingController numCiterneCtrl;
   final TextEditingController qteCtrl;
 
   _BouteilleRow({
-    required this.refCtrl,
+    required this.referenceCtrl,
     required this.varieteCtrl,
     required this.numCiterneCtrl,
     required this.qteCtrl,
   });
 
   factory _BouteilleRow.empty() => _BouteilleRow(
-    refCtrl: TextEditingController(),
+    referenceCtrl: TextEditingController(),
     varieteCtrl: TextEditingController(),
     numCiterneCtrl: TextEditingController(),
     qteCtrl: TextEditingController(),
   );
 
   factory _BouteilleRow.fromSample(Echantillon e) => _BouteilleRow(
-    refCtrl: TextEditingController(text: e.referenceBouteille),
+    referenceCtrl: TextEditingController(text: e.referenceBouteille),
     varieteCtrl: TextEditingController(text: e.variete ?? ''),
     numCiterneCtrl: TextEditingController(text: e.numCiterne ?? ''),
     qteCtrl: TextEditingController(text: e.quantiteEstimee ?? ''),
   );
 
   void dispose() {
-    refCtrl.dispose();
+    referenceCtrl.dispose();
     varieteCtrl.dispose();
     numCiterneCtrl.dispose();
     qteCtrl.dispose();
@@ -195,9 +195,9 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
       numeroCiterne: row.numCiterneCtrl.text,
       quantite: row.qteCtrl.text,
     );
-    if (nouvelleReference == row.refCtrl.text) return;
+    if (nouvelleReference == row.referenceCtrl.text) return;
 
-    row.refCtrl.value = TextEditingValue(
+    row.referenceCtrl.value = TextEditingValue(
       text: nouvelleReference,
       selection: TextSelection.collapsed(offset: nouvelleReference.length),
     );
@@ -226,7 +226,9 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
     return validerFormulaireEchantillon(
       nombreBouteilles: _bouteilles.length,
       fournisseur: _codeFournisseurCtrl.text,
-      referencesBouteilles: _bouteilles.map((b) => b.refCtrl.text).toList(),
+      referencesBouteilles: _bouteilles
+          .map((b) => b.referenceCtrl.text)
+          .toList(),
     );
   }
 
@@ -237,7 +239,7 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
     final decision = referenceRecalculeeAConfirmer(
       estModification: true,
       ancienneReference: e.referenceBouteille,
-      referenceActuelle: row.refCtrl.text,
+      referenceActuelle: row.referenceCtrl.text,
       fournisseur: _fournisseurPourReference,
       numeroCiterne: row.numCiterneCtrl.text,
       quantite: row.qteCtrl.text,
@@ -251,7 +253,7 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
       couleurPrincipale: chefGreen,
     );
     if (choix == ChoixReferenceBouteille.garderAncienne) {
-      row.refCtrl.text = decision.ancienneReference;
+      row.referenceCtrl.text = decision.ancienneReference;
     }
   }
 
@@ -290,7 +292,7 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
         final b = _bouteilles.first;
         await _confirmerReferenceSiRecalculee(b);
         if (!mounted) return;
-        e.referenceBouteille = b.refCtrl.text.trim();
+        e.referenceBouteille = b.referenceCtrl.text.trim();
         e.variete = b.varieteCtrl.text.trim().isEmpty
             ? null
             : b.varieteCtrl.text.trim();
@@ -316,12 +318,12 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
           final numero = widget.prochainNumero + idx;
           return Echantillon(
             id: 'new-${now.millisecondsSinceEpoch}-$idx',
-            ref: '${now.year}/${numero.toString().padLeft(4, '0')}',
+            numero: '${now.year}/${numero.toString().padLeft(4, '0')}',
             fournisseurId: 'fournisseur-placeholder',
             collecteurId: 'collecteur-placeholder',
             codeFournisseur: codeFournisseur,
             collecteurNom: collecteur,
-            referenceBouteille: b.refCtrl.text.trim(),
+            referenceBouteille: b.referenceCtrl.text.trim(),
             variete: b.varieteCtrl.text.trim().isEmpty
                 ? null
                 : b.varieteCtrl.text.trim(),
@@ -709,7 +711,7 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// ID BADGE — shows auto-generated ref range (add mode only)
+// ID BADGE — shows auto-generated numero range (add mode only)
 // ─────────────────────────────────────────────────────────────────────────────
 class _IdBadge extends StatelessWidget {
   final int prochainNumero;
@@ -862,7 +864,7 @@ class _BouteillesSection extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// BOUTEILLE CARD — ref, variété, numCiterne, quantité fields for one bottle
+// BOUTEILLE CARD — reference, variété, numCiterne, quantité fields for one bottle
 // ─────────────────────────────────────────────────────────────────────────────
 class _BouteilleCard extends StatelessWidget {
   final _BouteilleRow row;
@@ -965,7 +967,7 @@ class _BouteilleCard extends StatelessWidget {
           _InlineLabel(label: 'Référence bouteille', required: true),
           const SizedBox(height: 5),
           TextField(
-            controller: row.refCtrl,
+            controller: row.referenceCtrl,
             style: const TextStyle(fontSize: 13, color: chefDark),
             decoration: _fieldDec('Ex: CHEMLALI-C1'),
           ),

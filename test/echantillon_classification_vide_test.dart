@@ -5,7 +5,7 @@ void main() {
   test("une classification vide ('') se lit comme « pas encore classé »", () {
     final e = Echantillon.fromJson({
       'id': 'a',
-      'ref': '2026/0012',
+      'numero': '2026/0012',
       'fournisseur_id': '',
       'collecteur_id': '',
       'gouvernorat': 'Gabes',
