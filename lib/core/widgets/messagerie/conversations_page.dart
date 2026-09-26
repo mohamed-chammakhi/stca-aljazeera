@@ -214,16 +214,7 @@ class _ConversationsPageState extends State<ConversationsPage>
                     padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
                     child: Row(
                       children: [
-                        Expanded(
-                          child: Text(
-                            '${conversations.length} conversation${conversations.length > 1 ? 's' : ''}',
-                            style: const TextStyle(
-                              color: kOlive,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ),
+                        const Spacer(),
                         TextButton.icon(
                           onPressed: _loadData,
                           icon: const Icon(Icons.refresh, size: 17),

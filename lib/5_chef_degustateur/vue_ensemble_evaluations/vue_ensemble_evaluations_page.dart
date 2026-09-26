@@ -675,30 +675,6 @@ class _VueEnsembleEvaluationsPageState extends State<VueEnsembleEvaluationsPage>
                     color: Colors.black.withValues(alpha: 0.06),
                   ),
 
-                  // ── Stats strip ───────────────────────────────────────────────────
-                  Container(
-                    color: chefBg,
-                    padding: const EdgeInsets.fromLTRB(16, 9, 16, 6),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.assessment_outlined,
-                          size: 13,
-                          color: Colors.grey.shade400,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          '${groups.length} échantillon${groups.length > 1 ? "s" : ""}',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey.shade400,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
                   // ── List ──────────────────────────────────────────────────────────
                   Expanded(
                     child: groups.isEmpty

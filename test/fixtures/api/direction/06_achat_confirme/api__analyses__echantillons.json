@@ -7,12 +7,12 @@
     "previous": null,
     "results": [
       {
-        "id": "ccd313d4-f058-4a66-ac47-de4454b1d88a",
+        "id": "4f3ff015-fb18-4ee1-b679-88491650a06a",
         "ref": "2026/0001",
         "numero": "2026/0001",
         "gouvernorat": "Sfax",
         "delegation": "Sakiet Ezzit",
-        "date_ajout": "2026-09-26T05:20:23.027014+01:00",
+        "date_ajout": "2026-09-26T08:22:44.100589+01:00",
         "fournisseur_nom": "Domaine Audit",
         "collecteur_nom": "Audit Collecteur",
         "reference_bouteille": "AUDIT-BOUT-001",
@@ -26,12 +26,12 @@
         "notes_reception": "Echantillon de parcours audit",
         "statut_labo": "soumis",
         "analyse": {
-          "id": "2813433e-fb29-419b-8609-2b5395532a0f",
-          "echantillon": "ccd313d4-f058-4a66-ac47-de4454b1d88a",
-          "echantillon_id": "ccd313d4-f058-4a66-ac47-de4454b1d88a",
+          "id": "2d4f1b11-d6e6-4ef5-a912-daf9b29a1a15",
+          "echantillon": "4f3ff015-fb18-4ee1-b679-88491650a06a",
+          "echantillon_id": "4f3ff015-fb18-4ee1-b679-88491650a06a",
           "echantillon_ref": "AUDIT-BOUT-001",
-          "technicien": "df241308-67e0-4e51-a597-2fd2d8470d00",
-          "technicien_id": "df241308-67e0-4e51-a597-2fd2d8470d00",
+          "technicien": "08ac017d-a76f-4023-bf5f-cfb6d9aee3d2",
+          "technicien_id": "08ac017d-a76f-4023-bf5f-cfb6d9aee3d2",
           "technicien_nom": "Audit Labo",
           "statut": "soumis",
           "numero_certificat": "CERT-AUDIT-001",
@@ -73,8 +73,8 @@
           "photo": null,
           "notes": "Analyse saisie par le parcours audit",
           "criteres": [],
-          "date_analyse": "2026-09-26T05:20:24.905780+01:00",
-          "date_modification": "2026-09-26T05:20:24.905780+01:00"
+          "date_analyse": "2026-09-26T08:22:47.985062+01:00",
+          "date_modification": "2026-09-26T08:22:47.992500+01:00"
         }
       }
     ]

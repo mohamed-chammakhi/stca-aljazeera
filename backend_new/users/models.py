@@ -37,6 +37,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     telephone = models.CharField(max_length=20, blank=True)
     role = models.CharField(max_length=25, choices=Role.choices)
     date_creation = models.DateTimeField(default=timezone.now)
+    date_suppression = models.DateTimeField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
 

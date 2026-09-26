@@ -7,28 +7,28 @@
     "previous": null,
     "results": [
       {
-        "id": "2f9b498d-a495-482f-a797-02cefa03a08d",
+        "id": "2ca71e8c-bd7c-495e-8566-b7978e8b7770",
         "type": "DATE_LIVRAISON_AJOUTEE",
         "titre": "Date de livraison ajoutee",
         "message": "La livraison de l'echantillon 2026/0001 est planifiee entre le 02/10/2026 et le 03/10/2026.",
-        "echantillon": "ccd313d4-f058-4a66-ac47-de4454b1d88a",
+        "echantillon": "4f3ff015-fb18-4ee1-b679-88491650a06a",
         "echantillon_reference": "AUDIT-BOUT-001",
         "echantillon_numero": "2026/0001",
         "section": "ECHANTILLONS",
         "is_read": false,
-        "date_creation": "2026-09-26T05:20:25.480824+01:00"
+        "date_creation": "2026-09-26T08:22:49.154672+01:00"
       },
       {
-        "id": "d221c309-ed64-4a65-b224-42785804b669",
+        "id": "dd7e2135-977a-4bd3-ad9d-44216ae94d4d",
         "type": "NOUVEL_ECHANTILLON",
         "titre": "Nouvel echantillon",
         "message": "L'echantillon 2026/0001 a ete enregistre.",
-        "echantillon": "ccd313d4-f058-4a66-ac47-de4454b1d88a",
+        "echantillon": "4f3ff015-fb18-4ee1-b679-88491650a06a",
         "echantillon_reference": "AUDIT-BOUT-001",
         "echantillon_numero": "2026/0001",
         "section": "ECHANTILLONS",
         "is_read": false,
-        "date_creation": "2026-09-26T05:20:23.029039+01:00"
+        "date_creation": "2026-09-26T08:22:44.105116+01:00"
       }
     ]
   }

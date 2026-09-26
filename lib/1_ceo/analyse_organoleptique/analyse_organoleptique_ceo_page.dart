@@ -464,11 +464,15 @@ class _AnalyseOrganoleptiqueCeoPageState
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           backgroundColor: const Color(0xFFB71C1C),
-          content: Text(
-            'Négociation non enregistrée — ${e.referenceBouteille}.',
-            style: const TextStyle(fontSize: 13),
-          ),
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.all(16),
           duration: const Duration(seconds: 3),
+          content: Text(
+            'Négociation non enregistrée pour ${e.referenceBouteille}.',
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+          ),
         ),
       );
       return;
@@ -483,6 +487,20 @@ class _AnalyseOrganoleptiqueCeoPageState
       e.noteInterne = note;
       e.raisonRefus = null;
     });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        backgroundColor: _green,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        duration: const Duration(seconds: 3),
+        content: Text(
+          'Négociation enregistrée pour ${e.referenceBouteille}.',
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+        ),
+      ),
+    );
   }
 
   Future<void> _showRefuserDialog(EchantillonCeoView e) async {
@@ -670,29 +688,6 @@ class _AnalyseOrganoleptiqueCeoPageState
                   Container(
                     height: 1,
                     color: Colors.black.withValues(alpha: 0.06),
-                  ),
-                  // Stats strip
-                  Container(
-                    color: kBg,
-                    padding: const EdgeInsets.fromLTRB(16, 9, 16, 6),
-                    child: Row(
-                      children: [
-                        const Icon(
-                          Icons.science_outlined,
-                          size: 13,
-                          color: Color.fromARGB(255, 156, 156, 156),
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          '${echantillons.length} échantillon${echantillons.length > 1 ? "s" : ""}',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: Color.fromARGB(255, 156, 156, 156),
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
                   ),
                   // List
                   Expanded(

@@ -116,3 +116,28 @@ Ton sandbox ne peut pas lancer Flutter : n'essaie pas. Claude lancera les tests 
 Django et appliquera la migration après une sauvegarde de la base.
 
 ## RAPPORT
+
+### Rapport de Claude (26/09/2026)
+
+Codex a été coupé par sa limite d'utilisation après 9 minutes, sans rapport. Claude a repris :
+
+- **Encodage abîmé par Codex** dans 16 fichiers (accents devenus « Ã© », marque BOM) :
+  réparé octet par octet ; plus aucun caractère abîmé, texte d'origine retrouvé.
+- **Code cassé** : Codex avait laissé des morceaux orphelins en retirant les compteurs
+  (14 fichiers ne compilaient plus). Ces fichiers ont été remis à l'identique, puis les
+  compteurs retirés proprement par Claude.
+- A — message horizontal 3 s : fait par Codex (négociation enregistrée / non enregistrée),
+  accents rétablis.
+- B — compteurs « total » retirés : direction, dégustateur, chef, labo (listes, analyses,
+  évaluations, sessions, vue d'ensemble, notifications), collecteur (notifications),
+  messagerie (nombre de conversations). Gardés : la phrase d'explication du collecteur,
+  « Effacer les filtres », les nombres des formulaires (« Ajouter 3 échantillons »).
+- C — phrase « Consultation seule » : retirée.
+- D — direction : toucher une personne ouvre sa fiche ; flèche et bandeau retirés ;
+  statut et date de début (JJ/MM/AAAA) dans la fiche. Chef : présentation inchangée.
+- E — suppression douce : `date_suppression` + migration `users/0006` (manquante chez
+  Codex) ; compte supprimé inactif, absent des listes de choix, non réactivable.
+- F — profil : « Mot de passe oublié ? » dans le changement de mot de passe (Codex) ;
+  retour au tableau de bord depuis les 5 profils (bouton retour du téléphone + entrée
+  « Tableau de bord » du menu direction qui ne faisait que fermer le menu).
+- Tests : 162 Flutter, 211 serveur.

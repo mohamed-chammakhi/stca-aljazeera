@@ -7,8 +7,9 @@ import '../services/mot_de_passe_oublie_service.dart';
 
 class MotDePasseOubliePage extends StatefulWidget {
   final MotDePasseOublieService? service;
+  final String? initialEmail;
 
-  const MotDePasseOubliePage({super.key, this.service});
+  const MotDePasseOubliePage({super.key, this.service, this.initialEmail});
 
   @override
   State<MotDePasseOubliePage> createState() => _MotDePasseOubliePageState();
@@ -44,6 +45,12 @@ class _MotDePasseOubliePageState extends State<MotDePasseOubliePage> {
     _passwordController.dispose();
     _confirmationController.dispose();
     super.dispose();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _emailController.text = widget.initialEmail ?? '';
   }
 
   Future<void> _envoyerCode() async {
@@ -87,10 +94,7 @@ class _MotDePasseOubliePageState extends State<MotDePasseOubliePage> {
       _passwordController.text,
     );
     if (passwordIssues.isNotEmpty) {
-      await _showError(
-        'Mot de passe trop faible',
-        passwordIssues.join('\n'),
-      );
+      await _showError('Mot de passe trop faible', passwordIssues.join('\n'));
       return;
     }
     if (_passwordController.text != _confirmationController.text) {
@@ -300,9 +304,8 @@ class _MotDePasseOubliePageState extends State<MotDePasseOubliePage> {
               hint: '••••••••',
               icon: Icons.lock_outline,
               suffix: IconButton(
-                onPressed: () => setState(
-                  () => _obscurePassword = !_obscurePassword,
-                ),
+                onPressed: () =>
+                    setState(() => _obscurePassword = !_obscurePassword),
                 icon: Icon(
                   _obscurePassword
                       ? Icons.visibility_off_outlined

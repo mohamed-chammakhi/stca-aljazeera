@@ -19,6 +19,7 @@ import 'validation_achats/validation_achats_ceo_page.dart';
 import 'analyse_laboratoire/analyse_laboratoire_ceo_page.dart';
 import 'analyse_organoleptique/analyse_organoleptique_ceo_page.dart';
 import 'utilisateurs/utilisateurs_ceo_page.dart';
+import 'tableau_de_bord/tableau_de_bord.dart';
 
 class ProfilceoPage extends StatefulWidget {
   const ProfilceoPage({super.key});
@@ -230,8 +231,30 @@ class _ProfilceoPageState extends State<ProfilceoPage> with CeoNavMixin {
 
   // â”€â”€ Profile picture bottom sheet â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // â”€â”€ Build â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  /// Back from the profile always lands on the role's home page: the profile
+  /// is opened from the menu in place of the previous page, so there is
+  /// often nothing behind it to go back to.
+  void _retourAccueil() {
+    final navigator = Navigator.of(context);
+    if (navigator.canPop()) {
+      navigator.pop();
+    } else {
+      navigator.pushReplacement(
+        MaterialPageRoute(builder: (_) => const HomePageCeo()),
+      );
+    }
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => PopScope(
+    canPop: false,
+    onPopInvokedWithResult: (didPop, _) {
+      if (!didPop) _retourAccueil();
+    },
+    child: _page(context),
+  );
+
+  Widget _page(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
       drawer: CeoDrawer(
@@ -241,7 +264,10 @@ class _ProfilceoPageState extends State<ProfilceoPage> with CeoNavMixin {
         onAnalyseLaboratoire: () => goToPage(const AnalyseLaboratoireCeoPage()),
         onValidationAchats: () => goToPage(const ValidationAchatsCeoPage()),
         onAchatsConfirmes: () => goToPage(const AchatsConfirmesCeoPage()),
-        onTableauDeBord: () => Navigator.pop(context),
+        onTableauDeBord: () {
+          Navigator.pop(context); // closes the menu
+          _retourAccueil();
+        },
         onProfil: () => goToPage(const ProfilceoPage()),
         onutilisiateurs: () => goToPage(const UtilisateursCeoPage()),
         onMessagerie: () => goToPage(const ConversationsPage()),

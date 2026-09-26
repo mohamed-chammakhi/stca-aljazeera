@@ -36,6 +36,7 @@ class CurrentUserProfileApiTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['email'], self.user.email)
         self.assertEqual(response.data['role'], User.Role.COLLECTEUR)
+        self.assertEqual(response.data['statut'], 'actif')
 
     def test_current_user_profile_can_update_allowed_fields(self):
         response = self.client.patch(
@@ -562,13 +563,33 @@ class UserManagementApiTests(APITestCase):
         self.assertEqual(delete_response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertTrue(User.objects.filter(pk=self.collecteur.pk).exists())
 
-    def test_chef_can_delete_direction_account(self):
+    def test_chef_soft_deletes_direction_account(self):
         self.client.force_authenticate(user=self.chef)
 
         response = self.client.delete(f'/api/users/{self.direction.id}/')
 
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        self.assertFalse(User.objects.filter(pk=self.direction.pk).exists())
+        self.direction.refresh_from_db()
+        self.assertFalse(self.direction.is_active)
+        self.assertIsNotNone(self.direction.date_suppression)
+        self.assertTrue(User.objects.filter(pk=self.direction.pk).exists())
+
+        list_response = self.client.get('/api/users/')
+        self.assertEqual(list_response.status_code, status.HTTP_200_OK)
+        deleted = next(
+            item for item in list_response.data['results']
+            if item['id'] == str(self.direction.id)
+        )
+        self.assertEqual(deleted['statut'], 'supprime')
+
+        login_response = self.client.post(
+            '/api/auth/login/',
+            {'email': self.direction.email, 'password': 'Test@12345'},
+            format='json',
+        )
+        self.assertEqual(login_response.status_code, status.HTTP_400_BAD_REQUEST)
+        # DRF wraps the code in a list of ErrorDetail.
+        self.assertEqual(str(login_response.data['code'][0]), 'account_inactive')
 
     def test_chef_can_toggle_another_user_active_state(self):
         self.client.force_authenticate(user=self.chef)
@@ -579,6 +600,20 @@ class UserManagementApiTests(APITestCase):
         self.collecteur.refresh_from_db()
         self.assertFalse(self.collecteur.is_active)
         self.assertFalse(response.data['is_active'])
+        self.assertEqual(response.data['statut'], 'desactive')
+
+    def test_chef_cannot_toggle_soft_deleted_user(self):
+        self.collecteur.is_active = False
+        self.collecteur.date_suppression = timezone.now()
+        self.collecteur.save(update_fields=['is_active', 'date_suppression'])
+        self.client.force_authenticate(user=self.chef)
+
+        response = self.client.post(f'/api/users/{self.collecteur.id}/toggle-active/')
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.collecteur.refresh_from_db()
+        self.assertFalse(self.collecteur.is_active)
+        self.assertIsNotNone(self.collecteur.date_suppression)
 
     def test_direction_cannot_toggle_user_active_state(self):
         self.client.force_authenticate(user=self.direction)

@@ -110,7 +110,9 @@ class _NotificationsCeoPageState extends State<NotificationsCeoPage>
 
   void _signalerErreur() {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('La notification n’a pas pu être mise à jour.')),
+      const SnackBar(
+        content: Text('La notification n’a pas pu être mise à jour.'),
+      ),
     );
   }
 
@@ -182,28 +184,6 @@ class _NotificationsCeoPageState extends State<NotificationsCeoPage>
                   Container(
                     height: 1,
                     color: Colors.black.withValues(alpha: 0.06),
-                  ),
-                  Container(
-                    color: kBg,
-                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 6),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.notifications_outlined,
-                          size: 13,
-                          color: Colors.grey.shade400,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          '${_filtered.length} notification${_filtered.length != 1 ? 's' : ''}',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey.shade400,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
                   ),
                   Expanded(
                     child: _filtered.isEmpty

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../api_client.dart';
+import '../auth/mot_de_passe_oublie_page.dart';
 import '../password_validation.dart';
 import '../services/profile_service.dart';
 import 'saisie_protegee.dart';
@@ -33,8 +34,32 @@ class _ChangePasswordDialogState extends State<ChangePasswordDialog> {
   bool _obscureNew = true;
   bool _obscureConfirm = true;
   bool _isSubmitting = false;
+  String? _accountEmail;
 
   ProfileService get _service => widget.service ?? profileService;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAccountEmail();
+  }
+
+  Future<void> _loadAccountEmail() async {
+    try {
+      final profile = await _service.currentProfile();
+      if (mounted) setState(() => _accountEmail = profile.email);
+    } catch (_) {}
+  }
+
+  Future<void> _openForgotPassword() async {
+    final navigator = Navigator.of(context);
+    navigator.pop();
+    await navigator.push(
+      MaterialPageRoute(
+        builder: (_) => MotDePasseOubliePage(initialEmail: _accountEmail),
+      ),
+    );
+  }
 
   @override
   void dispose() {
@@ -171,6 +196,14 @@ class _ChangePasswordDialogState extends State<ChangePasswordDialog> {
                       ? 'Le mot de passe actuel est obligatoire'
                       : null,
                 ),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    key: const Key('change-password-forgot'),
+                    onPressed: _openForgotPassword,
+                    child: const Text('Mot de passe oublié ?'),
+                  ),
+                ),
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _newController,
@@ -206,7 +239,9 @@ class _ChangePasswordDialogState extends State<ChangePasswordDialog> {
           ElevatedButton(
             key: const Key('change-password-submit'),
             onPressed: _isSubmitting ? null : _submit,
-            style: ElevatedButton.styleFrom(backgroundColor: widget.accentColor),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: widget.accentColor,
+            ),
             child: _isSubmitting
                 ? const SizedBox(
                     width: 18,

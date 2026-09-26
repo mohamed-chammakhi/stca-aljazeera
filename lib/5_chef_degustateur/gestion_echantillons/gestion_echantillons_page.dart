@@ -576,30 +576,6 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage>
             // Thin separator shadow
             Container(height: 1, color: Colors.black.withValues(alpha: 0.06)),
 
-            // ── STATS STRIP ───────────────────────────────────────────────────
-            Container(
-              color: kBg,
-              padding: const EdgeInsets.fromLTRB(16, 9, 16, 6),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.inventory_2_outlined,
-                    size: 13,
-                    color: const Color.fromARGB(255, 156, 156, 156),
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    '${items.length} échantillon${items.length > 1 ? "s" : ""}',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: const Color.fromARGB(255, 156, 156, 156),
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
             // ── FLAT LIST ─────────────────────────────────────────────────────
             Expanded(
               child: items.isEmpty

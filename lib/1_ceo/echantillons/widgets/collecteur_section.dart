@@ -120,13 +120,6 @@ class CollecteurSection extends StatelessWidget {
                               color: kDark,
                             ),
                           ),
-                          Text(
-                            '${group.echantillons.length} échantillon${group.echantillons.length > 1 ? "s" : ""}',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey.shade500,
-                            ),
-                          ),
                         ],
                       ),
                     ),

@@ -37,12 +37,18 @@ Future<void> _pumpPage(WidgetTester tester, {required bool peutGerer}) async {
     ),
   );
   await tester.pumpAndSettle();
-  await tester.tap(find.byIcon(Icons.keyboard_arrow_down));
-  await tester.pumpAndSettle();
+  // Only the chef's card has the arrow; the direction's card opens the profile
+  // directly when tapped.
+  if (peutGerer) {
+    await tester.tap(find.byIcon(Icons.keyboard_arrow_down));
+    await tester.pumpAndSettle();
+  }
 }
 
 void main() {
-  testWidgets('le directeur consulte sans aucune action de gestion', (tester) async {
+  testWidgets('le directeur consulte sans aucune action de gestion', (
+    tester,
+  ) async {
     await _pumpPage(tester, peutGerer: false);
 
     expect(find.byKey(const ValueKey('utilisateurs_ajouter')), findsNothing);
@@ -62,8 +68,24 @@ void main() {
       ),
       findsNothing,
     );
-    expect(find.textContaining('Consultation seule'), findsOneWidget);
+    // The owner removed this sentence and the arrow for the direction.
+    expect(find.textContaining('Consultation seule'), findsNothing);
+    expect(find.byIcon(Icons.keyboard_arrow_down), findsNothing);
   });
+
+  testWidgets(
+    'le directeur touche une personne : sa fiche s’ouvre avec son statut',
+    (tester) async {
+      await _pumpPage(tester, peutGerer: false);
+
+      await tester.tap(find.text(_user().nomComplet));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Statut'), findsOneWidget);
+      expect(find.text('Date de début'), findsOneWidget);
+      expect(find.text('05/08/2026'), findsOneWidget);
+    },
+  );
 
   testWidgets('le chef dispose des trois actions de gestion', (tester) async {
     await _pumpPage(tester, peutGerer: true);

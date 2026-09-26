@@ -7,16 +7,16 @@
     "previous": null,
     "results": [
       {
-        "id": "aa8c62c0-1ecf-443f-8dda-72b026045cd0",
+        "id": "34c5b6ab-a792-4e31-aa56-63aa223ae12f",
         "type": "ECHANTILLON_RECU",
         "titre": "Echantillon recu physiquement",
-        "message": "L'echantillon 2026/0001 a ete marque comme recu physiquement le 26/09/2026 a 04:20.",
-        "echantillon": "ccd313d4-f058-4a66-ac47-de4454b1d88a",
+        "message": "L'echantillon 2026/0001 a ete marque comme recu physiquement le 26/09/2026 a 07:22.",
+        "echantillon": "4f3ff015-fb18-4ee1-b679-88491650a06a",
         "echantillon_reference": "AUDIT-BOUT-001",
         "echantillon_numero": "2026/0001",
         "section": "ECHANTILLONS",
         "is_read": false,
-        "date_creation": "2026-09-26T05:20:23.606149+01:00"
+        "date_creation": "2026-09-26T08:22:45.064323+01:00"
       }
     ]
   }

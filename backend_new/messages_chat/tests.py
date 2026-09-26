@@ -3,6 +3,7 @@ import shutil
 
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import override_settings
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APITestCase
 
@@ -413,6 +414,15 @@ class MessageApiTests(APITestCase):
             role=User.Role.DIRECTION,
             is_active=False,
         )
+        deleted_direction = User.objects.create_user(
+            email='deleted.direction.messages@example.com',
+            password='Test@12345',
+            nom='Deleted',
+            prenom='User',
+            role=User.Role.DIRECTION,
+            is_active=False,
+            date_suppression=timezone.now(),
+        )
         self.authenticate(self.sender)
 
         response = self.client.get('/api/messages/contacts/')
@@ -426,6 +436,7 @@ class MessageApiTests(APITestCase):
         self.assertNotIn(str(self.other.id), ids)
         self.assertNotIn(str(self.sender.id), ids)
         self.assertNotIn(str(inactive_direction.id), ids)
+        self.assertNotIn(str(deleted_direction.id), ids)
         self.assertEqual(set(response.json()[0].keys()), {'id', 'nom', 'prenom', 'role'})
 
         self.authenticate(self.degustateur)

@@ -480,20 +480,6 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage>
               padding: const EdgeInsets.fromLTRB(16, 9, 16, 6),
               child: Row(
                 children: [
-                  Icon(
-                    Icons.event_note_outlined,
-                    size: 13,
-                    color: const Color.fromARGB(255, 156, 156, 156),
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    '${items.length} session${items.length > 1 ? "s" : ""}',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: Color.fromARGB(255, 156, 156, 156),
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
                   if (_anyFilter) ...[
                     const Spacer(),
                     GestureDetector(

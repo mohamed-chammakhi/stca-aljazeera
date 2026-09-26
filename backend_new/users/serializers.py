@@ -6,6 +6,8 @@ from .models import User
 
 
 class UserSerializer(serializers.ModelSerializer):
+    statut = serializers.SerializerMethodField()
+
     class Meta:
         model = User
         fields = [
@@ -16,10 +18,25 @@ class UserSerializer(serializers.ModelSerializer):
             'role',
             'telephone',
             'is_active',
+            'statut',
             'date_creation',
+            'date_suppression',
             'last_login',
         ]
-        read_only_fields = ['id', 'date_creation', 'last_login']
+        read_only_fields = [
+            'id',
+            'statut',
+            'date_creation',
+            'date_suppression',
+            'last_login',
+        ]
+
+    def get_statut(self, obj):
+        if obj.date_suppression is not None:
+            return 'supprime'
+        if obj.is_active:
+            return 'actif'
+        return 'desactive'
 
 
 class PanelMemberSerializer(serializers.ModelSerializer):

@@ -2,14 +2,16 @@
   "status_code": 200,
   "route": "/api/users/me/",
   "data": {
-    "id": "4e7e51a3-e52d-4d7d-9d23-c4d0b2b74422",
+    "id": "611e9778-e950-4970-9f3c-77fc5df25f41",
     "email": "degustateur@audit.test",
     "nom": "Degustateur",
     "prenom": "Audit",
     "role": "degustateur",
     "telephone": "20000000",
     "is_active": true,
-    "date_creation": "2026-09-26T05:20:21.273512+01:00",
+    "statut": "actif",
+    "date_creation": "2026-09-26T08:22:39.967032+01:00",
+    "date_suppression": null,
     "last_login": null
   }
 }

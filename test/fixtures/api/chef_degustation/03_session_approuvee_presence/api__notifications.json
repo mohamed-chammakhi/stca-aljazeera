@@ -7,7 +7,7 @@
     "previous": null,
     "results": [
       {
-        "id": "60afe2a2-07fd-4a71-9318-843af2d7f6ff",
+        "id": "ec890596-d054-4101-91c3-8a18b15d764e",
         "type": "NOUVELLE_SESSION",
         "titre": "Nouvelle session",
         "message": "La session Session audit cablage a ete creee.",
@@ -16,31 +16,31 @@
         "echantillon_numero": null,
         "section": "SESSIONS",
         "is_read": false,
-        "date_creation": "2026-09-26T05:20:24.143080+01:00"
+        "date_creation": "2026-09-26T08:22:45.978078+01:00"
       },
       {
-        "id": "bd64d407-dc84-477d-8e85-4877e15ee183",
+        "id": "d578bfd6-63ae-4fcf-988d-a71dde2e0fe8",
         "type": "ECHANTILLON_RECU",
         "titre": "Echantillon recu physiquement",
-        "message": "L'echantillon 2026/0001 a ete marque comme recu physiquement le 26/09/2026 a 04:20.",
-        "echantillon": "ccd313d4-f058-4a66-ac47-de4454b1d88a",
+        "message": "L'echantillon 2026/0001 a ete marque comme recu physiquement le 26/09/2026 a 07:22.",
+        "echantillon": "4f3ff015-fb18-4ee1-b679-88491650a06a",
         "echantillon_reference": "AUDIT-BOUT-001",
         "echantillon_numero": "2026/0001",
         "section": "ECHANTILLONS",
         "is_read": false,
-        "date_creation": "2026-09-26T05:20:23.606149+01:00"
+        "date_creation": "2026-09-26T08:22:45.064323+01:00"
       },
       {
-        "id": "2c05482d-f845-49e5-8599-ce60eabbbd74",
+        "id": "d7a80df0-1885-46bb-8907-1ab1d3dc9ed4",
         "type": "NOUVEL_ECHANTILLON",
         "titre": "Nouvel echantillon",
         "message": "L'echantillon 2026/0001 a ete enregistre.",
-        "echantillon": "ccd313d4-f058-4a66-ac47-de4454b1d88a",
+        "echantillon": "4f3ff015-fb18-4ee1-b679-88491650a06a",
         "echantillon_reference": "AUDIT-BOUT-001",
         "echantillon_numero": "2026/0001",
         "section": "ECHANTILLONS",
         "is_read": false,
-        "date_creation": "2026-09-26T05:20:23.029039+01:00"
+        "date_creation": "2026-09-26T08:22:44.105116+01:00"
       }
     ]
   }

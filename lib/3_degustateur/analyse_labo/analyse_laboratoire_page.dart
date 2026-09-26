@@ -451,30 +451,6 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage>
             // Thin separator
             Container(height: 1, color: Colors.black.withValues(alpha: 0.06)),
 
-            // ── STATS STRIP ───────────────────────────────────────────────────────
-            Container(
-              color: kBg,
-              padding: const EdgeInsets.fromLTRB(16, 9, 16, 6),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.biotech_outlined,
-                    size: 13,
-                    color: const Color.fromARGB(255, 156, 156, 156),
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    '${filtres.length} analyse${filtres.length > 1 ? "s" : ""}',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: Color.fromARGB(255, 156, 156, 156),
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
             // ── LIST ──────────────────────────────────────────────────────────────
             Expanded(
               child: filtres.isEmpty
@@ -485,22 +461,22 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage>
                           height: MediaQuery.of(context).size.height * 0.5,
                           child: Center(
                             child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.biotech_outlined,
-                            size: 52,
-                            color: Colors.grey.shade300,
-                          ),
-                          const SizedBox(height: 12),
-                          Text(
-                            'Aucune analyse trouvée',
-                            style: TextStyle(
-                              color: Colors.grey.shade400,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ],
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.biotech_outlined,
+                                  size: 52,
+                                  color: Colors.grey.shade300,
+                                ),
+                                const SizedBox(height: 12),
+                                Text(
+                                  'Aucune analyse trouvée',
+                                  style: TextStyle(
+                                    color: Colors.grey.shade400,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ),

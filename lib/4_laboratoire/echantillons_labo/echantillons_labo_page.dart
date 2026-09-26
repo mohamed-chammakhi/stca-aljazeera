@@ -451,30 +451,6 @@ class _EchantillonsLaboPageState extends State<EchantillonsLaboPage>
                     color: Colors.black.withValues(alpha: 0.06),
                   ),
 
-                  // ── Stats strip ──────────────────────────────────────────────────
-                  Container(
-                    color: kBg,
-                    padding: const EdgeInsets.fromLTRB(16, 9, 16, 6),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.science_outlined,
-                          size: 13,
-                          color: const Color.fromARGB(255, 156, 156, 156),
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          '${items.length} échantillon${items.length > 1 ? "s" : ""}',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: Color.fromARGB(255, 156, 156, 156),
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
                   // ── List ──────────────────────────────────────────────────────────
                   Expanded(
                     child: items.isEmpty

@@ -343,7 +343,9 @@ class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
             raise ValidationError({
                 'detail': 'Vous ne pouvez pas désactiver ou supprimer votre propre compte.'
             })
-        instance.delete()
+        instance.is_active = False
+        instance.date_suppression = timezone.now()
+        instance.save(update_fields=['is_active', 'date_suppression'])
 
 
 # POST /api/users/<uuid>/toggle-active/
@@ -361,6 +363,10 @@ class UserToggleActiveView(APIView):
             raise ValidationError({
                 'detail': 'Vous ne pouvez pas désactiver ou supprimer votre propre compte.'
             })
+        if user.date_suppression is not None:
+            raise ValidationError({
+                'detail': 'Un utilisateur supprimé ne peut pas être réactivé.'
+            })
         user.is_active = not user.is_active
-        user.save()
+        user.save(update_fields=['is_active'])
         return Response(UserSerializer(user).data, status=status.HTTP_200_OK)

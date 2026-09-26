@@ -8,6 +8,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:project3/core/theme/app_colors.dart';
+import 'package:project3/core/utils/date_utils.dart';
 import 'package:project3/core/utils/rafraichissement_periodique.dart';
 import 'package:project3/core/widgets/saisie_protegee.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -134,150 +135,137 @@ class _UtilisateursPageBodyState extends State<UtilisateursPageBody>
       children: [
         Positioned.fill(
           child: _isLoading && _utilisateurs.isEmpty
-          ? const Center(child: CircularProgressIndicator())
-          : VueResultatService(
-              estDemonstration: _usesMockData,
-              erreur: _loadError,
-              onReessayer: _loadUsers,
-              onRefresh: rechargerEnSilence,
-              couleurRafraichissement: kGreen,
-              child: Column(
-                children: [
-                  // ── Unified header zone ──────────────────────────────────────
-                  Container(
-                    color: kHeaderBg,
-                    padding: const EdgeInsets.fromLTRB(16, 10, 16, 14),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        if (!widget.peutGerer) ...[
-                          const Text(
-                            'Consultation seule — la gestion des comptes appartient au chef dégustation.',
-                            style: TextStyle(
-                              color: Color(0xFF6B8E7A),
-                              fontSize: 12,
-                              fontStyle: FontStyle.italic,
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                        ],
-                        TextField(
-                          controller: _searchController,
-                          onChanged: (v) =>
-                              setState(() => _searchQuery = v.trim()),
-                          style: const TextStyle(fontSize: 14, color: kDark),
-                          decoration: InputDecoration(
-                            hintText: 'Rechercher par nom, email, rôle…',
-                            hintStyle: const TextStyle(
-                              color: Color(0xFF6B8E7A),
-                              fontSize: 13,
-                            ),
-                            prefixIcon: const Icon(
-                              Icons.search,
-                              color: Color(0xFF6B8E7A),
-                              size: 20,
-                            ),
-                            suffixIcon: _searchQuery.isNotEmpty
-                                ? IconButton(
-                                    icon: const Icon(
-                                      Icons.close,
-                                      size: 17,
-                                      color: Color(0xFF6B8E7A),
-                                    ),
-                                    onPressed: () => setState(() {
-                                      _searchQuery = '';
-                                      _searchController.clear();
-                                    }),
-                                  )
-                                : null,
-                            filled: true,
-                            fillColor: Colors.white,
-                            contentPadding: const EdgeInsets.symmetric(
-                              vertical: 11,
-                              horizontal: 16,
-                            ),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide.none,
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide.none,
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: const BorderSide(
-                                color: kGreen,
-                                width: 1.5,
+              ? const Center(child: CircularProgressIndicator())
+              : VueResultatService(
+                  estDemonstration: _usesMockData,
+                  erreur: _loadError,
+                  onReessayer: _loadUsers,
+                  onRefresh: rechargerEnSilence,
+                  couleurRafraichissement: kGreen,
+                  child: Column(
+                    children: [
+                      // ── Unified header zone ──────────────────────────────────────
+                      Container(
+                        color: kHeaderBg,
+                        padding: const EdgeInsets.fromLTRB(16, 10, 16, 14),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            TextField(
+                              controller: _searchController,
+                              onChanged: (v) =>
+                                  setState(() => _searchQuery = v.trim()),
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: kDark,
+                              ),
+                              decoration: InputDecoration(
+                                hintText: 'Rechercher par nom, email, rôle…',
+                                hintStyle: const TextStyle(
+                                  color: Color(0xFF6B8E7A),
+                                  fontSize: 13,
+                                ),
+                                prefixIcon: const Icon(
+                                  Icons.search,
+                                  color: Color(0xFF6B8E7A),
+                                  size: 20,
+                                ),
+                                suffixIcon: _searchQuery.isNotEmpty
+                                    ? IconButton(
+                                        icon: const Icon(
+                                          Icons.close,
+                                          size: 17,
+                                          color: Color(0xFF6B8E7A),
+                                        ),
+                                        onPressed: () => setState(() {
+                                          _searchQuery = '';
+                                          _searchController.clear();
+                                        }),
+                                      )
+                                    : null,
+                                filled: true,
+                                fillColor: Colors.white,
+                                contentPadding: const EdgeInsets.symmetric(
+                                  vertical: 11,
+                                  horizontal: 16,
+                                ),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: BorderSide.none,
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: BorderSide.none,
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: const BorderSide(
+                                    color: kGreen,
+                                    width: 1.5,
+                                  ),
+                                ),
                               ),
                             ),
+                            const SizedBox(height: 11),
+                            SizedBox(height: 34, child: _buildFilterChips()),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        height: 1,
+                        color: Colors.black.withValues(alpha: 0.06),
+                      ),
+                      if (_activeFilter != null || _searchQuery.isNotEmpty)
+                        Container(
+                          color: kBg,
+                          padding: const EdgeInsets.fromLTRB(16, 9, 16, 9),
+                          child: Row(
+                            children: [
+                              const Spacer(),
+                              TextButton.icon(
+                                onPressed: () => setState(() {
+                                  _activeFilter = null;
+                                  _searchQuery = '';
+                                  _searchController.clear();
+                                }),
+                                icon: const Icon(
+                                  Icons.filter_alt_off_outlined,
+                                  size: 16,
+                                ),
+                                label: const Text('Effacer les filtres'),
+                              ),
+                            ],
                           ),
                         ),
-                        const SizedBox(height: 11),
-                        SizedBox(height: 34, child: _buildFilterChips()),
-                      ],
-                    ),
+                      Expanded(
+                        child: filtered.isEmpty
+                            ? _buildEmpty()
+                            : ListView.builder(
+                                physics: const AlwaysScrollableScrollPhysics(),
+                                padding: EdgeInsets.fromLTRB(
+                                  16,
+                                  8,
+                                  16,
+                                  widget.peutGerer ? 100 : 24,
+                                ),
+                                itemCount: filtered.length,
+                                itemBuilder: (_, i) => UserCard(
+                                  user: filtered[i],
+                                  green: kGreen,
+                                  darkText: kDark,
+                                  roleColors: _roleColors,
+                                  peutGerer: widget.peutGerer,
+                                  onToggleStatus: () =>
+                                      _confirmToggleStatus(filtered[i]),
+                                  onDelete: () => _confirmDelete(filtered[i]),
+                                  onViewProfile: () =>
+                                      _showUserProfile(filtered[i]),
+                                ),
+                              ),
+                      ),
+                    ],
                   ),
-                  Container(
-                    height: 1,
-                    color: Colors.black.withValues(alpha: 0.06),
-                  ),
-                  Container(
-                    color: kBg,
-                    padding: const EdgeInsets.fromLTRB(16, 9, 16, 9),
-                    child: Row(
-                      children: [
-                        Text(
-                          '${filtered.length} utilisateur${filtered.length > 1 ? 's' : ''}',
-                          style: const TextStyle(
-                            color: kDark,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const Spacer(),
-                        if (_activeFilter != null || _searchQuery.isNotEmpty)
-                          TextButton.icon(
-                            onPressed: () => setState(() {
-                              _activeFilter = null;
-                              _searchQuery = '';
-                              _searchController.clear();
-                            }),
-                            icon: const Icon(Icons.filter_alt_off_outlined, size: 16),
-                            label: const Text('Effacer les filtres'),
-                          ),
-                      ],
-                    ),
-                  ),
-                  Expanded(
-                    child: filtered.isEmpty
-                        ? _buildEmpty()
-                        : ListView.builder(
-                            physics: const AlwaysScrollableScrollPhysics(),
-                            padding: EdgeInsets.fromLTRB(
-                              16,
-                              8,
-                              16,
-                              widget.peutGerer ? 100 : 24,
-                            ),
-                            itemCount: filtered.length,
-                            itemBuilder: (_, i) => UserCard(
-                              user: filtered[i],
-                              green: kGreen,
-                              darkText: kDark,
-                              roleColors: _roleColors,
-                              peutGerer: widget.peutGerer,
-                              onToggleStatus: () =>
-                                  _confirmToggleStatus(filtered[i]),
-                              onDelete: () => _confirmDelete(filtered[i]),
-                              onViewProfile: () =>
-                                  _showUserProfile(filtered[i]),
-                            ),
-                          ),
-                  ),
-                ],
-              ),
-            ),
+                ),
         ),
         if (widget.peutGerer)
           Positioned(
@@ -507,6 +495,10 @@ class _UtilisateursPageBodyState extends State<UtilisateursPageBody>
 
   Future<void> _toggleUserStatus(UserProfile user) async {
     if (_isMutating) return;
+    if (user.estSupprime) {
+      _showError('Un utilisateur supprimé ne peut pas être réactivé.');
+      return;
+    }
     if (_usesMockData) {
       _showError(
         'Action indisponible avec les données de démonstration. Réessayez lorsque le serveur répond.',
@@ -548,7 +540,7 @@ class _UtilisateursPageBodyState extends State<UtilisateursPageBody>
     try {
       await _service.deleteUser(user.id);
       if (!mounted) return;
-      setState(() => _utilisateurs.removeWhere((u) => u.id == user.id));
+      await _loadUsers();
       _showSuccess('${user.nomComplet} supprimé');
     } catch (error) {
       if (!mounted) return;
@@ -660,7 +652,12 @@ class _UtilisateursPageBodyState extends State<UtilisateursPageBody>
               _infoTile(
                 Icons.calendar_today_outlined,
                 'Date de début',
-                user.dateCreation,
+                DegDateUtils.formaterAffichage(user.dateCreation),
+              ),
+              _infoTile(
+                Icons.verified_user_outlined,
+                'Statut',
+                user.statutLabel,
               ),
               _infoTile(Icons.badge_outlined, 'Rôle', user.role.label),
             ],
@@ -717,292 +714,292 @@ class _UtilisateursPageBodyState extends State<UtilisateursPageBody>
       builder: (ctx) => SaisieProtegee(
         child: StatefulBuilder(
           builder: (ctx, setSheet) => SingleChildScrollView(
-          padding: EdgeInsets.only(
-            left: 20,
-            right: 20,
-            top: 16,
-            bottom: MediaQuery.of(ctx).viewInsets.bottom + 28,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // ── Drag handle + close ────────────────────────────────
-              Row(
-                children: [
-                  const Spacer(),
-                  Container(
-                    width: 36,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade300,
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                  const Spacer(),
-                  GestureDetector(
-                    onTap: () => Navigator.pop(ctx),
-                    child: Container(
-                      padding: const EdgeInsets.all(5),
+            padding: EdgeInsets.only(
+              left: 20,
+              right: 20,
+              top: 16,
+              bottom: MediaQuery.of(ctx).viewInsets.bottom + 28,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // ── Drag handle + close ────────────────────────────────
+                Row(
+                  children: [
+                    const Spacer(),
+                    Container(
+                      width: 36,
+                      height: 4,
                       decoration: BoxDecoration(
-                        color: Colors.grey.shade100,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Icon(
-                        Icons.close,
-                        size: 17,
-                        color: Colors.grey.shade500,
+                        color: Colors.grey.shade300,
+                        borderRadius: BorderRadius.circular(2),
                       ),
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-
-              // ── Single card: title + role picker ──────────────────
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: const Color(0xFFE8E8E8), width: 1),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.04),
-                      blurRadius: 10,
-                      offset: const Offset(0, 2),
+                    const Spacer(),
+                    GestureDetector(
+                      onTap: () => Navigator.pop(ctx),
+                      child: Container(
+                        padding: const EdgeInsets.all(5),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade100,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(
+                          Icons.close,
+                          size: 17,
+                          color: Colors.grey.shade500,
+                        ),
+                      ),
                     ),
                   ],
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Title row
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(7),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFF0F0F0),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: const Icon(
-                            Icons.person_add_outlined,
-                            color: kDark,
-                            size: 17,
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Text(
-                          'Nouvel Utilisateur',
-                          style: GoogleFonts.domine(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                            color: kDark,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 14),
-                    Divider(color: Colors.grey.shade100, height: 1),
-                    const SizedBox(height: 14),
+                const SizedBox(height: 16),
 
-                    // Role label
-                    const Text(
-                      'Rôle',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        color: kOlive,
-                        letterSpacing: 0.4,
+                // ── Single card: title + role picker ──────────────────
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: const Color(0xFFE8E8E8),
+                      width: 1,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.04),
+                        blurRadius: 10,
+                        offset: const Offset(0, 2),
                       ),
-                    ),
-                    const SizedBox(height: 10),
-
-                    // Role chips — one row
-                    Row(
-                      children: UserRole.values.asMap().entries.map((entry) {
-                        final i = entry.key;
-                        final r = entry.value;
-                        final roleC = _roleColors[r]!;
-                        final isSelected = selectedRole == r;
-                        final label = r.label;
-                        return Expanded(
-                          child: Padding(
-                            padding: EdgeInsets.only(
-                              right: i < UserRole.values.length - 1 ? 6 : 0,
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Title row
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(7),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF0F0F0),
+                              borderRadius: BorderRadius.circular(8),
                             ),
-                            child: GestureDetector(
-                              onTap: () => setSheet(() => selectedRole = r),
-                              child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 150),
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 8,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: isSelected
-                                      ? roleC.bg
-                                      : const Color(0xFFF5F5F5),
-                                  borderRadius: BorderRadius.circular(20),
-                                  border: Border.all(
-                                    color: isSelected
-                                        ? roleC.fg.withValues(alpha: 0.35)
-                                        : const Color(0xFFE8E8E8),
-                                    width: 1,
+                            child: const Icon(
+                              Icons.person_add_outlined,
+                              color: kDark,
+                              size: 17,
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Text(
+                            'Nouvel Utilisateur',
+                            style: GoogleFonts.domine(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              color: kDark,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 14),
+                      Divider(color: Colors.grey.shade100, height: 1),
+                      const SizedBox(height: 14),
+
+                      // Role label
+                      const Text(
+                        'Rôle',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: kOlive,
+                          letterSpacing: 0.4,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+
+                      // Role chips — one row
+                      Row(
+                        children: UserRole.values.asMap().entries.map((entry) {
+                          final i = entry.key;
+                          final r = entry.value;
+                          final roleC = _roleColors[r]!;
+                          final isSelected = selectedRole == r;
+                          final label = r.label;
+                          return Expanded(
+                            child: Padding(
+                              padding: EdgeInsets.only(
+                                right: i < UserRole.values.length - 1 ? 6 : 0,
+                              ),
+                              child: GestureDetector(
+                                onTap: () => setSheet(() => selectedRole = r),
+                                child: AnimatedContainer(
+                                  duration: const Duration(milliseconds: 150),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 8,
                                   ),
-                                ),
-                                child: Center(
-                                  child: Text(
-                                    label,
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w600,
+                                  decoration: BoxDecoration(
+                                    color: isSelected
+                                        ? roleC.bg
+                                        : const Color(0xFFF5F5F5),
+                                    borderRadius: BorderRadius.circular(20),
+                                    border: Border.all(
                                       color: isSelected
-                                          ? roleC.fg
-                                          : const Color(0xFF9E9E9E),
+                                          ? roleC.fg.withValues(alpha: 0.35)
+                                          : const Color(0xFFE8E8E8),
+                                      width: 1,
+                                    ),
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      label,
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w600,
+                                        color: isSelected
+                                            ? roleC.fg
+                                            : const Color(0xFF9E9E9E),
+                                      ),
                                     ),
                                   ),
                                 ),
                               ),
                             ),
+                          );
+                        }).toList(),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                // ── Form fields ────────────────────────────────────────
+                _addField(
+                  prenomCtrl,
+                  'Prénom',
+                  Icons.person_outline,
+                  TextInputType.name,
+                ),
+                const SizedBox(height: 14),
+                _addField(
+                  nomCtrl,
+                  'Nom',
+                  Icons.person_outline,
+                  TextInputType.name,
+                ),
+                const SizedBox(height: 14),
+                _addField(
+                  emailCtrl,
+                  'Email',
+                  Icons.email_outlined,
+                  TextInputType.emailAddress,
+                ),
+                const SizedBox(height: 14),
+                _addField(
+                  telCtrl,
+                  'Téléphone',
+                  Icons.phone_outlined,
+                  TextInputType.phone,
+                ),
+                const SizedBox(height: 24),
+
+                // ── Action buttons ─────────────────────────────────────
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.pop(ctx),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 13),
+                          side: BorderSide(color: Colors.grey.shade300),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
                           ),
-                        );
-                      }).toList(),
+                        ),
+                        child: Text(
+                          'Annuler',
+                          style: GoogleFonts.domine(
+                            color: Colors.grey.shade500,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: isSaving
+                            ? null
+                            : () async {
+                                if (prenomCtrl.text.isEmpty ||
+                                    nomCtrl.text.isEmpty ||
+                                    emailCtrl.text.isEmpty) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                        'Veuillez remplir tous les champs obligatoires',
+                                      ),
+                                      backgroundColor: Colors.red,
+                                    ),
+                                  );
+                                  return;
+                                }
+                                setSheet(() => isSaving = true);
+                                try {
+                                  final newUser = await _service.createUser(
+                                    prenom: prenomCtrl.text.trim(),
+                                    nom: nomCtrl.text.trim(),
+                                    email: emailCtrl.text.trim(),
+                                    role: selectedRole,
+                                    telephone: telCtrl.text.trim(),
+                                  );
+                                  if (!mounted) return;
+                                  setState(() => _utilisateurs.add(newUser));
+                                  if (ctx.mounted) Navigator.pop(ctx);
+                                  _showUserCreatedDialog(
+                                    newUser.prenom,
+                                    newUser.nom,
+                                    newUser.email,
+                                  );
+                                } catch (error) {
+                                  if (!mounted) return;
+                                  _showError(_service.messageFor(error));
+                                } finally {
+                                  if (ctx.mounted) {
+                                    setSheet(() => isSaving = false);
+                                  }
+                                }
+                              },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color.fromARGB(
+                            255,
+                            197,
+                            206,
+                            201,
+                          ),
+                          elevation: 0,
+                          padding: const EdgeInsets.symmetric(vertical: 13),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: Text(
+                          'Enregistrer',
+                          style: GoogleFonts.domine(
+                            color: kDark,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
                     ),
                   ],
                 ),
-              ),
-              const SizedBox(height: 20),
-
-              // ── Form fields ────────────────────────────────────────
-              _addField(
-                prenomCtrl,
-                'Prénom',
-                Icons.person_outline,
-                TextInputType.name,
-              ),
-              const SizedBox(height: 14),
-              _addField(
-                nomCtrl,
-                'Nom',
-                Icons.person_outline,
-                TextInputType.name,
-              ),
-              const SizedBox(height: 14),
-              _addField(
-                emailCtrl,
-                'Email',
-                Icons.email_outlined,
-                TextInputType.emailAddress,
-              ),
-              const SizedBox(height: 14),
-              _addField(
-                telCtrl,
-                'Téléphone',
-                Icons.phone_outlined,
-                TextInputType.phone,
-              ),
-              const SizedBox(height: 24),
-
-              // ── Action buttons ─────────────────────────────────────
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () => Navigator.pop(ctx),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 13),
-                        side: BorderSide(color: Colors.grey.shade300),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: Text(
-                        'Annuler',
-                        style: GoogleFonts.domine(
-                          color: Colors.grey.shade500,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: isSaving
-                          ? null
-                          : () async {
-                              if (prenomCtrl.text.isEmpty ||
-                                  nomCtrl.text.isEmpty ||
-                                  emailCtrl.text.isEmpty) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                      'Veuillez remplir tous les champs obligatoires',
-                                    ),
-                                    backgroundColor: Colors.red,
-                                  ),
-                                );
-                                return;
-                              }
-                              setSheet(() => isSaving = true);
-                              try {
-                                final newUser = await _service
-                                    .createUser(
-                                      prenom: prenomCtrl.text.trim(),
-                                      nom: nomCtrl.text.trim(),
-                                      email: emailCtrl.text.trim(),
-                                      role: selectedRole,
-                                      telephone: telCtrl.text.trim(),
-                                    );
-                                if (!mounted) return;
-                                setState(() => _utilisateurs.add(newUser));
-                                if (ctx.mounted) Navigator.pop(ctx);
-                                _showUserCreatedDialog(
-                                  newUser.prenom,
-                                  newUser.nom,
-                                  newUser.email,
-                                );
-                              } catch (error) {
-                                if (!mounted) return;
-                                _showError(
-                                  _service.messageFor(error),
-                                );
-                              } finally {
-                                if (ctx.mounted) {
-                                  setSheet(() => isSaving = false);
-                                }
-                              }
-                            },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color.fromARGB(
-                          255,
-                          197,
-                          206,
-                          201,
-                        ),
-                        elevation: 0,
-                        padding: const EdgeInsets.symmetric(vertical: 13),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: Text(
-                        'Enregistrer',
-                        style: GoogleFonts.domine(
-                          color: kDark,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
+              ],
+            ),
           ),
         ),
       ),
