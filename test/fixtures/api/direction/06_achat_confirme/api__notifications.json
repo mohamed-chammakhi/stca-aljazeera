@@ -1,0 +1,107 @@
+{
+  "status_code": 200,
+  "route": "/api/notifications/",
+  "data": {
+    "count": 8,
+    "next": null,
+    "previous": null,
+    "results": [
+      {
+        "id": "75a37f8a-41a8-46dd-9a30-d7ebae24cb53",
+        "type": "ACHAT_CONFIRME",
+        "titre": "Achat confirme",
+        "message": "L'achat de 2026/0001 a ete confirme.",
+        "echantillon": "97626082-0908-435f-9d3a-c90a922c61f3",
+        "echantillon_reference": "AUDIT-BOUT-001",
+        "echantillon_numero": "2026/0001",
+        "section": "ACHATS",
+        "is_read": false,
+        "date_creation": "2026-09-26T01:09:08.919974+01:00"
+      },
+      {
+        "id": "66d977a8-5b99-44b9-9b3c-059540e1c735",
+        "type": "proposition_achat_attente",
+        "titre": "Proposition d'achat en attente",
+        "message": "AUDIT-BOUT-001 (11.5 T) : Audit Collecteur propose 7.4 TND/L. A valider.",
+        "echantillon": "97626082-0908-435f-9d3a-c90a922c61f3",
+        "echantillon_reference": "AUDIT-BOUT-001",
+        "echantillon_numero": "2026/0001",
+        "section": "ACHATS_VALIDATION",
+        "is_read": false,
+        "date_creation": "2026-09-26T01:09:08.908981+01:00"
+      },
+      {
+        "id": "37632570-ef6a-4f49-baa1-77153205fcdc",
+        "type": "ECHANTILLON_MODIFIE",
+        "titre": "Echantillon modifie",
+        "message": "L'echantillon 2026/0001 a ete modifie.",
+        "echantillon": "97626082-0908-435f-9d3a-c90a922c61f3",
+        "echantillon_reference": "AUDIT-BOUT-001",
+        "echantillon_numero": "2026/0001",
+        "section": "ECHANTILLONS",
+        "is_read": false,
+        "date_creation": "2026-09-26T01:09:08.897973+01:00"
+      },
+      {
+        "id": "3d3e6ee7-9e49-4274-9bcb-21af6d88e65c",
+        "type": "ECHANTILLON_MODIFIE",
+        "titre": "Echantillon modifie",
+        "message": "L'echantillon 2026/0001 a ete modifie.",
+        "echantillon": "97626082-0908-435f-9d3a-c90a922c61f3",
+        "echantillon_reference": "AUDIT-BOUT-001",
+        "echantillon_numero": "2026/0001",
+        "section": "ECHANTILLONS",
+        "is_read": false,
+        "date_creation": "2026-09-26T01:09:08.174908+01:00"
+      },
+      {
+        "id": "154038b0-904c-430c-9ae6-fe379ad0206f",
+        "type": "ANALYSE_SOUMISE",
+        "titre": "Analyse soumise",
+        "message": "L'analyse de 2026/0001 a ete soumise.",
+        "echantillon": "97626082-0908-435f-9d3a-c90a922c61f3",
+        "echantillon_reference": "AUDIT-BOUT-001",
+        "echantillon_numero": "2026/0001",
+        "section": "ANALYSES",
+        "is_read": false,
+        "date_creation": "2026-09-26T01:09:08.173910+01:00"
+      },
+      {
+        "id": "22d171dd-bc59-4896-ade4-6d88dafefa7b",
+        "type": "TOUTES_EVALUATIONS",
+        "titre": "Toutes les evaluations soumises",
+        "message": "Toutes les evaluations de 2026/0001 sont soumises.",
+        "echantillon": "97626082-0908-435f-9d3a-c90a922c61f3",
+        "echantillon_reference": "AUDIT-BOUT-001",
+        "echantillon_numero": "2026/0001",
+        "section": "EVALUATIONS",
+        "is_read": false,
+        "date_creation": "2026-09-26T01:09:07.625761+01:00"
+      },
+      {
+        "id": "fe8c3777-0288-4a7e-a2e8-84b861cbdf47",
+        "type": "ECHANTILLON_RECU",
+        "titre": "Echantillon recu physiquement",
+        "message": "L'echantillon 2026/0001 a ete marque comme recu physiquement le 26/09/2026 a 00:09.",
+        "echantillon": "97626082-0908-435f-9d3a-c90a922c61f3",
+        "echantillon_reference": "AUDIT-BOUT-001",
+        "echantillon_numero": "2026/0001",
+        "section": "ECHANTILLONS",
+        "is_read": false,
+        "date_creation": "2026-09-26T01:09:06.309642+01:00"
+      },
+      {
+        "id": "5d5b57ad-7f28-41ba-b43a-28f369a0ca52",
+        "type": "NOUVEL_ECHANTILLON",
+        "titre": "Nouvel echantillon",
+        "message": "L'echantillon 2026/0001 a ete enregistre.",
+        "echantillon": "97626082-0908-435f-9d3a-c90a922c61f3",
+        "echantillon_reference": "AUDIT-BOUT-001",
+        "echantillon_numero": "2026/0001",
+        "section": "ECHANTILLONS",
+        "is_read": false,
+        "date_creation": "2026-09-26T01:09:05.737259+01:00"
+      }
+    ]
+  }
+}

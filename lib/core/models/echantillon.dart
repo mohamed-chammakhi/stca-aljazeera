@@ -8,6 +8,7 @@
 // ═════════════════════════════════════════════════════════════════════════════
 
 import 'enums.dart';
+import 'package:project3/core/utils/json_utils.dart';
 
 class Echantillon {
   // ── Primary key & display reference ──────────────────────────────────────────
@@ -150,8 +151,8 @@ class Echantillon {
     recuPhysiquement: (json['recu_physiquement'] as bool?) ?? false,
     dateArriveeEchantillon: json['date_arrivee_echantillon'] as String?,
     dateReceptionEchantillon: json['date_reception_echantillon'] as String?,
-    budgetNegociation: (json['budget_negociation'] as num?)?.toDouble(),
-    quantiteCibleT: (json['quantite_cible_t'] as num?)?.toDouble(),
+    budgetNegociation: nombreDepuisJson(json['budget_negociation']),
+    quantiteCibleT: nombreDepuisJson(json['quantite_cible_t']),
     camionReserve: json['camion_reserve'] as String?,
     noteInterne: json['note_interne'] as String?,
     raisonRefus: json['raison_refus'] as String?,

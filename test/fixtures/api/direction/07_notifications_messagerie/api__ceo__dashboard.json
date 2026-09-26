@@ -1,0 +1,108 @@
+{
+  "status_code": 200,
+  "route": "/api/ceo/dashboard/",
+  "data": {
+    "echantillons_total": 1,
+    "echantillons_selectionnes": 0,
+    "achats_confirmes": 1,
+    "stocks_arrives": 0,
+    "evaluations_en_attente": 0,
+    "analyses_soumises": 1,
+    "kpis": {
+      "total": 1,
+      "receptionnes": 0,
+      "en_negociation": 0,
+      "achat_confirme": 1,
+      "refuses": 0,
+      "stocks_arrives": 0,
+      "evaluations_en_attente": 0,
+      "analyses_soumises": 1,
+      "investissement_total": 7.4
+    },
+    "pipeline": {
+      "receptionne": 0,
+      "en_negociation": 0,
+      "achat_confirme": 1,
+      "refuse": 0
+    },
+    "performance_collecteurs": [
+      {
+        "collecteur_id": "b941466b-d461-4bda-9caa-e334904e20f2",
+        "nom": "Audit Collecteur",
+        "name": "Audit Collecteur",
+        "initials": "AC",
+        "samples": 1,
+        "nb": 1,
+        "approval_rate": 1.0,
+        "total_value": 7.4,
+        "avg_days_to_close": 0.0
+      }
+    ],
+    "collecteurs": [
+      {
+        "collecteur_id": "b941466b-d461-4bda-9caa-e334904e20f2",
+        "nom": "Audit Collecteur",
+        "name": "Audit Collecteur",
+        "initials": "AC",
+        "samples": 1,
+        "nb": 1,
+        "approval_rate": 1.0,
+        "total_value": 7.4,
+        "avg_days_to_close": 0.0
+      }
+    ],
+    "fournisseurs": [
+      {
+        "fournisseur_id": "c4680686-f87b-49ed-960d-902000bb6f5c",
+        "name": "Domaine Audit",
+        "nom": "Domaine Audit",
+        "region": "Sfax",
+        "achats": 1,
+        "valeur": 7.4
+      }
+    ],
+    "classifications": {
+      "extra_vierge": 2,
+      "vierge": 0,
+      "vierge_ordinaire": 0,
+      "lampante": 0
+    },
+    "decisions_urgentes": [],
+    "stock": {
+      "en_transit": 1,
+      "recu": 0
+    },
+    "evolution_achats": [
+      {
+        "label": "Apr 2026",
+        "count": 0,
+        "valeur": 0.0
+      },
+      {
+        "label": "May 2026",
+        "count": 0,
+        "valeur": 0.0
+      },
+      {
+        "label": "Jun 2026",
+        "count": 0,
+        "valeur": 0.0
+      },
+      {
+        "label": "Jul 2026",
+        "count": 0,
+        "valeur": 0.0
+      },
+      {
+        "label": "Aug 2026",
+        "count": 0,
+        "valeur": 0.0
+      },
+      {
+        "label": "Sep 2026",
+        "count": 1,
+        "valeur": 7.4
+      }
+    ]
+  }
+}

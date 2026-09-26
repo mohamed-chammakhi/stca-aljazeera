@@ -1,0 +1,7 @@
+{
+  "status_code": 200,
+  "route": "/api/notifications/unread-count/",
+  "data": {
+    "count": 2
+  }
+}

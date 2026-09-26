@@ -4,6 +4,7 @@
 // ═════════════════════════════════════════════════════════════════════════════
 
 import '../../analyse_labo.dart';
+import 'package:project3/core/utils/date_utils.dart';
 
 class EchantillonLabo {
   final String id;
@@ -68,7 +69,8 @@ class EchantillonLabo {
         referenceBouteille: _stringValue(json['reference_bouteille']),
         variete: json['variete'] as String?,
         quantiteEstimee: json['quantite_estimee']?.toString(),
-        dateArrivee: _stringValue(
+        // Shown as-is on screen: JJ/MM/AAAA, never the raw ISO text.
+        dateArrivee: DegDateUtils.formaterAffichage(
           json['date_arrivee'] ?? json['date_arrivee_echantillon'],
         ),
         numeroLot: json['numero_lot'] as String?,

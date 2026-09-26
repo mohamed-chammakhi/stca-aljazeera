@@ -1,0 +1,13 @@
+{
+  "status_code": 200,
+  "route": "/api/echantillons/collecteur/carte/",
+  "data": {
+    "delegations": [
+      {
+        "gouvernorat": "Sfax",
+        "delegation": "Sakiet Ezzit",
+        "nb_echantillons": 1
+      }
+    ]
+  }
+}

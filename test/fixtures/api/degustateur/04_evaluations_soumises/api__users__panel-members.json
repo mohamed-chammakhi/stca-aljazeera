@@ -1,0 +1,27 @@
+{
+  "status_code": 200,
+  "route": "/api/users/panel-members/",
+  "data": {
+    "count": 2,
+    "next": null,
+    "previous": null,
+    "results": [
+      {
+        "id": "60e636cd-c211-446c-87d4-51870ae4db49",
+        "nom": "Chef",
+        "prenom": "Audit",
+        "role": "Chef de Dégustation",
+        "membre_depuis": "Sep 2026",
+        "est_en_ligne": true
+      },
+      {
+        "id": "ef64a66a-549b-4714-9de0-f57fa89438a3",
+        "nom": "Degustateur",
+        "prenom": "Audit",
+        "role": "Dégustateur",
+        "membre_depuis": "Sep 2026",
+        "est_en_ligne": true
+      }
+    ]
+  }
+}

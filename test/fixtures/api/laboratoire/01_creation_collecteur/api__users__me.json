@@ -1,0 +1,15 @@
+{
+  "status_code": 200,
+  "route": "/api/users/me/",
+  "data": {
+    "id": "0f1e5526-8ec6-4c58-b54a-c8b74ba81c5e",
+    "email": "labo@audit.test",
+    "nom": "Labo",
+    "prenom": "Audit",
+    "role": "laboratoire",
+    "telephone": "20000000",
+    "is_active": true,
+    "date_creation": "2026-09-26T01:09:05.189850+01:00",
+    "last_login": null
+  }
+}

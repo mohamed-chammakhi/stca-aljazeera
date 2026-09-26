@@ -1,0 +1,18 @@
+{
+  "status_code": 200,
+  "route": "/api/messages/contacts/",
+  "data": [
+    {
+      "id": "60e636cd-c211-446c-87d4-51870ae4db49",
+      "nom": "Chef",
+      "prenom": "Audit",
+      "role": "chef_degustation"
+    },
+    {
+      "id": "fd47680d-74eb-4eb1-978b-8dded75c6a23",
+      "nom": "Direction",
+      "prenom": "Audit",
+      "role": "direction"
+    }
+  ]
+}

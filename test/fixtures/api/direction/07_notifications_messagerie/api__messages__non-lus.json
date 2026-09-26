@@ -1,0 +1,7 @@
+{
+  "status_code": 200,
+  "route": "/api/messages/non-lus/",
+  "data": {
+    "total": 1
+  }
+}

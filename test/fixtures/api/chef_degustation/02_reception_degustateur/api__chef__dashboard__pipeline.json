@@ -1,0 +1,10 @@
+{
+  "status_code": 200,
+  "route": "/api/chef/dashboard/pipeline/",
+  "data": {
+    "receptionne": 0,
+    "en_attente_eval": 1,
+    "en_cours": 0,
+    "soumis": 0
+  }
+}

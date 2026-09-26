@@ -1,0 +1,10 @@
+{
+  "status_code": 200,
+  "route": "/api/notifications/",
+  "data": {
+    "count": 0,
+    "next": null,
+    "previous": null,
+    "results": []
+  }
+}

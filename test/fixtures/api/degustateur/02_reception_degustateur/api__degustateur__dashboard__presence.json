@@ -1,0 +1,12 @@
+{
+  "status_code": 200,
+  "route": "/api/degustateur/dashboard/presence/",
+  "data": {
+    "present": 0,
+    "manquee": 0,
+    "prochaine_titre": null,
+    "prochaine_date": null,
+    "prochaine_lieu": null,
+    "prochaine_countdown": null
+  }
+}

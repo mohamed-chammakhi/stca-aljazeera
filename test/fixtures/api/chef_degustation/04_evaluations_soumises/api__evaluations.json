@@ -1,0 +1,39 @@
+{
+  "status_code": 200,
+  "route": "/api/evaluations/",
+  "data": {
+    "count": 1,
+    "next": null,
+    "previous": null,
+    "results": [
+      {
+        "id": "a3cdd5da-9bf1-4e75-8b68-754f27598672",
+        "echantillon": "97626082-0908-435f-9d3a-c90a922c61f3",
+        "degustateur": "60e636cd-c211-446c-87d4-51870ae4db49",
+        "degustateur_nom": "Audit Chef",
+        "session": "885373b7-aedf-4f31-8d8a-15ed0c84abf1",
+        "statut": "soumis",
+        "classification": "extra_vierge",
+        "classe_interne": "",
+        "classe_interne_manuelle": false,
+        "classe_interne_motif": "",
+        "classe_interne_choisie_le": null,
+        "profil_non_harmonieux": false,
+        "fruite": "3.4",
+        "type_fruite": "vert",
+        "amertume": "2.0",
+        "piquant": "2.1",
+        "chome": "0.0",
+        "moisi": "0.0",
+        "vinaigre": "0.0",
+        "rance": "0.0",
+        "gele": "0.0",
+        "autres_defaut": "0.0",
+        "autres_defaut_nom": "",
+        "commentaire": "Evaluation audit par chef@audit.test",
+        "soumis_le": "2026-09-26T01:09:07.618387+01:00",
+        "date_modification": "2026-09-26T01:09:07.619392+01:00"
+      }
+    ]
+  }
+}

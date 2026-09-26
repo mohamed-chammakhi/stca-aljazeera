@@ -1,0 +1,8 @@
+{
+  "status_code": 200,
+  "route": "/api/chef/dashboard/delai/",
+  "data": {
+    "membres": [],
+    "panel_moyen": 0
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "status_code": 200,
+  "route": "/api/users/me/",
+  "data": {
+    "id": "60e636cd-c211-446c-87d4-51870ae4db49",
+    "email": "chef@audit.test",
+    "nom": "Chef",
+    "prenom": "Audit",
+    "role": "chef_degustation",
+    "telephone": "20000000",
+    "is_active": true,
+    "date_creation": "2026-09-26T01:09:04.524046+01:00",
+    "last_login": null
+  }
+}

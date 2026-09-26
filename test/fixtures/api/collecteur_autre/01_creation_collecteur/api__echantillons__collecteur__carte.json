@@ -1,0 +1,7 @@
+{
+  "status_code": 200,
+  "route": "/api/echantillons/collecteur/carte/",
+  "data": {
+    "delegations": []
+  }
+}

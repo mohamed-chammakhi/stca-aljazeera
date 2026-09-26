@@ -1,0 +1,24 @@
+{
+  "status_code": 200,
+  "route": "/api/messages/contacts/",
+  "data": [
+    {
+      "id": "0fde7e01-2c00-4555-9adf-91ac4f0acf13",
+      "nom": "Autre collecteur",
+      "prenom": "Audit",
+      "role": "collecteur"
+    },
+    {
+      "id": "b941466b-d461-4bda-9caa-e334904e20f2",
+      "nom": "Collecteur",
+      "prenom": "Audit",
+      "role": "collecteur"
+    },
+    {
+      "id": "fd47680d-74eb-4eb1-978b-8dded75c6a23",
+      "nom": "Direction",
+      "prenom": "Audit",
+      "role": "direction"
+    }
+  ]
+}

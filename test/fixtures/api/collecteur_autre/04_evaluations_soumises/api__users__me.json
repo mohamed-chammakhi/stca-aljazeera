@@ -1,0 +1,15 @@
+{
+  "status_code": 200,
+  "route": "/api/users/me/",
+  "data": {
+    "id": "0fde7e01-2c00-4555-9adf-91ac4f0acf13",
+    "email": "collecteur2@audit.test",
+    "nom": "Autre collecteur",
+    "prenom": "Audit",
+    "role": "collecteur",
+    "telephone": "20000000",
+    "is_active": true,
+    "date_creation": "2026-09-26T01:09:03.189052+01:00",
+    "last_login": null
+  }
+}

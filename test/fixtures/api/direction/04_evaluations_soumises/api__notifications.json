@@ -1,0 +1,47 @@
+{
+  "status_code": 200,
+  "route": "/api/notifications/",
+  "data": {
+    "count": 3,
+    "next": null,
+    "previous": null,
+    "results": [
+      {
+        "id": "22d171dd-bc59-4896-ade4-6d88dafefa7b",
+        "type": "TOUTES_EVALUATIONS",
+        "titre": "Toutes les evaluations soumises",
+        "message": "Toutes les evaluations de 2026/0001 sont soumises.",
+        "echantillon": "97626082-0908-435f-9d3a-c90a922c61f3",
+        "echantillon_reference": "AUDIT-BOUT-001",
+        "echantillon_numero": "2026/0001",
+        "section": "EVALUATIONS",
+        "is_read": false,
+        "date_creation": "2026-09-26T01:09:07.625761+01:00"
+      },
+      {
+        "id": "fe8c3777-0288-4a7e-a2e8-84b861cbdf47",
+        "type": "ECHANTILLON_RECU",
+        "titre": "Echantillon recu physiquement",
+        "message": "L'echantillon 2026/0001 a ete marque comme recu physiquement le 26/09/2026 a 00:09.",
+        "echantillon": "97626082-0908-435f-9d3a-c90a922c61f3",
+        "echantillon_reference": "AUDIT-BOUT-001",
+        "echantillon_numero": "2026/0001",
+        "section": "ECHANTILLONS",
+        "is_read": false,
+        "date_creation": "2026-09-26T01:09:06.309642+01:00"
+      },
+      {
+        "id": "5d5b57ad-7f28-41ba-b43a-28f369a0ca52",
+        "type": "NOUVEL_ECHANTILLON",
+        "titre": "Nouvel echantillon",
+        "message": "L'echantillon 2026/0001 a ete enregistre.",
+        "echantillon": "97626082-0908-435f-9d3a-c90a922c61f3",
+        "echantillon_reference": "AUDIT-BOUT-001",
+        "echantillon_numero": "2026/0001",
+        "section": "ECHANTILLONS",
+        "is_read": false,
+        "date_creation": "2026-09-26T01:09:05.737259+01:00"
+      }
+    ]
+  }
+}

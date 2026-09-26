@@ -1,0 +1,163 @@
+{
+  "status_code": 200,
+  "route": "/api/chef/evaluations/",
+  "data": [
+    {
+      "echantillon_id": "97626082-0908-435f-9d3a-c90a922c61f3",
+      "sample_id": "97626082-0908-435f-9d3a-c90a922c61f3",
+      "echantillon_numero": "2026/0001",
+      "numero": "2026/0001",
+      "reference_bouteille": "AUDIT-BOUT-001",
+      "gouvernorat": "Sfax",
+      "delegation": "Sakiet Ezzit",
+      "variete": "Chemlali",
+      "date_ajout": "2026-09-26T00:09:05.736548+00:00",
+      "recu_physiquement": true,
+      "date_reception_physique": "2026-09-26T00:09:06.308380+00:00",
+      "fournisseur_nom": "Domaine Audit",
+      "evaluations": [
+        {
+          "id": "a3cdd5da-9bf1-4e75-8b68-754f27598672",
+          "degustateur_id": "60e636cd-c211-446c-87d4-51870ae4db49",
+          "degustateur": "Audit Chef",
+          "degustateur_nom": "Audit Chef",
+          "taster_name": "Audit Chef",
+          "fruite": 3.4,
+          "amertume": 2.0,
+          "piquant": 2.1,
+          "chome": 0.0,
+          "moisi": 0.0,
+          "vinaigre": 0.0,
+          "rance": 0.0,
+          "gele": 0.0,
+          "autres_defaut": 0.0,
+          "scores": [
+            {
+              "key": "fruite",
+              "attribut": "Fruite",
+              "score": 3.4
+            },
+            {
+              "key": "amertume",
+              "attribut": "Amertume",
+              "score": 2.0
+            },
+            {
+              "key": "piquant",
+              "attribut": "Piquant",
+              "score": 2.1
+            },
+            {
+              "key": "chome",
+              "attribut": "Chome",
+              "score": 0.0
+            },
+            {
+              "key": "moisi",
+              "attribut": "Moisi",
+              "score": 0.0
+            },
+            {
+              "key": "vinaigre",
+              "attribut": "Vinaigre",
+              "score": 0.0
+            },
+            {
+              "key": "rance",
+              "attribut": "Rance",
+              "score": 0.0
+            },
+            {
+              "key": "gele",
+              "attribut": "Gele",
+              "score": 0.0
+            },
+            {
+              "key": "autres_defaut",
+              "attribut": "Autres defauts",
+              "score": 0.0
+            }
+          ],
+          "classification": "extra_vierge",
+          "statut": "soumis",
+          "date_eval": "2026-09-26T00:09:07.618387+00:00",
+          "soumis_le": "2026-09-26T00:09:07.618387+00:00",
+          "commentaire": "Evaluation audit par chef@audit.test"
+        },
+        {
+          "id": "b367db0c-2bfc-40fb-9600-9e2c9e6575e4",
+          "degustateur_id": "ef64a66a-549b-4714-9de0-f57fa89438a3",
+          "degustateur": "Audit Degustateur",
+          "degustateur_nom": "Audit Degustateur",
+          "taster_name": "Audit Degustateur",
+          "fruite": 3.2,
+          "amertume": 2.0,
+          "piquant": 2.1,
+          "chome": 0.0,
+          "moisi": 0.0,
+          "vinaigre": 0.0,
+          "rance": 0.0,
+          "gele": 0.0,
+          "autres_defaut": 0.0,
+          "scores": [
+            {
+              "key": "fruite",
+              "attribut": "Fruite",
+              "score": 3.2
+            },
+            {
+              "key": "amertume",
+              "attribut": "Amertume",
+              "score": 2.0
+            },
+            {
+              "key": "piquant",
+              "attribut": "Piquant",
+              "score": 2.1
+            },
+            {
+              "key": "chome",
+              "attribut": "Chome",
+              "score": 0.0
+            },
+            {
+              "key": "moisi",
+              "attribut": "Moisi",
+              "score": 0.0
+            },
+            {
+              "key": "vinaigre",
+              "attribut": "Vinaigre",
+              "score": 0.0
+            },
+            {
+              "key": "rance",
+              "attribut": "Rance",
+              "score": 0.0
+            },
+            {
+              "key": "gele",
+              "attribut": "Gele",
+              "score": 0.0
+            },
+            {
+              "key": "autres_defaut",
+              "attribut": "Autres defauts",
+              "score": 0.0
+            }
+          ],
+          "classification": "extra_vierge",
+          "statut": "soumis",
+          "date_eval": "2026-09-26T00:09:07.597806+00:00",
+          "soumis_le": "2026-09-26T00:09:07.597806+00:00",
+          "commentaire": "Evaluation audit par degustateur@audit.test"
+        }
+      ],
+      "divergence": false,
+      "divergence_details": [],
+      "submitted_count": 2,
+      "total_count": 2,
+      "is_complete": true
+    }
+  ]
+}

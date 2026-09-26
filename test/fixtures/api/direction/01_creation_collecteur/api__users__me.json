@@ -1,0 +1,15 @@
+{
+  "status_code": 200,
+  "route": "/api/users/me/",
+  "data": {
+    "id": "fd47680d-74eb-4eb1-978b-8dded75c6a23",
+    "email": "direction@audit.test",
+    "nom": "Direction",
+    "prenom": "Audit",
+    "role": "direction",
+    "telephone": "20000000",
+    "is_active": true,
+    "date_creation": "2026-09-26T01:09:01.995661+01:00",
+    "last_login": null
+  }
+}

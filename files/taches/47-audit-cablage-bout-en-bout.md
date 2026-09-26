@@ -97,3 +97,88 @@ Django. Le test du parcours A doit pouvoir tourner seul
 (`manage.py test core.tests_parcours`).
 
 ## RAPPORT
+
+### Fait
+
+- `backend_new/core/tests_parcours.py` cree un test Django de parcours API bout en bout : comptes par role, creation d'un echantillon par collecteur avec photo, reception degustateur, session creee/approuvee/presence confirmee, evaluations degustateur + chef soumises, analyse labo soumise, validation/achat Direction + collecteur, puis message lie a l'echantillon. Pour l'utilisateur, cela prouve que les roles voient le meme dossier au bon moment et qu'un deuxieme collecteur ne voit pas les donnees du premier.
+- `test/fixtures/api/` contient 567 reponses JSON generees par le test, rangees par role et etape. Pour l'utilisateur, ces fichiers donnent une trace relisible de ce que l'application recoit vraiment a chaque phase du parcours.
+- `test/cablage_api_test.dart` ajoute le test Flutter de lecture des fixtures par les vrais modeles/parsers disponibles (`EchantillonCollecteur`, `Echantillon` gestion, `EchantillonLabo`, `LigneAnalyseLaboService.ligneFromApi`, `RapportLabo`, `SessionDegustation`, notifications, messages, profils, dashboard CEO). Pour l'utilisateur, il doit detecter les UUID ou dates ISO brutes dans les champs destines a l'affichage.
+- `lib/core/services/gestion_echantillons_service.dart` expose `echantillonApiToGestionFlutterMap()` et reutilise cette meme fonction dans le service. Pour l'utilisateur, aucun comportement ne change ; le mapping backend -> modele Flutter devient testable.
+- Aucune migration n'a ete creee ni appliquee sur la vraie base.
+
+Table "meme chose = meme nom" releve pendant l'audit :
+
+| Idee | Serveur | Noms Flutter vus |
+|---|---|---|
+| Numero d'echantillon | `numero` | `numero`, `ref`, `id` dans certaines vues CEO d'affichage |
+| Reference bouteille | `reference_bouteille` | `referenceBouteille`, `reference_bouteille`, `echantillon_ref`, `echantillonReferenceBouteille` |
+| Fournisseur | `fournisseur`, `fournisseur_nom`, `code_fournisseur` | `fournisseurId`, `fournisseurNom`, `codeFournisseur`, `fournisseurAffichage`, `fournisseur` |
+| Collecteur | `collecteur`, `collecteur_nom` | `collecteurId`, `collecteurNom`, `collecteur` |
+| Date annoncee d'arrivee echantillon | `date_arrivee_echantillon` | `dateArriveeEchantillon`, `date_arrivee`, `dateLivraisonEchantillon` |
+| Date reception physique | `date_reception_echantillon` | `dateReceptionEchantillon`, `dateReceptionPhysique` |
+| Date enregistrement | `date_ajout` | `dateAjout`, `dateEnregistrement` |
+| Date livraison stock | `date_livraison_stock`, `date_livraison_stock_fin` | `dateLivraisonStock`, `dateStockSouhaiteeDebut`, `dateStockSouhaiteeFin` |
+| Statut collecteur | `statut_collecteur` | `statutCollecteur`, `statut`, `achatConfirme` |
+| Statut degustateur/evaluation | `statut_degustateur`, evaluation `statut` | `statutDegustateur`, `statut`, `status` local dans service evaluation |
+| Statut labo | `statut_labo`, analyse `statut` | `statutLabo`, `statutAnalyse`, `statut` |
+| Statut Direction | `statut_ceo` | `statutCeo`, `statut` |
+
+Pages / routes auditees avec la regle de visibilite :
+
+| Role | Pages/routes couvertes | Regle verifiee |
+|---|---|---|
+| Direction | echantillons, evaluations, analyses, analyses/echantillons, dashboard, utilisateurs, panel, notifications, messagerie | voit le dossier complet et les donnees agregees ; routes GET a 200 |
+| Collecteur proprietaire | echantillons, carte collecteur, notifications, messagerie | voit seulement ses echantillons ; achat confirme apres negociation |
+| Autre collecteur | echantillons, carte collecteur, notifications, messagerie | ne voit pas l'echantillon du premier collecteur |
+| Degustateur | gestion echantillons, filtre recus, evaluations, analyses en lecture, sessions, membres panel, dashboard, notifications, messagerie | voit les echantillons ; le filtre recu reste vide avant reception puis contient l'echantillon apres reception |
+| Chef degustateur | gestion echantillons, evaluations, vue ensemble chef, analyses en lecture, sessions, utilisateurs, membres panel, dashboard chef, notifications, messagerie | voit le dossier panel et les agregats chef ; ses evaluations restent separees de celles du degustateur |
+| Laboratoire | echantillons, analyses, analyses/echantillons, notifications, messagerie | ne voit que les echantillons recus physiquement |
+
+### Verifie
+
+```bash
+cd backend_new
+$env:DEBUG='True'; $env:DB_ENGINE='sqlite'; .\venv\Scripts\python.exe manage.py test core.tests_parcours -v 2
+```
+
+Sortie chiffree : `Found 1 test(s)` ; `Ran 1 test in 6.246s` ; `OK`.
+
+```bash
+cd backend_new
+$env:DEBUG='True'; $env:DB_ENGINE='sqlite'; .\venv\Scripts\python.exe manage.py makemigrations --check --dry-run
+```
+
+Sortie : `No changes detected`.
+
+```bash
+cd backend_new
+.\venv\Scripts\python.exe -m py_compile core\tests_parcours.py
+```
+
+Sortie : aucune ; code retour 0.
+
+```bash
+Get-ChildItem -Recurse test\fixtures\api -Filter *.json | Measure-Object
+```
+
+Sortie chiffree : `Count : 567`.
+
+```bash
+dart format lib\core\services\gestion_echantillons_service.dart test\cablage_api_test.dart
+```
+
+Commande interrompue apres environ 60 secondes sans sortie ; code retour 1 apres interruption. Je ne la compte pas comme reussie.
+
+### Non fait
+
+- Je n'ai pas lance `flutter analyze lib test` ni `flutter test` : la consigne de cette tache dit que le sandbox ne peut pas lancer Flutter et demande de ne pas essayer.
+- Le test Flutter `test/cablage_api_test.dart` est ajoute mais non execute dans ce sandbox.
+- Je n'ai pas ajoute un test widget par ecran principal : sans execution Flutter et avec les ecrans qui chargent leurs donnees a l'ouverture, cela reste a faire cote relecture/outillage Flutter.
+- Je n'ai pas fait le renommage mecanique complet de tous les noms Flutter divergents (`ref`, `date_arrivee`, `dateLivraisonEchantillon`, etc.). J'ai seulement rendu testable le mapping central de gestion des echantillons utilise par degustateur/chef.
+- Je n'ai pas liste les champs serveur jamais utilises de facon exhaustive. Le tableau ci-dessus liste les doublons/noms divergents observes dans les flux audites.
+- Je n'ai pas lance la suite Django complete `manage.py test --keepdb`; seul le parcours cible de cette tache a ete execute.
+
+### HORS PERIMETRE
+
+- `files/backend_sprint_plan.md` est demande par les consignes projet mais absent du depot.
+- Des fichiers non suivis existaient deja avant cette tache et n'ont pas ete modifies volontairement : `backend_new/backup_propre.json`, `backend_new/media/`, `backend_new/sauvegarde_avant_nettoyage_2026-09-25.json`, `files/taches/CONTROLE-MANUEL.md`.

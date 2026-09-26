@@ -1,0 +1,19 @@
+{
+  "status_code": 200,
+  "route": "/api/chef/dashboard/delai/",
+  "data": {
+    "membres": [
+      {
+        "nom": "Audit Degustateur",
+        "delai_moyen": 0.6,
+        "panel_moyen": 0.6
+      },
+      {
+        "nom": "Audit Chef",
+        "delai_moyen": 0.6,
+        "panel_moyen": 0.6
+      }
+    ],
+    "panel_moyen": 0.6
+  }
+}
