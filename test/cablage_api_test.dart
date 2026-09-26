@@ -32,7 +32,10 @@ void main() {
   test(
     'les fixtures API du parcours se lisent sans UUID ni date ISO affiches',
     () {
-      final root = Directory('test/fixtures/api');
+      // CABLAGE_FIXTURES lets Claude replay real-database answers too.
+      final root = Directory(
+        Platform.environment['CABLAGE_FIXTURES'] ?? 'test/fixtures/api',
+      );
       expect(
         root.existsSync(),
         isTrue,
