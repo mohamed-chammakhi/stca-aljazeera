@@ -4,6 +4,18 @@ Lis `files/taches/PROTOCOLE.md` (dont « Même correction pour tous les rôles �
 `CLAUDE.md`. Backend + Flutter. **Migrations autorisées pour cette tâche.**
 À faire **après** les tâches 40, 41 et 42 (elles touchent les mêmes fichiers).
 
+## Note de reprise (26/09/2026)
+
+Une première tentative a été interrompue (erreur 401 de Codex). Son travail partiel,
+**backend seulement et sans migration**, est sur la branche
+`wip/tache43-codex-interrompue` (commit `aa4bc2ae`) : tu peux le lire avec
+`git show wip/tache43-codex-interrompue -- backend_new/` et t'en inspirer, mais repars de
+`main` (le code a changé depuis : tâches 47 et 47b, `ref` n'existe plus, `numero` et
+`referenceBouteille` partout). Le test de parcours `backend_new/core/tests_parcours.py`
+et `test/cablage_api_test.dart` doivent rester verts : régénère les fichiers
+`test/fixtures/api/` en relançant le test de parcours si les réponses changent
+(le code fournisseur disparaît).
+
 ## Le problème
 
 Le serveur relie un échantillon à un fournisseur **par le nom seul**
