@@ -18,13 +18,13 @@ class ProfileCollecteurPage extends StatefulWidget {
 
 class _ProfileCollecteurPageState extends State<ProfileCollecteurPage>
     with CollecteurNavMixin {
-  // â”€â”€ Controllers â€” empty by default, filled by backend later â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Controllers — empty by default, filled by backend later ──────────────
   late TextEditingController _nomController;
   late TextEditingController _prenomController;
   late TextEditingController _emailController;
   late TextEditingController _numeroController;
 
-  // â”€â”€ Per-field editing booleans â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Per-field editing booleans ────────────────────────────────────────────
   bool _editingNom = false;
   bool _editingPrenom = false;
   bool _editingEmail = false;
@@ -32,16 +32,16 @@ class _ProfileCollecteurPageState extends State<ProfileCollecteurPage>
   bool _profileLoading = false;
   bool _profileSaving = false;
 
-  // â”€â”€ Displayed header values â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Displayed header values ───────────────────────────────────────────────
   String _displayedFullName = '';
 
-  // â”€â”€ FocusNodes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── FocusNodes ────────────────────────────────────────────────────────────
   final FocusNode _nomFocus = FocusNode();
   final FocusNode _prenomFocus = FocusNode();
   final FocusNode _emailFocus = FocusNode();
   final FocusNode _numeroFocus = FocusNode();
 
-  // â”€â”€ initState â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── initState ─────────────────────────────────────────────────────────────
   @override
   void initState() {
     super.initState();
@@ -52,7 +52,7 @@ class _ProfileCollecteurPageState extends State<ProfileCollecteurPage>
     _loadProfile();
   }
 
-  // â”€â”€ dispose â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── dispose ───────────────────────────────────────────────────────────────
   @override
   void dispose() {
     _nomController.dispose();
@@ -66,7 +66,7 @@ class _ProfileCollecteurPageState extends State<ProfileCollecteurPage>
     super.dispose();
   }
 
-  // â”€â”€ Toggle edit/save â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Toggle edit/save ─────────────────────────────────────────────────────
   Future<void> _loadProfile() async {
     setState(() => _profileLoading = true);
     try {
@@ -213,8 +213,8 @@ class _ProfileCollecteurPageState extends State<ProfileCollecteurPage>
     }
   }
 
-  // â”€â”€ Profile picture bottom sheet â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  // â”€â”€ Build â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Profile picture bottom sheet ──────────────────────────────────────────
+  // ── Build ─────────────────────────────────────────────────────────────────
   /// Back from the profile always lands on the role's home page: the profile
   /// is opened from the menu in place of the previous page, so there is
   /// often nothing behind it to go back to.
@@ -268,9 +268,9 @@ class _ProfileCollecteurPageState extends State<ProfileCollecteurPage>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+            // ══════════════════════════════════════════════════════════════
             // AVATAR + pen icon
-            // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+            // ══════════════════════════════════════════════════════════════
             Stack(
               clipBehavior: Clip.none,
               children: [
@@ -292,7 +292,7 @@ class _ProfileCollecteurPageState extends State<ProfileCollecteurPage>
 
             const SizedBox(height: 20),
 
-            // â”€â”€ Full name â€” shows after user saves prenom + nom â”€â”€
+            // ── Full name — shows after user saves prenom + nom ──
             if (_displayedFullName.isNotEmpty)
               Text(
                 _displayedFullName,
@@ -305,9 +305,9 @@ class _ProfileCollecteurPageState extends State<ProfileCollecteurPage>
 
             const SizedBox(height: 30),
 
-            // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+            // ══════════════════════════════════════════════════════════════
             // INFO CARD
-            // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+            // ══════════════════════════════════════════════════════════════
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
@@ -327,7 +327,7 @@ class _ProfileCollecteurPageState extends State<ProfileCollecteurPage>
                   _sectionTitle('Informations Personnelles'),
                   const SizedBox(height: 20),
 
-                  // â”€â”€ PrÃ©nom â”€â”€
+                  // ── Prénom ──
                   _buildField(
                     label: 'Prénom',
                     controller: _prenomController,
@@ -340,7 +340,7 @@ class _ProfileCollecteurPageState extends State<ProfileCollecteurPage>
                   ),
                   const SizedBox(height: 16),
 
-                  // â”€â”€ Nom â”€â”€
+                  // ── Nom ──
                   _buildField(
                     label: 'Nom',
                     controller: _nomController,
@@ -353,7 +353,7 @@ class _ProfileCollecteurPageState extends State<ProfileCollecteurPage>
                   ),
                   const SizedBox(height: 16),
 
-                  // â”€â”€ Email â”€â”€
+                  // ── Email ──
                   _buildField(
                     label: 'Email',
                     controller: _emailController,
@@ -366,7 +366,7 @@ class _ProfileCollecteurPageState extends State<ProfileCollecteurPage>
                   ),
                   const SizedBox(height: 20),
 
-                  // â”€â”€ NumÃ©ro â”€â”€
+                  // ── Numéro ──
                   _buildField(
                     label: 'Numéro de Téléphone',
                     controller: _numeroController,
@@ -376,7 +376,7 @@ class _ProfileCollecteurPageState extends State<ProfileCollecteurPage>
                     fieldKey: 'numero',
                     hint: 'Votre Numéro de Téléphone',
                     keyboardType:
-                        TextInputType.phone, // âœ… fixed â€” was emailAddress
+                        TextInputType.phone, // ✅ fixed — was emailAddress
                   ),
                 ],
               ),
@@ -384,7 +384,7 @@ class _ProfileCollecteurPageState extends State<ProfileCollecteurPage>
 
             const SizedBox(height: 30),
 
-            // â”€â”€ Change password â”€â”€
+            // ── Change password ──
             SizedBox(
               width: double.infinity,
               child: OutlinedButton.icon(
@@ -408,9 +408,9 @@ class _ProfileCollecteurPageState extends State<ProfileCollecteurPage>
     );
   }
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  // HELPER â€” _buildField
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ─────────────────────────────────────────────────────────────────────────
+  // HELPER — _buildField
+  // ─────────────────────────────────────────────────────────────────────────
   Widget _buildField({
     required String label,
     required TextEditingController controller,
@@ -490,9 +490,9 @@ class _ProfileCollecteurPageState extends State<ProfileCollecteurPage>
     );
   }
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  // HELPER â€” _sectionTitle
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ─────────────────────────────────────────────────────────────────────────
+  // HELPER — _sectionTitle
+  // ─────────────────────────────────────────────────────────────────────────
   Widget _sectionTitle(String title) {
     return Text(
       title,
@@ -504,9 +504,9 @@ class _ProfileCollecteurPageState extends State<ProfileCollecteurPage>
     );
   }
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  // HELPER â€” _fieldLabel
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ─────────────────────────────────────────────────────────────────────────
+  // HELPER — _fieldLabel
+  // ─────────────────────────────────────────────────────────────────────────
   Widget _fieldLabel(String label) {
     return Text(
       label,
@@ -519,12 +519,12 @@ class _ProfileCollecteurPageState extends State<ProfileCollecteurPage>
     );
   }
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  // HELPER â€” _bottomSheetItem
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  // HELPER â€” _showSuccess
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ─────────────────────────────────────────────────────────────────────────
+  // HELPER — _bottomSheetItem
+  // ─────────────────────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────────────────
+  // HELPER — _showSuccess
+  // ─────────────────────────────────────────────────────────────────────────
   void _showSuccess(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -543,9 +543,9 @@ class _ProfileCollecteurPageState extends State<ProfileCollecteurPage>
     );
   }
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  // HELPER â€” _showChangePasswordDialog
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ─────────────────────────────────────────────────────────────────────────
+  // HELPER — _showChangePasswordDialog
+  // ─────────────────────────────────────────────────────────────────────────
   void _showError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(

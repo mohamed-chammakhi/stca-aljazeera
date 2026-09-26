@@ -7,6 +7,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:project3/core/logout_navigation.dart';
 import 'package:project3/core/widgets/messagerie/conversations_page.dart';
 import 'package:project3/core/utils/rafraichissement_periodique.dart';
 
@@ -25,7 +26,6 @@ import '../../../main.dart';
 import '../sessions_degustation/sessions_degustation_page.dart';
 import '../gestion_echantillons/gestion_echantillons_page.dart';
 import '../evaluation_echantillons/evaluation_echantillons_page.dart';
-import '../membres_panel/membres_panel_page.dart';
 import '../analyse_labo/analyse_laboratoire_page.dart';
 import '../vue_ensemble_evaluations/vue_ensemble_evaluations_page.dart';
 
@@ -140,10 +140,7 @@ class _HomePageState extends State<HomePage> with RafraichissementPeriodique {
 
   void _goToLogin() {
     Navigator.pop(context);
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => LoginPage()),
-    );
+    logoutAndShowLogin(context);
   }
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -221,7 +218,6 @@ class _HomePageState extends State<HomePage> with RafraichissementPeriodique {
         onGestionEchantillons: () => _goTo(const GestionEchantillonsPage()),
         onAnalyseLaboratoire: () => _goTo(const AnalyseLaboratoirePage()),
         onSessionsDegustationPage: () => _goTo(const SessionsDegustationPage()),
-        onMembredupanel: () => _goTo(const MembresPanelPage()),
         onUtilisateurs: () => _goTo(const UtilisateursChefPage()),
         onVueEnsembleEvaluations: () =>
             _goTo(const VueEnsembleEvaluationsPage()),

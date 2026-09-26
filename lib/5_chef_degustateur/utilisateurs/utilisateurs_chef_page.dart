@@ -6,7 +6,6 @@ import '../../core/widgets/messagerie/conversations_page.dart';
 import '../analyse_labo/analyse_laboratoire_page.dart';
 import '../evaluation_echantillons/evaluation_echantillons_page.dart';
 import '../gestion_echantillons/gestion_echantillons_page.dart';
-import '../membres_panel/membres_panel_page.dart';
 import '../profil.dart';
 import '../sessions_degustation/sessions_degustation_page.dart';
 import '../tableau_de_bord/homepage_page.dart';
@@ -36,7 +35,6 @@ class _UtilisateursChefPageState extends State<UtilisateursChefPage>
         onAnalyseLaboratoire: () => goToPage(const AnalyseLaboratoirePage()),
         onSessionsDegustationPage: () =>
             goToPage(const SessionsDegustationPage()),
-        onMembredupanel: () => goToPage(const MembresPanelPage()),
         onUtilisateurs: () => Navigator.pop(context),
         onVueEnsembleEvaluations: () =>
             goToPage(const VueEnsembleEvaluationsPage()),

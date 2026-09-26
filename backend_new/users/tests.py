@@ -111,6 +111,8 @@ class ChangePasswordApiTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_change_password_checks_old_password_and_keeps_jwt_valid(self):
+        self.user.doit_changer_mot_de_passe = True
+        self.user.save(update_fields=['doit_changer_mot_de_passe'])
         access = str(RefreshToken.for_user(self.user).access_token)
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {access}')
 
@@ -127,6 +129,7 @@ class ChangePasswordApiTests(APITestCase):
         self.user.refresh_from_db()
         self.assertFalse(self.user.check_password('Ancien@123'))
         self.assertTrue(self.user.check_password('Nouveau@456'))
+        self.assertFalse(self.user.doit_changer_mot_de_passe)
 
         same_token_response = self.client.get('/api/users/me/')
         self.assertEqual(same_token_response.status_code, status.HTTP_200_OK)
@@ -484,6 +487,7 @@ class UserManagementApiTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_chef_can_create_user(self):
+        mail.outbox = []
         self.client.force_authenticate(user=self.chef)
 
         response = self.client.post(
@@ -500,8 +504,67 @@ class UserManagementApiTests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         created = User.objects.get(email='labo.new@stca.tn')
-        self.assertTrue(created.check_password('Test@12345'))
+        self.assertTrue(created.check_password('nouveau@labo'))
+        self.assertTrue(created.doit_changer_mot_de_passe)
         self.assertEqual(response.data['role'], User.Role.LABORATOIRE)
+        self.assertEqual(response.data['mot_de_passe_temporaire'], 'nouveau@labo')
+        self.assertTrue(response.data['email_utilisateur_envoye'])
+        self.assertTrue(response.data['email_createur_envoye'])
+        self.assertEqual(len(mail.outbox), 2)
+        self.assertEqual(mail.outbox[0].to, ['labo.new@stca.tn'])
+        self.assertEqual(mail.outbox[1].to, [self.chef.email])
+
+    def test_chef_cannot_create_active_duplicate_email(self):
+        self.client.force_authenticate(user=self.chef)
+
+        response = self.client.post(
+            '/api/users/',
+            {
+                'email': self.collecteur.email.upper(),
+                'nom': 'Doublon',
+                'prenom': 'Actif',
+                'role': User.Role.COLLECTEUR,
+            },
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            str(response.data['email'][0]),
+            'Un compte actif utilise déjà cet email.',
+        )
+
+    def test_chef_can_reuse_email_after_soft_delete_and_login_uses_new_account(self):
+        self.client.force_authenticate(user=self.chef)
+        delete_response = self.client.delete(f'/api/users/{self.collecteur.id}/')
+        self.assertEqual(delete_response.status_code, status.HTTP_204_NO_CONTENT)
+
+        create_response = self.client.post(
+            '/api/users/',
+            {
+                'email': self.collecteur.email,
+                'nom': 'Nouveau',
+                'prenom': 'Collecteur',
+                'role': User.Role.COLLECTEUR,
+            },
+            format='json',
+        )
+
+        self.assertEqual(create_response.status_code, status.HTTP_201_CREATED)
+        created = User.objects.get(pk=create_response.data['id'])
+        self.assertNotEqual(created.pk, self.collecteur.pk)
+        self.assertTrue(created.check_password('collecteur@nouveau'))
+
+        self.client.force_authenticate(user=None)
+        login_response = self.client.post(
+            '/api/auth/login/',
+            {'email': self.collecteur.email, 'password': 'collecteur@nouveau'},
+            format='json',
+        )
+
+        self.assertEqual(login_response.status_code, status.HTTP_200_OK)
+        self.assertEqual(login_response.data['user']['id'], str(created.id))
+        self.assertTrue(login_response.data['user']['doit_changer_mot_de_passe'])
 
     def test_direction_cannot_create_user(self):
         self.client.force_authenticate(user=self.direction)

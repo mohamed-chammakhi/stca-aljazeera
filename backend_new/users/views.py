@@ -168,7 +168,8 @@ class ForgotPasswordNewPasswordView(APIView):
 
         user = reset_code.utilisateur
         user.set_password(serializer.validated_data['nouveau_mot_de_passe'])
-        user.save(update_fields=['password'])
+        user.doit_changer_mot_de_passe = False
+        user.save(update_fields=['password', 'doit_changer_mot_de_passe'])
         reset_code.utilise = True
         reset_code.save(update_fields=['utilise'])
         _blacklister_refresh_tokens(user)
@@ -261,7 +262,8 @@ class ChangePasswordView(APIView):
         request.user.set_password(
             serializer.validated_data['nouveau_mot_de_passe']
         )
-        request.user.save(update_fields=['password'])
+        request.user.doit_changer_mot_de_passe = False
+        request.user.save(update_fields=['password', 'doit_changer_mot_de_passe'])
         return Response(
             {'detail': 'Mot de passe changé avec succès.'},
             status=status.HTTP_200_OK,
@@ -295,9 +297,14 @@ class UserListCreateView(generics.ListCreateAPIView):
         return UserSerializer
 
     def create(self, request, *args, **kwargs):
-        response = super().create(request, *args, **kwargs)
-        user = User.objects.get(pk=response.data['id'])
-        return Response(UserSerializer(user).data, status=status.HTTP_201_CREATED)
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+        data = UserSerializer(user).data
+        data['mot_de_passe_temporaire'] = user.mot_de_passe_temporaire
+        data['email_utilisateur_envoye'] = user.email_utilisateur_envoye
+        data['email_createur_envoye'] = user.email_createur_envoye
+        return Response(data, status=status.HTTP_201_CREATED)
 
 
 # POST /api/users/create/
@@ -308,9 +315,14 @@ class UserCreateView(generics.CreateAPIView):
     permission_classes = [IsChefDegustation]
 
     def create(self, request, *args, **kwargs):
-        response = super().create(request, *args, **kwargs)
-        user = User.objects.get(pk=response.data['id'])
-        return Response(UserSerializer(user).data, status=status.HTTP_201_CREATED)
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+        data = UserSerializer(user).data
+        data['mot_de_passe_temporaire'] = user.mot_de_passe_temporaire
+        data['email_utilisateur_envoye'] = user.email_utilisateur_envoye
+        data['email_createur_envoye'] = user.email_createur_envoye
+        return Response(data, status=status.HTTP_201_CREATED)
 
 
 # GET  /api/users/<uuid>/  — fetch a single user's details

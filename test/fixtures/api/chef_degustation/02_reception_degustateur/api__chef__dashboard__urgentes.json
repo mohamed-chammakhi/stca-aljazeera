@@ -3,15 +3,15 @@
   "route": "/api/chef/dashboard/urgentes/",
   "data": [
     {
-      "id": "4f3ff015-fb18-4ee1-b679-88491650a06a",
+      "id": "ac39cddb-9ff0-4db0-9181-ae53bf89bf23",
       "numero": "2026/0001",
       "reference": "Chemlali - 2026/0001",
       "variete": "Chemlali",
       "collecteur_nom": "Audit Collecteur",
       "fournisseur_nom": "Domaine Audit",
-      "jours_en_attente": 0,
-      "days_waiting": 0,
-      "badge": "normal"
+      "jours_en_attente": 1,
+      "days_waiting": 1,
+      "badge": "amber"
     }
   ]
 }

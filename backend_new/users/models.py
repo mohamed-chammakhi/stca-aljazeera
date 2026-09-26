@@ -2,6 +2,7 @@ import uuid
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.contrib.auth.hashers import check_password, make_password
 from django.db import models
+from django.db.models import Q
 from django.utils import timezone
 
 
@@ -31,13 +32,14 @@ class User(AbstractBaseUser, PermissionsMixin):
         RESPONSABLE_FINANCIER = 'responsable_financier', 'Responsable Financier'
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    email = models.EmailField(unique=True)
+    email = models.EmailField()
     nom = models.CharField(max_length=100)
     prenom = models.CharField(max_length=100)
     telephone = models.CharField(max_length=20, blank=True)
     role = models.CharField(max_length=25, choices=Role.choices)
     date_creation = models.DateTimeField(default=timezone.now)
     date_suppression = models.DateTimeField(null=True, blank=True)
+    doit_changer_mot_de_passe = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
 
@@ -45,6 +47,15 @@ class User(AbstractBaseUser, PermissionsMixin):
     REQUIRED_FIELDS = ['nom', 'prenom', 'role']
 
     objects = UserManager()
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['email'],
+                condition=Q(date_suppression__isnull=True),
+                name='users_email_unique_compte_non_supprime',
+            ),
+        ]
 
 
 class CodeReinitialisation(models.Model):

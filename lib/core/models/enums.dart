@@ -57,7 +57,7 @@ extension RoleUtilisateurX on RoleUtilisateur {
       case 'chef_degustation':
         return RoleUtilisateur.chefDegustation;
       default:
-        throw ArgumentError('Unknown role: $s');
+        return RoleUtilisateur.degustateur;
     }
   }
 }
@@ -99,7 +99,7 @@ extension StatutCollecteurX on StatutCollecteur {
       case 'achat_confirme':
         return StatutCollecteur.achatConfirme;
       default:
-        throw ArgumentError('Unknown statut_collecteur: $s');
+        return StatutCollecteur.receptionne;
     }
   }
 }
@@ -139,7 +139,7 @@ extension StatutDegustateurX on StatutDegustateur {
       case 'soumis':
         return StatutDegustateur.soumis;
       default:
-        throw ArgumentError('Unknown statut_degustateur: $s');
+        return StatutDegustateur.nonEvaluee;
     }
   }
 }
@@ -180,7 +180,7 @@ extension StatutLaboX on StatutLabo {
       case 'soumis':
         return StatutLabo.soumis;
       default:
-        throw ArgumentError('Unknown statut_labo: $s');
+        return StatutLabo.enAttente;
     }
   }
 }
@@ -226,7 +226,7 @@ extension StatutCeoX on StatutCeo {
       case 'refuse':
         return StatutCeo.refuse;
       default:
-        throw ArgumentError('Unknown statut_ceo: $s');
+        return StatutCeo.selectionne;
     }
   }
 }
@@ -286,7 +286,7 @@ extension ClassificationHuileX on ClassificationHuile {
       case 'lampante':
         return ClassificationHuile.lampante;
       default:
-        throw ArgumentError('Unknown classification: $s');
+        return ClassificationHuile.extraVierge;
     }
   }
 }
@@ -487,7 +487,7 @@ extension ModePlanificationX on ModePlanification {
       case 'periode':
         return ModePlanification.periode;
       default:
-        throw ArgumentError('Unknown mode_planification: $s');
+        return ModePlanification.dateExacte;
     }
   }
 }
@@ -533,7 +533,7 @@ extension StatutSessionX on StatutSession {
       case 'terminee':
         return StatutSession.terminee;
       default:
-        throw ArgumentError('Unknown statut_session: $s');
+        return StatutSession.planifiee;
     }
   }
 }
@@ -567,7 +567,7 @@ extension PrioriteAnalyseX on PrioriteAnalyse {
       case 'urgente':
         return PrioriteAnalyse.urgente;
       default:
-        throw ArgumentError('Unknown priorite_analyse: $s');
+        return PrioriteAnalyse.normale;
     }
   }
 }

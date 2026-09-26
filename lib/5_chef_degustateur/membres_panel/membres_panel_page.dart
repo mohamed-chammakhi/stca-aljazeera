@@ -186,22 +186,22 @@ class _MembresPanelPageState extends State<MembresPanelPage>
                             height: MediaQuery.of(context).size.height * 0.5,
                             child: Center(
                               child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.search_off,
-                              size: 48,
-                              color: Colors.grey.shade300,
-                            ),
-                            const SizedBox(height: 12),
-                            Text(
-                              'Aucun membre trouvé',
-                              style: TextStyle(
-                                color: Colors.grey.shade400,
-                                fontSize: 14,
-                              ),
-                            ),
-                          ],
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.search_off,
+                                    size: 48,
+                                    color: Colors.grey.shade300,
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    'Aucun membre trouvé',
+                                    style: TextStyle(
+                                      color: Colors.grey.shade400,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ),
@@ -249,7 +249,6 @@ class _MembresPanelPageState extends State<MembresPanelPage>
 
         // OLD : ProfilePage from profil.dart (same level)
         // NEW : ProfilePage from ../profil.dart (one level up) ✅ done
-        onMembredupanel: () => goToPage(const MembresPanelPage()),
         onUtilisateurs: () => goToPage(const UtilisateursChefPage()),
         onVueEnsembleEvaluations: () =>
             goToPage(const VueEnsembleEvaluationsPage()),

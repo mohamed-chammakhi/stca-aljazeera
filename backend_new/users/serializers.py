@@ -1,8 +1,24 @@
 import re
+import unicodedata
 
+from django.conf import settings
+from django.core.mail import send_mail
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework_simplejwt.tokens import RefreshToken
 from .models import User
+
+
+def _normaliser_mot_de_passe_fragment(value):
+    texte = unicodedata.normalize('NFKD', value or '')
+    texte = ''.join(c for c in texte if not unicodedata.combining(c))
+    return re.sub(r'[^a-z0-9]+', '', texte.lower())
+
+
+def generer_mot_de_passe_compte(prenom, nom):
+    prenom = _normaliser_mot_de_passe_fragment(prenom) or 'user'
+    nom = _normaliser_mot_de_passe_fragment(nom) or 'stca'
+    return f'{prenom}@{nom}'
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -21,6 +37,7 @@ class UserSerializer(serializers.ModelSerializer):
             'statut',
             'date_creation',
             'date_suppression',
+            'doit_changer_mot_de_passe',
             'last_login',
         ]
         read_only_fields = [
@@ -28,6 +45,7 @@ class UserSerializer(serializers.ModelSerializer):
             'statut',
             'date_creation',
             'date_suppression',
+            'doit_changer_mot_de_passe',
             'last_login',
         ]
 
@@ -85,7 +103,10 @@ class UserAdminUpdateSerializer(serializers.ModelSerializer):
 
     def validate_email(self, value):
         value = User.objects.normalize_email(value)
-        queryset = User.objects.filter(email__iexact=value)
+        queryset = User.objects.filter(
+            email__iexact=value,
+            date_suppression__isnull=True,
+        )
         if self.instance is not None:
             queryset = queryset.exclude(pk=self.instance.pk)
         if queryset.exists():
@@ -100,7 +121,10 @@ class UserProfileUpdateSerializer(serializers.ModelSerializer):
 
     def validate_email(self, value):
         value = User.objects.normalize_email(value)
-        queryset = User.objects.filter(email__iexact=value)
+        queryset = User.objects.filter(
+            email__iexact=value,
+            date_suppression__isnull=True,
+        )
         if self.instance is not None:
             queryset = queryset.exclude(pk=self.instance.pk)
         if queryset.exists():
@@ -171,9 +195,17 @@ class LoginSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
         email = attrs.get(self.username_field, '')
         password = attrs.get('password', '')
-        user = User.objects.filter(email__iexact=email).first()
+        user = User.objects.filter(
+            email__iexact=email,
+            date_suppression__isnull=True,
+        ).first()
 
         if user is None:
+            if User.objects.filter(email__iexact=email).exists():
+                raise serializers.ValidationError({
+                    'code': 'account_inactive',
+                    'detail': 'Ce compte est desactive.',
+                })
             raise serializers.ValidationError({
                 'code': 'email_not_found',
                 'detail': "Aucun compte n'est associe a cet email.",
@@ -191,28 +223,99 @@ class LoginSerializer(TokenObtainPairSerializer):
                 'detail': 'Ce compte est desactive.',
             })
 
-        data = super().validate(attrs)
-        data['user'] = UserSerializer(self.user).data
-        return data
+        self.user = user
+        refresh = RefreshToken.for_user(user)
+        return {
+            'refresh': str(refresh),
+            'access': str(refresh.access_token),
+            'user': UserSerializer(user).data,
+        }
 
 
 class UserCreateSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True, required=False)
+    mot_de_passe_temporaire = serializers.CharField(read_only=True)
+    email_utilisateur_envoye = serializers.BooleanField(read_only=True)
+    email_createur_envoye = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = User
-        fields = ['id', 'email', 'nom', 'prenom', 'role', 'telephone', 'password']
+        fields = [
+            'id',
+            'email',
+            'nom',
+            'prenom',
+            'role',
+            'telephone',
+            'mot_de_passe_temporaire',
+            'email_utilisateur_envoye',
+            'email_createur_envoye',
+        ]
         read_only_fields = ['id']
 
     def validate_email(self, value):
         value = User.objects.normalize_email(value)
-        if User.objects.filter(email__iexact=value).exists():
-            raise serializers.ValidationError('Cet email est deja utilise.')
+        if User.objects.filter(
+            email__iexact=value,
+            date_suppression__isnull=True,
+        ).exists():
+            raise serializers.ValidationError(
+                'Un compte actif utilise déjà cet email.'
+            )
         return value
 
     def create(self, validated_data):
-        password = validated_data.pop('password', 'Test@12345')
+        createur = self.context.get('request').user
+        password = generer_mot_de_passe_compte(
+            validated_data.get('prenom', ''),
+            validated_data.get('nom', ''),
+        )
         user = User(**validated_data)
         user.set_password(password)
+        user.doit_changer_mot_de_passe = True
         user.save()
+        user.mot_de_passe_temporaire = password
+        user.email_utilisateur_envoye = self._envoyer_email_utilisateur(
+            user,
+            password,
+        )
+        user.email_createur_envoye = self._envoyer_email_createur(
+            createur,
+            user,
+            password,
+        )
         return user
+
+    def _envoyer_email_utilisateur(self, user, password):
+        try:
+            send_mail(
+                'Vos identifiants Al Jazeera STCA',
+                (
+                    f'Bonjour {user.prenom},\n\n'
+                    'Votre compte Al Jazeera STCA a été créé.\n'
+                    f'Email : {user.email}\n'
+                    f'Mot de passe temporaire : {password}\n\n'
+                    'Vous devrez choisir un nouveau mot de passe à la première connexion.'
+                ),
+                settings.DEFAULT_FROM_EMAIL,
+                [user.email],
+                fail_silently=False,
+            )
+            return True
+        except Exception:
+            return False
+
+    def _envoyer_email_createur(self, createur, user, password):
+        try:
+            send_mail(
+                'Compte utilisateur créé',
+                (
+                    f'Nous avons envoyé ses identifiants à {user.email} ; '
+                    f'son mot de passe est : {password}'
+                ),
+                settings.DEFAULT_FROM_EMAIL,
+                [createur.email],
+                fail_silently=False,
+            )
+            return True
+        except Exception:
+            return False

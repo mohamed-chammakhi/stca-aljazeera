@@ -6,6 +6,7 @@ import '1_ceo/tableau_de_bord/tableau_de_bord.dart';
 import '4_laboratoire/echantillons_labo/echantillons_labo_page.dart';
 import '5_chef_degustateur/tableau_de_bord/homepage_page.dart' as chef;
 import 'core/api_client.dart';
+import 'core/auth/changement_mot_de_passe_obligatoire_page.dart';
 import 'core/auth/mot_de_passe_oublie_page.dart';
 import 'core/models/enums.dart';
 import 'core/password_validation.dart';
@@ -96,6 +97,20 @@ class _AuthGateState extends State<AuthGate> {
         const Duration(seconds: 8),
       );
       if (!mounted) return;
+      if (user.doitChangerMotDePasse) {
+        await authService.logout();
+        if (!mounted) return;
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const LoginPage(
+              messageInitial:
+                  'Connectez-vous avec le mot de passe temporaire pour le changer.',
+            ),
+          ),
+        );
+        return;
+      }
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => _destinationForRole(user.role)),
@@ -186,12 +201,18 @@ class _LoginPageState extends State<LoginPage> {
       // 3. Navigate to the correct dashboard based on role.
       if (!mounted) return;
       final destination = _destinationForRole(role);
+      final page = user.doitChangerMotDePasse
+          ? ChangementMotDePasseObligatoirePage(
+              ancienMotDePasse: passwordController.text,
+              destination: destination,
+            )
+          : destination;
 
       Navigator.pushReplacement(
         context,
         PageRouteBuilder(
           transitionDuration: const Duration(milliseconds: 400),
-          pageBuilder: (context, animation, secondaryAnimation) => destination,
+          pageBuilder: (context, animation, secondaryAnimation) => page,
           transitionsBuilder: (context, animation, secondaryAnimation, child) =>
               FadeTransition(
                 opacity: CurvedAnimation(

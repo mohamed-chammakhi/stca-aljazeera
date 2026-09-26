@@ -1,18 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-/// Shared success dialog shown after a new user is created.
-/// Auto-dismisses after 4 seconds; user can also close manually.
 class UserCreatedDialog extends StatefulWidget {
   final String prenom;
   final String nom;
   final String email;
+  final String role;
+  final String? motDePasseTemporaire;
+  final bool emailUtilisateurEnvoye;
 
   const UserCreatedDialog({
     super.key,
     required this.prenom,
     required this.nom,
     required this.email,
+    required this.role,
+    this.motDePasseTemporaire,
+    this.emailUtilisateurEnvoye = false,
   });
 
   @override
@@ -23,7 +27,7 @@ class _UserCreatedDialogState extends State<UserCreatedDialog> {
   @override
   void initState() {
     super.initState();
-    Future.delayed(const Duration(seconds: 4), () {
+    Future.delayed(const Duration(seconds: 8), () {
       if (mounted) Navigator.of(context, rootNavigator: true).pop();
     });
   }
@@ -71,46 +75,55 @@ class _UserCreatedDialogState extends State<UserCreatedDialog> {
             ),
             const SizedBox(height: 16),
             Text(
-              'Utilisateur crÃ©Ã©',
+              'Compte créé',
               style: GoogleFonts.domine(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
                 color: const Color(0xFF1A2E1F),
               ),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 12),
+            _line('Nom', '${widget.prenom} ${widget.nom}'),
+            _line('Email', widget.email),
+            _line('Rôle', widget.role),
+            const SizedBox(height: 12),
             Text(
-              '${widget.prenom} ${widget.nom} a Ã©tÃ© ajoutÃ© avec succÃ¨s.',
+              widget.emailUtilisateurEnvoye
+                  ? 'Nous avons envoyé ses identifiants à ${widget.email}.'
+                  : "Le compte est créé, mais l'email des identifiants n'a pas pu être envoyé.",
               textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 14, color: Color(0xFF4A6358)),
+              style: const TextStyle(fontSize: 13, color: Color(0xFF4A6358)),
             ),
-            const SizedBox(height: 6),
-            RichText(
-              textAlign: TextAlign.center,
-              text: TextSpan(
-                style: const TextStyle(fontSize: 13, color: Color(0xFF6B8E7A)),
-                children: [
-                  const TextSpan(
-                    text: 'Mot de passe temporaire : Test@12345 pour ',
-                  ),
-                  TextSpan(
-                    text: widget.email,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF185FA5),
-                    ),
-                  ),
-                  const TextSpan(text: '.'),
-                ],
+            if (widget.motDePasseTemporaire != null) ...[
+              const SizedBox(height: 8),
+              Text(
+                'Son mot de passe est : ${widget.motDePasseTemporaire}',
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF185FA5),
+                ),
               ),
-            ),
+            ],
             const SizedBox(height: 20),
             Text(
-              'Cette fenÃªtre se ferme automatiquementâ€¦',
+              'Cette fenêtre se ferme automatiquement.',
               style: TextStyle(fontSize: 11, color: Colors.grey.shade400),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _line(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Text(
+        '$label : $value',
+        textAlign: TextAlign.center,
+        style: const TextStyle(fontSize: 14, color: Color(0xFF4A6358)),
       ),
     );
   }

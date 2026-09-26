@@ -8,13 +8,13 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../core/models/enums.dart';
+import '../../core/logout_navigation.dart';
 import '../../core/widgets/messagerie/conversations_page.dart';
 
 import '../profil.dart';
 import '../tableau_de_bord/widgets/app_drawer.dart';
 import '../utilisateurs/utilisateurs_chef_page.dart';
 import '../tableau_de_bord/homepage_page.dart';
-import '../membres_panel/membres_panel_page.dart';
 import '../gestion_echantillons/gestion_echantillons_page.dart';
 import 'package:project3/core/widgets/search_date_filter_bar.dart'
     show DateFilterSheet;
@@ -264,10 +264,7 @@ class _VueEnsembleEvaluationsPageState extends State<VueEnsembleEvaluationsPage>
 
   void _goToLogin() {
     Navigator.pop(context);
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => LoginPage()),
-    );
+    logoutAndShowLogin(context);
   }
 
   DateTime? _parseDate(String s) {
@@ -549,7 +546,6 @@ class _VueEnsembleEvaluationsPageState extends State<VueEnsembleEvaluationsPage>
         onGestionEchantillons: () => _goTo(const GestionEchantillonsPage()),
         onAnalyseLaboratoire: () => _goTo(const AnalyseLaboratoirePage()),
         onSessionsDegustationPage: () => _goTo(const SessionsDegustationPage()),
-        onMembredupanel: () => _goTo(const MembresPanelPage()),
         onUtilisateurs: () => _goTo(const UtilisateursChefPage()),
         onVueEnsembleEvaluations: () => Navigator.pop(context),
         onMessagerie: () => _goTo(const ConversationsPage()),

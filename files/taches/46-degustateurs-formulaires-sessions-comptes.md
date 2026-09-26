@@ -157,3 +157,128 @@ Django et appliquera les migrations après une sauvegarde de la base.
 Dans le rapport : une section par partie (A à J), avec les rôles couverts.
 
 ## RAPPORT
+
+### Reprise
+
+Reprise effectuée depuis l'arbre de travail existant. Aucun commit. Aucune migration appliquée sur la vraie base. La compétence `frontend-design` demandée par `CLAUDE.md` n'était pas disponible dans cette session ; j'ai suivi les consignes design du dépôt.
+
+### Fait
+
+#### A — Déconnexion : fermer toutes les pages
+
+- `lib/core/logout_navigation.dart` — nouvelle fonction partagée de déconnexion : appelle `authService.logout()` puis remplace toute la pile par `LoginPage`.
+- `lib/1_ceo/widgets/ceo_nav_mixin.dart` — les déconnexions Direction passent par la déconnexion partagée, y compris les anciens appels `goToPage(LoginPage())`.
+- `lib/2_collecteur/widgets/nav_mixin.dart` — la déconnexion Collecteur vide toute la pile au lieu d'empiler/remplacer seulement une page.
+- `lib/3_degustateur/widgets/degustateur_nav_mixin.dart` — la déconnexion Dégustateur vide toute la pile.
+- `lib/3_degustateur/widgets/nav_mixin.dart` — l'ancien mixin Dégustateur applique la même déconnexion complète.
+- `lib/4_laboratoire/widgets/labo_nav_mixin.dart` — la déconnexion Laboratoire vide toute la pile.
+- `lib/5_chef_degustateur/widgets/chef_nav_mixin.dart` — la déconnexion Chef vide toute la pile.
+- `lib/5_chef_degustateur/tableau_de_bord/homepage_page.dart` — la déconnexion locale du tableau de bord Chef utilise la fonction partagée.
+- `lib/5_chef_degustateur/vue_ensemble_evaluations/vue_ensemble_evaluations_page.dart` — la déconnexion locale de la vue d'ensemble Chef utilise la fonction partagée.
+
+#### B — Valeurs enum vides/inconnues
+
+- `lib/core/models/enums.dart` — les parseurs partagés d'énumérations ne lèvent plus d'exception sur une valeur vide/inconnue ; ils retombent sur une valeur sûre.
+
+#### I — Chef : pages et utilisateurs
+
+- `lib/5_chef_degustateur/tableau_de_bord/widgets/app_drawer.dart` — l'entrée visible `Membres du panel` est retirée du menu Chef.
+- `lib/5_chef_degustateur/analyse_labo/analyse_laboratoire_page.dart` — la page Chef n'envoie plus le drawer vers `Membres du panel`.
+- `lib/5_chef_degustateur/evaluation_echantillons/evaluation_echantillons_page.dart` — la page Chef n'envoie plus le drawer vers `Membres du panel`.
+- `lib/5_chef_degustateur/gestion_echantillons/gestion_echantillons_page.dart` — la page Chef n'envoie plus le drawer vers `Membres du panel`.
+- `lib/5_chef_degustateur/membres_panel/membres_panel_page.dart` — l'ancien écran conservé ne déclare plus l'entrée supprimée dans son drawer.
+- `lib/5_chef_degustateur/profil.dart` — le profil Chef n'envoie plus le drawer vers `Membres du panel`.
+- `lib/5_chef_degustateur/sessions_degustation/sessions_degustation_page.dart` — les sessions Chef n'envoient plus le drawer vers `Membres du panel`.
+- `lib/5_chef_degustateur/utilisateurs/utilisateurs_chef_page.dart` — la page utilisateurs Chef n'envoie plus le drawer vers `Membres du panel`.
+- `lib/5_chef_degustateur/vue_ensemble_evaluations/vue_ensemble_evaluations_page.dart` — la vue d'ensemble Chef n'envoie plus le drawer vers `Membres du panel`.
+- `lib/core/utilisateurs/utilisateurs_page_body.dart` — le choix du rôle dans `Ajouter un utilisateur` est un champ `DropdownButtonFormField`, plus des chips.
+- `lib/core/utilisateurs/widgets/user_created_dialog.dart` — la fenêtre de succès affiche un texte lisible : `Compte créé`, nom, email, rôle, information d'envoi email et mot de passe temporaire.
+
+#### J — Mot de passe généré, envoyé par email, changement obligatoire
+
+- `backend_new/users/models.py` — `User.email` n'est plus unique globalement ; ajout de `doit_changer_mot_de_passe` et d'une contrainte unique conditionnelle sur les comptes non supprimés.
+- `backend_new/users/migrations/0007_user_doit_changer_mot_de_passe_email_unique_actif.py` — migration créée mais non appliquée.
+- `backend_new/users/backends.py` — backend d'authentification email qui ne considère que les comptes actifs/non supprimés.
+- `backend_new/aljazeera_stca/settings.py` — Django utilise `users.backends.EmailActifBackend`.
+- `backend_new/users/serializers.py` — création de compte sans champ mot de passe : génération `prenom@nom` normalisé, email au nouvel utilisateur, email au chef créateur, réponse enrichie, doublon actif refusé avec `Un compte actif utilise déjà cet email.`.
+- `backend_new/users/views.py` — la création renvoie le mot de passe temporaire et l'état des emails ; le changement/réinitialisation du mot de passe passe `doit_changer_mot_de_passe` à `False`.
+- `backend_new/users/tests.py` — tests ajoutés/mis à jour : mot de passe généré, deux emails, doublon actif refusé, réutilisation après suppression douce, login sur le compte non supprimé, flag remis à `False` après changement.
+- `lib/core/models/user_profile.dart` — Flutter lit `doit_changer_mot_de_passe`.
+- `lib/core/utilisateurs/utilisateurs_service.dart` — Flutter ne poste plus `Test@12345` et récupère le mot de passe temporaire + état d'envoi email.
+- `lib/core/auth/changement_mot_de_passe_obligatoire_page.dart` — nouvel écran bloquant de changement du mot de passe à la première connexion.
+- `lib/main.dart` — après login, un utilisateur marqué `doit_changer_mot_de_passe` est envoyé directement vers l'écran bloquant avant son tableau de bord.
+
+### Vérifié
+
+```bash
+cd backend_new
+$env:DEBUG='True'; $env:DB_ENGINE='sqlite'; .\venv\Scripts\python.exe manage.py test users --keepdb
+```
+
+Sortie :
+
+```text
+Using existing test database for alias 'default'...
+System check identified some issues:
+
+WARNINGS:
+users.User: (auth.W004) 'User.email' is named as the 'USERNAME_FIELD', but it is not unique.
+	HINT: Ensure that your authentication backend(s) can handle non-unique usernames.
+
+System check identified 1 issue (0 silenced).
+....................................
+----------------------------------------------------------------------
+Ran 36 tests in 174.727s
+
+OK
+Preserving test database for alias 'default'...
+Found 36 test(s).
+```
+
+```bash
+cd backend_new
+$env:DEBUG='True'; $env:DB_ENGINE='sqlite'; .\venv\Scripts\python.exe manage.py makemigrations --check --dry-run
+```
+
+Sortie :
+
+```text
+System check identified some issues:
+
+WARNINGS:
+users.User: (auth.W004) 'User.email' is named as the 'USERNAME_FIELD', but it is not unique.
+	HINT: Ensure that your authentication backend(s) can handle non-unique usernames.
+
+System check identified 1 issue (0 silenced).
+No changes detected
+```
+
+```bash
+git diff --check
+```
+
+Sortie : code 0, uniquement des avertissements Git de conversion LF/CRLF.
+
+```bash
+dart format lib/core/logout_navigation.dart lib/core/auth/changement_mot_de_passe_obligatoire_page.dart lib/core/models/enums.dart lib/core/models/user_profile.dart lib/core/utilisateurs/utilisateurs_page_body.dart lib/core/utilisateurs/utilisateurs_service.dart lib/core/utilisateurs/widgets/user_created_dialog.dart lib/main.dart lib/1_ceo/widgets/ceo_nav_mixin.dart lib/2_collecteur/widgets/nav_mixin.dart lib/3_degustateur/widgets/degustateur_nav_mixin.dart lib/3_degustateur/widgets/nav_mixin.dart lib/4_laboratoire/widgets/labo_nav_mixin.dart lib/5_chef_degustateur/widgets/chef_nav_mixin.dart lib/5_chef_degustateur/tableau_de_bord/homepage_page.dart lib/5_chef_degustateur/vue_ensemble_evaluations/vue_ensemble_evaluations_page.dart lib/5_chef_degustateur/tableau_de_bord/widgets/app_drawer.dart lib/5_chef_degustateur/analyse_labo/analyse_laboratoire_page.dart lib/5_chef_degustateur/evaluation_echantillons/evaluation_echantillons_page.dart lib/5_chef_degustateur/gestion_echantillons/gestion_echantillons_page.dart lib/5_chef_degustateur/membres_panel/membres_panel_page.dart lib/5_chef_degustateur/profil.dart lib/5_chef_degustateur/sessions_degustation/sessions_degustation_page.dart lib/5_chef_degustateur/utilisateurs/utilisateurs_chef_page.dart
+```
+
+Sortie : aucune sortie après 90 s ; commande interrompue manuellement par `Ctrl+C`, code 1. Aucun `flutter analyze` ni `flutter test` lancé, conformément à la consigne de la tâche indiquant que le sandbox ne peut pas lancer Flutter.
+
+### Non fait
+
+- A — pas de test widget ajouté pour vérifier la pile de navigation et l'arrêt des minuteurs après déconnexion.
+- B — pas de tests Flutter ajoutés pour les enum `fromJson('')`.
+- C — non traité dans cette reprise : suggestions fournisseurs/variétés Dégustateur/Chef et test serveur.
+- D — non traité dans cette reprise : reproduction/correction du `POST /api/echantillons/` à 400 pour Dégustateur/Chef.
+- E — non traité dans cette reprise : alignement complet des formulaires d'échantillon Dégustateur/Chef avec Collecteur.
+- F — non traité dans cette reprise : page `Évaluation des échantillons`, numéro/date/photo/débordement.
+- G — non traité dans cette reprise : règle générale texte long + tests 360 px.
+- H — non traité dans cette reprise : sessions de dégustation, champs obligatoires et dates lisibles.
+- I — retrait du nombre d'utilisateurs : je n'ai rien modifié à part le retrait de `Membres du panel` et le champ rôle, car je n'ai pas identifié dans ce passage le compteur exact à retirer sans risquer un changement hors périmètre.
+- J — l'écran Flutter de changement obligatoire est ajouté, mais non vérifié par `flutter analyze`/test widget dans ce sandbox.
+
+### HORS PÉRIMÈTRE
+
+- `git status` montre déjà `files/taches/45-direction-nettoyage-utilisateurs-profil.md` modifié ; je ne l'ai pas touché.
+- Les fichiers non suivis déjà présents restent non touchés : `backend_new/backup_propre.json`, `backend_new/media/`, `backend_new/sauvegarde_avant_nettoyage_2026-09-25.json`, `files/taches/CONTROLE-MANUEL.md`.

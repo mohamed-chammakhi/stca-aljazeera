@@ -3,22 +3,22 @@
   "route": "/api/chef/evaluations/",
   "data": [
     {
-      "echantillon_id": "4f3ff015-fb18-4ee1-b679-88491650a06a",
-      "sample_id": "4f3ff015-fb18-4ee1-b679-88491650a06a",
+      "echantillon_id": "ac39cddb-9ff0-4db0-9181-ae53bf89bf23",
+      "sample_id": "ac39cddb-9ff0-4db0-9181-ae53bf89bf23",
       "echantillon_numero": "2026/0001",
       "numero": "2026/0001",
       "reference_bouteille": "AUDIT-BOUT-001",
       "gouvernorat": "Sfax",
       "delegation": "Sakiet Ezzit",
       "variete": "Chemlali",
-      "date_ajout": "2026-09-26T07:22:44.100589+00:00",
+      "date_ajout": "2026-09-26T18:51:43.473914+00:00",
       "recu_physiquement": true,
-      "date_reception_physique": "2026-09-26T07:22:45.059259+00:00",
+      "date_reception_physique": "2026-09-26T18:51:44.332466+00:00",
       "fournisseur_nom": "Domaine Audit",
       "evaluations": [
         {
-          "id": "6cc7bc81-a8ee-4d76-a428-96e0f11e810d",
-          "degustateur_id": "e58fb6cd-2ade-4306-a1d3-b6fe9ad2c91e",
+          "id": "dd9b4fe4-6ac3-4c0f-8c27-41ac4b672c18",
+          "degustateur_id": "63f488ef-9e97-454a-843f-c5303af015b7",
           "degustateur": "Audit Chef",
           "degustateur_nom": "Audit Chef",
           "taster_name": "Audit Chef",
@@ -80,13 +80,13 @@
           ],
           "classification": "extra_vierge",
           "statut": "soumis",
-          "date_eval": "2026-09-26T07:22:47.049273+00:00",
-          "soumis_le": "2026-09-26T07:22:47.049273+00:00",
+          "date_eval": "2026-09-26T18:51:46.049190+00:00",
+          "soumis_le": "2026-09-26T18:51:46.049190+00:00",
           "commentaire": "Evaluation audit par chef@audit.test"
         },
         {
-          "id": "9c0cc87f-13b8-44ea-ba3f-0b4b15b4e866",
-          "degustateur_id": "611e9778-e950-4970-9f3c-77fc5df25f41",
+          "id": "3c3275a2-6898-4b9e-863a-fd2b62172d95",
+          "degustateur_id": "2a194f2b-1417-4fd0-9509-5eeab7e07d76",
           "degustateur": "Audit Degustateur",
           "degustateur_nom": "Audit Degustateur",
           "taster_name": "Audit Degustateur",
@@ -148,8 +148,8 @@
           ],
           "classification": "extra_vierge",
           "statut": "soumis",
-          "date_eval": "2026-09-26T07:22:47.010545+00:00",
-          "soumis_le": "2026-09-26T07:22:47.010545+00:00",
+          "date_eval": "2026-09-26T18:51:46.013125+00:00",
+          "soumis_le": "2026-09-26T18:51:46.013125+00:00",
           "commentaire": "Evaluation audit par degustateur@audit.test"
         }
       ],

@@ -14,6 +14,7 @@ class UserProfile {
   final String dateCreation;
   final String? dateSuppression;
   final String statut;
+  final bool doitChangerMotDePasse;
   String? lastLogin;
 
   UserProfile({
@@ -28,6 +29,7 @@ class UserProfile {
     required this.dateCreation,
     this.dateSuppression,
     this.statut = 'actif',
+    this.doitChangerMotDePasse = false,
     this.lastLogin,
   });
 
@@ -60,6 +62,8 @@ class UserProfile {
     statut:
         (json['statut'] as String?) ??
         (((json['is_active'] as bool?) ?? true) ? 'actif' : 'desactive'),
+    doitChangerMotDePasse:
+        (json['doit_changer_mot_de_passe'] as bool?) ?? false,
     lastLogin: json['last_login'] as String?,
   );
 
@@ -76,6 +80,7 @@ class UserProfile {
     'photo_url': photoUrl,
     'is_active': isActive,
     'statut': statut,
+    'doit_changer_mot_de_passe': doitChangerMotDePasse,
     'date_creation': dateCreation,
     'date_suppression': dateSuppression,
     'last_login': lastLogin,

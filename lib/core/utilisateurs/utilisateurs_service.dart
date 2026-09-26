@@ -4,6 +4,20 @@ import '../models/user_profile.dart';
 import '../services/resultat_service.dart';
 import '../../1_ceo/utilisateurs/models/mock_data_patch.dart';
 
+class CreationUtilisateurResultat {
+  final UserProfile utilisateur;
+  final String? motDePasseTemporaire;
+  final bool emailUtilisateurEnvoye;
+  final bool emailCreateurEnvoye;
+
+  const CreationUtilisateurResultat({
+    required this.utilisateur,
+    this.motDePasseTemporaire,
+    this.emailUtilisateurEnvoye = false,
+    this.emailCreateurEnvoye = false,
+  });
+}
+
 class UtilisateursService {
   final ApiClient _api;
 
@@ -16,7 +30,7 @@ class UtilisateursService {
         .toList();
   }, () => List<UserProfile>.from(mockUtilisateurs));
 
-  Future<UserProfile> createUser({
+  Future<CreationUtilisateurResultat> createUser({
     required String nom,
     required String prenom,
     required String email,
@@ -29,9 +43,14 @@ class UtilisateursService {
       'email': email,
       'role': role.toJson,
       'telephone': telephone,
-      'password': 'Test@12345',
     });
-    return UserProfile.fromJson(data);
+    return CreationUtilisateurResultat(
+      utilisateur: UserProfile.fromJson(data),
+      motDePasseTemporaire: data['mot_de_passe_temporaire'] as String?,
+      emailUtilisateurEnvoye:
+          (data['email_utilisateur_envoye'] as bool?) ?? false,
+      emailCreateurEnvoye: (data['email_createur_envoye'] as bool?) ?? false,
+    );
   }
 
   Future<UserProfile> toggleActive(String id) async {

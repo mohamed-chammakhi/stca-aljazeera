@@ -18,7 +18,6 @@ class AppDrawer extends StatelessWidget {
   final VoidCallback onGestionEchantillons;
   final VoidCallback onAnalyseLaboratoire;
   final VoidCallback onSessionsDegustationPage;
-  final VoidCallback onMembredupanel;
   final VoidCallback onUtilisateurs;
   final VoidCallback onVueEnsembleEvaluations;
   final VoidCallback onMessagerie;
@@ -32,7 +31,6 @@ class AppDrawer extends StatelessWidget {
     required this.onGestionEchantillons,
     required this.onAnalyseLaboratoire,
     required this.onSessionsDegustationPage,
-    required this.onMembredupanel,
     required this.onUtilisateurs,
     required this.onVueEnsembleEvaluations,
     required this.onMessagerie,
@@ -170,11 +168,6 @@ class AppDrawer extends StatelessWidget {
                     icon: Icons.manage_accounts_outlined,
                     label: 'Utilisateurs',
                     onTap: onUtilisateurs,
-                  ),
-                  _DrawerItem(
-                    icon: Icons.people_outline,
-                    label: 'Membres du panel',
-                    onTap: onMembredupanel,
                   ),
                   _DrawerItem(
                     icon: Icons.chat_bubble_outline,

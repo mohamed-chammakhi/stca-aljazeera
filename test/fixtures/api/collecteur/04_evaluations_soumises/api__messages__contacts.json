@@ -3,13 +3,13 @@
   "route": "/api/messages/contacts/",
   "data": [
     {
-      "id": "e58fb6cd-2ade-4306-a1d3-b6fe9ad2c91e",
+      "id": "63f488ef-9e97-454a-843f-c5303af015b7",
       "nom": "Chef",
       "prenom": "Audit",
       "role": "chef_degustation"
     },
     {
-      "id": "f5e78924-3db0-4759-9ebf-afefea05a1e0",
+      "id": "82fd3bfa-8271-413f-9a83-e2a3fd0f1401",
       "nom": "Direction",
       "prenom": "Audit",
       "role": "direction"

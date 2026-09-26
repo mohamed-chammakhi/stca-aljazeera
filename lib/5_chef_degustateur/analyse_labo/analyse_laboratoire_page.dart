@@ -17,7 +17,6 @@ import 'package:project3/core/widgets/search_date_filter_bar.dart';
 import '../profil.dart';
 import '../tableau_de_bord/widgets/app_drawer.dart';
 import '../utilisateurs/utilisateurs_chef_page.dart';
-import '../membres_panel/membres_panel_page.dart';
 import '../gestion_echantillons/gestion_echantillons_page.dart';
 import '../evaluation_echantillons/evaluation_echantillons_page.dart';
 import '../sessions_degustation/sessions_degustation_page.dart';
@@ -291,7 +290,6 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage>
         onAnalyseLaboratoire: () => goToPage(const AnalyseLaboratoirePage()),
         onSessionsDegustationPage: () =>
             goToPage(const SessionsDegustationPage()),
-        onMembredupanel: () => goToPage(const MembresPanelPage()),
         onUtilisateurs: () => goToPage(const UtilisateursChefPage()),
         onVueEnsembleEvaluations: () =>
             goToPage(const VueEnsembleEvaluationsPage()),

@@ -20,13 +20,13 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> with DegustateurNavMixin {
-  // â”€â”€ Controllers â€” empty by default, filled by backend later â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Controllers — empty by default, filled by backend later ──────────────
   late TextEditingController _nomController;
   late TextEditingController _prenomController;
   late TextEditingController _emailController;
   late TextEditingController _numeroController;
 
-  // â”€â”€ Per-field editing booleans â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Per-field editing booleans ────────────────────────────────────────────
   bool _editingNom = false;
   bool _editingPrenom = false;
   bool _editingEmail = false;
@@ -34,16 +34,16 @@ class _ProfilePageState extends State<ProfilePage> with DegustateurNavMixin {
   bool _profileLoading = false;
   bool _profileSaving = false;
 
-  // â”€â”€ Displayed header values â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Displayed header values ───────────────────────────────────────────────
   String _displayedFullName = '';
 
-  // â”€â”€ FocusNodes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── FocusNodes ────────────────────────────────────────────────────────────
   final FocusNode _nomFocus = FocusNode();
   final FocusNode _prenomFocus = FocusNode();
   final FocusNode _emailFocus = FocusNode();
   final FocusNode _numeroFocus = FocusNode();
 
-  // â”€â”€ initState â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── initState ─────────────────────────────────────────────────────────────
   @override
   void initState() {
     super.initState();
@@ -55,7 +55,7 @@ class _ProfilePageState extends State<ProfilePage> with DegustateurNavMixin {
     _loadProfile();
   }
 
-  // â”€â”€ dispose â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── dispose ───────────────────────────────────────────────────────────────
   @override
   void dispose() {
     _nomController.dispose();
@@ -69,7 +69,7 @@ class _ProfilePageState extends State<ProfilePage> with DegustateurNavMixin {
     super.dispose();
   }
 
-  // â”€â”€ Toggle edit/save â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Toggle edit/save ─────────────────────────────────────────────────────
   Future<void> _loadProfile() async {
     setState(() => _profileLoading = true);
     try {
@@ -216,8 +216,8 @@ class _ProfilePageState extends State<ProfilePage> with DegustateurNavMixin {
     }
   }
 
-  // â”€â”€ Profile picture bottom sheet â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  // â”€â”€ Build â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Profile picture bottom sheet ──────────────────────────────────────────
+  // ── Build ─────────────────────────────────────────────────────────────────
   /// Back from the profile always lands on the role's home page: the profile
   /// is opened from the menu in place of the previous page, so there is
   /// often nothing behind it to go back to.

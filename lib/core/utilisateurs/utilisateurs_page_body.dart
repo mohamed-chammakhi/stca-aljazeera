@@ -820,55 +820,47 @@ class _UtilisateursPageBodyState extends State<UtilisateursPageBody>
                       ),
                       const SizedBox(height: 10),
 
-                      // Role chips — one row
-                      Row(
-                        children: UserRole.values.asMap().entries.map((entry) {
-                          final i = entry.key;
-                          final r = entry.value;
-                          final roleC = _roleColors[r]!;
-                          final isSelected = selectedRole == r;
-                          final label = r.label;
-                          return Expanded(
-                            child: Padding(
-                              padding: EdgeInsets.only(
-                                right: i < UserRole.values.length - 1 ? 6 : 0,
+                      DropdownButtonFormField<UserRole>(
+                        value: selectedRole,
+                        isExpanded: true,
+                        decoration: InputDecoration(
+                          prefixIcon: const Icon(
+                            Icons.badge_outlined,
+                            color: kGreen,
+                            size: 18,
+                          ),
+                          filled: true,
+                          fillColor: Colors.grey.shade50,
+                          contentPadding: const EdgeInsets.symmetric(
+                            vertical: 12,
+                            horizontal: 14,
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: Colors.grey.shade200),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: Colors.grey.shade200),
+                          ),
+                          focusedBorder: const OutlineInputBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(12)),
+                            borderSide: BorderSide(color: kGreen, width: 2),
+                          ),
+                        ),
+                        items: UserRole.values
+                            .map(
+                              (role) => DropdownMenuItem<UserRole>(
+                                value: role,
+                                child: Text(role.label),
                               ),
-                              child: GestureDetector(
-                                onTap: () => setSheet(() => selectedRole = r),
-                                child: AnimatedContainer(
-                                  duration: const Duration(milliseconds: 150),
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 8,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: isSelected
-                                        ? roleC.bg
-                                        : const Color(0xFFF5F5F5),
-                                    borderRadius: BorderRadius.circular(20),
-                                    border: Border.all(
-                                      color: isSelected
-                                          ? roleC.fg.withValues(alpha: 0.35)
-                                          : const Color(0xFFE8E8E8),
-                                      width: 1,
-                                    ),
-                                  ),
-                                  child: Center(
-                                    child: Text(
-                                      label,
-                                      style: TextStyle(
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.w600,
-                                        color: isSelected
-                                            ? roleC.fg
-                                            : const Color(0xFF9E9E9E),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          );
-                        }).toList(),
+                            )
+                            .toList(),
+                        onChanged: (role) {
+                          if (role != null) {
+                            setSheet(() => selectedRole = role);
+                          }
+                        },
                       ),
                     ],
                   ),
@@ -949,13 +941,14 @@ class _UtilisateursPageBodyState extends State<UtilisateursPageBody>
                                 }
                                 setSheet(() => isSaving = true);
                                 try {
-                                  final newUser = await _service.createUser(
+                                  final creation = await _service.createUser(
                                     prenom: prenomCtrl.text.trim(),
                                     nom: nomCtrl.text.trim(),
                                     email: emailCtrl.text.trim(),
                                     role: selectedRole,
                                     telephone: telCtrl.text.trim(),
                                   );
+                                  final newUser = creation.utilisateur;
                                   if (!mounted) return;
                                   setState(() => _utilisateurs.add(newUser));
                                   if (ctx.mounted) Navigator.pop(ctx);
@@ -963,6 +956,9 @@ class _UtilisateursPageBodyState extends State<UtilisateursPageBody>
                                     newUser.prenom,
                                     newUser.nom,
                                     newUser.email,
+                                    newUser.role.label,
+                                    creation.motDePasseTemporaire,
+                                    creation.emailUtilisateurEnvoye,
                                   );
                                 } catch (error) {
                                   if (!mounted) return;
@@ -1057,11 +1053,25 @@ class _UtilisateursPageBodyState extends State<UtilisateursPageBody>
   }
 
   // ── User-created success dialog (auto-closes after 4 s) ───────────────────
-  void _showUserCreatedDialog(String prenom, String nom, String email) {
+  void _showUserCreatedDialog(
+    String prenom,
+    String nom,
+    String email,
+    String role,
+    String? motDePasseTemporaire,
+    bool emailUtilisateurEnvoye,
+  ) {
     showDialog(
       context: context,
       barrierDismissible: true,
-      builder: (_) => UserCreatedDialog(prenom: prenom, nom: nom, email: email),
+      builder: (_) => UserCreatedDialog(
+        prenom: prenom,
+        nom: nom,
+        email: email,
+        role: role,
+        motDePasseTemporaire: motDePasseTemporaire,
+        emailUtilisateurEnvoye: emailUtilisateurEnvoye,
+      ),
     );
   }
 

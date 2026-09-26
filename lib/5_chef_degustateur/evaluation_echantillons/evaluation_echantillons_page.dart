@@ -11,7 +11,6 @@ import 'package:project3/core/widgets/messagerie/conversations_page.dart';
 import '../tableau_de_bord/widgets/app_drawer.dart';
 import '../utilisateurs/utilisateurs_chef_page.dart';
 import '../widgets/statut_chip.dart';
-import '../membres_panel/membres_panel_page.dart';
 import '../../../main.dart';
 import '../profil.dart';
 
@@ -298,7 +297,6 @@ class _EvaluationEchantillonsPageState extends State<EvaluationEchantillonsPage>
         onAnalyseLaboratoire: () => goToPage(const AnalyseLaboratoirePage()),
         onSessionsDegustationPage: () =>
             goToPage(const SessionsDegustationPage()),
-        onMembredupanel: () => goToPage(const MembresPanelPage()),
         onUtilisateurs: () => goToPage(const UtilisateursChefPage()),
         onVueEnsembleEvaluations: () =>
             goToPage(const VueEnsembleEvaluationsPage()),
