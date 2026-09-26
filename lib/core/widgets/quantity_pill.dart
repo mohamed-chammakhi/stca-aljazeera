@@ -9,6 +9,9 @@ class QuantityPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
+    // A typed quantity can be any length: cap the pill so it never pushes the
+    // card off screen (the full value is in the detail panel).
+    constraints: const BoxConstraints(maxWidth: 120),
     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
     decoration: BoxDecoration(
       color: _olive.withValues(alpha: 0.09),
@@ -17,6 +20,8 @@ class QuantityPill extends StatelessWidget {
     ),
     child: Text(
       'Qté : $quantite T',
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
       style: const TextStyle(
         fontSize: 11,
         fontWeight: FontWeight.w700,

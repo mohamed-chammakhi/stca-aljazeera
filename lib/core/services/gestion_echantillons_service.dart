@@ -61,17 +61,22 @@ class GestionEchantillonsService {
   Map<String, dynamic> _toDjangoMap(Echantillon e) {
     final code = e.fournisseurTexte?.trim() ?? '';
     final nom = e.fournisseurNom?.trim() ?? '';
+    final collecteurId = e.collecteurId.trim();
+    final dateArrivee = e.dateArriveeEchantillon?.trim();
     return {
       'gouvernorat': e.gouvernorat,
       'delegation': e.delegation,
       'cite': e.cite,
       if (nom.isEmpty && code.isNotEmpty) 'fournisseur_nom': code,
       if (nom.isNotEmpty) 'fournisseur_nom': nom,
+      if (collecteurId.isNotEmpty && !collecteurId.endsWith('-placeholder'))
+        'collecteur': collecteurId,
       'reference_bouteille': e.referenceBouteille,
       'num_citerne': e.numCiterne,
       'quantite_estimee': e.quantiteEstimee,
       'variete': e.variete,
-      'date_arrivee_echantillon': e.dateArriveeEchantillon,
+      if (dateArrivee != null && dateArrivee.isNotEmpty)
+        'date_arrivee_echantillon': dateArrivee,
       'remarques': e.remarques,
       'image_url': e.imageUrl,
       'statut_collecteur': e.statutCollecteur.toJson,
@@ -103,20 +108,37 @@ class GestionEchantillonsService {
 
   /// Updates an existing echantillon via PATCH and returns the updated record.
   Future<Echantillon> updateEchantillon(Echantillon e) async {
-    final response = await apiClient.patch(
-      '/api/echantillons/${e.id}/',
-      _toDjangoMap(e),
-    );
+    final photo = e.photoAEnvoyer;
+    final response = photo == null
+        ? await apiClient.patch('/api/echantillons/${e.id}/', _toDjangoMap(e))
+        : await apiClient.patchMultipart(
+            '/api/echantillons/${e.id}/',
+            bytes: photo,
+            filename: e.photoNomFichier ?? 'bouteille.jpg',
+            fields: _champsTexte(e),
+          );
     return Echantillon.fromJson(_toFlutterMap(response));
   }
 
   Future<Echantillon> createEchantillon(Echantillon e) async {
-    final response = await apiClient.post(
-      '/api/echantillons/',
-      _toDjangoMap(e),
-    );
+    final photo = e.photoAEnvoyer;
+    final response = photo == null
+        ? await apiClient.post('/api/echantillons/', _toDjangoMap(e))
+        : await apiClient.postMultipart(
+            '/api/echantillons/',
+            bytes: photo,
+            filename: e.photoNomFichier ?? 'bouteille.jpg',
+            fields: _champsTexte(e),
+          );
     return Echantillon.fromJson(_toFlutterMap(response));
   }
+
+  /// Multipart requests carry text only: same fields as the JSON body, as strings.
+  Map<String, String> _champsTexte(Echantillon e) => {
+    for (final entry in _toDjangoMap(e).entries)
+      if (entry.value != null && entry.value.toString().isNotEmpty)
+        entry.key: entry.value.toString(),
+  };
 
   Future<void> deleteEchantillon(String id) async {
     await apiClient.delete('/api/echantillons/$id/');

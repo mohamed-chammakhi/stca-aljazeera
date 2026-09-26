@@ -15,9 +15,11 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../../core/api_client.dart';
+import '../../../../core/models/collecteur_suggestion.dart';
 import '../../../../core/models/echantillon.dart';
 import '../../../../core/models/enums.dart';
 import '../../../../core/models/fournisseur.dart';
+import '../../../../core/services/collecteur_suggestion_service.dart';
 import '../../../../core/services/fournisseur_service.dart';
 import '../../../../core/services/variete_service.dart';
 import '../../../../core/utils/reference_bouteille.dart';
@@ -135,6 +137,7 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
   late final TextEditingController _dateAjoutCtrl;
   late final TextEditingController _citeCtrl;
   late final TextEditingController _remarquesCtrl;
+  CollecteurSuggestion? _collecteurChoisi;
 
   // ── Location state ────────────────────────────────────────────────────────
   String? _gouvernorat;
@@ -272,6 +275,13 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
   }
 
   void _removePhoto() => setState(() {
+    // Also drop it from the bottle it was attached to, or it would still be sent.
+    for (final row in _bouteilles) {
+      if (identical(row.photoBytes, _photoBytes)) {
+        row.photoBytes = null;
+        row.photoName = null;
+      }
+    }
     _photoBytes = null;
     _photoName = null;
   });
@@ -332,7 +342,7 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
               ),
               const SizedBox(width: 8),
               Text(
-                "Importer une etiquette",
+                'Importer une étiquette',
                 style: TextStyle(
                   fontSize: 12,
                   color: _green.withValues(alpha: 0.55),
@@ -471,6 +481,9 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
         e.remarques = _remarquesCtrl.text.trim().isEmpty
             ? null
             : _remarquesCtrl.text.trim();
+        // A newly picked photo is sent with the edit; otherwise the old one stays.
+        e.photoAEnvoyer = b.photoBytes;
+        e.photoNomFichier = b.photoName;
         // fournisseurTexte, dateAjout, collecteurNom are API-assigned — not mutated
         await widget.onSaveMultiple([e]);
       } else {
@@ -480,33 +493,35 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
           final b = entry.value;
           final numero = widget.prochainNumero + idx;
           return Echantillon(
-            id: 'new-${now.millisecondsSinceEpoch}-$idx',
-            numero: '${now.year}/${numero.toString().padLeft(4, '0')}',
-            fournisseurId: 'fournisseur-placeholder',
-            collecteurId: 'collecteur-placeholder',
-            fournisseurTexte: fournisseurTexte,
-            collecteurNom: collecteur,
-            referenceBouteille: b.referenceCtrl.text.trim(),
-            variete: b.varieteCtrl.text.trim().isEmpty
-                ? null
-                : b.varieteCtrl.text.trim(),
-            numCiterne: b.numCiterneCtrl.text.trim().isEmpty
-                ? null
-                : b.numCiterneCtrl.text.trim(),
-            gouvernorat: gouvernorat,
-            delegation: _delegation,
-            cite: cite,
-            remarques: _remarquesCtrl.text.trim().isEmpty
-                ? null
-                : _remarquesCtrl.text.trim(),
-            quantiteEstimee: b.qteCtrl.text.trim().isEmpty
-                ? null
-                : b.qteCtrl.text.trim(),
-            dateAjout: _dateAjoutCtrl.text,
-            statutCollecteur: StatutCollecteur.receptionne,
-            statutDegustateur: StatutDegustateur.nonEvaluee,
-            recuPhysiquement: true,
-          );
+              id: 'new-${now.millisecondsSinceEpoch}-$idx',
+              numero: '${now.year}/${numero.toString().padLeft(4, '0')}',
+              fournisseurId: 'fournisseur-placeholder',
+              collecteurId: _collecteurChoisi?.id ?? '',
+              fournisseurTexte: fournisseurTexte,
+              collecteurNom: _collecteurChoisi?.nomComplet ?? collecteur,
+              referenceBouteille: b.referenceCtrl.text.trim(),
+              variete: b.varieteCtrl.text.trim().isEmpty
+                  ? null
+                  : b.varieteCtrl.text.trim(),
+              numCiterne: b.numCiterneCtrl.text.trim().isEmpty
+                  ? null
+                  : b.numCiterneCtrl.text.trim(),
+              gouvernorat: gouvernorat,
+              delegation: _delegation,
+              cite: cite,
+              remarques: _remarquesCtrl.text.trim().isEmpty
+                  ? null
+                  : _remarquesCtrl.text.trim(),
+              quantiteEstimee: b.qteCtrl.text.trim().isEmpty
+                  ? null
+                  : b.qteCtrl.text.trim(),
+              dateAjout: _dateAjoutCtrl.text,
+              statutCollecteur: StatutCollecteur.receptionne,
+              statutDegustateur: StatutDegustateur.nonEvaluee,
+              recuPhysiquement: true,
+            )
+            ..photoAEnvoyer = b.photoBytes
+            ..photoNomFichier = b.photoName;
         }).toList();
         await widget.onSaveMultiple(samples);
       }
@@ -628,10 +643,20 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
                         onSaisieLibre: _actualiserToutesLesReferences,
                       ),
                       const SizedBox(height: 12),
-                      _FormField(
+                      ChampAutocomplete<CollecteurSuggestion>(
                         label: 'Collecteur',
+                        titre: const _InlineLabel(label: 'Collecteur'),
                         controller: _collecteurCtrl,
+                        decoration: _FormField.decoration('Ex: Ahmed Dridi'),
+                        styleTexte: const TextStyle(fontSize: 14, color: _dark),
                         hint: 'Ex: Ahmed Dridi',
+                        chercher: CollecteurSuggestionService.instance.suggest,
+                        libelle: (c) => c.nomComplet,
+                        texteSelection: (c) => c.nomComplet,
+                        onSelection: (c) => setState(() {
+                          _collecteurChoisi = c;
+                        }),
+                        onSaisieLibre: () => _collecteurChoisi = null,
                       ),
 
                       const SizedBox(height: 12),

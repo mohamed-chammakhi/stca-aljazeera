@@ -60,6 +60,24 @@ class SessionDegustationSerializer(serializers.ModelSerializer):
             'confirmed_participant_noms',
             'echantillon_ids',
         ]
+        extra_kwargs = {
+            'titre': {'required': True, 'allow_blank': False},
+            'date': {'required': True},
+            'heure': {'required': True},
+            'lieu': {'required': False, 'allow_blank': True},
+            'notes': {'required': False, 'allow_blank': True},
+            'statut': {'required': False},
+            'nombre_echantillons_prevus': {'required': False, 'allow_null': True},
+        }
+
+    def validate(self, attrs):
+        if not self.instance:
+            for field in ('titre', 'date', 'heure'):
+                if field not in attrs or attrs.get(field) in (None, ''):
+                    raise serializers.ValidationError(
+                        {field: ['Ce champ est obligatoire.']}
+                    )
+        return attrs
 
     def get_created_by_nom(self, obj):
         user = obj.cree_par

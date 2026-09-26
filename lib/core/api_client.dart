@@ -316,10 +316,43 @@ class ApiClient {
     required String filename,
     String fileField = 'image',
     Map<String, String>? fields,
+  }) => _multipart(
+    'POST',
+    path,
+    bytes: bytes,
+    filename: filename,
+    fileField: fileField,
+    fields: fields,
+  );
+
+  // PATCH (multipart) — edit a record and replace its file (e.g. a new
+  // bottle photo when a sample is modified).
+  Future<Map<String, dynamic>> patchMultipart(
+    String path, {
+    required List<int> bytes,
+    required String filename,
+    String fileField = 'image',
+    Map<String, String>? fields,
+  }) => _multipart(
+    'PATCH',
+    path,
+    bytes: bytes,
+    filename: filename,
+    fileField: fileField,
+    fields: fields,
+  );
+
+  Future<Map<String, dynamic>> _multipart(
+    String method,
+    String path, {
+    required List<int> bytes,
+    required String filename,
+    required String fileField,
+    Map<String, String>? fields,
   }) async {
     Future<http.Response> build() async {
       final token = await accessToken;
-      final request = http.MultipartRequest('POST', _uri(path));
+      final request = http.MultipartRequest(method, _uri(path));
       if (token != null) {
         request.headers['Authorization'] = 'Bearer $token';
       }

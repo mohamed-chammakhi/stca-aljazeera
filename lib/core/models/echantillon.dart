@@ -35,6 +35,11 @@ class Echantillon {
   String? numCiterne; // tank number
   String? variete; // olive variety, e.g. "Chemlali"
   String? quantiteEstimee; // estimated batch in tonnes, e.g. "25"
+
+  /// Photo picked in the form and not sent yet. Never read from or written to
+  /// JSON: the service sends it as a file with the create / edit request.
+  List<int>? photoAEnvoyer;
+  String? photoNomFichier;
   String? imageUrl;
 
   // ── Per-role statuses ─────────────────────────────────────────────────────────

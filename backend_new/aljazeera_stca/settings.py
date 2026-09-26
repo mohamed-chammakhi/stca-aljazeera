@@ -194,6 +194,11 @@ CORS_ALLOW_ALL_ORIGINS = True
 AUTH_USER_MODEL = 'users.User'
 AUTHENTICATION_BACKENDS = ['users.backends.EmailActifBackend']
 
+# The email is unique only among accounts that are not deleted (an email can be
+# reused after a soft delete). EmailActifBackend looks up the active account, so
+# Django's warning about a non-unique USERNAME_FIELD does not apply here.
+SILENCED_SYSTEM_CHECKS = ['auth.W004']
+
 EMAIL_BACKEND = config(
     'EMAIL_BACKEND',
     default='django.core.mail.backends.console.EmailBackend',

@@ -33,6 +33,13 @@ class FournisseurApiTests(APITestCase):
             prenom='User',
             role=User.Role.DEGUSTATEUR,
         )
+        self.chef = User.objects.create_user(
+            email='fournisseur.chef@example.com',
+            password='Test@12345',
+            nom='Chef',
+            prenom='User',
+            role=User.Role.CHEF_DEGUSTATION,
+        )
         self.collector_b = User.objects.create_user(
             email='fournisseur.collecteur.b@example.com',
             password='Test@12345',
@@ -122,6 +129,13 @@ class FournisseurApiTests(APITestCase):
         self.assertEqual(collector_names, {'Fournisseur A'})
         self.assertIn('Fournisseur A', degustateur_names)
         self.assertIn('Fournisseur B', degustateur_names)
+
+        self.authenticate(self.chef)
+        chef_response = self.client.get('/api/fournisseurs/')
+        self.assertEqual(chef_response.status_code, status.HTTP_200_OK)
+        chef_names = {item['nom'] for item in self.results(chef_response)}
+        self.assertIn('Fournisseur A', chef_names)
+        self.assertIn('Fournisseur B', chef_names)
 
 
 class FournisseurLocationMigrationTests(TransactionTestCase):

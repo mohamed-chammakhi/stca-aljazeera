@@ -420,8 +420,7 @@ class _DetailPanel extends StatelessWidget {
               // ── Attribute grid ────────────────────────────────────────
               GrilleDetails(
                 items: [
-                  DetailItem('Date', s.date),
-                  DetailItem('Heure', s.heure),
+                  DetailItem('Date', s.dateHeureAffichage),
                   DetailItem('Lieu', s.lieu),
                   DetailItem(
                     'Échantillons',

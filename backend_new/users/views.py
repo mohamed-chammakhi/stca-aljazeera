@@ -20,6 +20,7 @@ from .models import CodeReinitialisation, User
 from .permissions import IsChefDegustation, IsDirection
 from .serializers import (
     ChangePasswordSerializer,
+    CollecteurSuggestionSerializer,
     ForgotPasswordNewPasswordSerializer,
     ForgotPasswordRequestSerializer,
     ForgotPasswordVerifySerializer,
@@ -278,6 +279,18 @@ class PanelMemberListView(generics.ListAPIView):
         return User.objects.filter(
             role__in=[User.Role.DEGUSTATEUR, User.Role.CHEF_DEGUSTATION],
             is_active=True,
+        ).order_by('nom', 'prenom', 'date_creation')
+
+
+class CollecteurSuggestionListView(generics.ListAPIView):
+    serializer_class = CollecteurSuggestionSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return User.objects.filter(
+            role=User.Role.COLLECTEUR,
+            is_active=True,
+            date_suppression__isnull=True,
         ).order_by('nom', 'prenom', 'date_creation')
 
 

@@ -79,6 +79,34 @@ class SessionDegustationApiTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.json()['statut'], SessionDegustation.Statut.PLANIFIEE)
 
+    def test_session_creation_requires_only_title_date_and_time(self):
+        self.authenticate(self.degustateur)
+
+        response = self.client.post(
+            '/api/sessions/',
+            {
+                'titre': 'Session minimale',
+                'date': '2026-05-21',
+                'heure': '10:00',
+            },
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        data = response.json()
+        self.assertEqual(data['lieu'], '')
+        self.assertEqual(data['notes'], '')
+
+    def test_session_creation_rejects_missing_required_fields(self):
+        self.authenticate(self.degustateur)
+
+        response = self.client.post('/api/sessions/', {'lieu': 'Salle A'}, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('titre', response.json())
+        self.assertIn('date', response.json())
+        self.assertIn('heure', response.json())
+
     def test_chef_can_approve_and_refuse_pending_sessions(self):
         pending = SessionDegustation.objects.create(
             titre='Session a valider',

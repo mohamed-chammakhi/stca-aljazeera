@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from fournisseurs.models import Fournisseur
+from users.models import User
 
 from .models import Echantillon
 
@@ -8,6 +9,15 @@ from .models import Echantillon
 class EchantillonSerializer(serializers.ModelSerializer):
     fournisseur_nom  = serializers.SerializerMethodField(read_only=True)
     collecteur_nom   = serializers.SerializerMethodField(read_only=True)
+    collecteur = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.filter(
+            role=User.Role.COLLECTEUR,
+            is_active=True,
+            date_suppression__isnull=True,
+        ),
+        required=False,
+        allow_null=True,
+    )
 
     class Meta:
         model = Echantillon
@@ -32,7 +42,7 @@ class EchantillonSerializer(serializers.ModelSerializer):
         # renvoyer-en-negociation l'incremente, ce qui garantit qu'il compte
         # bien des tours reels et pas ce que l'app veut afficher.
         read_only_fields = [
-            'id', 'numero', 'collecteur',
+            'id', 'numero',
             'nb_renegociations', 'date_reception_echantillon',
             'date_ajout', 'updated_at',
         ]

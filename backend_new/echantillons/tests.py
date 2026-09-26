@@ -372,6 +372,33 @@ class CollectorEchantillonApiTests(APITestCase):
             Echantillon.StatutCollecteur.RECEPTIONNE,
         )
 
+    def test_degustateur_can_create_sample_with_flutter_payload_and_collecteur(self):
+        self.authenticate(self.degustateur)
+
+        response = self.client.post(
+            '/api/echantillons/',
+            {
+                'reference_bouteille': 'DEG-FORM-001',
+                'fournisseur_nom': 'Domaine Formulaire',
+                'collecteur': str(self.collector.id),
+                'gouvernorat': 'Sfax',
+                'delegation': 'Sfax Sud',
+                'cite': '',
+                'num_citerne': 'C1',
+                'quantite_estimee': '12',
+                'variete': 'Chemlali',
+                'remarques': '',
+                'image_url': '',
+                'statut_collecteur': 'receptionne',
+            },
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        sample = Echantillon.objects.get(id=response.data['id'])
+        self.assertEqual(sample.collecteur, self.collector)
+        self.assertEqual(sample.fournisseur.nom, 'Domaine Formulaire')
+
     def test_chef_can_create_sample_without_collecteur_owner(self):
         self.authenticate(self.chef)
 
@@ -393,6 +420,33 @@ class CollectorEchantillonApiTests(APITestCase):
             sample.statut_collecteur,
             Echantillon.StatutCollecteur.RECEPTIONNE,
         )
+
+    def test_chef_can_create_sample_with_flutter_payload_and_collecteur(self):
+        self.authenticate(self.chef)
+
+        response = self.client.post(
+            '/api/echantillons/',
+            {
+                'reference_bouteille': 'CHEF-FORM-001',
+                'fournisseur_nom': 'Domaine Chef',
+                'collecteur': str(self.collector.id),
+                'gouvernorat': 'Sfax',
+                'delegation': 'Sfax Sud',
+                'cite': '',
+                'num_citerne': 'C2',
+                'quantite_estimee': '15',
+                'variete': 'Chetoui',
+                'remarques': '',
+                'image_url': '',
+                'statut_collecteur': 'receptionne',
+            },
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        sample = Echantillon.objects.get(id=response.data['id'])
+        self.assertEqual(sample.collecteur, self.collector)
+        self.assertEqual(sample.fournisseur.nom, 'Domaine Chef')
 
     def test_chef_can_update_sample(self):
         sample = self.create_sample(self.collector)
@@ -626,6 +680,32 @@ class CollectorEchantillonApiTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         ids = {item['id'] for item in self.results(response)}
         self.assertEqual(ids, {str(own.id)})
+
+    def test_degustateur_and_chef_list_samples_from_all_collectors_for_variety_suggestions(self):
+        own = self.create_sample(
+            self.collector,
+            reference_bouteille='VAR-A',
+            variete='Chemlali',
+        )
+        other = self.create_sample(
+            self.other_collector,
+            reference_bouteille='VAR-B',
+            variete='Chetoui',
+        )
+
+        self.authenticate(self.degustateur)
+        degustateur_response = self.client.get('/api/echantillons/')
+        self.assertEqual(degustateur_response.status_code, status.HTTP_200_OK)
+        degustateur_ids = {item['id'] for item in self.results(degustateur_response)}
+        self.assertIn(str(own.id), degustateur_ids)
+        self.assertIn(str(other.id), degustateur_ids)
+
+        self.authenticate(self.chef)
+        chef_response = self.client.get('/api/echantillons/')
+        self.assertEqual(chef_response.status_code, status.HTTP_200_OK)
+        chef_ids = {item['id'] for item in self.results(chef_response)}
+        self.assertIn(str(own.id), chef_ids)
+        self.assertIn(str(other.id), chef_ids)
 
     def test_direction_confirms_purchase_proposal(self):
         sample = self.create_sample(
@@ -902,3 +982,45 @@ class RenvoiEnNegociationTests(APITestCase):
         )
         self.sample.refresh_from_db()
         self.assertEqual(self.sample.nb_renegociations, 0)
+
+
+class PhotoModificationTests(APITestCase):
+    """A bottle photo can be replaced when a sample is edited, not only created."""
+
+    def setUp(self):
+        import tempfile
+
+        from django.test import override_settings
+
+        self._media = override_settings(MEDIA_ROOT=tempfile.mkdtemp())
+        self._media.enable()
+        self.degustateur = User.objects.create_user(
+            email='photo-deg@test.com',
+            password='Test@12345',
+            nom='Photo',
+            prenom='Deg',
+            role=User.Role.DEGUSTATEUR,
+        )
+        self.sample = Echantillon.objects.create(
+            reference_bouteille='PHOTO-001',
+            gouvernorat='Sfax',
+            recu_physiquement=True,
+        )
+
+    def tearDown(self):
+        self._media.disable()
+
+    def test_patch_multipart_remplace_la_photo(self):
+        from django.core.files.uploadedfile import SimpleUploadedFile
+
+        self.client.force_authenticate(user=self.degustateur)
+        photo = SimpleUploadedFile('bouteille.jpg', b'\xff\xd8\xff\xe0fake', content_type='image/jpeg')
+        response = self.client.patch(
+            f'/api/echantillons/{self.sample.id}/',
+            {'image': photo, 'reference_bouteille': 'PHOTO-001'},
+            format='multipart',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
+        self.sample.refresh_from_db()
+        self.assertIn('echantillons/', self.sample.image_url)

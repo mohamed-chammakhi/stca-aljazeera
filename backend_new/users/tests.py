@@ -11,6 +11,58 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from .models import CodeReinitialisation, User
 
 
+class CollecteurSuggestionApiTests(APITestCase):
+    def setUp(self):
+        self.degustateur = User.objects.create_user(
+            email='suggestion.degustateur@example.com',
+            password='Test@12345',
+            nom='Degustateur',
+            prenom='User',
+            role=User.Role.DEGUSTATEUR,
+        )
+        self.collecteur = User.objects.create_user(
+            email='suggestion.collecteur@example.com',
+            password='Test@12345',
+            nom='Dridi',
+            prenom='Ahmed',
+            role=User.Role.COLLECTEUR,
+        )
+        self.inactive_collecteur = User.objects.create_user(
+            email='suggestion.collecteur.inactive@example.com',
+            password='Test@12345',
+            nom='Inactive',
+            prenom='Collector',
+            role=User.Role.COLLECTEUR,
+            is_active=False,
+        )
+        self.deleted_collecteur = User.objects.create_user(
+            email='suggestion.collecteur.deleted@example.com',
+            password='Test@12345',
+            nom='Deleted',
+            prenom='Collector',
+            role=User.Role.COLLECTEUR,
+            date_suppression=timezone.now(),
+        )
+        User.objects.create_user(
+            email='suggestion.chef@example.com',
+            password='Test@12345',
+            nom='Chef',
+            prenom='Panel',
+            role=User.Role.CHEF_DEGUSTATION,
+        )
+
+    def test_degustateur_lists_only_active_not_deleted_collectors(self):
+        self.client.force_authenticate(user=self.degustateur)
+
+        response = self.client.get('/api/users/collecteurs/')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.json().get('results', response.json())
+        ids = {item['id'] for item in data}
+        self.assertEqual(ids, {str(self.collecteur.id)})
+        self.assertEqual(data[0]['nom_complet'], 'Ahmed Dridi')
+
+
 class CurrentUserProfileApiTests(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user(

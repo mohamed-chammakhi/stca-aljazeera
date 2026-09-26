@@ -194,7 +194,12 @@ class EchantillonViewSet(viewsets.ModelViewSet):
             raise ValidationError(
                 {'statut_collecteur': ['Utilisez l action dediee pour changer le statut.']}
             )
-        serializer.save()
+        # A new bottle photo can be attached when editing too (multipart 'image').
+        photo_url = self._store_bottle_photo()
+        if photo_url:
+            serializer.save(image_url=photo_url)
+        else:
+            serializer.save()
 
     def destroy(self, request, *args, **kwargs):
         # Called automatically when a DELETE request tries to remove a sample.

@@ -96,6 +96,18 @@ class PanelMemberSerializer(serializers.ModelSerializer):
         return obj.is_active
 
 
+class CollecteurSuggestionSerializer(serializers.ModelSerializer):
+    nom_complet = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = ['id', 'nom', 'prenom', 'nom_complet']
+        read_only_fields = fields
+
+    def get_nom_complet(self, obj):
+        return f'{obj.prenom} {obj.nom}'.strip()
+
+
 class UserAdminUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = User

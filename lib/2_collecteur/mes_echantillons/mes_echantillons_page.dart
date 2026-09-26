@@ -233,10 +233,12 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
       echantillon: e,
       prochainNumero: _prochainNumero,
       onSaveMultiple: (_, {photos}) async {
+        final photo = photos?.whereType<SamplePhoto>().firstOrNull;
         await _saveEchantillon(
           e,
-          successMessage: '"${e.referenceBouteille}" modifie',
+          successMessage: '"${e.referenceBouteille}" modifié',
           rethrowError: true,
+          photo: photo,
         );
         _rebuildMap();
       },
@@ -577,9 +579,17 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
     EchantillonCollecteur e, {
     String? successMessage,
     bool rethrowError = false,
+    SamplePhoto? photo,
   }) async {
     try {
-      final saved = await _service.updateEchantillon(e);
+      // A new photo picked while editing is sent with the edit.
+      final saved = photo == null
+          ? await _service.updateEchantillon(e)
+          : await _service.updateEchantillonWithImage(
+              e,
+              imageBytes: photo.bytes,
+              filename: photo.filename,
+            );
       if (!mounted) return;
       setState(() {
         final index = _echantillons.indexWhere((item) => item.id == e.id);

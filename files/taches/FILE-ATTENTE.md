@@ -33,7 +33,8 @@ Claude tient cette liste à jour. Codex ne travaille que sur la tâche marquée 
 | 22 | Serveur du téléphone séparé du code en cours : il tourne depuis `../project3-serveur` (dernier commit vérifié), plus depuis les fichiers que Codex modifie | Claude | Terminée |
 | 23 | **Tâche 47 : audit du câblage de bout en bout (PRIORITAIRE, avant 43-46)** : parcours réel d'un échantillon sur tous les rôles, lecture de chaque réponse par l'application, plus aucun UUID ni date brute à l'écran, même chose = même nom, pages vides expliquées | Codex + Claude | Partie 1 terminée et commitée (0 défaut sur 567 réponses ; plantage des nombres et dates brutes corrigés) |
 | 24 | Tâche 47b : un seul nom par idée côté Flutter (`ref` supprimé), un test par écran principal, champs serveur inutilisés listés | Codex + Claude | Terminée et commitée (153 tests ; 9 écrans vérifiés à 360 px) |
-| 25 | Tâche 46b : suite de la 46 — C suggestions dégustateurs, D enregistrement en dégustateur, E formulaire aligné sur le collecteur, F photo et débordement de l'évaluation, G textes longs, H sessions, nombre d'utilisateurs du chef, tests A et B | Codex | **EN COURS** |
+| 25 | Tâche 46b : suite de la 46 — C suggestions dégustateurs, D enregistrement en dégustateur, E formulaire aligné sur le collecteur, F photo et débordement de l'évaluation, G textes longs, H sessions, nombre d'utilisateurs du chef, tests A et B | Codex + Claude | Terminée et commitée (photo à la modification ajoutée pour les 3 rôles ; carte d'évaluation qui débordait corrigée) |
+| 26 | Tâche 46c : tests restants — déconnexion (pile vide), envoi de la photo en création et en modification | Codex | **EN COURS** |
 
 **Accord git (25/09/2026) :** la propriétaire a donné son accord pour commiter les
 lignes 1 à 6 en une seule fois, quand la tâche 37 est finie et que `flutter analyze` +

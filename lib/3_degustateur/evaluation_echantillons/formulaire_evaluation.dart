@@ -5,6 +5,7 @@ import '../../core/classification/classification_interne.dart';
 import '../../core/models/enums.dart';
 import '../../core/widgets/carte_classification.dart';
 import '../../core/widgets/bandeau_demonstration.dart';
+import '../../core/widgets/photo_plein_ecran.dart';
 import '../../core/widgets/saisie_protegee.dart';
 import 'package:project3/core/services/evaluation_service.dart';
 import 'package:project3/core/utils/date_utils.dart';
@@ -343,20 +344,36 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
                                       color: Colors.grey.shade200,
                                     ),
                                   ),
-                                  child: widget.photoUrl != null
-                                      ? ClipRRect(
+                                  child:
+                                      widget.photoUrl != null &&
+                                          widget.photoUrl!.trim().isNotEmpty
+                                      ? PhotoPleinEcran.network(
+                                          imageUrl: widget.photoUrl!,
+                                          height: 80,
                                           borderRadius: BorderRadius.circular(
                                             11,
                                           ),
-                                          child: Image.network(
-                                            widget.photoUrl!,
-                                            fit: BoxFit.cover,
-                                          ),
                                         )
-                                      : Icon(
-                                          Icons.image_outlined,
-                                          size: 36,
-                                          color: Colors.grey.shade400,
+                                      : Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            Icon(
+                                              Icons
+                                                  .image_not_supported_outlined,
+                                              size: 26,
+                                              color: Colors.grey.shade400,
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              'Pas de photo',
+                                              textAlign: TextAlign.center,
+                                              style: TextStyle(
+                                                fontSize: 10,
+                                                color: Colors.grey.shade500,
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                 ),
 
@@ -1155,7 +1172,13 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
         children: [
           Icon(icon, size: 13, color: oliveGreen),
           const SizedBox(width: 5),
-          Text(value, style: const TextStyle(fontSize: 13, color: darkText)),
+          Expanded(
+            child: Text(
+              value,
+              softWrap: true,
+              style: const TextStyle(fontSize: 13, color: darkText),
+            ),
+          ),
         ],
       ),
     );

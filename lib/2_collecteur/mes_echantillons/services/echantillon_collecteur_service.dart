@@ -205,6 +205,28 @@ class EchantillonCollecteurService {
     return EchantillonCollecteur.fromJson(_toFlutterMap(response));
   }
 
+  /// Edits an echantillon AND replaces its bottle photo in one request.
+  Future<EchantillonCollecteur> updateEchantillonWithImage(
+    EchantillonCollecteur e, {
+    required List<int> imageBytes,
+    required String filename,
+  }) async {
+    if (_usingMockData) {
+      return e;
+    }
+    final fields = <String, String>{};
+    _toDjangoMap(e).forEach((k, v) {
+      if (v != null && v.toString().isNotEmpty) fields[k] = v.toString();
+    });
+    final response = await _api.patchMultipart(
+      '/api/echantillons/${e.id}/',
+      bytes: imageBytes,
+      filename: filename,
+      fields: fields,
+    );
+    return EchantillonCollecteur.fromJson(_toFlutterMap(response));
+  }
+
   /// Updates an existing echantillon via PATCH and returns the updated record.
   Future<EchantillonCollecteur> updateEchantillon(
     EchantillonCollecteur e,

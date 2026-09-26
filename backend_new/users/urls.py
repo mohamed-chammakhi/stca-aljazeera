@@ -2,6 +2,7 @@ from django.urls import path
 from .views import (
     ChangePasswordView,
     CurrentUserView,
+    CollecteurSuggestionListView,
     PanelMemberListView,
     UserCreateView,
     UserDetailView,
@@ -18,6 +19,7 @@ urlpatterns = [
         name='change-password',
     ),
     path('panel-members/', PanelMemberListView.as_view(), name='panel-members'),
+    path('collecteurs/', CollecteurSuggestionListView.as_view(), name='collecteur-suggestions'),
     path('create/', UserCreateView.as_view(), name='user-create'),
     path('<uuid:pk>/', UserDetailView.as_view(), name='user-detail'),
     path('<uuid:pk>/toggle-active/', UserToggleActiveView.as_view(), name='user-toggle-active'),

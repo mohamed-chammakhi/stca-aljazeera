@@ -35,6 +35,14 @@ String _timeFromJson(dynamic value) {
   return raw;
 }
 
+String _dateHeureAffichage(String date, String heure) {
+  final d = _dateFromJson(date);
+  final h = _timeFromJson(heure);
+  if (d.isEmpty) return h;
+  if (h.isEmpty) return d;
+  return '$d à $h';
+}
+
 List<String> _stringList(dynamic value) =>
     (value as List?)?.map((e) => e.toString()).toList() ?? [];
 
@@ -95,6 +103,7 @@ class SessionDegustation {
 
   int get nbEchantillons => echantillonIds.length;
   int get nbParticipants => participantIds.length;
+  String get dateHeureAffichage => _dateHeureAffichage(date, heure);
 
   factory SessionDegustation.fromJson(Map<String, dynamic> json) =>
       SessionDegustation(
