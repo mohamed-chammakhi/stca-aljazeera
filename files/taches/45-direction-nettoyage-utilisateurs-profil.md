@@ -141,3 +141,70 @@ Codex a été coupé par sa limite d'utilisation après 9 minutes, sans rapport.
   retour au tableau de bord depuis les 5 profils (bouton retour du téléphone + entrée
   « Tableau de bord » du menu direction qui ne faisait que fermer le menu).
 - Tests : 162 Flutter, 211 serveur.
+
+### Reprise Codex (26/09/2026)
+
+#### Fait
+
+- `files/taches/45-direction-nettoyage-utilisateurs-profil.md` : ajout de cette section de reprise. Aucun code applicatif n'a été modifié pendant cette reprise, car les corrections A à F étaient déjà présentes dans les fichiers suivis et `git diff` était vide avant ce rapport.
+
+#### Vérifié
+
+```bash
+git status --short --untracked-files=all
+```
+
+Sortie :
+
+```text
+?? backend_new/backup_propre.json
+?? backend_new/media/echantillons/044af5b2cf40493d9e65c268e3859aca.jpg
+?? backend_new/media/echantillons/0b93a0e90d994266bbd9549e66f2b6d2.jpg
+?? backend_new/media/echantillons/120dec5c83a8413bb9c19febab852571.jpg
+?? backend_new/media/echantillons/17c719ba697e4251a453dc012eaf37ff.jpg
+?? backend_new/media/echantillons/1d39084068f94603b477fee4b46e472f.jpg
+?? backend_new/media/echantillons/33f670539dfe48be95863e4afac08669.jpg
+?? backend_new/media/echantillons/74f28ca7e7f84314afa3541f5be4755a.jpg
+?? backend_new/media/echantillons/902fe6b1b16441d4ac2b4febcacd0336.jpg
+?? backend_new/media/echantillons/c321db0ba295448c963fa62e7cf9a168.jpg
+?? backend_new/sauvegarde_avant_nettoyage_2026-09-25.json
+?? files/taches/CONTROLE-MANUEL.md
+```
+
+```bash
+git diff --stat
+git diff --name-only
+```
+
+Sortie avant ajout de cette reprise : aucune ligne pour les deux commandes.
+
+```bash
+git grep -n -E "Consultation seule|nombre d'utilisateurs" -- lib/core/utilisateurs test
+```
+
+Sortie :
+
+```text
+test/utilisateurs_page_body_test.dart:72:    expect(find.textContaining('Consultation seule'), findsNothing);
+test/utilisateurs_page_body_test.dart:110:    expect(find.textContaining('Consultation seule'), findsNothing);
+```
+
+```bash
+git grep -n -E "date_suppression|Utilisateur supprim|Mot de passe oubli|Duration\(seconds: 3\)" -- lib backend_new test
+```
+
+Sortie utile observée : occurrences présentes dans `backend_new/users/models.py`, `backend_new/users/serializers.py`, `backend_new/users/views.py`, `backend_new/users/migrations/0006_user_date_suppression.py`, `backend_new/users/tests.py`, `backend_new/messages_chat/tests.py`, `lib/core/models/user_profile.dart`, `lib/core/widgets/change_password_dialog.dart`, `lib/core/auth/mot_de_passe_oublie_page.dart`, `lib/1_ceo/analyse_organoleptique/analyse_organoleptique_ceo_page.dart` et `test/utilisateurs_page_body_test.dart`.
+
+Tests non lancés :
+
+- `flutter analyze lib test` : non lancé, car la tâche précise que le sandbox ne peut pas lancer Flutter et demande de ne pas essayer.
+- `flutter test` : non lancé pour la même raison.
+- `cd backend_new ; ./venv/Scripts/python.exe manage.py test --keepdb` : non lancé pendant cette reprise ; la tâche indique que Claude lancera les tests Django et appliquera la migration après sauvegarde. Aucune migration n'a été appliquée sur la vraie base.
+
+#### Non fait
+
+- Aucun complément de code : les corrections demandées étaient déjà présentes dans l'arbre suivi au moment de la reprise.
+
+#### HORS PÉRIMÈTRE
+
+- Fichiers non suivis déjà présents et non modifiés : `backend_new/backup_propre.json`, `backend_new/sauvegarde_avant_nettoyage_2026-09-25.json`, `backend_new/media/echantillons/*.jpg`, `files/taches/CONTROLE-MANUEL.md`.
