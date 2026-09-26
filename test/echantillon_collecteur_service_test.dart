@@ -7,8 +7,12 @@ class _RecordingApiClient extends ApiClient {
   _RecordingApiClient() : super(baseUrl: 'http://test.invalid');
 
   int postCount = 0;
+  int patchMultipartCount = 0;
   String? lastPath;
   Map<String, dynamic>? lastBody;
+  Map<String, String>? lastFields;
+  List<int>? lastBytes;
+  String? lastFilename;
 
   @override
   Future<Map<String, dynamic>> post(
@@ -26,6 +30,35 @@ class _RecordingApiClient extends ApiClient {
       'fournisseur_nom': body['fournisseur_nom'],
       'collecteur': '44444444-4444-4444-4444-444444444444',
       'collecteur_nom': 'Collecteur Test',
+      'date_ajout': '2026-08-05T10:00:00Z',
+    };
+  }
+
+  @override
+  Future<Map<String, dynamic>> patchMultipart(
+    String path, {
+    required List<int> bytes,
+    required String filename,
+    String fileField = 'image',
+    Map<String, String>? fields,
+  }) async {
+    patchMultipartCount += 1;
+    lastPath = path;
+    lastBytes = List<int>.from(bytes);
+    lastFilename = filename;
+    lastFields = fields == null ? null : Map<String, String>.from(fields);
+    return {
+      ...?fields,
+      'id': '22222222-2222-2222-2222-222222222222',
+      'numero': '2026/0001',
+      'gouvernorat': fields?['gouvernorat'] ?? 'Sfax',
+      'reference_bouteille': fields?['reference_bouteille'] ?? 'B-001',
+      'fournisseur': '33333333-3333-3333-3333-333333333333',
+      'fournisseur_nom': fields?['fournisseur_nom'] ?? 'Domaine Test',
+      'collecteur': '44444444-4444-4444-4444-444444444444',
+      'collecteur_nom': 'Collecteur Test',
+      'statut_collecteur': fields?['statut_collecteur'] ?? 'receptionne',
+      'recu_physiquement': false,
       'date_ajout': '2026-08-05T10:00:00Z',
     };
   }
@@ -61,4 +94,38 @@ void main() {
       expect(saved.fournisseurNom, 'Domaine Test');
     },
   );
+
+  test('la modification avec photo utilise PATCH multipart', () async {
+    final api = _RecordingApiClient();
+    final service = EchantillonCollecteurService(api: api);
+    final sample = EchantillonCollecteur(
+      id: '22222222-2222-2222-2222-222222222222',
+      numero: '2026/0001',
+      gouvernorat: 'Sfax',
+      fournisseurNom: 'Domaine Test',
+      fournisseurTexte: 'Domaine Test',
+      referenceBouteille: 'B-001',
+      achatConfirme: false,
+      dateAjout: DateTime(2026, 8, 5),
+      collecteurId: '44444444-4444-4444-4444-444444444444',
+      collecteurNom: 'Collecteur Test',
+      statut: StatutCollecteur.receptionne,
+    );
+
+    final saved = await service.updateEchantillonWithImage(
+      sample,
+      imageBytes: [7, 8, 9],
+      filename: 'bouteille-collecteur.jpg',
+    );
+
+    expect(api.patchMultipartCount, 1);
+    expect(
+      api.lastPath,
+      '/api/echantillons/22222222-2222-2222-2222-222222222222/',
+    );
+    expect(api.lastBytes, [7, 8, 9]);
+    expect(api.lastFilename, 'bouteille-collecteur.jpg');
+    expect(api.lastFields?['reference_bouteille'], 'B-001');
+    expect(saved.referenceBouteille, 'B-001');
+  });
 }

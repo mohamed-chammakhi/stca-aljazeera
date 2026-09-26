@@ -3,9 +3,12 @@ import 'package:flutter/material.dart';
 import '../main.dart';
 import 'services/auth_service.dart';
 
-Future<void> logoutAndShowLogin(BuildContext context) async {
+Future<void> logoutAndShowLogin(
+  BuildContext context, {
+  Future<void> Function()? logout,
+}) async {
   try {
-    await authService.logout();
+    await (logout ?? authService.logout)();
   } finally {
     if (!context.mounted) return;
     Navigator.of(context).pushAndRemoveUntil(

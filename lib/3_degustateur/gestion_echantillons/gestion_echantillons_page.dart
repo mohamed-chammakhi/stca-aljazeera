@@ -73,7 +73,7 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage>
     super.initState();
     _service =
         widget.service ??
-        const GestionEchantillonsService(uniquementRecusPhysiquement: false);
+        GestionEchantillonsService(uniquementRecusPhysiquement: false);
     _loadData();
   }
 

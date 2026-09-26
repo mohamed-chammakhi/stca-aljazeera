@@ -44,7 +44,7 @@ class _ConversationPageState extends State<ConversationPage>
       'Action indisponible avec les données de démonstration. Réessayez lorsque le serveur répond.';
 
   final _service = MessagerieService.instance;
-  final _echantillonService = const GestionEchantillonsService(
+  final _echantillonService = GestionEchantillonsService(
     uniquementRecusPhysiquement: false,
   );
   final _picker = ImagePicker();

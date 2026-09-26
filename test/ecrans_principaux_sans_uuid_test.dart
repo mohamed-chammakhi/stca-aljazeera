@@ -156,7 +156,7 @@ class _CollecteurNotifications extends NotificationCollecteurService {
 class _GestionService extends GestionEchantillonsService {
   final List<gestion_model.Echantillon> data;
 
-  const _GestionService(this.data) : super(uniquementRecusPhysiquement: false);
+  _GestionService(this.data) : super(uniquementRecusPhysiquement: false);
 
   @override
   Future<Resultat<List<gestion_model.Echantillon>>> fetchEchantillons({

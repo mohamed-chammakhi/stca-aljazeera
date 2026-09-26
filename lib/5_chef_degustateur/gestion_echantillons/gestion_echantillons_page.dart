@@ -80,7 +80,7 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage>
     super.initState();
     _service =
         widget.service ??
-        const GestionEchantillonsService(uniquementRecusPhysiquement: false);
+        GestionEchantillonsService(uniquementRecusPhysiquement: false);
     final referenceInitiale = widget.referenceInitiale?.trim();
     if (referenceInitiale != null && referenceInitiale.isNotEmpty) {
       _recherche = referenceInitiale;

@@ -45,8 +45,12 @@ Map<String, dynamic> echantillonApiToGestionFlutterMap(
 
 class GestionEchantillonsService {
   final bool uniquementRecusPhysiquement;
+  final ApiClient _api;
 
-  const GestionEchantillonsService({this.uniquementRecusPhysiquement = true});
+  GestionEchantillonsService({
+    this.uniquementRecusPhysiquement = true,
+    ApiClient? api,
+  }) : _api = api ?? apiClient;
 
   // ── Field mapping: Django API → Echantillon.fromJson ─────────────────────
   //
@@ -98,7 +102,7 @@ class GestionEchantillonsService {
     final path = query.isEmpty
         ? '/api/echantillons/'
         : Uri(path: '/api/echantillons/', queryParameters: query).toString();
-    final items = await apiClient.getList(path);
+    final items = await _api.getList(path);
     return items
         .map(
           (e) => Echantillon.fromJson(_toFlutterMap(e as Map<String, dynamic>)),
@@ -110,8 +114,8 @@ class GestionEchantillonsService {
   Future<Echantillon> updateEchantillon(Echantillon e) async {
     final photo = e.photoAEnvoyer;
     final response = photo == null
-        ? await apiClient.patch('/api/echantillons/${e.id}/', _toDjangoMap(e))
-        : await apiClient.patchMultipart(
+        ? await _api.patch('/api/echantillons/${e.id}/', _toDjangoMap(e))
+        : await _api.patchMultipart(
             '/api/echantillons/${e.id}/',
             bytes: photo,
             filename: e.photoNomFichier ?? 'bouteille.jpg',
@@ -123,8 +127,8 @@ class GestionEchantillonsService {
   Future<Echantillon> createEchantillon(Echantillon e) async {
     final photo = e.photoAEnvoyer;
     final response = photo == null
-        ? await apiClient.post('/api/echantillons/', _toDjangoMap(e))
-        : await apiClient.postMultipart(
+        ? await _api.post('/api/echantillons/', _toDjangoMap(e))
+        : await _api.postMultipart(
             '/api/echantillons/',
             bytes: photo,
             filename: e.photoNomFichier ?? 'bouteille.jpg',
@@ -141,7 +145,7 @@ class GestionEchantillonsService {
   };
 
   Future<void> deleteEchantillon(String id) async {
-    await apiClient.delete('/api/echantillons/$id/');
+    await _api.delete('/api/echantillons/$id/');
   }
 
   /// Toggles physical reception of an echantillon at the company.
@@ -149,6 +153,6 @@ class GestionEchantillonsService {
   /// Calls the backend endpoint that matches the requested state.
   Future<void> toggleRecuPhysiquement(String id, bool value) async {
     final action = value ? 'confirmer-reception' : 'annuler-reception';
-    await apiClient.patch('/api/echantillons/$id/$action/', {});
+    await _api.patch('/api/echantillons/$id/$action/', {});
   }
 }
