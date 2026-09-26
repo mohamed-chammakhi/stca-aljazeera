@@ -78,3 +78,81 @@ Ton sandbox ne peut pas lancer Flutter : n'essaie pas. Claude lancera les tests 
 Django.
 
 ## RAPPORT
+
+### Fait
+
+- `backend_new/echantillons/views.py` : la liste des echantillons accepte maintenant `recherche` et `limite` pour trouver une bouteille cote serveur, avec les resultats les plus recents en premier et sans changer la reponse quand ces parametres sont absents.
+- `backend_new/echantillons/tests.py` : ajout des tests de recherche multi-mots, limite, tri recent d'abord et isolation collecteur.
+- `backend_new/messages_chat/serializers.py` : les messages qui citent une bouteille renvoient aussi le nom du fournisseur, pour l'afficher dans la pastille.
+- `backend_new/messages_chat/tests.py` : ajout de la verification du fournisseur renvoye avec une reference bouteille dans un message.
+- `lib/core/services/gestion_echantillons_service.dart` : le service peut demander `recherche` et `limite` sans charger toute la liste visible.
+- `lib/core/models/message.dart` : le modele de message lit `echantillon_fournisseur_nom`.
+- `lib/core/widgets/messagerie/conversation_page.dart` : la feuille s'appelle maintenant `Citer une bouteille`, reste sous la zone sure quand le clavier est ouvert, interroge le serveur avec debounce 300 ms et `limite=15`, ignore les reponses obsoletes, affiche la reference bouteille en premier avec fournisseur-lieu et details, et la pastille envoyee montre reference bouteille puis fournisseur, avec le numero en petit.
+
+### Verifie
+
+```bash
+cd backend_new
+$env:DEBUG='True'; $env:DB_ENGINE='sqlite'; .\venv\Scripts\python.exe manage.py test echantillons messages_chat -v 1
+```
+
+Sortie :
+
+```text
+Creating test database for alias 'default'...
+..............................................................
+----------------------------------------------------------------------
+Ran 62 tests in 194.109s
+
+OK
+Destroying test database for alias 'default'...
+Found 62 test(s).
+System check identified no issues (0 silenced).
+```
+
+```bash
+cd backend_new
+$env:DEBUG='True'; $env:DB_ENGINE='sqlite'; .\venv\Scripts\python.exe manage.py makemigrations --check --dry-run
+```
+
+Sortie :
+
+```text
+No changes detected
+```
+
+```bash
+git diff --check
+```
+
+Sortie :
+
+```text
+warning: in the working copy of 'backend_new/echantillons/tests.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'backend_new/echantillons/views.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'backend_new/messages_chat/serializers.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'backend_new/messages_chat/tests.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'lib/core/models/message.dart', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'lib/core/services/gestion_echantillons_service.dart', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'lib/core/widgets/messagerie/conversation_page.dart', LF will be replaced by CRLF the next time Git touches it
+```
+
+```bash
+dart format lib/core/widgets/messagerie/conversation_page.dart lib/core/services/gestion_echantillons_service.dart lib/core/models/message.dart
+```
+
+Sortie :
+
+```text
+Aucune sortie pendant plusieurs minutes ; commande interrompue manuellement, code 1.
+```
+
+### Non fait
+
+- Tests Flutter non lances, conformement a la consigne de cette tache : `Ton sandbox ne peut pas lancer Flutter : n'essaie pas`.
+- `dart format` n'a pas pu etre mene a terme dans ce shell : le processus est reste muet plusieurs minutes et a ete interrompu pour ne pas laisser de session active.
+
+### HORS PERIMETRE
+
+- `files/backend_sprint_plan.md`, demande par les consignes projet avant backend, est absent du depot. J'ai continue avec `files/backend.md`, `files/mapbackend.md`, `CLAUDE.md` et le fichier de tache.
+- La competence `frontend-design` exigee par `CLAUDE.md` n'est pas disponible dans la liste des skills installes de cette session ; les regles de design du depot ont ete appliquees directement.

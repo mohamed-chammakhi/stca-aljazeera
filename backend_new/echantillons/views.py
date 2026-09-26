@@ -4,7 +4,7 @@ from decimal import Decimal, InvalidOperation
 
 from django.utils import timezone
 from django.utils.dateparse import parse_date, parse_datetime
-from django.db.models import Count
+from django.db.models import Count, Q
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
@@ -92,6 +92,39 @@ class EchantillonViewSet(viewsets.ModelViewSet):
     search_fields = ['numero', 'reference_bouteille', 'variete', 'fournisseur__nom']
     ordering_fields = ['date_ajout', 'updated_at', 'statut_collecteur']
     ordering = ['-date_ajout']
+
+    def filter_queryset(self, queryset):
+        queryset = super().filter_queryset(queryset)
+        recherche = self.request.query_params.get('recherche')
+        limite = self.request.query_params.get('limite')
+        if recherche is None and limite is None:
+            return queryset
+
+        if recherche is not None:
+            for mot in [m for m in recherche.split() if m.strip()]:
+                queryset = queryset.filter(
+                    Q(reference_bouteille__icontains=mot)
+                    | Q(numero__icontains=mot)
+                    | Q(fournisseur__nom__icontains=mot)
+                    | Q(variete__icontains=mot)
+                    | Q(num_citerne__icontains=mot)
+                    | Q(gouvernorat__icontains=mot)
+                    | Q(delegation__icontains=mot)
+                    | Q(fournisseur__region__icontains=mot)
+                    | Q(fournisseur__delegation__icontains=mot)
+                )
+
+        queryset = queryset.order_by('-date_ajout')
+        if limite is None:
+            return queryset
+
+        try:
+            limit_value = int(limite)
+        except (TypeError, ValueError):
+            return queryset
+        if limit_value <= 0:
+            return queryset.none()
+        return queryset[: min(limit_value, 50)]
 
     def get_queryset(self):
         # This method decides WHICH samples the logged-in user is allowed to see.

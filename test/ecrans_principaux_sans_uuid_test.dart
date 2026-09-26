@@ -159,8 +159,10 @@ class _GestionService extends GestionEchantillonsService {
   const _GestionService(this.data) : super(uniquementRecusPhysiquement: false);
 
   @override
-  Future<Resultat<List<gestion_model.Echantillon>>> fetchEchantillons() async =>
-      Resultat(data);
+  Future<Resultat<List<gestion_model.Echantillon>>> fetchEchantillons({
+    String? recherche,
+    int? limite,
+  }) async => Resultat(data);
 }
 
 class _EvaluationService extends EvaluationService {

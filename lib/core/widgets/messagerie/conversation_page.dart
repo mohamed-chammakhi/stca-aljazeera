@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -18,6 +20,7 @@ import '../../services/gestion_echantillons_service.dart';
 import '../../services/messagerie_service.dart';
 import '../../theme/app_colors.dart';
 import '../../utils/rafraichissement_periodique.dart';
+import '../empty_state.dart';
 
 class ConversationPage extends StatefulWidget {
   final ContactMessagerie contact;
@@ -286,6 +289,7 @@ class _ConversationPageState extends State<ConversationPage>
       context: context,
       backgroundColor: Colors.white,
       isScrollControlled: true,
+      useSafeArea: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
@@ -595,6 +599,7 @@ class _MessageBubble extends StatelessWidget {
                     isSent: isSent,
                     numero: message.echantillonNumero!,
                     referenceBouteille: message.echantillonReferenceBouteille,
+                    fournisseur: message.echantillonFournisseurNom,
                     onTap: () =>
                         onOuvrirEchantillon(message.echantillonNumero!),
                   ),
@@ -864,7 +869,7 @@ class _MessagePhoto extends StatelessWidget {
                   ),
                 );
               },
-              errorBuilder: (_, __, ___) => Icon(
+              errorBuilder: (_, _, _) => Icon(
                 Icons.broken_image_outlined,
                 color: isSent ? Colors.white70 : kOlive,
                 size: 34,
@@ -881,12 +886,14 @@ class _MessageEchantillonChip extends StatelessWidget {
   final bool isSent;
   final String numero;
   final String? referenceBouteille;
+  final String? fournisseur;
   final VoidCallback onTap;
 
   const _MessageEchantillonChip({
     required this.isSent,
     required this.numero,
     required this.referenceBouteille,
+    required this.fournisseur,
     required this.onTap,
   });
 
@@ -896,6 +903,8 @@ class _MessageEchantillonChip extends StatelessWidget {
     final fg = isSent ? Colors.white : kDark;
     final secondary = isSent ? Colors.white.withValues(alpha: 0.78) : kOlive;
     final reference = referenceBouteille?.trim() ?? '';
+    final supplier = fournisseur?.trim() ?? '';
+    final title = reference.isNotEmpty ? reference : numero;
     return Material(
       color: bg,
       borderRadius: BorderRadius.circular(8),
@@ -923,7 +932,7 @@ class _MessageEchantillonChip extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      numero,
+                      title,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
@@ -932,9 +941,20 @@ class _MessageEchantillonChip extends StatelessWidget {
                         fontWeight: FontWeight.w800,
                       ),
                     ),
+                    if (supplier.isNotEmpty)
+                      Text(
+                        supplier,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: secondary,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     if (reference.isNotEmpty)
                       Text(
-                        reference,
+                        numero,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
@@ -1024,8 +1044,10 @@ class _ComposerAttachments extends StatelessWidget {
         if (echantillon != null)
           _ComposerAttachmentCard(
             icon: Icons.inventory_2_outlined,
-            title: echantillon!.numero,
-            subtitle: echantillon!.referenceBouteille,
+            title: echantillon!.titre,
+            subtitle: echantillon!.fournisseurLieu.isNotEmpty
+                ? echantillon!.fournisseurLieu
+                : echantillon!.numero,
             onRemove: onRemoveEchantillon,
           ),
       ],
@@ -1113,6 +1135,11 @@ class _ComposerAttachmentCard extends StatelessWidget {
   }
 }
 
+/// The "Citer une bouteille" sheet, exposed so tests can open it directly.
+@visibleForTesting
+Widget choixBouteillePourTest({required GestionEchantillonsService service}) =>
+    _EchantillonPicker(service: service);
+
 class _EchantillonPicker extends StatefulWidget {
   final GestionEchantillonsService service;
 
@@ -1128,6 +1155,8 @@ class _EchantillonPickerState extends State<_EchantillonPicker> {
   bool _loading = true;
   String _query = '';
   Object? _error;
+  Timer? _debounce;
+  int _requestSerial = 0;
 
   @override
   void initState() {
@@ -1137,18 +1166,23 @@ class _EchantillonPickerState extends State<_EchantillonPicker> {
 
   @override
   void dispose() {
+    _debounce?.cancel();
     _searchController.dispose();
     super.dispose();
   }
 
-  Future<void> _load() async {
+  Future<void> _load([String query = '']) async {
+    final serial = ++_requestSerial;
     setState(() {
       _loading = true;
       _error = null;
     });
     try {
-      final resultat = await widget.service.fetchEchantillons();
-      if (!mounted) return;
+      final resultat = await widget.service.fetchEchantillons(
+        recherche: query,
+        limite: 15,
+      );
+      if (!mounted || serial != _requestSerial) return;
       setState(() {
         _items = resultat.donnees
             .map(_EchantillonMessageRef.fromEchantillon)
@@ -1156,7 +1190,7 @@ class _EchantillonPickerState extends State<_EchantillonPicker> {
         _loading = false;
       });
     } catch (error) {
-      if (!mounted) return;
+      if (!mounted || serial != _requestSerial) return;
       setState(() {
         _error = error;
         _loading = false;
@@ -1164,30 +1198,55 @@ class _EchantillonPickerState extends State<_EchantillonPicker> {
     }
   }
 
-  List<_EchantillonMessageRef> get _filtered {
-    final q = _query.toLowerCase();
-    if (q.isEmpty) return _items;
-    return _items.where((item) => item.matches(q)).toList();
+  void _onQueryChanged(String value) {
+    final query = value.trim();
+    setState(() => _query = query);
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 300), () => _load(query));
+  }
+
+  void _clearQuery() {
+    _debounce?.cancel();
+    _searchController.clear();
+    setState(() => _query = '');
+    _load();
   }
 
   @override
   Widget build(BuildContext context) {
-    final items = _filtered;
+    const topPadding = 16.0;
+    const bottomPadding = 18.0;
+    const topMargin = 8.0;
+    final media = MediaQuery.of(context);
+    final keyboard = media.viewInsets.bottom;
+    final safeTop = media.padding.top;
+    final availableHeight = math.max(
+      0.0,
+      media.size.height -
+          safeTop -
+          keyboard -
+          topPadding -
+          bottomPadding -
+          topMargin,
+    );
+    final height = math.min(media.size.height * 0.72, availableHeight);
+    final items = _items;
     return SafeArea(
+      top: false,
       child: Padding(
         padding: EdgeInsets.fromLTRB(
           16,
+          topPadding,
           16,
-          16,
-          18 + MediaQuery.of(context).viewInsets.bottom,
+          bottomPadding + keyboard,
         ),
         child: SizedBox(
-          height: MediaQuery.of(context).size.height * 0.72,
+          height: height,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Référencer un échantillon',
+                'Citer une bouteille',
                 style: GoogleFonts.domine(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
@@ -1197,17 +1256,14 @@ class _EchantillonPickerState extends State<_EchantillonPicker> {
               const SizedBox(height: 12),
               TextField(
                 controller: _searchController,
-                onChanged: (value) => setState(() => _query = value.trim()),
+                onChanged: _onQueryChanged,
                 decoration: InputDecoration(
-                  hintText: 'Numéro, référence bouteille, fournisseur',
+                  hintText: 'Référence, fournisseur, variété, citerne, lieu...',
                   prefixIcon: const Icon(Icons.search, color: kOlive),
                   suffixIcon: _query.isEmpty
                       ? null
                       : IconButton(
-                          onPressed: () => setState(() {
-                            _query = '';
-                            _searchController.clear();
-                          }),
+                          onPressed: _clearQuery,
                           icon: const Icon(Icons.close, size: 18),
                         ),
                   filled: true,
@@ -1218,6 +1274,11 @@ class _EchantillonPickerState extends State<_EchantillonPicker> {
                   ),
                 ),
               ),
+              const SizedBox(height: 6),
+              const Text(
+                'Les 15 plus récentes. Ajoutez un mot pour affiner.',
+                style: TextStyle(color: kOlive, fontSize: 12),
+              ),
               const SizedBox(height: 12),
               Expanded(
                 child: _loading
@@ -1227,15 +1288,13 @@ class _EchantillonPickerState extends State<_EchantillonPicker> {
                     : _error != null
                     ? _PickerError(onRetry: _load)
                     : items.isEmpty
-                    ? const Center(
-                        child: Text(
-                          'Aucun échantillon trouvé.',
-                          style: TextStyle(color: kOlive),
-                        ),
+                    ? EmptyState(
+                        message: 'Aucune bouteille ne correspond.',
+                        systemeNeuf: _query.isEmpty,
                       )
                     : ListView.separated(
                         itemCount: items.length,
-                        separatorBuilder: (_, __) => Divider(
+                        separatorBuilder: (_, _) => Divider(
                           height: 1,
                           color: Colors.black.withValues(alpha: 0.05),
                         ),
@@ -1247,14 +1306,47 @@ class _EchantillonPickerState extends State<_EchantillonPicker> {
                               Icons.inventory_2_outlined,
                               color: kGreen,
                             ),
-                            title: Text(
-                              item.numero,
-                              style: const TextStyle(
-                                color: kDark,
-                                fontWeight: FontWeight.w800,
-                              ),
+                            title: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  item.titre,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    color: kDark,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                                if (item.fournisseurLieu.isNotEmpty)
+                                  Text(
+                                    item.fournisseurLieu,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      color: kDark,
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                              ],
                             ),
-                            subtitle: Text(item.subtitle),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                if (item.detailsBouteille.isNotEmpty)
+                                  Text(item.detailsBouteille),
+                                Text(
+                                  item.detailsSuivi,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ),
+                            isThreeLine:
+                                item.fournisseurLieu.isNotEmpty ||
+                                item.detailsBouteille.isNotEmpty,
                             onTap: () => Navigator.pop(context, item),
                           );
                         },
@@ -1291,12 +1383,26 @@ class _EchantillonMessageRef {
   final String numero;
   final String referenceBouteille;
   final String fournisseur;
+  final String gouvernorat;
+  final String delegation;
+  final String? numCiterne;
+  final String? quantiteEstimee;
+  final String? variete;
+  final String dateAjout;
+  final String statut;
 
   const _EchantillonMessageRef({
     required this.id,
     required this.numero,
     required this.referenceBouteille,
     required this.fournisseur,
+    required this.gouvernorat,
+    required this.delegation,
+    required this.numCiterne,
+    required this.quantiteEstimee,
+    required this.variete,
+    required this.dateAjout,
+    required this.statut,
   });
 
   factory _EchantillonMessageRef.fromEchantillon(Echantillon echantillon) =>
@@ -1306,7 +1412,55 @@ class _EchantillonMessageRef {
         referenceBouteille: echantillon.referenceBouteille,
         fournisseur:
             echantillon.fournisseurNom ?? echantillon.fournisseurTexte ?? '',
+        gouvernorat: echantillon.gouvernorat,
+        delegation: echantillon.delegation ?? '',
+        numCiterne: echantillon.numCiterne,
+        quantiteEstimee: echantillon.quantiteEstimee,
+        variete: echantillon.variete,
+        dateAjout: echantillon.dateAjout,
+        statut: echantillon.statutCollecteur.label,
       );
+
+  String get titre {
+    final reference = referenceBouteille.trim();
+    return reference.isNotEmpty ? reference : numero;
+  }
+
+  String get fournisseurLieu {
+    final name = fournisseur.trim();
+    if (name.isEmpty) return '';
+    final region = gouvernorat.trim();
+    final localite = delegation.trim();
+    if (region.isEmpty) return name;
+    if (localite.isEmpty) return '$name — $region';
+    return '$name — $region ($localite)';
+  }
+
+  String get detailsBouteille {
+    final parts = [
+      if (_present(numCiterne)) 'Citerne ${numCiterne!.trim()}',
+      if (_present(quantiteEstimee)) quantiteEstimee!.trim(),
+      if (_present(variete)) variete!.trim(),
+    ];
+    return parts.join(' · ');
+  }
+
+  String get detailsSuivi {
+    final date = _dateCourte(dateAjout);
+    final parts = [numero, if (date.isNotEmpty) date, statut];
+    return parts.join(' · ');
+  }
+
+  static bool _present(String? value) => value?.trim().isNotEmpty == true;
+
+  static String _dateCourte(String value) {
+    final date = DateTime.tryParse(value)?.toLocal();
+    if (date == null) return '';
+    final day = date.day.toString().padLeft(2, '0');
+    final month = date.month.toString().padLeft(2, '0');
+    final year = date.year.toString();
+    return '$day/$month/$year';
+  }
 
   String get subtitle {
     final parts = [
@@ -1348,7 +1502,7 @@ class _ImageFullScreenPage extends StatelessWidget {
               if (progress == null) return child;
               return const CircularProgressIndicator(color: Colors.white);
             },
-            errorBuilder: (_, __, ___) => const Icon(
+            errorBuilder: (_, _, _) => const Icon(
               Icons.broken_image_outlined,
               color: Colors.white70,
               size: 42,

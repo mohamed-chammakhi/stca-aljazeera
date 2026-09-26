@@ -563,6 +563,70 @@ class CollectorEchantillonApiTests(APITestCase):
         ids = {item['id'] for item in self.results(response)}
         self.assertEqual(ids, {str(confirmed.id), str(refused.id)})
 
+    def test_recherche_matches_each_word_across_sample_and_supplier_fields(self):
+        supplier = Fournisseur.objects.create(
+            nom='Domaine Hami',
+            region='Gabes',
+            delegation='El Hamma',
+        )
+        matching = self.create_sample(
+            self.collector,
+            reference_bouteille='HAM-001',
+            fournisseur=supplier,
+            gouvernorat='Gabes',
+            delegation='El Hamma',
+            variete='Chemlali',
+            num_citerne='4h',
+        )
+        self.create_sample(
+            self.collector,
+            reference_bouteille='HAM-002',
+            fournisseur=supplier,
+            gouvernorat='Gabes',
+            delegation='El Hamma',
+            variete='Chetoui',
+            num_citerne='7',
+        )
+        self.authenticate(self.collector)
+
+        response = self.client.get('/api/echantillons/?recherche=hami chemlali 4h')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        ids = {item['id'] for item in self.results(response)}
+        self.assertEqual(ids, {str(matching.id)})
+
+    def test_recherche_limite_and_orders_most_recent_first(self):
+        old = self.create_sample(self.collector, reference_bouteille='RECENT-OLD')
+        middle = self.create_sample(self.collector, reference_bouteille='RECENT-MIDDLE')
+        newest = self.create_sample(self.collector, reference_bouteille='RECENT-NEW')
+        Echantillon.objects.filter(id=old.id).update(
+            date_ajout=timezone.now() - timedelta(days=3)
+        )
+        Echantillon.objects.filter(id=middle.id).update(
+            date_ajout=timezone.now() - timedelta(days=2)
+        )
+        Echantillon.objects.filter(id=newest.id).update(
+            date_ajout=timezone.now() - timedelta(days=1)
+        )
+        self.authenticate(self.collector)
+
+        response = self.client.get('/api/echantillons/?recherche=RECENT&limite=2')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        ids = [item['id'] for item in self.results(response)]
+        self.assertEqual(ids, [str(newest.id), str(middle.id)])
+
+    def test_recherche_keeps_collector_isolation(self):
+        own = self.create_sample(self.collector, reference_bouteille='SECRET-OWN')
+        self.create_sample(self.other_collector, reference_bouteille='SECRET-OTHER')
+        self.authenticate(self.collector)
+
+        response = self.client.get('/api/echantillons/?recherche=SECRET&limite=15')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        ids = {item['id'] for item in self.results(response)}
+        self.assertEqual(ids, {str(own.id)})
+
     def test_direction_confirms_purchase_proposal(self):
         sample = self.create_sample(
             self.collector,

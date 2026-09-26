@@ -26,6 +26,7 @@ class MessageSerializer(serializers.ModelSerializer):
     destinataire_nom = serializers.SerializerMethodField(read_only=True)
     echantillon_numero = serializers.SerializerMethodField(read_only=True)
     echantillon_reference_bouteille = serializers.SerializerMethodField(read_only=True)
+    echantillon_fournisseur_nom = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Message
@@ -33,6 +34,7 @@ class MessageSerializer(serializers.ModelSerializer):
             'id', 'expediteur', 'destinataire',
             'contenu', 'photo_url', 'echantillon',
             'echantillon_numero', 'echantillon_reference_bouteille',
+            'echantillon_fournisseur_nom',
             'modifie', 'modifie_le',
             'lu', 'lu_le', 'date_envoi',
             'is_read', 'horodatage',
@@ -41,6 +43,7 @@ class MessageSerializer(serializers.ModelSerializer):
         read_only_fields = [
             'id', 'expediteur', 'photo_url',
             'echantillon_numero', 'echantillon_reference_bouteille',
+            'echantillon_fournisseur_nom',
             'modifie', 'modifie_le',
             'lu', 'lu_le', 'date_envoi',
             'is_read', 'horodatage', 'expediteur_nom', 'destinataire_nom',
@@ -95,6 +98,11 @@ class MessageSerializer(serializers.ModelSerializer):
         if not obj.echantillon:
             return None
         return obj.echantillon.reference_bouteille
+
+    def get_echantillon_fournisseur_nom(self, obj):
+        if not obj.echantillon or not obj.echantillon.fournisseur:
+            return None
+        return obj.echantillon.fournisseur.nom
 
     def _full_name(self, user):
         if not user:

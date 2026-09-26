@@ -7,6 +7,7 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from echantillons.models import Echantillon
+from fournisseurs.models import Fournisseur
 from users.models import User
 
 from .models import Message
@@ -139,7 +140,11 @@ class MessageApiTests(APITestCase):
         self.assertEqual(message.contenu, '')
 
     def test_user_can_send_message_with_sample_reference(self):
-        sample = self.create_sample(reference_bouteille='REF-MSG-777')
+        fournisseur = Fournisseur.objects.create(nom='Domaine Message')
+        sample = self.create_sample(
+            reference_bouteille='REF-MSG-777',
+            fournisseur=fournisseur,
+        )
         self.authenticate(self.sender)
 
         response = self.client.post(
@@ -157,6 +162,7 @@ class MessageApiTests(APITestCase):
         self.assertEqual(data['echantillon'], str(sample.id))
         self.assertEqual(data['echantillon_numero'], sample.numero)
         self.assertEqual(data['echantillon_reference_bouteille'], 'REF-MSG-777')
+        self.assertEqual(data['echantillon_fournisseur_nom'], 'Domaine Message')
 
     def test_cannot_send_empty_message_without_photo(self):
         self.authenticate(self.sender)

@@ -81,21 +81,25 @@ class GestionEchantillonsService {
   // ── Public API ─────────────────────────────────────────────────────────────
 
   /// Fetches all physically received echantillons visible to the degustateur.
-  Future<Resultat<List<Echantillon>>> fetchEchantillons() => avecSecours(
-    () async {
-      final path = uniquementRecusPhysiquement
-          ? '/api/echantillons/?recu_physiquement=true'
-          : '/api/echantillons/';
-      final items = await apiClient.getList(path);
-      return items
-          .map(
-            (e) =>
-                Echantillon.fromJson(_toFlutterMap(e as Map<String, dynamic>)),
-          )
-          .toList();
-    },
-    () => List.of(mockEchantillonsGestion),
-  );
+  Future<Resultat<List<Echantillon>>> fetchEchantillons({
+    String? recherche,
+    int? limite,
+  }) => avecSecours(() async {
+    final query = <String, String>{
+      if (uniquementRecusPhysiquement) 'recu_physiquement': 'true',
+      'recherche': ?recherche,
+      if (limite != null) 'limite': '$limite',
+    };
+    final path = query.isEmpty
+        ? '/api/echantillons/'
+        : Uri(path: '/api/echantillons/', queryParameters: query).toString();
+    final items = await apiClient.getList(path);
+    return items
+        .map(
+          (e) => Echantillon.fromJson(_toFlutterMap(e as Map<String, dynamic>)),
+        )
+        .toList();
+  }, () => List.of(mockEchantillonsGestion));
 
   /// Updates an existing echantillon via PATCH and returns the updated record.
   Future<Echantillon> updateEchantillon(Echantillon e) async {

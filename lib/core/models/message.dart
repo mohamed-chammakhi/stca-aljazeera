@@ -9,6 +9,7 @@ class Message {
   final String? echantillonId;
   final String? echantillonNumero;
   final String? echantillonReferenceBouteille;
+  final String? echantillonFournisseurNom;
   final bool modifie;
   final String? modifieLe;
   bool lu;
@@ -26,6 +27,7 @@ class Message {
     this.echantillonId,
     this.echantillonNumero,
     this.echantillonReferenceBouteille,
+    this.echantillonFournisseurNom,
     this.modifie = false,
     this.modifieLe,
     this.lu = false,
@@ -45,6 +47,7 @@ class Message {
     echantillonNumero: json['echantillon_numero'] as String?,
     echantillonReferenceBouteille:
         json['echantillon_reference_bouteille'] as String?,
+    echantillonFournisseurNom: json['echantillon_fournisseur_nom'] as String?,
     modifie: (json['modifie'] as bool?) ?? false,
     modifieLe: json['modifie_le'] as String?,
     lu: (json['lu'] as bool?) ?? (json['is_read'] as bool?) ?? false,
