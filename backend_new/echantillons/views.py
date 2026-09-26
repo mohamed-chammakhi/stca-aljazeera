@@ -89,7 +89,7 @@ class EchantillonViewSet(viewsets.ModelViewSet):
     permission_classes = [IsCollecteur | IsDegustateur | IsDirection | IsChefDegustation | IsLaboratoire]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_class = EchantillonFilter
-    search_fields = ['numero', 'reference_bouteille', 'variete', 'fournisseur__nom', 'fournisseur__code_fournisseur']
+    search_fields = ['numero', 'reference_bouteille', 'variete', 'fournisseur__nom']
     ordering_fields = ['date_ajout', 'updated_at', 'statut_collecteur']
     ordering = ['-date_ajout']
 

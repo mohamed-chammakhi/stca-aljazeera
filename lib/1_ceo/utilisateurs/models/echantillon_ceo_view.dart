@@ -22,7 +22,7 @@ class EchantillonCeoView {
   final String referenceBouteille;
   final String gouvernorat;
   final String? delegation;
-  final String codeFournisseur;
+  final String fournisseurTexte;
   final String? fournisseurNom;
   final String? numCiterne;
   final String? variete;
@@ -63,7 +63,7 @@ class EchantillonCeoView {
     required this.referenceBouteille,
     required this.gouvernorat,
     this.delegation,
-    required this.codeFournisseur,
+    required this.fournisseurTexte,
     this.fournisseurNom,
     this.numCiterne,
     this.variete,
@@ -98,7 +98,7 @@ class EchantillonCeoView {
   String get fournisseurAffichage {
     final nom = fournisseurNom?.trim() ?? '';
     if (nom.isNotEmpty) return nom;
-    return codeFournisseur.trim();
+    return fournisseurTexte.trim();
   }
 
   ClassificationHuile? get classificationMajoritaire {

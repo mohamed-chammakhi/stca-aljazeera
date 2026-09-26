@@ -93,3 +93,108 @@ Ton sandbox ne peut pas lancer Flutter : n'essaie pas. Claude lancera les tests 
 Django, puis appliquera les migrations après une sauvegarde de la base.
 
 ## RAPPORT
+
+### Fait
+
+- `backend_new/fournisseurs/models.py` : le fournisseur porte maintenant un lieu complet avec `region` + `delegation`, sans code fournisseur visible.
+- `backend_new/fournisseurs/migrations/0003_remove_fournisseur_code_fournisseur_and_more.py` : ajoute `delegation`, remplit/sépare les fournisseurs existants par lieu d'échantillon, puis supprime `code_fournisseur`.
+- `backend_new/echantillons/serializers.py` : la liaison fournisseur se fait par nom + gouvernorat + délégation, y compris en modification quand le nom ou le lieu est renvoyé.
+- `backend_new/fournisseurs/serializers.py`, `backend_new/fournisseurs/views.py`, `backend_new/fournisseurs/admin.py` : l'API fournisseurs expose/recherche/ordonne par nom et lieu, sans code fournisseur.
+- `backend_new/analyses/serializers.py`, `backend_new/echantillons/views.py`, `backend_new/chef/views.py` : les réponses et recherches backend n'exposent plus l'ancien code fournisseur.
+- `backend_new/echantillons/tests.py`, `backend_new/fournisseurs/tests.py`, `backend_new/ceo/tests.py`, `backend_new/chef/tests.py`, `backend_new/degustateur/tests.py` : les tests couvrent les fournisseurs homonymes par lieu, la réutilisation même nom + même lieu, le changement de lieu en modification et la migration de séparation.
+- `lib/core/models/fournisseur.dart` : `codeFournisseur` est retiré, `delegation` est ajouté, et `libelleFournisseur(f)` produit le libellé partagé `nom — gouvernorat (délégation)`.
+- `lib/core/services/fournisseur_service.dart` : les suggestions fournisseurs utilisent nom + lieu et les mocks de fournisseurs portent une délégation.
+- `lib/core/widgets/champ_autocomplete.dart` : une suggestion peut afficher un libellé complet tout en écrivant seulement le nom dans le champ.
+- `lib/2_collecteur/.../formulaire_dialog.dart`, `lib/3_degustateur/.../formulaire_dialog.dart`, `lib/5_chef_degustateur/.../formulaire_dialog.dart` : choisir un fournisseur remplit le nom, le gouvernorat et la délégation, sans sous-titre de lieu dupliqué.
+- `lib/2_collecteur/...`, `lib/3_degustateur/...`, `lib/4_laboratoire/...`, `lib/5_chef_degustateur/...`, `lib/1_ceo/...`, `lib/core/...` : les affichages/recherches/services utilisent le nom fournisseur, plus l'ancien code.
+- `test/fournisseur_libelle_test.dart` : ajoute les 4 cas de libellé demandés et le test de sélection qui garde seulement le nom dans le champ.
+- `test/cablage_api_test.dart`, `test/echantillon_collecteur_service_test.dart`, `test/ecrans_principaux_sans_uuid_test.dart`, `test/formulaire_echantillon_finitions_test.dart` : les attentes Flutter ne dépendent plus de `codeFournisseur`.
+- `test/fixtures/api/**` : les fixtures API ont été régénérées/ajustées pour ne plus contenir le code fournisseur dans les réponses d'échantillons.
+
+Effet prévu de la migration sur la base locale actuelle, lu sans appliquer de migration :
+
+- `hami` : ancien `region='Jandouba'`, 1 échantillon à `Gabes / Gabes Ouest`; la migration mettra le fournisseur à `Gabes / Gabes Ouest`.
+- `omar` : ancien `region='Gafsa'`, 2 échantillons à `Gabes / ElMetouia`; la migration mettra le fournisseur à `Gabes / ElMetouia`.
+- `omarr` : ancien `region='Gafsa'`, 1 échantillon à `Jandouba / Fernana` et 1 à `Le kef / Kef Ouest`; la migration séparera en deux fournisseurs `omarr`, un par lieu, et rattachera chaque échantillon au bon fournisseur.
+
+### Vérifié
+
+```bash
+Get-ChildItem -Path backend_new,lib,test -Recurse -File -Include *.py,*.dart,*.json | Where-Object { $_.FullName -notmatch '\\backend_new\\venv\\' -and $_.FullName -notmatch '\\backend_new\\.*\\migrations\\[0-9]{4}_.+\.py$' -and $_.FullName -notmatch '\\backend_new\\sauvegarde_' } | Select-String -Pattern 'code_fournisseur','codeFournisseur'
+```
+
+Sortie : aucune ligne.
+
+```bash
+cd backend_new
+$env:DEBUG='True'; $env:DB_ENGINE='sqlite'; .\venv\Scripts\python.exe manage.py test echantillons fournisseurs --keepdb -v 1
+```
+
+Deux premières relances pendant la correction du test de migration :
+
+- `Ran 43 tests in 81.647s` → `FAILED (errors=1)` : `LookupError: No installed app with label 'echantillons'.`
+- `Ran 43 tests in 80.646s` → `FAILED (errors=1)` : `django.db.utils.IntegrityError: UNIQUE constraint failed: new__fournisseurs_fournisseur.code_fournisseur`
+
+Relance finale :
+
+```text
+Using existing test database for alias 'default'...
+...........................................
+----------------------------------------------------------------------
+Ran 43 tests in 80.984s
+
+OK
+Preserving test database for alias 'default'...
+Found 43 test(s).
+System check identified no issues (0 silenced).
+```
+
+```bash
+cd backend_new
+$env:DEBUG='True'; $env:DB_ENGINE='sqlite'; .\venv\Scripts\python.exe manage.py makemigrations --check --dry-run
+```
+
+Sortie :
+
+```text
+No changes detected
+```
+
+Lecture seule de la base locale actuelle :
+
+```bash
+cd backend_new
+.\venv\Scripts\python.exe - <<'PY'
+import sqlite3
+conn = sqlite3.connect('db.sqlite3')
+conn.row_factory = sqlite3.Row
+for supplier in conn.execute("select id, nom, region from fournisseurs_fournisseur order by nom"):
+    samples = conn.execute(
+        "select gouvernorat, delegation, count(*) as n from echantillons_echantillon where fournisseur_id = ? group by gouvernorat, delegation order by gouvernorat, delegation",
+        (supplier['id'],),
+    ).fetchall()
+    print(f"{supplier['nom']} | region={supplier['region']!r} | lieux={[(s['gouvernorat'], s['delegation'], s['n']) for s in samples]}")
+conn.close()
+PY
+```
+
+Sortie :
+
+```text
+hami | region='Jandouba' | lieux=[('Gabes', 'Gabes Ouest', 1)]
+omar | region='Gafsa' | lieux=[('Gabes', 'ElMetouia', 2)]
+omarr | region='Gafsa' | lieux=[('Jandouba', 'Fernana', 1), ('Le kef', 'Kef Ouest', 1)]
+```
+
+Je n'ai pas lancé Flutter : la tâche dit explicitement que ce sandbox ne peut pas lancer Flutter et qu'il ne faut pas essayer.
+
+### Non fait
+
+- Migration non appliquée sur la vraie base, conformément à la consigne.
+- `flutter analyze lib test` et `flutter test` non lancés, conformément à la vérification attendue de cette tâche.
+
+### HORS PÉRIMÈTRE
+
+- `files/backend_sprint_plan.md` est référencé par les consignes mais absent de l'arbre.
+- Le skill `frontend-design` exigé par `CLAUDE.md` n'est pas disponible dans cette session; j'ai appliqué les règles de design existantes sans modifier la mise en page.
+- `backend_new/sauvegarde_avant_nettoyage_2026-09-25.json` est une sauvegarde non suivie qui contient encore l'ancien champ `code_fournisseur`; je ne l'ai pas modifiée ni supprimée.

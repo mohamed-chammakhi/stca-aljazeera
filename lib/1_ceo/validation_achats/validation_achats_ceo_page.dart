@@ -177,7 +177,7 @@ class _ValidationAchatsCeoPageState extends State<ValidationAchatsCeoPage>
             (e) =>
                 e.referenceBouteille.toLowerCase().contains(q) ||
                 e.id.toLowerCase().contains(q) ||
-                e.codeFournisseur.toLowerCase().contains(q) ||
+                e.fournisseurTexte.toLowerCase().contains(q) ||
                 (e.fournisseurNom?.toLowerCase().contains(q) ?? false) ||
                 e.gouvernorat.toLowerCase().contains(q) ||
                 (e.variete?.toLowerCase().contains(q) ?? false) ||
@@ -528,26 +528,26 @@ class _ValidationAchatsCeoPageState extends State<ValidationAchatsCeoPage>
                                     MediaQuery.of(context).size.height * 0.5,
                                 child: Center(
                                   child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.fact_check_outlined,
-                                  size: 52,
-                                  color: Colors.grey.shade300,
-                                ),
-                                const SizedBox(height: 12),
-                                Text(
-                                  _activeFilter == 'a_valider'
-                                      ? 'Aucune proposition à valider'
-                                      : _activeFilter == 'decidees'
-                                      ? 'Aucune décision enregistrée'
-                                      : 'Aucune proposition',
-                                  style: TextStyle(
-                                    color: Colors.grey.shade400,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                              ],
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.fact_check_outlined,
+                                        size: 52,
+                                        color: Colors.grey.shade300,
+                                      ),
+                                      const SizedBox(height: 12),
+                                      Text(
+                                        _activeFilter == 'a_valider'
+                                            ? 'Aucune proposition à valider'
+                                            : _activeFilter == 'decidees'
+                                            ? 'Aucune décision enregistrée'
+                                            : 'Aucune proposition',
+                                        style: TextStyle(
+                                          color: Colors.grey.shade400,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ),
@@ -595,7 +595,10 @@ class _ValidationAchatsCeoPageState extends State<ValidationAchatsCeoPage>
                                     'Gouvernorat',
                                     '${e.gouvernorat}${e.delegation != null ? " — ${e.delegation}" : ""}',
                                   ),
-                                  DetailItem('Fournisseur', e.fournisseurAffichage),
+                                  DetailItem(
+                                    'Fournisseur',
+                                    e.fournisseurAffichage,
+                                  ),
                                   if (e.variete != null)
                                     DetailItem('Variété', e.variete!),
                                   if (e.collecteurNom != null)

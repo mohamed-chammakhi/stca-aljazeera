@@ -89,7 +89,7 @@ class EchantillonCollecteur {
   // with no supplier at all, and the CEO dashboard — which aggregates purchases
   // per supplier — has nothing to count it under.
   String? fournisseurId;
-  String codeFournisseur;
+  String fournisseurTexte;
   // Supplier name displayed by the app and sent on create/update so the backend
   // can match by name without a separate supplier creation request.
   String? fournisseurNom;
@@ -141,7 +141,7 @@ class EchantillonCollecteur {
     this.delegation,
     this.cite,
     this.fournisseurId,
-    required this.codeFournisseur,
+    required this.fournisseurTexte,
     this.fournisseurNom,
     required this.referenceBouteille,
     this.numCiterne,
@@ -192,7 +192,7 @@ class EchantillonCollecteur {
         cite: json['cite'] as String?,
         fournisseurId: json['fournisseur']?.toString(),
         fournisseurNom: json['fournisseur_nom'] as String?,
-        codeFournisseur: json['code_fournisseur'] as String? ?? '',
+        fournisseurTexte: json['fournisseur_nom'] as String? ?? '',
         referenceBouteille: json['reference_bouteille'] as String? ?? '',
         numCiterne: json['num_citerne'] as String?,
         quantiteEstimee: json['quantite_estimee'] as String?,
@@ -264,8 +264,9 @@ class EchantillonCollecteur {
   String get fournisseurAffichage {
     final nom = fournisseurNom?.trim() ?? '';
     if (nom.isNotEmpty) return nom;
-    return codeFournisseur.trim();
+    return fournisseurTexte.trim();
   }
+
   bool get canScheduleArrivee =>
       statut == StatutCollecteur.receptionne && !recuPhysiquement;
 }

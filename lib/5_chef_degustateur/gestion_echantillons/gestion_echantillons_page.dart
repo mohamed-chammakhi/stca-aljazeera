@@ -131,7 +131,7 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage>
           e.id.toLowerCase().contains(q) ||
           e.referenceBouteille.toLowerCase().contains(q) ||
           e.numero.toLowerCase().contains(q) ||
-          (e.codeFournisseur?.toLowerCase().contains(q) ?? false) ||
+          (e.fournisseurTexte?.toLowerCase().contains(q) ?? false) ||
           (e.fournisseurNom?.toLowerCase().contains(q) ?? false) ||
           (e.variete?.toLowerCase().contains(q) ?? false) ||
           e.gouvernorat.toLowerCase().contains(q) ||

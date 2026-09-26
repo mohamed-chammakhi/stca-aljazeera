@@ -66,8 +66,7 @@ class ChefEvaluationsView(APIView):
                 Q(echantillon__numero__icontains=search) |
                 Q(echantillon__reference_bouteille__icontains=search) |
                 Q(echantillon__variete__icontains=search) |
-                Q(echantillon__fournisseur__nom__icontains=search) |
-                Q(echantillon__fournisseur__code_fournisseur__icontains=search)
+                Q(echantillon__fournisseur__nom__icontains=search)
             )
         qs = qs.order_by('-echantillon__date_reception_echantillon', 'degustateur__nom')
 

@@ -190,7 +190,7 @@ void _assertNoRawDisplayIds(Object parsed, String source) {
     if (parsed is EchantillonLabo) ...[
       parsed.referenceBouteille,
       parsed.referenceBouteille,
-      parsed.codeFournisseur,
+      parsed.fournisseurTexte,
       parsed.collecteurNom,
       parsed.dateArrivee,
     ],

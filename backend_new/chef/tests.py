@@ -49,7 +49,6 @@ class ChefEvaluationOverviewApiTests(APITestCase):
             role=User.Role.COLLECTEUR,
         )
         self.fournisseur = Fournisseur.objects.create(
-            code_fournisseur='FO-SF-01',
             nom='Domaine Sfax',
             region='Sfax',
         )
@@ -217,7 +216,6 @@ class ChefDashboardApiTests(APITestCase):
             role=User.Role.COLLECTEUR,
         )
         self.supplier = Fournisseur.objects.create(
-            code_fournisseur='FO-DASH-01',
             nom='Domaine Dashboard',
             region='Sfax',
         )

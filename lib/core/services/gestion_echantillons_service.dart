@@ -12,7 +12,6 @@ Map<String, dynamic> echantillonApiToGestionFlutterMap(
     'numero': api['numero'] ?? '',
     'fournisseur_id': api['fournisseur'] ?? '',
     'collecteur_id': api['collecteur'] ?? '',
-    'code_fournisseur': api['code_fournisseur'],
     'fournisseur_nom': api['fournisseur_nom'],
     'collecteur_nom': api['collecteur_nom'],
     'gouvernorat': api['gouvernorat'] ?? '',
@@ -60,13 +59,13 @@ class GestionEchantillonsService {
 
   /// Converts the shared Flutter sample model to the Django serializer payload.
   Map<String, dynamic> _toDjangoMap(Echantillon e) {
-    final code = e.codeFournisseur?.trim() ?? '';
+    final code = e.fournisseurTexte?.trim() ?? '';
     final nom = e.fournisseurNom?.trim() ?? '';
     return {
       'gouvernorat': e.gouvernorat,
       'delegation': e.delegation,
       'cite': e.cite,
-      if (nom.isEmpty && code.isNotEmpty) 'code_fournisseur': code,
+      if (nom.isEmpty && code.isNotEmpty) 'fournisseur_nom': code,
       if (nom.isNotEmpty) 'fournisseur_nom': nom,
       'reference_bouteille': e.referenceBouteille,
       'num_citerne': e.numCiterne,

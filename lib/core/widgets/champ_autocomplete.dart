@@ -35,6 +35,10 @@ class ChampAutocomplete<T> extends StatefulWidget {
   /// What the user reads in the list, and what lands in the field when picked.
   final String Function(T valeur) libelle;
 
+  /// Optional text written in the field when a suggestion is picked. When null,
+  /// `libelle` is used for both the list and the field.
+  final String Function(T valeur)? texteSelection;
+
   /// Optional second line — e.g. the supplier's region, to tell two similar
   /// names apart.
   final String? Function(T valeur)? sousTitre;
@@ -55,6 +59,7 @@ class ChampAutocomplete<T> extends StatefulWidget {
     required this.label,
     required this.chercher,
     required this.libelle,
+    this.texteSelection,
     this.hint,
     this.titre,
     this.decoration,
@@ -156,7 +161,8 @@ class _ChampAutocompleteState<T> extends State<ChampAutocomplete<T>> {
 
   void _choisir(T valeur) {
     _choixEnCours = true;
-    widget.controller.text = widget.libelle(valeur);
+    widget.controller.text =
+        widget.texteSelection?.call(valeur) ?? widget.libelle(valeur);
     widget.controller.selection = TextSelection.fromPosition(
       TextPosition(offset: widget.controller.text.length),
     );
@@ -191,7 +197,8 @@ class _ChampAutocompleteState<T> extends State<ChampAutocomplete<T>> {
             focusNode: _focus,
             enabled: widget.enabled,
             style:
-                widget.styleTexte ?? const TextStyle(fontSize: 14, color: kDark),
+                widget.styleTexte ??
+                const TextStyle(fontSize: 14, color: kDark),
             decoration:
                 widget.decoration ??
                 InputDecoration(

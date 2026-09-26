@@ -124,7 +124,7 @@ class _EchantillonsLaboPageState extends State<EchantillonsLaboPage>
       final matchSearch =
           _recherche.isEmpty ||
           e.referenceBouteille.toLowerCase().contains(q) ||
-          e.codeFournisseur.toLowerCase().contains(q) ||
+          e.fournisseurTexte.toLowerCase().contains(q) ||
           e.gouvernorat.toLowerCase().contains(q) ||
           (e.variete?.toLowerCase().contains(q) ?? false) ||
           e.numero.toLowerCase().contains(q) ||

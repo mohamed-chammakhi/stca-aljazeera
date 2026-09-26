@@ -452,7 +452,7 @@ class _VueEnsembleEvaluationsPageState extends State<VueEnsembleEvaluationsPage>
     return EchantillonCeoView(
       id: g.sampleId,
       referenceBouteille: g.referenceBouteille,
-      codeFournisseur: '',
+      fournisseurTexte: '',
       gouvernorat: g.gouvernorat,
       variete: g.variete,
       dateAjout: g.dateAjout,

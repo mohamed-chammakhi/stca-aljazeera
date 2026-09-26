@@ -130,7 +130,7 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
   bool _geoLoaded = false;
 
   // ── Shared controllers ───────────────────────────────────────────────────
-  late final TextEditingController _codeFournisseurCtrl;
+  late final TextEditingController _fournisseurTexteCtrl;
   late final TextEditingController _collecteurCtrl;
   late final TextEditingController _dateAjoutCtrl;
   late final TextEditingController _citeCtrl;
@@ -156,8 +156,8 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
     super.initState();
     final e = widget.echantillon;
 
-    _codeFournisseurCtrl = TextEditingController(
-      text: e?.fournisseurNom ?? e?.codeFournisseur ?? '',
+    _fournisseurTexteCtrl = TextEditingController(
+      text: e?.fournisseurNom ?? e?.fournisseurTexte ?? '',
     );
     _collecteurCtrl = TextEditingController(text: e?.collecteurNom ?? '');
     _dateAjoutCtrl = TextEditingController(text: e?.dateAjout ?? _todayStr());
@@ -179,7 +179,7 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
 
   @override
   void dispose() {
-    _codeFournisseurCtrl.dispose();
+    _fournisseurTexteCtrl.dispose();
     _collecteurCtrl.dispose();
     _dateAjoutCtrl.dispose();
     _citeCtrl.dispose();
@@ -197,7 +197,7 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
   }
 
   String get _fournisseurPourReference => fournisseurPourReferenceBouteille(
-    texteChampFournisseur: _codeFournisseurCtrl.text,
+    texteChampFournisseur: _fournisseurTexteCtrl.text,
   );
 
   void _actualiserReference(_BouteilleRow row) {
@@ -388,7 +388,7 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
   String? _messageValidation() {
     return validerFormulaireEchantillon(
       nombreBouteilles: _bouteilles.length,
-      fournisseur: _codeFournisseurCtrl.text,
+      fournisseur: _fournisseurTexteCtrl.text,
       referencesBouteilles: _bouteilles
           .map((b) => b.referenceCtrl.text)
           .toList(),
@@ -445,9 +445,9 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
       final collecteur = _collecteurCtrl.text.trim().isEmpty
           ? null
           : _collecteurCtrl.text.trim();
-      final codeFournisseur = _codeFournisseurCtrl.text.trim().isEmpty
+      final fournisseurTexte = _fournisseurTexteCtrl.text.trim().isEmpty
           ? null
-          : _codeFournisseurCtrl.text.trim();
+          : _fournisseurTexteCtrl.text.trim();
       final cite = _citeCtrl.text.trim().isEmpty ? null : _citeCtrl.text.trim();
 
       if (_isModification) {
@@ -471,7 +471,7 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
         e.remarques = _remarquesCtrl.text.trim().isEmpty
             ? null
             : _remarquesCtrl.text.trim();
-        // codeFournisseur, dateAjout, collecteurNom are API-assigned — not mutated
+        // fournisseurTexte, dateAjout, collecteurNom are API-assigned — not mutated
         await widget.onSaveMultiple([e]);
       } else {
         final now = DateTime.now();
@@ -484,7 +484,7 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
             numero: '${now.year}/${numero.toString().padLeft(4, '0')}',
             fournisseurId: 'fournisseur-placeholder',
             collecteurId: 'collecteur-placeholder',
-            codeFournisseur: codeFournisseur,
+            fournisseurTexte: fournisseurTexte,
             collecteurNom: collecteur,
             referenceBouteille: b.referenceCtrl.text.trim(),
             variete: b.varieteCtrl.text.trim().isEmpty
@@ -606,15 +606,25 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
                           label: 'Fournisseur',
                           required: true,
                         ),
-                        controller: _codeFournisseurCtrl,
+                        controller: _fournisseurTexteCtrl,
                         decoration: _FormField.decoration(
                           'Ex: Domaine Bel-Air',
                         ),
                         styleTexte: const TextStyle(fontSize: 14, color: _dark),
                         chercher: FournisseurService.instance.suggest,
-                        libelle: (f) => f.nom,
-                        sousTitre: (f) => f.region,
-                        onSelection: (_) => _actualiserToutesLesReferences(),
+                        libelle: libelleFournisseur,
+                        texteSelection: (f) => f.nom,
+                        onSelection: (f) {
+                          setState(() {
+                            _gouvernorat = f.region?.trim().isEmpty == true
+                                ? null
+                                : f.region;
+                            _delegation = f.delegation?.trim().isEmpty == true
+                                ? null
+                                : f.delegation;
+                          });
+                          _actualiserToutesLesReferences();
+                        },
                         onSaisieLibre: _actualiserToutesLesReferences,
                       ),
                       const SizedBox(height: 12),

@@ -92,7 +92,7 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
   Fournisseur? _fournisseurChoisi;
 
   // ── Shared controllers ───────────────────────────────────────────────────
-  late final TextEditingController _codeFournisseurCtrl;
+  late final TextEditingController _fournisseurTexteCtrl;
   late final TextEditingController _collecteurCtrl;
   late final TextEditingController _citeCtrl;
 
@@ -184,8 +184,8 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
     super.initState();
     final e = widget.echantillon;
 
-    _codeFournisseurCtrl = TextEditingController(
-      text: e?.fournisseurNom ?? e?.codeFournisseur ?? '',
+    _fournisseurTexteCtrl = TextEditingController(
+      text: e?.fournisseurNom ?? e?.fournisseurTexte ?? '',
     );
     _collecteurCtrl = TextEditingController(text: e?.collecteurNom ?? '');
     _citeCtrl = TextEditingController(text: e?.cite ?? '');
@@ -217,7 +217,7 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
 
   @override
   void dispose() {
-    _codeFournisseurCtrl.dispose();
+    _fournisseurTexteCtrl.dispose();
     _collecteurCtrl.dispose();
     _citeCtrl.dispose();
     for (final b in _bouteilles) {
@@ -230,7 +230,7 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
       _livMode == ModePlanificationUI.dateExacte ? _livExacte : _livDebut;
 
   String get _fournisseurPourReference => fournisseurPourReferenceBouteille(
-    texteChampFournisseur: _codeFournisseurCtrl.text,
+    texteChampFournisseur: _fournisseurTexteCtrl.text,
   );
 
   void _actualiserReference(BouteilleRow row) {
@@ -268,7 +268,7 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
   String? _messageValidation() {
     return validerFormulaireEchantillon(
       nombreBouteilles: _bouteilles.length,
-      fournisseur: _codeFournisseurCtrl.text,
+      fournisseur: _fournisseurTexteCtrl.text,
       referencesBouteilles: _bouteilles.map((b) => b.refCtrl.text).toList(),
     );
   }
@@ -342,9 +342,9 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
       final collecteur = _collecteurCtrl.text.trim().isEmpty
           ? null
           : _collecteurCtrl.text.trim();
-      final fournisseurNom = _codeFournisseurCtrl.text.trim().isEmpty
+      final fournisseurNom = _fournisseurTexteCtrl.text.trim().isEmpty
           ? null
-          : _codeFournisseurCtrl.text.trim();
+          : _fournisseurTexteCtrl.text.trim();
       final cite = _citeCtrl.text.trim().isEmpty ? null : _citeCtrl.text.trim();
 
       if (_isModification) {
@@ -371,7 +371,7 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
         e.dateArriveeEchantillon = _livDate;
         e.fournisseurId = _fournisseurChoisi?.id ?? e.fournisseurId;
         e.fournisseurNom = fournisseurNom;
-        e.codeFournisseur = fournisseurNom ?? '';
+        e.fournisseurTexte = fournisseurNom ?? '';
         await widget.onSaveMultiple([e]); // modification: photo unchanged here
       } else {
         final now = DateTime.now();
@@ -384,7 +384,7 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
             numero:
                 '${now.year}/${(widget.prochainNumero + idx).toString().padLeft(4, '0')}',
             fournisseurId: _fournisseurChoisi?.id,
-            codeFournisseur: fournisseurNom ?? '',
+            fournisseurTexte: fournisseurNom ?? '',
             fournisseurNom: fournisseurNom,
             collecteurId: 'collecteur-placeholder',
             collecteurNom: collecteur ?? '',
@@ -449,233 +449,245 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
         child: ConstrainedBox(
-        constraints: BoxConstraints(
-          maxHeight: MediaQuery.of(context).size.height * 0.88,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // ── Header ────────────────────────────────────────────────────
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.fromLTRB(20, 18, 16, 16),
-              decoration: const BoxDecoration(
-                color: Color(0xFFE9F4EE),
-                borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    _isModification
-                        ? Icons.edit_outlined
-                        : Icons.add_circle_outline,
-                    color: kDarkText,
-                    size: 20,
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      _isModification
-                          ? "Modifier l'échantillon"
-                          : 'Nouvel échantillon',
-                      style: GoogleFonts.domine(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w700,
-                        color: kDarkText,
-                      ),
-                    ),
-                  ),
-                  if (!_isModification)
-                    _IdBadge(
-                      prochainNumero: widget.prochainNumero,
-                      bottleCount: _bottleCount,
-                    ),
-                ],
-              ),
-            ),
-
-            // ── Scrollable body ───────────────────────────────────────────
-            Flexible(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.88,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // ── Header ────────────────────────────────────────────────────
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.fromLTRB(20, 18, 16, 16),
+                decoration: const BoxDecoration(
+                  color: Color(0xFFE9F4EE),
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                ),
+                child: Row(
                   children: [
-                    // Fournisseur & collecteur
-                    ChampAutocomplete<Fournisseur>(
-                      label: 'Fournisseur',
-                      titre: const _InlineLabel(
-                        label: 'Fournisseur',
-                        required: true,
+                    Icon(
+                      _isModification
+                          ? Icons.edit_outlined
+                          : Icons.add_circle_outline,
+                      color: kDarkText,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        _isModification
+                            ? "Modifier l'échantillon"
+                            : 'Nouvel échantillon',
+                        style: GoogleFonts.domine(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w700,
+                          color: kDarkText,
+                        ),
                       ),
-                      controller: _codeFournisseurCtrl,
-                      decoration: _FormField.decoration(
-                        'Ex: Domaine Bel-Air',
+                    ),
+                    if (!_isModification)
+                      _IdBadge(
+                        prochainNumero: widget.prochainNumero,
+                        bottleCount: _bottleCount,
                       ),
-                      styleTexte: const TextStyle(
-                        fontSize: 14,
-                        color: kDarkText,
-                      ),
-                      chercher: FournisseurService.instance.suggest,
-                      libelle: (f) => f.nom,
-                      sousTitre: (f) => f.region,
-                      onSelection: (f) {
-                        _fournisseurChoisi = f;
-                        _actualiserToutesLesReferences();
-                      },
-                      // Typing again means the field no longer points at the
-                      // supplier that was picked.
-                      onSaisieLibre: () {
-                        _fournisseurChoisi = null;
-                        _actualiserToutesLesReferences();
-                      },
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    // Localisation
-                    _DropdownField(
-                      label: 'Gouvernorat',
-                      value: _gouvernorat,
-                      items: _geoLoaded
-                          ? _geo.gouvernorats.toSet().toList()
-                          : [],
-                      hint: _geoLoaded
-                          ? 'Sélectionner un gouvernorat'
-                          : 'Chargement…',
-                      onChanged: (v) => setState(() {
-                        _gouvernorat = v;
-                        _delegation = null;
-                      }),
-                    ),
-                    const SizedBox(height: 12),
-                    _DropdownField(
-                      label: 'Délégation',
-                      value: _delegation,
-                      items: (_geoLoaded && _gouvernorat != null)
-                          ? _geo.delegationsFor(_gouvernorat!).toSet().toList()
-                          : [],
-                      hint: _gouvernorat == null
-                          ? "Choisir un gouvernorat d'abord"
-                          : 'Sélectionner une délégation',
-                      onChanged: _gouvernorat == null
-                          ? null
-                          : (v) => setState(() => _delegation = v),
-                    ),
-                    const SizedBox(height: 12),
-                    _FormField(
-                      label: 'Lieu précis (optionnel)',
-                      controller: _citeCtrl,
-                      hint: 'Ex: nom du village, du lieu-dit...',
-                    ),
-                    const SizedBox(height: 12),
-
-                    // Bouteilles
-                    _BouteillesSection(
-                      bouteilles: _bouteilles,
-                      isModification: _isModification,
-                      onAddRow: _addRow,
-                      onRemoveRow: _removeRow,
-                      onPhoto: _choosePhotoSource,
-                      onRemovePhoto: _removePhoto,
-                      onDonneesReferenceChangees: _actualiserReference,
-                    ),
-                    const SizedBox(height: 12),
-
-                    // ── Date de livraison (always visible) ────────────────
-                    DateLivraisonSection(
-                      mode: _livMode,
-                      onModeChanged: (m) => setState(() => _livMode = m),
-                      dateExacte: _livExacte,
-                      periodeDebut: _livDebut,
-                      periodeFin: _livFin,
-                      onDateExacteChanged: (dt) =>
-                          setState(() => _livExacte = dt),
-                      onPeriodeDebutChanged: (dt) =>
-                          setState(() => _livDebut = dt),
-                      onPeriodeFinChanged: (dt) => setState(() => _livFin = dt),
-                    ),
-                    const SizedBox(height: 12),
-
-                    // Statut (read-only)
-                    _ReadOnlyField(
-                      label: 'Statut',
-                      icon: Icons.flag_outlined,
-                      value: _isModification
-                          ? widget.echantillon!.statut.label
-                          : 'Réceptionné',
-                    ),
-                    const SizedBox(height: 16),
-
-                    const SizedBox(height: 8),
                   ],
                 ),
               ),
-            ),
 
-            // ── Action buttons ─────────────────────────────────────────────
-            Container(
-              padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF9F6EF),
-                borderRadius: const BorderRadius.vertical(
-                  bottom: Radius.circular(16),
+              // ── Scrollable body ───────────────────────────────────────────
+              Flexible(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Fournisseur & collecteur
+                      ChampAutocomplete<Fournisseur>(
+                        label: 'Fournisseur',
+                        titre: const _InlineLabel(
+                          label: 'Fournisseur',
+                          required: true,
+                        ),
+                        controller: _fournisseurTexteCtrl,
+                        decoration: _FormField.decoration(
+                          'Ex: Domaine Bel-Air',
+                        ),
+                        styleTexte: const TextStyle(
+                          fontSize: 14,
+                          color: kDarkText,
+                        ),
+                        chercher: FournisseurService.instance.suggest,
+                        libelle: libelleFournisseur,
+                        texteSelection: (f) => f.nom,
+                        onSelection: (f) {
+                          setState(() {
+                            _fournisseurChoisi = f;
+                            _gouvernorat = f.region?.trim().isEmpty == true
+                                ? null
+                                : f.region;
+                            _delegation = f.delegation?.trim().isEmpty == true
+                                ? null
+                                : f.delegation;
+                          });
+                          _actualiserToutesLesReferences();
+                        },
+                        // Typing again means the field no longer points at the
+                        // supplier that was picked.
+                        onSaisieLibre: () {
+                          _fournisseurChoisi = null;
+                          _actualiserToutesLesReferences();
+                        },
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      // Localisation
+                      _DropdownField(
+                        label: 'Gouvernorat',
+                        value: _gouvernorat,
+                        items: _geoLoaded
+                            ? _geo.gouvernorats.toSet().toList()
+                            : [],
+                        hint: _geoLoaded
+                            ? 'Sélectionner un gouvernorat'
+                            : 'Chargement…',
+                        onChanged: (v) => setState(() {
+                          _gouvernorat = v;
+                          _delegation = null;
+                        }),
+                      ),
+                      const SizedBox(height: 12),
+                      _DropdownField(
+                        label: 'Délégation',
+                        value: _delegation,
+                        items: (_geoLoaded && _gouvernorat != null)
+                            ? _geo
+                                  .delegationsFor(_gouvernorat!)
+                                  .toSet()
+                                  .toList()
+                            : [],
+                        hint: _gouvernorat == null
+                            ? "Choisir un gouvernorat d'abord"
+                            : 'Sélectionner une délégation',
+                        onChanged: _gouvernorat == null
+                            ? null
+                            : (v) => setState(() => _delegation = v),
+                      ),
+                      const SizedBox(height: 12),
+                      _FormField(
+                        label: 'Lieu précis (optionnel)',
+                        controller: _citeCtrl,
+                        hint: 'Ex: nom du village, du lieu-dit...',
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Bouteilles
+                      _BouteillesSection(
+                        bouteilles: _bouteilles,
+                        isModification: _isModification,
+                        onAddRow: _addRow,
+                        onRemoveRow: _removeRow,
+                        onPhoto: _choosePhotoSource,
+                        onRemovePhoto: _removePhoto,
+                        onDonneesReferenceChangees: _actualiserReference,
+                      ),
+                      const SizedBox(height: 12),
+
+                      // ── Date de livraison (always visible) ────────────────
+                      DateLivraisonSection(
+                        mode: _livMode,
+                        onModeChanged: (m) => setState(() => _livMode = m),
+                        dateExacte: _livExacte,
+                        periodeDebut: _livDebut,
+                        periodeFin: _livFin,
+                        onDateExacteChanged: (dt) =>
+                            setState(() => _livExacte = dt),
+                        onPeriodeDebutChanged: (dt) =>
+                            setState(() => _livDebut = dt),
+                        onPeriodeFinChanged: (dt) =>
+                            setState(() => _livFin = dt),
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Statut (read-only)
+                      _ReadOnlyField(
+                        label: 'Statut',
+                        icon: Icons.flag_outlined,
+                        value: _isModification
+                            ? widget.echantillon!.statut.label
+                            : 'Réceptionné',
+                      ),
+                      const SizedBox(height: 16),
+
+                      const SizedBox(height: 8),
+                    ],
+                  ),
                 ),
-                border: Border(top: BorderSide(color: Colors.grey.shade100)),
               ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () => Navigator.pop(context),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.grey.shade600,
-                        side: BorderSide(color: Colors.grey.shade300),
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      child: const Text('Annuler'),
-                    ),
+
+              // ── Action buttons ─────────────────────────────────────────────
+              Container(
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF9F6EF),
+                  borderRadius: const BorderRadius.vertical(
+                    bottom: Radius.circular(16),
                   ),
-                  const SizedBox(width: 20),
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: _saving ? null : _save,
-                      icon: Icon(
-                        _isModification ? Icons.check : Icons.add,
-                        size: 16,
-                      ),
-                      label: Text(
-                        _isModification
-                            ? 'Enregistrer'
-                            : _bottleCount > 1
-                            ? 'Ajouter $_bottleCount échantillons'
-                            : 'Ajouter',
-                        style: const TextStyle(fontWeight: FontWeight.w700),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color.fromARGB(
-                          255,
-                          197,
-                          206,
-                          201,
+                  border: Border(top: BorderSide(color: Colors.grey.shade100)),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.pop(context),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Colors.grey.shade600,
+                          side: BorderSide(color: Colors.grey.shade300),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
                         ),
-                        foregroundColor: kDarkText,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
+                        child: const Text('Annuler'),
                       ),
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 20),
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: _saving ? null : _save,
+                        icon: Icon(
+                          _isModification ? Icons.check : Icons.add,
+                          size: 16,
+                        ),
+                        label: Text(
+                          _isModification
+                              ? 'Enregistrer'
+                              : _bottleCount > 1
+                              ? 'Ajouter $_bottleCount échantillons'
+                              : 'Ajouter',
+                          style: const TextStyle(fontWeight: FontWeight.w700),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color.fromARGB(
+                            255,
+                            197,
+                            206,
+                            201,
+                          ),
+                          foregroundColor: kDarkText,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
-        ),
+            ],
+          ),
         ),
       ),
     );

@@ -24,7 +24,6 @@ class _RecordingApiClient extends ApiClient {
       'numero': '2026/0001',
       'fournisseur': '33333333-3333-3333-3333-333333333333',
       'fournisseur_nom': body['fournisseur_nom'],
-      'code_fournisseur': 'F-0001',
       'collecteur': '44444444-4444-4444-4444-444444444444',
       'collecteur_nom': 'Collecteur Test',
       'date_ajout': '2026-08-05T10:00:00Z',
@@ -33,31 +32,33 @@ class _RecordingApiClient extends ApiClient {
 }
 
 void main() {
-  test('la création envoie le nom fournisseur avec une seule requête', () async {
-    final api = _RecordingApiClient();
-    final service = EchantillonCollecteurService(api: api);
-    final sample = EchantillonCollecteur(
-      id: 'new-1',
-      numero: '2026/0001',
-      gouvernorat: 'Sfax',
-      fournisseurId: 'local-suggestion-id',
-      fournisseurNom: 'Domaine Test',
-      codeFournisseur: 'Domaine Test',
-      referenceBouteille: 'B-001',
-      achatConfirme: false,
-      dateAjout: DateTime(2026, 8, 5),
-      collecteurId: 'collecteur-placeholder',
-      collecteurNom: 'Collecteur Test',
-      statut: StatutCollecteur.receptionne,
-    );
+  test(
+    'la création envoie le nom fournisseur avec une seule requête',
+    () async {
+      final api = _RecordingApiClient();
+      final service = EchantillonCollecteurService(api: api);
+      final sample = EchantillonCollecteur(
+        id: 'new-1',
+        numero: '2026/0001',
+        gouvernorat: 'Sfax',
+        fournisseurId: 'local-suggestion-id',
+        fournisseurNom: 'Domaine Test',
+        fournisseurTexte: 'Domaine Test',
+        referenceBouteille: 'B-001',
+        achatConfirme: false,
+        dateAjout: DateTime(2026, 8, 5),
+        collecteurId: 'collecteur-placeholder',
+        collecteurNom: 'Collecteur Test',
+        statut: StatutCollecteur.receptionne,
+      );
 
-    final saved = await service.createEchantillon(sample);
+      final saved = await service.createEchantillon(sample);
 
-    expect(api.postCount, 1);
-    expect(api.lastPath, '/api/echantillons/');
-    expect(api.lastBody?['fournisseur_nom'], 'Domaine Test');
-    expect(api.lastBody?.containsKey('code_fournisseur'), isFalse);
-    expect(api.lastBody?.containsKey('fournisseur'), isFalse);
-    expect(saved.fournisseurNom, 'Domaine Test');
-  });
+      expect(api.postCount, 1);
+      expect(api.lastPath, '/api/echantillons/');
+      expect(api.lastBody?['fournisseur_nom'], 'Domaine Test');
+      expect(api.lastBody?.containsKey('fournisseur'), isFalse);
+      expect(saved.fournisseurNom, 'Domaine Test');
+    },
+  );
 }

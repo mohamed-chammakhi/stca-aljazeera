@@ -13,8 +13,8 @@ class FournisseurListCreateView(generics.ListCreateAPIView):
     serializer_class = FournisseurSerializer
     permission_classes = [IsCollecteur | IsDirection | IsDegustateur | IsChefDegustation]
     filter_backends = [SearchFilter, OrderingFilter]
-    search_fields = ['nom', 'code_fournisseur', 'region', 'telephone']
-    ordering_fields = ['nom', 'date_creation', 'code_fournisseur']
+    search_fields = ['nom', 'region', 'delegation', 'telephone']
+    ordering_fields = ['nom', 'region', 'delegation', 'date_creation']
 
     def get_queryset(self):
         user = self.request.user
@@ -23,9 +23,9 @@ class FournisseurListCreateView(generics.ListCreateAPIView):
                 Fournisseur.objects
                 .filter(echantillons__collecteur=user)
                 .distinct()
-                .order_by('nom')
+                .order_by('nom', 'region', 'delegation')
             )
-        return Fournisseur.objects.all().order_by('nom')
+        return Fournisseur.objects.all().order_by('nom', 'region', 'delegation')
 
     def get_permissions(self):
         if self.request.method == 'POST':

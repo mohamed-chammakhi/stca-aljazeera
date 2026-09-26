@@ -4,9 +4,9 @@ from django.db import models
 
 class Fournisseur(models.Model):
     id               = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    code_fournisseur = models.CharField(max_length=20, unique=True, blank=True)
     nom              = models.CharField(max_length=200)
     region           = models.CharField(max_length=100, blank=True)
+    delegation       = models.CharField(max_length=100, blank=True)
     telephone        = models.CharField(max_length=20, blank=True)
     email            = models.EmailField(blank=True)
     adresse          = models.TextField(blank=True)

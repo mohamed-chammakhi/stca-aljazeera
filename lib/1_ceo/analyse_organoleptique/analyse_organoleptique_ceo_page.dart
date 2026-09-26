@@ -188,7 +188,7 @@ class _AnalyseOrganoleptiqueCeoPageState
           .where(
             (e) =>
                 e.referenceBouteille.toLowerCase().contains(q) ||
-                e.codeFournisseur.toLowerCase().contains(q) ||
+                e.fournisseurTexte.toLowerCase().contains(q) ||
                 (e.fournisseurNom?.toLowerCase().contains(q) ?? false) ||
                 e.id.toLowerCase().contains(q) ||
                 e.gouvernorat.toLowerCase().contains(q) ||
@@ -705,22 +705,22 @@ class _AnalyseOrganoleptiqueCeoPageState
                                     MediaQuery.of(context).size.height * 0.5,
                                 child: Center(
                                   child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.search_off_rounded,
-                                  size: 48,
-                                  color: Colors.grey.shade300,
-                                ),
-                                const SizedBox(height: 10),
-                                Text(
-                                  'Aucun échantillon trouvé',
-                                  style: TextStyle(
-                                    color: Colors.grey.shade400,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                              ],
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.search_off_rounded,
+                                        size: 48,
+                                        color: Colors.grey.shade300,
+                                      ),
+                                      const SizedBox(height: 10),
+                                      Text(
+                                        'Aucun échantillon trouvé',
+                                        style: TextStyle(
+                                          color: Colors.grey.shade400,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ),
@@ -761,7 +761,10 @@ class _AnalyseOrganoleptiqueCeoPageState
                                     'Gouvernorat',
                                     '${e.gouvernorat}${e.delegation != null ? " — ${e.delegation}" : ""}',
                                   ),
-                                  DetailItem('Fournisseur', e.fournisseurAffichage),
+                                  DetailItem(
+                                    'Fournisseur',
+                                    e.fournisseurAffichage,
+                                  ),
                                   if (e.variete != null)
                                     DetailItem('Variété', e.variete!),
                                   if (e.quantiteEstimee != null)

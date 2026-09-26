@@ -147,9 +147,7 @@ class EchantillonCeoService {
           '',
       gouvernorat: sample['gouvernorat'] as String? ?? '',
       delegation: sample['delegation'] as String?,
-      codeFournisseur:
-          sample['code_fournisseur'] as String? ??
-          '',
+      fournisseurTexte: sample['fournisseur_nom'] as String? ?? '',
       fournisseurNom: sample['fournisseur_nom'] as String?,
       numCiterne: sample['num_citerne'] as String?,
       variete: sample['variete'] as String?,

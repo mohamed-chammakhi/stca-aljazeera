@@ -51,47 +51,48 @@ void main() {
     });
   });
 
-  testWidgets('la fiche detail affiche le nom fournisseur, pas le code interne', (
-    tester,
-  ) async {
-    final echantillon = EchantillonCollecteur(
-      id: 'sample-1',
-      numero: '2026/0001',
-      gouvernorat: 'Sfax',
-      fournisseurId: 'supplier-1',
-      codeFournisseur: 'F-0002',
-      fournisseurNom: 'hami',
-      referenceBouteille: 'HAM-C1',
-      achatConfirme: false,
-      dateAjout: DateTime(2026, 1, 1),
-      collecteurId: 'collector-1',
-      collecteurNom: 'Collecteur Test',
-      statut: StatutCollecteur.receptionne,
-    );
+  testWidgets(
+    'la fiche detail affiche le nom fournisseur, pas le code interne',
+    (tester) async {
+      final echantillon = EchantillonCollecteur(
+        id: 'sample-1',
+        numero: '2026/0001',
+        gouvernorat: 'Sfax',
+        fournisseurId: 'supplier-1',
+        fournisseurTexte: 'F-0002',
+        fournisseurNom: 'hami',
+        referenceBouteille: 'HAM-C1',
+        achatConfirme: false,
+        dateAjout: DateTime(2026, 1, 1),
+        collecteurId: 'collector-1',
+        collecteurNom: 'Collecteur Test',
+        statut: StatutCollecteur.receptionne,
+      );
 
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: ListView(
-            children: [
-              EchantillonComCard(
-                echantillon: echantillon,
-                onModifier: () {},
-                onSupprimer: () {},
-                onConfirmerAchat: null,
-                onPlanifierLivraison: null,
-                onScheduleArrivee: null,
-              ),
-            ],
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: ListView(
+              children: [
+                EchantillonComCard(
+                  echantillon: echantillon,
+                  onModifier: () {},
+                  onSupprimer: () {},
+                  onConfirmerAchat: null,
+                  onPlanifierLivraison: null,
+                  onScheduleArrivee: null,
+                ),
+              ],
+            ),
           ),
         ),
-      ),
-    );
+      );
 
-    await tester.tap(find.byIcon(Icons.keyboard_arrow_down).first);
-    await tester.pumpAndSettle();
+      await tester.tap(find.byIcon(Icons.keyboard_arrow_down).first);
+      await tester.pumpAndSettle();
 
-    expect(find.text('hami'), findsOneWidget);
-    expect(find.text('F-0002'), findsNothing);
-  });
+      expect(find.text('hami'), findsOneWidget);
+      expect(find.text('F-0002'), findsNothing);
+    },
+  );
 }

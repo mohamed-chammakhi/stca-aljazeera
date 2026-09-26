@@ -40,7 +40,7 @@ void showSuppressionDialog(
             ),
             const TextSpan(text: ' de '),
             TextSpan(
-              text: echantillon.codeFournisseur,
+              text: echantillon.fournisseurTexte,
               style: const TextStyle(fontWeight: FontWeight.w700),
             ),
             const TextSpan(text: ' ?\n\nCette action est irréversible.'),

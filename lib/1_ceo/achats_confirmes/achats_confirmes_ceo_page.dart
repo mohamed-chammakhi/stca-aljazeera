@@ -149,7 +149,7 @@ class _AchatsConfirmesCeoPageState extends State<AchatsConfirmesCeoPage>
             (e) =>
                 e.referenceBouteille.toLowerCase().contains(q) ||
                 e.id.toLowerCase().contains(q) ||
-                e.codeFournisseur.toLowerCase().contains(q) ||
+                e.fournisseurTexte.toLowerCase().contains(q) ||
                 (e.fournisseurNom?.toLowerCase().contains(q) ?? false) ||
                 e.gouvernorat.toLowerCase().contains(q) ||
                 (e.variete?.toLowerCase().contains(q) ?? false) ||
@@ -379,22 +379,22 @@ class _AchatsConfirmesCeoPageState extends State<AchatsConfirmesCeoPage>
                                     MediaQuery.of(context).size.height * 0.5,
                                 child: Center(
                                   child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.handshake_outlined,
-                                  size: 52,
-                                  color: Colors.grey.shade300,
-                                ),
-                                const SizedBox(height: 12),
-                                Text(
-                                  'Aucun achat confirmé',
-                                  style: TextStyle(
-                                    color: Colors.grey.shade400,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                              ],
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.handshake_outlined,
+                                        size: 52,
+                                        color: Colors.grey.shade300,
+                                      ),
+                                      const SizedBox(height: 12),
+                                      Text(
+                                        'Aucun achat confirmé',
+                                        style: TextStyle(
+                                          color: Colors.grey.shade400,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ),
@@ -439,7 +439,10 @@ class _AchatsConfirmesCeoPageState extends State<AchatsConfirmesCeoPage>
                                     'Gouvernorat',
                                     '${e.gouvernorat}${e.delegation != null ? " — ${e.delegation}" : ""}',
                                   ),
-                                  DetailItem('Fournisseur', e.fournisseurAffichage),
+                                  DetailItem(
+                                    'Fournisseur',
+                                    e.fournisseurAffichage,
+                                  ),
                                   if (e.variete != null)
                                     DetailItem('Variété', e.variete!),
                                   if (e.collecteurNom != null)

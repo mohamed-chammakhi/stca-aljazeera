@@ -96,7 +96,7 @@ class AnalyseLaboSerializer(serializers.ModelSerializer):
 
 class LabEchantillonAnalyseSerializer(serializers.ModelSerializer):
     ref = serializers.CharField(source='numero', read_only=True)
-    code_fournisseur = serializers.SerializerMethodField()
+    fournisseur_nom = serializers.SerializerMethodField()
     collecteur_nom = serializers.SerializerMethodField()
     date_arrivee = serializers.DateTimeField(source='date_arrivee_echantillon', read_only=True)
     numero_lot = serializers.SerializerMethodField()
@@ -110,15 +110,15 @@ class LabEchantillonAnalyseSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'ref', 'numero', 'gouvernorat',
             'delegation', 'date_ajout',
-            'code_fournisseur', 'collecteur_nom',
+            'fournisseur_nom', 'collecteur_nom',
             'reference_bouteille', 'variete', 'quantite_estimee',
             'date_arrivee', 'date_arrivee_echantillon',
             'numero_lot', 'origine_campagne', 'priorite',
             'notes_reception', 'statut_labo', 'analyse',
         ]
 
-    def get_code_fournisseur(self, obj):
-        return obj.fournisseur.code_fournisseur if obj.fournisseur else ''
+    def get_fournisseur_nom(self, obj):
+        return obj.fournisseur.nom if obj.fournisseur else ''
 
     def get_collecteur_nom(self, obj):
         if obj.collecteur:

@@ -52,7 +52,7 @@ class LigneAnalyseLaboService {
       statut: estSoumise ? StatutAnalyse.soumise : StatutAnalyse.enAttente,
       fournisseurNom:
           json['fournisseur_nom'] as String? ??
-          json['code_fournisseur'] as String?,
+          json['fournisseur_nom'] as String?,
       gouvernorat: json['gouvernorat'] as String?,
       delegation: json['delegation'] as String?,
       collecteurNom: json['collecteur_nom'] as String?,

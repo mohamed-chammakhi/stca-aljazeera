@@ -21,7 +21,7 @@ class Echantillon {
 
   // ── Denormalized display fields (returned by the API, not stored separately) ──
   // These are read-only annotations on the API response — never sent on POST/PUT.
-  final String? codeFournisseur; // e.g. "SF-42" — shown in list cards
+  final String? fournisseurTexte; // e.g. "SF-42" — shown in list cards
   final String? fournisseurNom; // supplier's full name
   final String? collecteurNom; // collector's full name
 
@@ -73,7 +73,7 @@ class Echantillon {
     required this.numero,
     required this.fournisseurId,
     required this.collecteurId,
-    this.codeFournisseur,
+    this.fournisseurTexte,
     this.fournisseurNom,
     this.collecteurNom,
     required this.gouvernorat,
@@ -116,7 +116,7 @@ class Echantillon {
   String get fournisseurAffichage {
     final nom = fournisseurNom?.trim() ?? '';
     if (nom.isNotEmpty) return nom;
-    return codeFournisseur?.trim() ?? '';
+    return fournisseurTexte?.trim() ?? '';
   }
 
   // ── Serialization ─────────────────────────────────────────────────────────────
@@ -125,7 +125,7 @@ class Echantillon {
     numero: json['numero'] as String,
     fournisseurId: json['fournisseur_id'] as String,
     collecteurId: json['collecteur_id'] as String,
-    codeFournisseur: json['code_fournisseur'] as String?,
+    fournisseurTexte: json['fournisseur_nom'] as String?,
     fournisseurNom: json['fournisseur_nom'] as String?,
     collecteurNom: json['collecteur_nom'] as String?,
     gouvernorat: json['gouvernorat'] as String,
@@ -202,7 +202,7 @@ class Echantillon {
     'remarques': remarques,
     'date_ajout': dateAjout,
     'updated_at': updatedAt,
-    // Note: codeFournisseur, fournisseurNom, collecteurNom are read-only
+    // Note: fournisseurTexte, fournisseurNom, collecteurNom are read-only
     // API annotations — not sent on POST/PUT.
   };
 }

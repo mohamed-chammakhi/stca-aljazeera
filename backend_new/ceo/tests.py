@@ -42,7 +42,6 @@ class CeoDashboardApiTests(APITestCase):
             role=User.Role.LABORATOIRE,
         )
         self.supplier = Fournisseur.objects.create(
-            code_fournisseur='SUP-CEO-1',
             nom='Domaine Test',
             region='Sfax',
         )

@@ -12,7 +12,7 @@ class EchantillonLabo {
 
   // ── Origin ────────────────────────────────────────────────────────────────
   final String gouvernorat;
-  final String codeFournisseur;
+  final String fournisseurTexte;
   final String collecteurNom;
 
   // ── Bottle / sample identity ──────────────────────────────────────────────
@@ -36,7 +36,7 @@ class EchantillonLabo {
     required this.id,
     required this.numero,
     required this.gouvernorat,
-    required this.codeFournisseur,
+    required this.fournisseurTexte,
     required this.collecteurNom,
     required this.referenceBouteille,
     this.variete,
@@ -62,9 +62,7 @@ class EchantillonLabo {
         id: _stringValue(json['id']),
         numero: _stringValue(json['numero']),
         gouvernorat: _stringValue(json['gouvernorat']),
-        codeFournisseur: _stringValue(
-          json['fournisseur_nom'] ?? json['code_fournisseur'],
-        ),
+        fournisseurTexte: _stringValue(json['fournisseur_nom']),
         collecteurNom: _stringValue(json['collecteur_nom']),
         referenceBouteille: _stringValue(json['reference_bouteille']),
         variete: json['variete'] as String?,
@@ -89,7 +87,7 @@ class EchantillonLabo {
     'id': id,
     'numero': numero,
     'gouvernorat': gouvernorat,
-    'code_fournisseur': codeFournisseur,
+    'fournisseur_nom': fournisseurTexte,
     'collecteur_nom': collecteurNom,
     'reference_bouteille': referenceBouteille,
     'variete': variete,

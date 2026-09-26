@@ -1305,7 +1305,7 @@ class _EchantillonMessageRef {
         numero: echantillon.numero,
         referenceBouteille: echantillon.referenceBouteille,
         fournisseur:
-            echantillon.fournisseurNom ?? echantillon.codeFournisseur ?? '',
+            echantillon.fournisseurNom ?? echantillon.fournisseurTexte ?? '',
       );
 
   String get subtitle {

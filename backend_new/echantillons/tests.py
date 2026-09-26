@@ -104,14 +104,14 @@ class CollectorEchantillonApiTests(APITestCase):
         self.assertIn(str(own.id), ids)
         self.assertNotIn(str(other.id), ids)
 
-    def test_collector_can_create_sample_with_supplier_code(self):
+    def test_collector_can_create_sample_with_supplier_name_and_location(self):
         self.authenticate(self.collector)
 
         response = self.client.post(
             '/api/echantillons/',
             {
                 'reference_bouteille': 'CHEM-001',
-                'code_fournisseur': 'SF-42',
+                'fournisseur_nom': 'hami',
                 'gouvernorat': 'Sfax',
                 'delegation': 'Sfax Sud',
                 'variete': 'Chemlali',
@@ -123,11 +123,12 @@ class CollectorEchantillonApiTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         data = response.json()
         self.assertTrue(data['numero'])
-        self.assertEqual(data['code_fournisseur'], 'SF-42')
+        self.assertNotIn('code_' + 'fournisseur', data)
         sample = Echantillon.objects.get(id=data['id'])
         self.assertEqual(sample.collecteur, self.collector)
-        self.assertEqual(sample.fournisseur.code_fournisseur, 'SF-42')
-        self.assertTrue(Fournisseur.objects.filter(code_fournisseur='SF-42').exists())
+        self.assertEqual(sample.fournisseur.nom, 'hami')
+        self.assertEqual(sample.fournisseur.region, 'Sfax')
+        self.assertEqual(sample.fournisseur.delegation, 'Sfax Sud')
 
     def test_collector_sample_with_unknown_supplier_name_creates_and_links_it(self):
         self.authenticate(self.collector)
@@ -138,6 +139,7 @@ class CollectorEchantillonApiTests(APITestCase):
                 'reference_bouteille': 'NOM-001',
                 'fournisseur_nom': 'Domaine Nouveau',
                 'gouvernorat': 'Sfax',
+                'delegation': 'Sfax Sud',
             },
             format='json',
         )
@@ -146,6 +148,8 @@ class CollectorEchantillonApiTests(APITestCase):
         sample = Echantillon.objects.get(id=response.data['id'])
         self.assertIsNotNone(sample.fournisseur)
         self.assertEqual(sample.fournisseur.nom, 'Domaine Nouveau')
+        self.assertEqual(sample.fournisseur.region, 'Sfax')
+        self.assertEqual(sample.fournisseur.delegation, 'Sfax Sud')
         self.assertEqual(
             Fournisseur.objects.filter(nom='Domaine Nouveau').count(),
             1,
@@ -153,9 +157,9 @@ class CollectorEchantillonApiTests(APITestCase):
 
     def test_collector_sample_with_existing_supplier_name_does_not_duplicate_it(self):
         supplier = Fournisseur.objects.create(
-            code_fournisseur='EX-001',
             nom='Domaine Existant',
             region='Sfax',
+            delegation='Sfax Sud',
         )
         self.authenticate(self.collector)
 
@@ -165,6 +169,7 @@ class CollectorEchantillonApiTests(APITestCase):
                 'reference_bouteille': 'NOM-002',
                 'fournisseur_nom': 'domaine existant',
                 'gouvernorat': 'Sfax',
+                'delegation': 'Sfax Sud',
             },
             format='json',
         )
@@ -201,9 +206,9 @@ class CollectorEchantillonApiTests(APITestCase):
         # supprimerait le fournisseur d'un echantillon sans que personne ne le
         # demande, et sans qu'aucun message ne le signale.
         supplier = Fournisseur.objects.create(
-            code_fournisseur='GARDE-001',
             nom='Domaine A Conserver',
             region='Sfax',
+            delegation='Sfax Sud',
         )
         self.authenticate(self.collector)
         created = self.client.post(
@@ -212,6 +217,7 @@ class CollectorEchantillonApiTests(APITestCase):
                 'reference_bouteille': 'MAJ-001',
                 'fournisseur_nom': 'Domaine A Conserver',
                 'gouvernorat': 'Sfax',
+                'delegation': 'Sfax Sud',
             },
             format='json',
         )
@@ -229,6 +235,90 @@ class CollectorEchantillonApiTests(APITestCase):
         sample = Echantillon.objects.get(id=sample_id)
         self.assertEqual(sample.variete, 'Chetoui')
         self.assertEqual(sample.fournisseur, supplier)
+
+    def test_same_supplier_name_in_two_locations_creates_two_suppliers(self):
+        self.authenticate(self.collector)
+
+        first = self.client.post(
+            '/api/echantillons/',
+            {
+                'reference_bouteille': 'HAMI-GB',
+                'fournisseur_nom': 'hami',
+                'gouvernorat': 'Gabes',
+                'delegation': 'El Hamma',
+            },
+            format='json',
+        )
+        second = self.client.post(
+            '/api/echantillons/',
+            {
+                'reference_bouteille': 'HAMI-SF',
+                'fournisseur_nom': 'hami',
+                'gouvernorat': 'Sfax',
+                'delegation': 'Sakiet Ezzit',
+            },
+            format='json',
+        )
+
+        self.assertEqual(first.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(second.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(Fournisseur.objects.filter(nom__iexact='hami').count(), 2)
+        self.assertNotEqual(
+            Echantillon.objects.get(id=first.data['id']).fournisseur_id,
+            Echantillon.objects.get(id=second.data['id']).fournisseur_id,
+        )
+
+    def test_same_supplier_name_same_location_reuses_supplier(self):
+        self.authenticate(self.collector)
+
+        for ref in ('HAMI-1', 'HAMI-2'):
+            response = self.client.post(
+                '/api/echantillons/',
+                {
+                    'reference_bouteille': ref,
+                    'fournisseur_nom': 'hami',
+                    'gouvernorat': 'Gabes',
+                    'delegation': 'El Hamma',
+                },
+                format='json',
+            )
+            self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        self.assertEqual(Fournisseur.objects.filter(nom__iexact='hami').count(), 1)
+
+    def test_update_supplier_location_relinks_to_matching_supplier(self):
+        sfax_supplier = Fournisseur.objects.create(
+            nom='hami',
+            region='Sfax',
+            delegation='Sakiet Ezzit',
+        )
+        gabes_supplier = Fournisseur.objects.create(
+            nom='hami',
+            region='Gabes',
+            delegation='El Hamma',
+        )
+        sample = self.create_sample(
+            self.collector,
+            reference_bouteille='HAMI-MOVE',
+            fournisseur=sfax_supplier,
+            gouvernorat='Sfax',
+            delegation='Sakiet Ezzit',
+        )
+        self.authenticate(self.collector)
+
+        response = self.client.patch(
+            f'/api/echantillons/{sample.id}/',
+            {
+                'fournisseur_nom': 'hami',
+                'gouvernorat': 'Gabes',
+                'delegation': 'El Hamma',
+            },
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        sample.refresh_from_db()
+        self.assertEqual(sample.fournisseur, gabes_supplier)
 
     def test_collector_sample_without_supplier_name_is_accepted(self):
         self.authenticate(self.collector)

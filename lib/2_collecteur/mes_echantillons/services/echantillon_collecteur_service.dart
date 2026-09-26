@@ -63,7 +63,6 @@ class EchantillonCollecteurService {
       'cite': api['cite'],
       'fournisseur': api['fournisseur'],
       'fournisseur_nom': api['fournisseur_nom'],
-      'code_fournisseur': api['code_fournisseur'] ?? '',
       'reference_bouteille': api['reference_bouteille'] ?? '',
       'num_citerne': api['num_citerne'],
       'quantite_estimee': api['quantite_estimee'],
@@ -99,7 +98,7 @@ class EchantillonCollecteurService {
       'gouvernorat': json['gouvernorat'],
       'delegation': json['delegation'],
       'cite': json['cite'],
-      if (nom.isEmpty) 'code_fournisseur': e.codeFournisseur,
+      if (nom.isEmpty) 'fournisseur_nom': e.fournisseurTexte,
       // Only sent when present so legacy edits don't accidentally override
       // the supplier match with an empty string.
       if (nom.isNotEmpty) 'fournisseur_nom': nom,
@@ -160,7 +159,7 @@ class EchantillonCollecteurService {
           final q = search.toLowerCase();
           if (!e.numero.toLowerCase().contains(q) &&
               !e.referenceBouteille.toLowerCase().contains(q) &&
-              !e.codeFournisseur.toLowerCase().contains(q) &&
+              !e.fournisseurTexte.toLowerCase().contains(q) &&
               !(e.fournisseurNom?.toLowerCase().contains(q) ?? false) &&
               !(e.variete?.toLowerCase().contains(q) ?? false)) {
             return false;

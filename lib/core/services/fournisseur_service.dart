@@ -1,16 +1,3 @@
-// ═════════════════════════════════════════════════════════════════════════════
-// FILE    : core/services/fournisseur_service.dart
-// PURPOSE : The supplier reference list — read, create, and suggest names.
-//
-//           Why suppliers are an entity and not free text: the CEO dashboard
-//           aggregates purchases per supplier. If the same supplier is typed
-//           "Ben Ali", "ben ali" and "BenAli", the dashboard counts three
-//           suppliers instead of one and every figure on that card is wrong.
-//
-//           The collector still types freely. The ID is internal plumbing; no
-//           field is ever a closed dropdown here.
-// ═════════════════════════════════════════════════════════════════════════════
-
 import '../api_client.dart';
 import '../models/fournisseur.dart';
 import 'resultat_service.dart';
@@ -22,7 +9,6 @@ class FournisseurService {
   bool _usingMockData = false;
   bool get usingMockData => _usingMockData;
 
-  /// Cached so typing in the form does not fire a request per keystroke.
   Resultat<List<Fournisseur>>? _cache;
 
   Future<Resultat<List<Fournisseur>>> fetchAll({
@@ -45,10 +31,6 @@ class FournisseurService {
     return _cache!;
   }
 
-  /// Suggestions for what the user has typed so far, best match first.
-  ///
-  /// An empty query returns the first known suppliers so the user can pick
-  /// from existing values as soon as the field opens.
   Future<Resultat<List<Fournisseur>>> suggest(
     String saisie, {
     int limite = 6,
@@ -67,14 +49,14 @@ class FournisseurService {
     final ailleurs = <Fournisseur>[];
     for (final f in resultat.donnees) {
       final n = _normaliser(f.nom);
-      if (n == q) continue; // already typed in full - nothing to suggest
+      final lieu = _normaliser('${f.region ?? ''} ${f.delegation ?? ''}');
       if (n.startsWith(q)) {
         debut.add(f);
-      } else if (n.contains(q)) {
+      } else if (n.contains(q) || lieu.contains(q)) {
         ailleurs.add(f);
       }
     }
-    // A supplier whose name starts with what was typed is what the user meant.
+
     return Resultat(
       [...debut, ...ailleurs].take(limite).toList(),
       estDemonstration: resultat.estDemonstration,
@@ -85,12 +67,13 @@ class FournisseurService {
   Future<Fournisseur> create({
     required String nom,
     String? region,
+    String? delegation,
     String? telephone,
   }) async {
     final body = {
       'nom': nom.trim(),
-      'code_fournisseur': _codeDepuisNom(nom),
       'region': region ?? '',
+      'delegation': delegation ?? '',
       'telephone': telephone ?? '',
     };
     final json = await apiClient.post('/api/fournisseurs/', body);
@@ -99,12 +82,6 @@ class FournisseurService {
     return cree;
   }
 
-  // ── Text matching ───────────────────────────────────────────────────────────
-
-  /// Lowercase, unaccented, letters and digits only.
-  ///
-  /// This is what makes "Ben Ali", "ben-ali" and "BENALI" compare equal — which
-  /// is exactly the duplication the dashboard suffers from.
   static String _normaliser(String s) {
     var t = s.toLowerCase().trim();
     const accents = 'àâäáãåçèéêëìíîïñòóôöõùúûüýÿ';
@@ -118,51 +95,31 @@ class FournisseurService {
     return buffer.toString();
   }
 
-  /// "Agricole Ben Ali" → "AGR-BEN". Only a fallback: the backend rejects an
-  /// empty code, and the collector has no reason to invent one on the road.
-  static String _codeDepuisNom(String nom) {
-    final mots = nom
-        .trim()
-        .split(RegExp(r'\s+'))
-        .where((m) => m.isNotEmpty)
-        .toList();
-    if (mots.isEmpty) return 'FRN';
-    final tete = mots.first.toUpperCase();
-    final code = mots.length == 1
-        ? tete
-        : '${tete.substring(0, tete.length < 3 ? tete.length : 3)}-'
-              '${mots[1].toUpperCase()}';
-    return code.length <= 20 ? code : code.substring(0, 20);
-  }
-
-  /// Used when the API is unreachable — the collector is often on the road.
   List<Fournisseur> _mockFournisseurs() => [
     Fournisseur(
       id: 'mock-frn-1',
-      codeFournisseur: 'AGR-BEN',
       nom: 'Agricole Ben Ali',
       region: 'Sfax',
+      delegation: 'Sfax Sud',
     ),
     Fournisseur(
       id: 'mock-frn-2',
-      codeFournisseur: 'HUI-SUD',
       nom: 'Huilerie du Sud',
-      region: 'Médenine',
+      region: 'Medenine',
+      delegation: 'Ben Gardane',
     ),
     Fournisseur(
       id: 'mock-frn-3',
-      codeFournisseur: 'DOM-OLI',
       nom: 'Domaine Olivia',
       region: 'Sousse',
+      delegation: 'Akouda',
     ),
     Fournisseur(
       id: 'mock-frn-4',
-      codeFournisseur: 'COOP-MAH',
-      nom: 'Coopérative de Mahdia',
+      nom: 'Cooperative de Mahdia',
       region: 'Mahdia',
     ),
   ];
 
-  /// Test seam and cache reset after a create elsewhere.
   void invalidateCache() => _cache = null;
 }

@@ -119,8 +119,7 @@ class EvaluationService {
       'id': id,
       'reference_bouteille': api['reference_bouteille'] ?? api['numero'] ?? '',
       'numero': api['numero'],
-      'fournisseur':
-          api['fournisseur_nom'] ?? api['code_fournisseur'] ?? 'Non specifie',
+      'fournisseur': api['fournisseur_nom'] ?? 'Non specifie',
       'date_ajout': api['date_ajout'],
       'date_arrivee_echantillon':
           api['date_arrivee_echantillon'] ?? api['date_ajout'] ?? '',

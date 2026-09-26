@@ -313,7 +313,7 @@ class _DetailPanel extends StatelessWidget {
                   DetailItem('N° échantillon', e.numero),
                   DetailItem('Réf. bouteille', e.referenceBouteille),
                   DetailItem('Gouvernorat', e.gouvernorat),
-                  DetailItem('Fournisseur', e.codeFournisseur),
+                  DetailItem('Fournisseur', e.fournisseurTexte),
                   DetailItem('Collecteur', e.collecteurNom),
                   DetailItem(
                     'Date arrivée',

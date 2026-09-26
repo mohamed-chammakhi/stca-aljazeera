@@ -69,8 +69,7 @@ evaluation_model.Echantillon _evaluationDepuisFixture(
     'id': json['id'],
     'reference_bouteille': json['reference_bouteille'] ?? '',
     'numero': json['numero'],
-    'fournisseur':
-        json['fournisseur_nom'] ?? json['code_fournisseur'] ?? 'Non specifie',
+    'fournisseur': json['fournisseur_nom'] ?? 'Non specifie',
     'date_arrivee_echantillon':
         json['date_arrivee_echantillon'] ?? json['date_ajout'],
     'date_ajout': json['date_ajout'],
@@ -92,7 +91,7 @@ EchantillonCeoView _ceoDepuisFixture(Map<String, dynamic> json) {
     referenceBouteille: json['reference_bouteille'] as String,
     gouvernorat: json['gouvernorat'] as String? ?? '',
     delegation: json['delegation'] as String?,
-    codeFournisseur: json['code_fournisseur'] as String? ?? '',
+    fournisseurTexte: json['fournisseur_nom'] as String? ?? '',
     fournisseurNom: json['fournisseur_nom'] as String?,
     numCiterne: json['num_citerne'] as String?,
     variete: json['variete'] as String?,

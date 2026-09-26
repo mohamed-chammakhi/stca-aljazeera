@@ -42,7 +42,6 @@ class DegustateurDashboardApiTests(APITestCase):
             role=User.Role.COLLECTEUR,
         )
         self.supplier = Fournisseur.objects.create(
-            code_fournisseur='FO-DEG-DASH',
             nom='Domaine Dashboard',
             region='Sfax',
         )
