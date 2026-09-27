@@ -13,20 +13,24 @@ const Color _olive = Color(0xFF6B8143);
 const Color _green = Color(0xFF38835A);
 const Color _dark = Color(0xFF1A2E1F);
 
-Color _statusColor(StatutSession s) {
-  switch (s) {
+Color _statusColor(SessionDegustation s) {
+  if (s.statut == StatutSession.terminee || s.estPassee) {
+    return const Color(0xFF757575);
+  }
+  switch (s.statut) {
     case StatutSession.enAttenteValidation:
       return const Color(0xFF7B3FC4);
     case StatutSession.planifiee:
-      return const Color(0xFFD07B2F);
     case StatutSession.enCours:
-      return const Color(0xFF3A6EA5);
-    case StatutSession.terminee:
       return _green;
+    case StatutSession.terminee:
+      return const Color(0xFF757575);
     case StatutSession.refusee:
       return const Color(0xFFD32F2F);
   }
 }
+
+Color _statusBadgeBackground(Color color) => color.withValues(alpha: 0.11);
 
 // ─────────────────────────────────────────────────────────────────────────────
 class SessionCard extends StatefulWidget {
@@ -91,7 +95,7 @@ class _SessionCardState extends State<SessionCard> {
   @override
   Widget build(BuildContext context) {
     final s = widget.session;
-    final accent = _statusColor(s.statut);
+    final accent = _statusColor(s);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
@@ -143,6 +147,11 @@ class _SessionCardState extends State<SessionCard> {
                                   overflow: TextOverflow.ellipsis,
                                 ),
                               ),
+                              _StatusBadge(
+                                label: s.statutLisible,
+                                color: accent,
+                              ),
+                              const SizedBox(width: 8),
                               // ── Confirmation message (inline, collapses when hidden) ──
                               AnimatedSize(
                                 duration: const Duration(milliseconds: 200),
@@ -318,6 +327,36 @@ class _SmallIconBtn extends StatelessWidget {
 // ─────────────────────────────────────────────────────────────────────────────
 // PENDING ACTION ROW — approve / refuse pills, always visible for pending cards
 // ─────────────────────────────────────────────────────────────────────────────
+class _StatusBadge extends StatelessWidget {
+  final String label;
+  final Color color;
+
+  const _StatusBadge({required this.label, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      constraints: const BoxConstraints(maxWidth: 132),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: _statusBadgeBackground(color),
+        borderRadius: BorderRadius.circular(7),
+        border: Border.all(color: color.withValues(alpha: 0.22)),
+      ),
+      child: Text(
+        label,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(
+          color: color,
+          fontSize: 10.5,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    );
+  }
+}
+
 class _PendingActionRow extends StatelessWidget {
   final VoidCallback? onApprouver;
   final VoidCallback? onRefuser;

@@ -70,7 +70,7 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage>
       final resultat = await _service.fetchSessions();
       if (!mounted) return;
       setState(() {
-        _sessions = resultat.donnees;
+        _sessions = trierSessionsDegustation(resultat.donnees);
         _estDemonstration = resultat.estDemonstration;
         _erreurChargement = null;
       });
@@ -87,24 +87,11 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage>
         return;
       }
       setState(() {
-        _sessions = resultat.donnees;
+        _sessions = trierSessionsDegustation(resultat.donnees);
         _estDemonstration = resultat.estDemonstration;
         _erreurChargement = null;
       });
     } catch (_) {}
-  }
-
-  StatutSession? _labelToStatut(String? label) {
-    switch (label) {
-      case 'En attente':
-        return StatutSession.enAttenteValidation;
-      case 'Planifiée':
-        return StatutSession.planifiee;
-      case 'Terminée':
-        return StatutSession.terminee;
-      default:
-        return null;
-    }
   }
 
   List<SessionDegustation> get _filtres {
@@ -115,8 +102,7 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage>
           s.lieu.toLowerCase().contains(_recherche.toLowerCase()) ||
           s.id.toLowerCase().contains(_recherche.toLowerCase());
 
-      final filtreEnum = _labelToStatut(_filtreStatutLabel);
-      final matchStatut = filtreEnum == null || s.statut == filtreEnum;
+      final matchStatut = s.correspondAuFiltreStatut(_filtreStatutLabel);
 
       bool matchDate = true;
       if (_dateFilterActive) {
@@ -160,7 +146,9 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage>
     try {
       final saved = await _service.createSession(nouvelle);
       if (!mounted) return;
-      setState(() => _sessions.add(saved));
+      setState(
+        () => _sessions = trierSessionsDegustation([..._sessions, saved]),
+      );
       _showSuccess('Session créée et planifiée');
     } catch (erreur) {
       if (mounted) _showError(_messageErreur(erreur));
@@ -174,6 +162,7 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage>
       setState(() {
         final index = _sessions.indexWhere((s) => s.id == modifiee.id);
         if (index != -1) _sessions[index] = saved;
+        _sessions = trierSessionsDegustation(_sessions);
       });
       _showSuccess('Session modifiée avec succès');
     } catch (erreur) {
@@ -196,7 +185,10 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage>
     try {
       await _service.approuverSession(s.id);
       if (!mounted) return;
-      setState(() => s.statut = StatutSession.planifiee);
+      setState(() {
+        s.statut = StatutSession.planifiee;
+        _sessions = trierSessionsDegustation(_sessions);
+      });
       _showSuccess('Session "${s.titre}" approuvée');
     } catch (erreur) {
       if (mounted) _showError(_messageErreur(erreur));
@@ -207,8 +199,11 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage>
     try {
       await _service.refuserSession(s.id);
       if (!mounted) return;
-      setState(() => _sessions.remove(s));
-      _showSuccess('Session "${s.titre}" refusée et supprimée');
+      setState(() {
+        s.statut = StatutSession.refusee;
+        _sessions = trierSessionsDegustation(_sessions);
+      });
+      _showSuccess('Session "${s.titre}" refusée');
     } catch (erreur) {
       if (mounted) _showError(_messageErreur(erreur));
     }
@@ -221,6 +216,7 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage>
       setState(() {
         final index = _sessions.indexWhere((item) => item.id == s.id);
         if (index != -1) _sessions[index] = updated;
+        _sessions = trierSessionsDegustation(_sessions);
       });
     } catch (erreur) {
       if (mounted) _showError(_messageErreur(erreur));
@@ -456,20 +452,30 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage>
                         ),
                         const SizedBox(width: 7),
                         StatutChip(
-                          label: 'Planifiée',
-                          activeColor: const Color(0xFFD07B2F),
-                          inactiveColor: const Color(0xFFFEF3E8),
-                          inactiveTextColor: const Color(0xFFD07B2F),
-                          selected: _filtreStatutLabel == 'Planifiée',
+                          label: 'Approuvée',
+                          activeColor: const Color(0xFF38835A),
+                          inactiveColor: const Color(0xFFE6F4ED),
+                          inactiveTextColor: const Color(0xFF38835A),
+                          selected: _filtreStatutLabel == 'Approuvée',
                           onTap: () =>
-                              setState(() => _filtreStatutLabel = 'Planifiée'),
+                              setState(() => _filtreStatutLabel = 'Approuvée'),
+                        ),
+                        const SizedBox(width: 7),
+                        StatutChip(
+                          label: 'Refusée',
+                          activeColor: const Color(0xFFD32F2F),
+                          inactiveColor: const Color(0xFFFFEBEE),
+                          inactiveTextColor: const Color(0xFFD32F2F),
+                          selected: _filtreStatutLabel == 'Refusée',
+                          onTap: () =>
+                              setState(() => _filtreStatutLabel = 'Refusée'),
                         ),
                         const SizedBox(width: 7),
                         StatutChip(
                           label: 'Terminée',
-                          activeColor: kGreen,
-                          inactiveColor: const Color(0xFFE6F4ED),
-                          inactiveTextColor: kGreen,
+                          activeColor: const Color(0xFF757575),
+                          inactiveColor: const Color(0xFFF0F0F0),
+                          inactiveTextColor: const Color(0xFF757575),
                           selected: _filtreStatutLabel == 'Terminée',
                           onTap: () =>
                               setState(() => _filtreStatutLabel = 'Terminée'),

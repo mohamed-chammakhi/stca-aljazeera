@@ -46,3 +46,4 @@ lignes 1 à 6 en une seule fois, quand la tâche 37 est finie et que `flutter an
 Pendant la nuit, voir `BOUCLE-NUIT.md`.
 
 | 27 | Tâche 48 — sessions : nombre, visibilité, droits, notifications, dates passées | fait |
+| 28 | Tâche 49 — sessions : ordre récent → ancien, statut écrit, filtres | fait |

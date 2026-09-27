@@ -52,6 +52,47 @@ int? _intValue(dynamic value) {
   return int.tryParse(value.toString());
 }
 
+DateTime? _dateTimeFromDateAndTime(String date, String heure) {
+  final timeParts = heure.split(':');
+  final hour = timeParts.isNotEmpty ? int.tryParse(timeParts[0]) : 0;
+  final minute = timeParts.length > 1 ? int.tryParse(timeParts[1]) : 0;
+  if (hour == null || minute == null) return null;
+
+  final displayParts = date.split('/');
+  if (displayParts.length == 3) {
+    final day = int.tryParse(displayParts[0]);
+    final month = int.tryParse(displayParts[1]);
+    final year = int.tryParse(displayParts[2]);
+    if (day != null && month != null && year != null) {
+      return DateTime(year, month, day, hour, minute);
+    }
+  }
+
+  final parsed = DateTime.tryParse(date);
+  if (parsed == null) return null;
+  return DateTime(parsed.year, parsed.month, parsed.day, hour, minute);
+}
+
+DateTime? _dateTimeFromJsonTimestamp(String value) => DateTime.tryParse(value);
+
+int _compareDateDesc(DateTime? a, DateTime? b) {
+  if (a == null && b == null) return 0;
+  if (a == null) return 1;
+  if (b == null) return -1;
+  return b.compareTo(a);
+}
+
+List<SessionDegustation> trierSessionsDegustation(
+  Iterable<SessionDegustation> sessions,
+) {
+  return List<SessionDegustation>.from(sessions)
+    ..sort((a, b) {
+      final dateCompare = _compareDateDesc(a.dateHeure, b.dateHeure);
+      if (dateCompare != 0) return dateCompare;
+      return _compareDateDesc(a.createdAtDateTime, b.createdAtDateTime);
+    });
+}
+
 class SessionDegustation {
   final String id; // UUID PK
   String titre;
@@ -112,19 +153,43 @@ class SessionDegustation {
   int? get nbEchantillonsAffiche => nombreEchantillonsPrevus;
   int get nbParticipants => participantIds.length;
   String get dateHeureAffichage => _dateHeureAffichage(date, heure);
+  DateTime? get dateHeure => _dateTimeFromDateAndTime(date, heure);
+  DateTime? get createdAtDateTime => _dateTimeFromJsonTimestamp(createdAt);
   bool get estPassee {
-    final parts = date.split('/');
-    final timeParts = heure.split(':');
-    if (parts.length != 3 || timeParts.length < 2) return false;
-    final day = int.tryParse(parts[0]);
-    final month = int.tryParse(parts[1]);
-    final year = int.tryParse(parts[2]);
-    final hour = int.tryParse(timeParts[0]);
-    final minute = int.tryParse(timeParts[1]);
-    if ([day, month, year, hour, minute].any((value) => value == null)) {
-      return false;
+    final sessionDateTime = dateHeure;
+    if (sessionDateTime == null) return false;
+    return sessionDateTime.isBefore(DateTime.now());
+  }
+
+  String get statutLisible {
+    if (statut == StatutSession.terminee || estPassee) return 'Terminée';
+    switch (statut) {
+      case StatutSession.enAttenteValidation:
+        return 'En attente de validation';
+      case StatutSession.planifiee:
+      case StatutSession.enCours:
+        return 'Approuvée';
+      case StatutSession.refusee:
+        return 'Refusée';
+      case StatutSession.terminee:
+        return 'Terminée';
     }
-    return DateTime(year!, month!, day!, hour!, minute!).isBefore(DateTime.now());
+  }
+
+  bool correspondAuFiltreStatut(String? filtre) {
+    if (filtre == null) return true;
+    switch (filtre) {
+      case 'En attente':
+        return statutLisible == 'En attente de validation';
+      case 'Approuvée':
+        return statutLisible == 'Approuvée';
+      case 'Refusée':
+        return statutLisible == 'Refusée';
+      case 'Terminée':
+        return statutLisible == 'Terminée';
+      default:
+        return true;
+    }
   }
 
   factory SessionDegustation.fromJson(Map<String, dynamic> json) =>
