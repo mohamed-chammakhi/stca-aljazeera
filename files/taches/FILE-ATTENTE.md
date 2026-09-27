@@ -48,4 +48,4 @@ Pendant la nuit, voir `BOUCLE-NUIT.md`.
 | 27 | Tâche 48 — sessions : nombre, visibilité, droits, notifications, dates passées | fait |
 | 28 | Tâche 49 — sessions : ordre récent → ancien, statut écrit, filtres | fait |
 | 29 | Tâche 50 — photo d'échantillon identique (3 rôles) + OCR Azure prêt à activer | fait |
-| 30 | Tâche 50b — OCR : Azure Document Intelligence + ML Kit sur le téléphone | en cours |
+| 30 | Tâche 50b — OCR : Azure Document Intelligence (sans ML Kit) | en cours |

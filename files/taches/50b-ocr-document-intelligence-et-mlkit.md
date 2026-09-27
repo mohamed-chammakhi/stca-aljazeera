@@ -1,4 +1,4 @@
-# Tâche 50b — OCR : Azure Document Intelligence + lecture sur le téléphone (ML Kit)
+# Tâche 50b — OCR : passer à Azure Document Intelligence
 
 Lis `files/taches/PROTOCOLE.md`, `CLAUDE.md`, puis le RAPPORT de
 `files/taches/50-photo-echantillon-et-ocr-azure.md` (ce qui existe déjà). Flutter + backend.
@@ -10,7 +10,7 @@ Pas de migration.
 Contexte : l'ancienne version du projet utilisait **Azure Document Intelligence** (c'était le
 meilleur résultat). La société n'a pas encore de compte Azure. Il faut :
 1. revenir à **Document Intelligence** côté serveur (prêt à activer avec une clé) ;
-2. une lecture qui **marche dès aujourd'hui sans clé** : **Google ML Kit** sur le téléphone.
+2. **pas de ML Kit**, rien sur le téléphone.
 
 ## A — Serveur : Document Intelligence au lieu de AI Vision
 
@@ -26,28 +26,17 @@ meilleur résultat). La société n'a pas encore de compte Azure. Il faut :
 - Tests serveur mis à jour : appel Azure simulé (POST puis GET de l'opération), inactif,
   délai dépassé → 503 propre.
 
-## B — Téléphone : ML Kit hors ligne
+## B — Application : bouton « Lire l'étiquette »
 
-- Ajoute `google_mlkit_text_recognition` (script latin) au `pubspec.yaml`.
-- Le bouton **« Lire l'étiquette »** des trois formulaires (collecteur, dégustateur, chef) :
-  1. si `ocr/statut/` dit **actif** → envoie la photo au serveur (Azure) ;
-     si le serveur échoue → bascule sur ML Kit ;
-  2. sinon → **ML Kit sur le téléphone**, puis envoie le **texte lu** au serveur pour
-     l'extraction des champs : nouvel endpoint `POST /api/echantillons/ocr/texte/`
-     (`{"texte": "..."}`, mêmes rôles, même réponse que `ocr/`), qui réutilise la même
-     logique d'extraction + le rapprochement fournisseur. Cet endpoint marche **sans Azure**.
-- Le bouton n'est donc **plus grisé** : il marche toujours sur Android/iOS. Sur une
-  plateforme sans ML Kit (web, Windows), s'il n'y a pas Azure → grisé « Lecture non
-  disponible sur cet appareil ».
-- Pré-remplissage : seulement les champs vides ; l'utilisateur vérifie avant d'enregistrer.
-  Message « Aucun texte lisible » si rien n'est trouvé.
-- Tests : serveur pour `ocr/texte/` (extraction, rôles 403, texte vide 400) ; Flutter pour
-  le choix du chemin (Azure actif / inactif) avec un faux service.
+**Interdit : n'ajoute pas ML Kit ni aucune bibliothèque OCR sur le téléphone** (demande
+explicite). Toute la lecture passe par le serveur (Azure Document Intelligence).
+- Le bouton garde son comportement de la tâche 50 : grisé « Lecture automatique bientôt
+  disponible » tant que `ocr/statut/` dit inactif ; actif → envoie la photo au serveur et
+  pré-remplit les champs vides. Vérifie qu'il marche pareil dans les trois formulaires.
 
 ## C — Documentation
 
-Mets à jour la section Azure de `docs/MISE-EN-SERVICE.md` : la lecture marche déjà sur le
-téléphone ; pour une meilleure précision, créer une ressource **Azure AI Document
+Mets à jour la section Azure de `docs/MISE-EN-SERVICE.md` : créer une ressource **Azure AI Document
 Intelligence** (formule gratuite F0 possible) et remplir `AZURE_DOCINTEL_ENDPOINT` /
 `AZURE_DOCINTEL_KEY`, redémarrer.
 
