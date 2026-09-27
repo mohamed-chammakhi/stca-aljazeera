@@ -19,6 +19,7 @@ import '../../../../core/models/collecteur_suggestion.dart';
 import '../../../../core/models/echantillon.dart';
 import '../../../../core/models/enums.dart';
 import '../../../../core/models/fournisseur.dart';
+import '../../../../core/services/bottle_label_ocr_service.dart';
 import '../../../../core/services/collecteur_suggestion_service.dart';
 import '../../../../core/services/fournisseur_service.dart';
 import '../../../../core/services/variete_service.dart';
@@ -150,6 +151,10 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
   Uint8List? _photoBytes;
   String? _photoName;
   bool _saving = false;
+  bool _ocrActive = false;
+  bool _ocrStatusLoaded = false;
+  bool _ocrLoading = false;
+  final BottleLabelOcrService _ocrService = BottleLabelOcrService();
 
   bool get _isModification => widget.echantillon != null;
   int get _bottleCount => _bouteilles.length;
@@ -178,6 +183,24 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
     _geo.load().then((_) {
       if (mounted) setState(() => _geoLoaded = true);
     });
+    _loadOcrStatus();
+  }
+
+  Future<void> _loadOcrStatus() async {
+    try {
+      final active = await _ocrService.isActive();
+      if (!mounted) return;
+      setState(() {
+        _ocrActive = active;
+        _ocrStatusLoaded = true;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _ocrActive = false;
+        _ocrStatusLoaded = true;
+      });
+    }
   }
 
   @override
@@ -307,7 +330,7 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
             ),
             ListTile(
               leading: const Icon(Icons.photo_library_outlined, color: _green),
-              title: const Text('Choisir depuis la galerie'),
+              title: const Text('Importer depuis la galerie'),
               onTap: () {
                 Navigator.pop(context);
                 _pickPhoto(ImageSource.gallery);
@@ -317,6 +340,112 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
         ),
       ),
     );
+  }
+
+  Future<void> _pickRowPhoto(ImageSource source, _BouteilleRow row) async {
+    final XFile? file = await _picker.pickImage(
+      source: source,
+      maxWidth: 2000,
+      imageQuality: 90,
+    );
+    if (file == null) return;
+    final bytes = await file.readAsBytes();
+    if (!mounted) return;
+    setState(() {
+      row.photoBytes = bytes;
+      row.photoName = file.name;
+    });
+  }
+
+  void _removeRowPhoto(_BouteilleRow row) => setState(() {
+    row.photoBytes = null;
+    row.photoName = null;
+  });
+
+  void _chooseRowPhotoSource(_BouteilleRow row) {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (sheetContext) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.photo_camera_outlined, color: _green),
+              title: const Text('Prendre une photo'),
+              onTap: () {
+                Navigator.pop(sheetContext);
+                _pickRowPhoto(ImageSource.camera, row);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library_outlined, color: _green),
+              title: const Text('Importer depuis la galerie'),
+              onTap: () {
+                Navigator.pop(sheetContext);
+                _pickRowPhoto(ImageSource.gallery, row);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showErrorMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red.shade400,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        margin: const EdgeInsets.all(16),
+      ),
+    );
+  }
+
+  void _prefillIfEmpty(TextEditingController controller, String? value) {
+    if (value == null || controller.text.trim().isNotEmpty) return;
+    controller.text = value;
+  }
+
+  Future<void> _readLabel(_BouteilleRow row) async {
+    if (!_ocrActive || _ocrLoading) return;
+    final bytes = row.photoBytes;
+    if (bytes == null) {
+      _showErrorMessage('Ajoutez une photo avant de lire l\'étiquette.');
+      return;
+    }
+    setState(() => _ocrLoading = true);
+    try {
+      final result = await _ocrService.readLabel(
+        bytes: bytes,
+        filename: row.photoName ?? 'etiquette.jpg',
+      );
+      if (!mounted) return;
+      if (!result.hasAnyValue) {
+        _showErrorMessage('Aucun champ lisible. Saisissez les informations manuellement.');
+        return;
+      }
+      setState(() {
+        _prefillIfEmpty(_fournisseurTexteCtrl, result.fournisseurNom);
+        _prefillIfEmpty(row.referenceCtrl, result.referenceBouteille);
+        _prefillIfEmpty(row.varieteCtrl, result.variete);
+        _prefillIfEmpty(row.qteCtrl, result.quantite);
+        _prefillIfEmpty(row.numCiterneCtrl, result.numCiterne);
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Étiquette lue. Vérifiez les champs avant d\'enregistrer.')),
+      );
+    } catch (error) {
+      final message = error is ApiException ? error.message : error.toString();
+      if (mounted) _showErrorMessage(message);
+    } finally {
+      if (mounted) setState(() => _ocrLoading = false);
+    }
   }
 
   Widget _buildPhotoZone() {
@@ -710,6 +839,12 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
                         isModification: _isModification,
                         onAddRow: _addRow,
                         onRemoveRow: _removeRow,
+                        onPhoto: _chooseRowPhotoSource,
+                        onRemovePhoto: _removeRowPhoto,
+                        onReadLabel: _readLabel,
+                        ocrActive: _ocrActive,
+                        ocrStatusLoaded: _ocrStatusLoaded,
+                        ocrLoading: _ocrLoading,
                         onDonneesReferenceChangees: _actualiserReference,
                       ),
 
@@ -730,10 +865,6 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
 
                       const SizedBox(height: 16),
                       // ── SHARED: PHOTO (optionnelle) ────────────────────────
-                      _FieldLabel(label: 'Photo'),
-                      const SizedBox(height: 10),
-                      _buildPhotoZone(),
-
                       const SizedBox(height: 12),
 
                       // ── SHARED: REMARQUES ─────────────────────────────────
@@ -915,6 +1046,12 @@ class _BouteillesSection extends StatelessWidget {
   final bool isModification;
   final VoidCallback onAddRow;
   final ValueChanged<int> onRemoveRow;
+  final ValueChanged<_BouteilleRow> onPhoto;
+  final ValueChanged<_BouteilleRow> onRemovePhoto;
+  final ValueChanged<_BouteilleRow> onReadLabel;
+  final bool ocrActive;
+  final bool ocrStatusLoaded;
+  final bool ocrLoading;
   final ValueChanged<_BouteilleRow> onDonneesReferenceChangees;
 
   const _BouteillesSection({
@@ -922,6 +1059,12 @@ class _BouteillesSection extends StatelessWidget {
     required this.isModification,
     required this.onAddRow,
     required this.onRemoveRow,
+    required this.onPhoto,
+    required this.onRemovePhoto,
+    required this.onReadLabel,
+    required this.ocrActive,
+    required this.ocrStatusLoaded,
+    required this.ocrLoading,
     required this.onDonneesReferenceChangees,
   });
 
@@ -1017,6 +1160,12 @@ class _BouteillesSection extends StatelessWidget {
             index: i,
             showRemove: !isModification && count > 1,
             onRemove: () => onRemoveRow(i),
+            onPhoto: () => onPhoto(bouteilles[i]),
+            onRemovePhoto: () => onRemovePhoto(bouteilles[i]),
+            onReadLabel: () => onReadLabel(bouteilles[i]),
+            ocrActive: ocrActive,
+            ocrStatusLoaded: ocrStatusLoaded,
+            ocrLoading: ocrLoading,
             onDonneesReferenceChangees: () =>
                 onDonneesReferenceChangees(bouteilles[i]),
           ),
@@ -1034,6 +1183,12 @@ class _BouteilleCard extends StatelessWidget {
   final int index;
   final bool showRemove;
   final VoidCallback onRemove;
+  final VoidCallback onPhoto;
+  final VoidCallback onRemovePhoto;
+  final VoidCallback onReadLabel;
+  final bool ocrActive;
+  final bool ocrStatusLoaded;
+  final bool ocrLoading;
   final VoidCallback onDonneesReferenceChangees;
 
   const _BouteilleCard({
@@ -1041,6 +1196,12 @@ class _BouteilleCard extends StatelessWidget {
     required this.index,
     required this.showRemove,
     required this.onRemove,
+    required this.onPhoto,
+    required this.onRemovePhoto,
+    required this.onReadLabel,
+    required this.ocrActive,
+    required this.ocrStatusLoaded,
+    required this.ocrLoading,
     required this.onDonneesReferenceChangees,
   });
 
@@ -1189,6 +1350,73 @@ class _BouteilleCard extends StatelessWidget {
             hint: 'Chemlali, Chetoui...',
             chercher: VarieteService.instance.suggest,
             libelle: (v) => v,
+          ),
+          const SizedBox(height: 10),
+
+          _InlineLabel(label: 'Photo de la bouteille'),
+          const SizedBox(height: 5),
+          if (row.photoBytes == null)
+            Text(
+              'Aucune photo',
+              style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+            )
+          else ...[
+            PhotoPleinEcran.memory(
+              bytes: row.photoBytes!,
+              height: 130,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            const SizedBox(height: 6),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    row.photoName ?? 'photo.jpg',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                  ),
+                ),
+                TextButton.icon(
+                  onPressed: onPhoto,
+                  icon: const Icon(Icons.refresh, size: 16),
+                  label: const Text('Remplacer'),
+                ),
+                TextButton.icon(
+                  onPressed: onRemovePhoto,
+                  icon: Icon(
+                    Icons.delete_outline,
+                    size: 16,
+                    color: Colors.red.shade400,
+                  ),
+                  label: Text(
+                    'Retirer',
+                    style: TextStyle(color: Colors.red.shade400),
+                  ),
+                ),
+              ],
+            ),
+          ],
+          const SizedBox(height: 6),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton.icon(
+              onPressed: ocrActive && row.photoBytes != null && !ocrLoading
+                  ? onReadLabel
+                  : null,
+              icon: ocrLoading
+                  ? const SizedBox(
+                      width: 14,
+                      height: 14,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.document_scanner_outlined, size: 16),
+              label: Text(
+                ocrStatusLoaded && !ocrActive
+                    ? 'Lecture automatique bientôt disponible'
+                    : 'Lire l\'étiquette',
+              ),
+            ),
           ),
         ],
       ),

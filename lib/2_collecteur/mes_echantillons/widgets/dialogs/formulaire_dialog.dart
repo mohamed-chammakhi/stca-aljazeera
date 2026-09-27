@@ -11,6 +11,7 @@ import '../../models/echantillon_collecteur.dart';
 import '../../../../core/api_client.dart';
 import '../../../../core/models/enums.dart';
 import '../../../../core/models/fournisseur.dart';
+import '../../../../core/services/bottle_label_ocr_service.dart';
 import '../../../../core/services/fournisseur_service.dart';
 import '../../../../core/services/variete_service.dart';
 import '../../../../core/utils/reference_bouteille.dart';
@@ -109,9 +110,13 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
   // ── Per-bouteille rows ────────────────────────────────────────────────────
   final List<BouteilleRow> _bouteilles = [];
   bool _saving = false;
+  bool _ocrActive = false;
+  bool _ocrStatusLoaded = false;
+  bool _ocrLoading = false;
 
   // ── Bottle photos (optional, one per sample) ──────────────────────────────
   final ImagePicker _picker = ImagePicker();
+  final BottleLabelOcrService _ocrService = BottleLabelOcrService();
 
   Future<void> _pickPhoto(ImageSource source, BouteilleRow row) async {
     final XFile? file = widget.pickPhoto != null
@@ -147,21 +152,21 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              key: const ValueKey('photo-source-gallery'),
-              leading: const Icon(Icons.photo_library_outlined, color: kGreen),
-              title: const Text('Galerie'),
-              onTap: () {
-                Navigator.pop(sheetContext);
-                _pickPhoto(ImageSource.gallery, row);
-              },
-            ),
-            ListTile(
               key: const ValueKey('photo-source-camera'),
               leading: const Icon(Icons.photo_camera_outlined, color: kGreen),
-              title: const Text('Appareil photo'),
+              title: const Text('Prendre une photo'),
               onTap: () {
                 Navigator.pop(sheetContext);
                 _pickPhoto(ImageSource.camera, row);
+              },
+            ),
+            ListTile(
+              key: const ValueKey('photo-source-gallery'),
+              leading: const Icon(Icons.photo_library_outlined, color: kGreen),
+              title: const Text('Importer depuis la galerie'),
+              onTap: () {
+                Navigator.pop(sheetContext);
+                _pickPhoto(ImageSource.gallery, row);
               },
             ),
             ListTile(
@@ -213,6 +218,24 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
     _geo.load().then((_) {
       if (mounted) setState(() => _geoLoaded = true);
     });
+    _loadOcrStatus();
+  }
+
+  Future<void> _loadOcrStatus() async {
+    try {
+      final active = await _ocrService.isActive();
+      if (!mounted) return;
+      setState(() {
+        _ocrActive = active;
+        _ocrStatusLoaded = true;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _ocrActive = false;
+        _ocrStatusLoaded = true;
+      });
+    }
   }
 
   @override
@@ -290,6 +313,46 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
   String _messageErreur(Object error) {
     if (error is ApiException) return error.message;
     return error.toString();
+  }
+
+  void _prefillIfEmpty(TextEditingController controller, String? value) {
+    if (value == null || controller.text.trim().isNotEmpty) return;
+    controller.text = value;
+  }
+
+  Future<void> _readLabel(BouteilleRow row) async {
+    if (!_ocrActive || _ocrLoading) return;
+    final bytes = row.photoBytes;
+    if (bytes == null) {
+      _showErrorMessage('Ajoutez une photo avant de lire l\'étiquette.');
+      return;
+    }
+    setState(() => _ocrLoading = true);
+    try {
+      final result = await _ocrService.readLabel(
+        bytes: bytes,
+        filename: row.photoName ?? 'etiquette.jpg',
+      );
+      if (!mounted) return;
+      if (!result.hasAnyValue) {
+        _showErrorMessage('Aucun champ lisible. Saisissez les informations manuellement.');
+        return;
+      }
+      setState(() {
+        _prefillIfEmpty(_fournisseurTexteCtrl, result.fournisseurNom);
+        _prefillIfEmpty(row.refCtrl, result.referenceBouteille);
+        _prefillIfEmpty(row.varieteCtrl, result.variete);
+        _prefillIfEmpty(row.qteCtrl, result.quantite);
+        _prefillIfEmpty(row.numCiterneCtrl, result.numCiterne);
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Étiquette lue. Vérifiez les champs avant d\'enregistrer.')),
+      );
+    } catch (error) {
+      if (mounted) _showErrorMessage(_messageErreur(error));
+    } finally {
+      if (mounted) setState(() => _ocrLoading = false);
+    }
   }
 
   Future<void> _confirmerReferenceSiRecalculee(BouteilleRow row) async {
@@ -372,7 +435,17 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
         e.fournisseurId = _fournisseurChoisi?.id ?? e.fournisseurId;
         e.fournisseurNom = fournisseurNom;
         e.fournisseurTexte = fournisseurNom ?? '';
-        await widget.onSaveMultiple([e]); // modification: photo unchanged here
+        await widget.onSaveMultiple(
+          [e],
+          photos: b.photoBytes == null
+              ? null
+              : [
+                  SamplePhoto(
+                    bytes: b.photoBytes!,
+                    filename: b.photoName ?? 'etiquette.jpg',
+                  ),
+                ],
+        );
       } else {
         final now = DateTime.now();
         final samples = _bouteilles.asMap().entries.map((entry) {
@@ -589,6 +662,10 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
                         onRemoveRow: _removeRow,
                         onPhoto: _choosePhotoSource,
                         onRemovePhoto: _removePhoto,
+                        onReadLabel: _readLabel,
+                        ocrActive: _ocrActive,
+                        ocrStatusLoaded: _ocrStatusLoaded,
+                        ocrLoading: _ocrLoading,
                         onDonneesReferenceChangees: _actualiserReference,
                       ),
                       const SizedBox(height: 12),
@@ -738,6 +815,10 @@ class _BouteillesSection extends StatelessWidget {
   final ValueChanged<int> onRemoveRow;
   final ValueChanged<BouteilleRow> onPhoto;
   final ValueChanged<BouteilleRow> onRemovePhoto;
+  final ValueChanged<BouteilleRow> onReadLabel;
+  final bool ocrActive;
+  final bool ocrStatusLoaded;
+  final bool ocrLoading;
   final ValueChanged<BouteilleRow> onDonneesReferenceChangees;
 
   const _BouteillesSection({
@@ -747,6 +828,10 @@ class _BouteillesSection extends StatelessWidget {
     required this.onRemoveRow,
     required this.onPhoto,
     required this.onRemovePhoto,
+    required this.onReadLabel,
+    required this.ocrActive,
+    required this.ocrStatusLoaded,
+    required this.ocrLoading,
     required this.onDonneesReferenceChangees,
   });
 
@@ -840,6 +925,10 @@ class _BouteillesSection extends StatelessWidget {
             onRemove: () => onRemoveRow(i),
             onPhoto: () => onPhoto(bouteilles[i]),
             onRemovePhoto: () => onRemovePhoto(bouteilles[i]),
+            onReadLabel: () => onReadLabel(bouteilles[i]),
+            ocrActive: ocrActive,
+            ocrStatusLoaded: ocrStatusLoaded,
+            ocrLoading: ocrLoading,
             onDonneesReferenceChangees: () =>
                 onDonneesReferenceChangees(bouteilles[i]),
           ),
@@ -859,6 +948,10 @@ class _BouteilleCard extends StatelessWidget {
   final VoidCallback onRemove;
   final VoidCallback onPhoto;
   final VoidCallback onRemovePhoto;
+  final VoidCallback onReadLabel;
+  final bool ocrActive;
+  final bool ocrStatusLoaded;
+  final bool ocrLoading;
   final VoidCallback onDonneesReferenceChangees;
 
   const _BouteilleCard({
@@ -868,6 +961,10 @@ class _BouteilleCard extends StatelessWidget {
     required this.onRemove,
     required this.onPhoto,
     required this.onRemovePhoto,
+    required this.onReadLabel,
+    required this.ocrActive,
+    required this.ocrStatusLoaded,
+    required this.ocrLoading,
     required this.onDonneesReferenceChangees,
   });
 
@@ -1097,6 +1194,27 @@ class _BouteilleCard extends StatelessWidget {
               ],
             ),
           ],
+          const SizedBox(height: 6),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton.icon(
+              onPressed: ocrActive && row.photoBytes != null && !ocrLoading
+                  ? onReadLabel
+                  : null,
+              icon: ocrLoading
+                  ? const SizedBox(
+                      width: 14,
+                      height: 14,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.document_scanner_outlined, size: 16),
+              label: Text(
+                ocrStatusLoaded && !ocrActive
+                    ? 'Lecture automatique bientôt disponible'
+                    : 'Lire l\'étiquette',
+              ),
+            ),
+          ),
         ],
       ),
     );

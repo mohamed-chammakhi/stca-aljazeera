@@ -213,6 +213,9 @@ DEFAULT_FROM_EMAIL = config(
     default='Al Jazeera STCA <no-reply@stca.local>',
 )
 
+AZURE_VISION_ENDPOINT = config('AZURE_VISION_ENDPOINT', default='')
+AZURE_VISION_KEY = config('AZURE_VISION_KEY', default='')
+
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
     'REFRESH_TOKEN_LIFETIME': timedelta(hours=8),  # 8 h sans utiliser l'app → reconnexion

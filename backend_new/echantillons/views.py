@@ -16,6 +16,11 @@ from django.core.files.base import ContentFile
 from rest_framework.views import APIView
 from django_filters.rest_framework import DjangoFilterBackend
 
+from core.ocr_azure import (
+    OCR_INACTIVE_DETAIL,
+    azure_ocr_configured,
+    extract_echantillon_from_image,
+)
 from .models import Echantillon
 from .serializers import EchantillonSerializer
 from .filters import EchantillonFilter
@@ -572,3 +577,33 @@ class CollecteurCarteView(APIView):
             .order_by('gouvernorat', 'delegation')
         )
         return Response({'delegations': list(delegations)})
+
+
+class EchantillonOcrStatusView(APIView):
+    permission_classes = [IsCollecteur | IsDegustateur | IsChefDegustation]
+
+    def get(self, request):
+        return Response({'actif': azure_ocr_configured()})
+
+
+class EchantillonOcrView(APIView):
+    parser_classes = [MultiPartParser, FormParser]
+    permission_classes = [IsCollecteur | IsDegustateur | IsChefDegustation]
+
+    def post(self, request):
+        if not azure_ocr_configured():
+            return Response(
+                {'detail': OCR_INACTIVE_DETAIL},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+        image = request.FILES.get('image')
+        if image is None:
+            return Response(
+                {'image': ['Ce champ est obligatoire.']},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        result = extract_echantillon_from_image(
+            image.read(),
+            content_type=getattr(image, 'content_type', 'image/jpeg'),
+        )
+        return Response(result)

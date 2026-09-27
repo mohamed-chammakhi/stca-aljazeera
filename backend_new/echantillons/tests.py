@@ -1,6 +1,8 @@
 from datetime import timedelta
 from unittest.mock import patch
 
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import override_settings
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 from rest_framework import status
@@ -11,6 +13,129 @@ from notifications.models import Notification
 from users.models import User
 
 from .models import Echantillon
+
+
+class EchantillonOcrApiTests(APITestCase):
+    def setUp(self):
+        self.collector = User.objects.create_user(
+            email='ocr.collecteur@example.com',
+            password='Test@12345',
+            nom='Collecteur',
+            prenom='Ocr',
+            role=User.Role.COLLECTEUR,
+        )
+        self.degustateur = User.objects.create_user(
+            email='ocr.degustateur@example.com',
+            password='Test@12345',
+            nom='Degustateur',
+            prenom='Ocr',
+            role=User.Role.DEGUSTATEUR,
+        )
+        self.chef = User.objects.create_user(
+            email='ocr.chef@example.com',
+            password='Test@12345',
+            nom='Chef',
+            prenom='Ocr',
+            role=User.Role.CHEF_DEGUSTATION,
+        )
+        self.direction = User.objects.create_user(
+            email='ocr.direction@example.com',
+            password='Test@12345',
+            nom='Direction',
+            prenom='Ocr',
+            role=User.Role.DIRECTION,
+        )
+        self.labo = User.objects.create_user(
+            email='ocr.labo@example.com',
+            password='Test@12345',
+            nom='Labo',
+            prenom='Ocr',
+            role=User.Role.LABORATOIRE,
+        )
+
+    def _image(self):
+        return SimpleUploadedFile(
+            'etiquette.jpg',
+            b'\xff\xd8\xff\xe0test',
+            content_type='image/jpeg',
+        )
+
+    @override_settings(AZURE_VISION_ENDPOINT='', AZURE_VISION_KEY='')
+    def test_statut_inactif_sans_configuration_azure(self):
+        self.client.force_authenticate(user=self.collector)
+
+        response = self.client.get('/api/echantillons/ocr/statut/')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, {'actif': False})
+
+    @override_settings(AZURE_VISION_ENDPOINT='https://vision.example', AZURE_VISION_KEY='secret')
+    def test_statut_actif_avec_configuration_azure(self):
+        self.client.force_authenticate(user=self.degustateur)
+
+        response = self.client.get('/api/echantillons/ocr/statut/')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, {'actif': True})
+
+    @override_settings(AZURE_VISION_ENDPOINT='', AZURE_VISION_KEY='')
+    def test_ocr_renvoie_503_sans_configuration_azure(self):
+        self.client.force_authenticate(user=self.chef)
+
+        response = self.client.post(
+            '/api/echantillons/ocr/',
+            {'image': self._image()},
+            format='multipart',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_503_SERVICE_UNAVAILABLE)
+        self.assertEqual(
+            response.data['detail'],
+            "La lecture automatique n'est pas encore activée. Contactez l'administrateur.",
+        )
+
+    @override_settings(AZURE_VISION_ENDPOINT='https://vision.example', AZURE_VISION_KEY='secret')
+    @patch('core.ocr_azure.requests.post')
+    def test_ocr_extrait_les_champs_depuis_azure_simule(self, mocked_post):
+        Fournisseur.objects.create(nom='Domaine Hami', region='Sfax', delegation='Sfax Sud')
+        mocked_post.return_value.json.return_value = {
+            'readResult': {
+                'blocks': [
+                    {
+                        'lines': [
+                            {'text': 'Fournisseur: Domaine Hami'},
+                            {'text': 'Reference: HAM-C1'},
+                            {'text': 'Citerne: C1'},
+                            {'text': 'Quantite: 12T'},
+                            {'text': 'Variete: Chemlali'},
+                        ]
+                    }
+                ]
+            }
+        }
+        mocked_post.return_value.raise_for_status.return_value = None
+        self.client.force_authenticate(user=self.collector)
+
+        response = self.client.post(
+            '/api/echantillons/ocr/',
+            {'image': self._image()},
+            format='multipart',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['reference_bouteille'], 'HAM-C1')
+        self.assertEqual(response.data['num_citerne'], 'C1')
+        self.assertEqual(response.data['quantite'], '12T')
+        self.assertEqual(response.data['variete'], 'Chemlali')
+        self.assertEqual(response.data['fournisseur_nom'], 'Domaine Hami')
+        self.assertIn('Fournisseur: Domaine Hami', response.data['raw_text'])
+
+    @override_settings(AZURE_VISION_ENDPOINT='https://vision.example', AZURE_VISION_KEY='secret')
+    def test_ocr_interdit_aux_roles_non_autorises(self):
+        for user in (self.direction, self.labo):
+            self.client.force_authenticate(user=user)
+            response = self.client.get('/api/echantillons/ocr/statut/')
+            self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 
 class EchantillonNumeroGenerationTests(APITestCase):

@@ -136,7 +136,29 @@ restauration fonctionne.
 - Base PostgreSQL : `pg_dump` planifié (tâche planifiée Windows ou `cron`).
 - Photos des échantillons : dossier `backend_new/media/`, à sauvegarder aussi.
 
-## 7. Liste de contrôle avant la mise en service
+## 7. Activer la lecture automatique des étiquettes (Azure)
+
+La lecture automatique des étiquettes utilise **Azure AI Vision** avec la fonction Read.
+Elle reste désactivée tant que les clés Azure ne sont pas renseignées.
+
+Pour l'activer :
+
+1. Créer une ressource **Azure AI Vision** dans le compte Azure de la société.
+2. Copier l'endpoint et une clé d'accès depuis le portail Azure.
+3. Les inscrire dans `backend_new/.env` :
+
+```
+AZURE_VISION_ENDPOINT=https://adresse-de-la-ressource.cognitiveservices.azure.com
+AZURE_VISION_KEY=cle-fournie-par-azure
+```
+
+4. Redémarrer le serveur Django.
+5. Ouvrir le formulaire d'ajout d'échantillon dans l'application : le bouton
+   **Lire l'étiquette** doit devenir actif après le redémarrage.
+
+Ne jamais écrire une vraie clé Azure dans le code, dans git ou dans un document partagé.
+
+## 8. Liste de contrôle avant la mise en service
 
 - [ ] Serveur installé sur une machine toujours allumée, joignable par une adresse fixe
 - [ ] HTTPS en place si le serveur est joignable depuis Internet
