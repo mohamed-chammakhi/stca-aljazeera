@@ -273,9 +273,6 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage>
       await _service.toggleRecuPhysiquement(e.id, nouvelleValeur);
       if (!mounted) return false;
       setState(() => e.recuPhysiquement = nouvelleValeur);
-      _showSuccess(
-        nouvelleValeur ? 'Réception physique confirmée' : 'Réception annulée',
-      );
       return true;
     } catch (error) {
       if (mounted) {
