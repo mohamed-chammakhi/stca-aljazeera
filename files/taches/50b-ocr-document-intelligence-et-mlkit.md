@@ -49,3 +49,24 @@ Ton sandbox ne peut pas lancer Flutter : n'essaie pas. Lance les tests Django `e
 ## RAPPORT
 
 (Fait / Vérifié / Non fait / HORS PÉRIMÈTRE.)
+
+## REPRISE (note de Claude, 27/09) — travail commencé, à terminer
+
+Fait (branche `tache-50b-en-cours`) :
+- `backend_new/core/ocr_azure.py` : appel **Document Intelligence prebuilt-read** (POST puis
+  interrogation de `Operation-Location`, 15 s max), exception `OcrIndisponible`,
+  `OCR_UNAVAILABLE_DETAIL`, lecture des lignes dans `analyzeResult.pages[].lines[].content`.
+- `settings.py` et `.env.example` : `AZURE_DOCINTEL_ENDPOINT` / `AZURE_DOCINTEL_KEY`.
+- `echantillons/views.py` (`EchantillonOcrView`) : `OcrIndisponible` → 503 avec message clair.
+
+Reste à faire :
+1. `backend_new/echantillons/tests.py` (classe `EchantillonOcrApiTests`) : remplacer
+   `AZURE_VISION_*` par `AZURE_DOCINTEL_*` ; le test « Azure simulé » doit simuler
+   `requests.post` (en-tête `Operation-Location`) **et** `requests.get`
+   (`{"status": "succeeded", "analyzeResult": {"pages": [{"lines": [{"content": "..."}]}]}}`),
+   et patcher `core.ocr_azure.time.sleep`. Ajouter : statut `failed` → 503 ;
+   `requests.exceptions.Timeout` au POST → 503.
+2. `docs/MISE-EN-SERVICE.md` section Azure : « Azure AI Document Intelligence » (formule
+   gratuite F0 possible), variables `AZURE_DOCINTEL_*`.
+3. Lancer `manage.py test echantillons`, `flutter analyze` (lignes `error -`), `flutter test`.
+4. Fusionner dans `main`, commiter, `git push origin main`. **Pas de ML Kit.**

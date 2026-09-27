@@ -18,6 +18,8 @@ from django_filters.rest_framework import DjangoFilterBackend
 
 from core.ocr_azure import (
     OCR_INACTIVE_DETAIL,
+    OCR_UNAVAILABLE_DETAIL,
+    OcrIndisponible,
     azure_ocr_configured,
     extract_echantillon_from_image,
 )
@@ -602,8 +604,14 @@ class EchantillonOcrView(APIView):
                 {'image': ['Ce champ est obligatoire.']},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        result = extract_echantillon_from_image(
-            image.read(),
-            content_type=getattr(image, 'content_type', 'image/jpeg'),
-        )
+        try:
+            result = extract_echantillon_from_image(
+                image.read(),
+                content_type=getattr(image, 'content_type', 'image/jpeg'),
+            )
+        except OcrIndisponible:
+            return Response(
+                {'detail': OCR_UNAVAILABLE_DETAIL},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
         return Response(result)

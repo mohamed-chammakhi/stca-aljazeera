@@ -1,5 +1,6 @@
 import difflib
 import re
+import time
 
 import requests
 from django.conf import settings
@@ -26,27 +27,63 @@ _VARIETES = [
 ]
 
 
+OCR_UNAVAILABLE_DETAIL = (
+    "La lecture automatique n'a pas répondu. Réessayez dans un instant."
+)
+
+_DOCINTEL_API_VERSION = '2024-11-30'
+_DOCINTEL_TOTAL_TIMEOUT = 15  # seconds, upload + polling
+
+
+class OcrIndisponible(Exception):
+    """Azure did not return a usable result (network error, failure, timeout)."""
+
+
 def azure_ocr_configured():
-    return bool(settings.AZURE_VISION_ENDPOINT and settings.AZURE_VISION_KEY)
+    return bool(settings.AZURE_DOCINTEL_ENDPOINT and settings.AZURE_DOCINTEL_KEY)
 
 
 def read_image_text(image_bytes, content_type='image/jpeg'):
-    endpoint = settings.AZURE_VISION_ENDPOINT.rstrip('/')
+    # Azure AI Document Intelligence, model prebuilt-read. The analysis is
+    # asynchronous: the POST returns an Operation-Location URL that is polled
+    # until the status is "succeeded".
+    endpoint = settings.AZURE_DOCINTEL_ENDPOINT.rstrip('/')
+    key_header = {'Ocp-Apim-Subscription-Key': settings.AZURE_DOCINTEL_KEY}
     url = (
-        f'{endpoint}/computervision/imageanalysis:analyze'
-        '?features=read&api-version=2024-02-01'
+        f'{endpoint}/documentintelligence/documentModels/prebuilt-read:analyze'
+        f'?api-version={_DOCINTEL_API_VERSION}'
     )
-    response = requests.post(
-        url,
-        headers={
-            'Ocp-Apim-Subscription-Key': settings.AZURE_VISION_KEY,
-            'Content-Type': content_type or 'application/octet-stream',
-        },
-        data=image_bytes,
-        timeout=15,
-    )
-    response.raise_for_status()
-    return _lines_from_azure_response(response.json())
+    deadline = time.monotonic() + _DOCINTEL_TOTAL_TIMEOUT
+    try:
+        response = requests.post(
+            url,
+            headers={
+                **key_header,
+                'Content-Type': content_type or 'application/octet-stream',
+            },
+            data=image_bytes,
+            timeout=_DOCINTEL_TOTAL_TIMEOUT,
+        )
+        response.raise_for_status()
+        operation_url = response.headers.get('Operation-Location')
+        if not operation_url:
+            raise OcrIndisponible('Operation-Location manquant')
+
+        while True:
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise OcrIndisponible('délai dépassé')
+            poll = requests.get(operation_url, headers=key_header, timeout=remaining)
+            poll.raise_for_status()
+            payload = poll.json()
+            etat = (payload.get('status') or '').lower()
+            if etat == 'succeeded':
+                return _lines_from_azure_response(payload)
+            if etat == 'failed':
+                raise OcrIndisponible('analyse échouée')
+            time.sleep(min(1.0, max(0.0, deadline - time.monotonic())))
+    except requests.RequestException as exc:
+        raise OcrIndisponible(type(exc).__name__) from exc
 
 
 def extract_echantillon_from_image(image_bytes, content_type='image/jpeg'):
@@ -75,10 +112,10 @@ def extract_echantillon_from_image(image_bytes, content_type='image/jpeg'):
 
 def _lines_from_azure_response(payload):
     lines = []
-    read_result = payload.get('readResult') or payload.get('read_result') or {}
-    for block in read_result.get('blocks', []):
-        for line in block.get('lines', []):
-            text = (line.get('text') or '').strip()
+    result = payload.get('analyzeResult') or {}
+    for page in result.get('pages', []):
+        for line in page.get('lines', []):
+            text = (line.get('content') or '').strip()
             if text:
                 lines.append(text)
     if lines:
