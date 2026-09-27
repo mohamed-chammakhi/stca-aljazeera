@@ -607,7 +607,7 @@ class NotificationSignalTests(APITestCase):
 
         SessionDegustation.objects.create(
             titre='Session a valider',
-            date='2026-05-20',
+            date='2099-05-20',
             heure='09:00',
             lieu='Salle A',
             cree_par=self.taster_one,

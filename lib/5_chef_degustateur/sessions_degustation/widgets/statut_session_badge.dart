@@ -86,5 +86,12 @@ _BadgeConfig _config(StatutSession s) {
         chefGreen,
         'Terminée',
       );
+    case StatutSession.refusee:
+      return _BadgeConfig(
+        const Color(0xFFFFEBEE),
+        const Color(0xFFC62828),
+        const Color(0xFFC62828),
+        'Refusée',
+      );
   }
 }

@@ -6,12 +6,12 @@ import 'package:project3/core/widgets/sessions_degustation/session_card.dart';
 SessionDegustation _session() => SessionDegustation(
   id: 'session-test',
   titre: 'Session de test',
-  date: '05/08/2026',
+  date: '05/08/2099',
   heure: '09:00',
   lieu: 'Salle A',
   statut: StatutSession.planifiee,
   createdBy: 'user-test',
-  createdAt: '2026-08-05T08:00:00Z',
+  createdAt: '2099-08-05T08:00:00Z',
 );
 
 Future<void> _verifierEchec(WidgetTester tester, Widget card) async {
@@ -29,6 +29,24 @@ Future<void> _verifierEchec(WidgetTester tester, Widget card) async {
 }
 
 void main() {
+  testWidgets('la carte affiche le nombre prevu et pas les echantillons lies', (
+    tester,
+  ) async {
+    final session = _session()
+      ..nombreEchantillonsPrevus = 6
+      ..echantillonIds = [];
+
+    await tester.pumpWidget(
+      MaterialApp(home: Scaffold(body: SessionCard(session: session))),
+    );
+
+    await tester.tap(find.text('Session de test'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('6 échantillons'), findsOneWidget);
+    expect(find.text('0 échantillon'), findsNothing);
+  });
+
   testWidgets('un échec de confirmation ne coche pas la carte dégustateur', (
     tester,
   ) async {

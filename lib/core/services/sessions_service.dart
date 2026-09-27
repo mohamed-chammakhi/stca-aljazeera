@@ -91,7 +91,10 @@ class SessionsService {
       ..remove('id')
       ..remove('created_by')
       ..remove('created_at')
-      ..remove('confirmed_participant_ids');
+      ..remove('confirmed_participant_ids')
+      ..remove('can_modifier')
+      ..remove('can_supprimer')
+      ..remove('can_confirmer_presence');
     body['participant_ids'] = s.participantIds
         .where((id) => _uuidPattern.hasMatch(id))
         .toList();

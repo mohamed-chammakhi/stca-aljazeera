@@ -23,6 +23,8 @@ Color _statusColor(StatutSession s) {
       return const Color(0xFF3A6EA5);
     case StatutSession.terminee:
       return _green;
+    case StatutSession.refusee:
+      return const Color(0xFFD32F2F);
   }
 }
 
@@ -181,35 +183,38 @@ class _SessionCardState extends State<SessionCard> {
                                     : const SizedBox.shrink(),
                               ),
                               // ── Tick toggle button ───────────────────────
-                              GestureDetector(
-                                onTap: _togglePresence,
-                                behavior: HitTestBehavior.opaque,
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 4,
-                                    vertical: 2,
-                                  ),
-                                  child: AnimatedSwitcher(
-                                    duration: const Duration(milliseconds: 220),
-                                    switchInCurve: Curves.easeOutBack,
-                                    transitionBuilder: (child, anim) =>
-                                        ScaleTransition(
-                                          scale: anim,
-                                          child: child,
-                                        ),
-                                    child: Icon(
-                                      _presenceConfirmed
-                                          ? Icons.check_circle
-                                          : Icons.check_circle_outline,
-                                      key: ValueKey(_presenceConfirmed),
-                                      size: 20,
-                                      color: _presenceConfirmed
-                                          ? _green
-                                          : Colors.grey.shade400,
+                              if (widget.onConfirmerPresence != null)
+                                GestureDetector(
+                                  onTap: _togglePresence,
+                                  behavior: HitTestBehavior.opaque,
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 4,
+                                      vertical: 2,
+                                    ),
+                                    child: AnimatedSwitcher(
+                                      duration: const Duration(
+                                        milliseconds: 220,
+                                      ),
+                                      switchInCurve: Curves.easeOutBack,
+                                      transitionBuilder: (child, anim) =>
+                                          ScaleTransition(
+                                            scale: anim,
+                                            child: child,
+                                          ),
+                                      child: Icon(
+                                        _presenceConfirmed
+                                            ? Icons.check_circle
+                                            : Icons.check_circle_outline,
+                                        key: ValueKey(_presenceConfirmed),
+                                        size: 20,
+                                        color: _presenceConfirmed
+                                            ? _green
+                                            : Colors.grey.shade400,
+                                      ),
                                     ),
                                   ),
                                 ),
-                              ),
                               const SizedBox(width: 8),
                               AnimatedRotation(
                                 turns: _expanded ? 0.5 : 0.0,
@@ -230,9 +235,7 @@ class _SessionCardState extends State<SessionCard> {
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               const Spacer(),
-                              if (_expanded &&
-                                  widget.session.statut !=
-                                      StatutSession.enAttenteValidation) ...[
+                              if (_expanded) ...[
                                 if (widget.onModifier != null)
                                   Tooltip(
                                     message: 'Modifier',
@@ -402,6 +405,7 @@ class _DetailPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     final allNoms = s.participantNoms ?? [];
     final confirmedNoms = s.confirmedParticipantNoms ?? [];
+    final nbPrevus = s.nbEchantillonsAffiche;
 
     return Column(
       children: [
@@ -422,10 +426,11 @@ class _DetailPanel extends StatelessWidget {
                 items: [
                   DetailItem('Date', s.dateHeureAffichage),
                   DetailItem('Lieu', s.lieu),
-                  DetailItem(
-                    'Échantillons',
-                    '${s.nbEchantillons} échantillon${s.nbEchantillons > 1 ? "s" : ""}',
-                  ),
+                  if (nbPrevus != null)
+                    DetailItem(
+                      'Échantillons',
+                      '$nbPrevus échantillon${nbPrevus > 1 ? "s" : ""}',
+                    ),
                   DetailItem(
                     'Organisé par',
                     (s.createdByNom?.isNotEmpty ?? false)

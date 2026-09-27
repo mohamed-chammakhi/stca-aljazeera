@@ -33,7 +33,7 @@ STOCK_DELIVERY_FIELDS = (
 
 
 def _get_users_by_roles(*roles):
-    return User.objects.filter(role__in=roles, is_active=True)
+    return User.objects.filter(role__in=roles, is_active=True, date_suppression__isnull=True)
 
 
 def _notify(recipients, type_, titre, message, echantillon=None, section='ECHANTILLONS'):
@@ -346,7 +346,7 @@ def on_session_saved(sender, instance, created, **kwargs):
         recipients,
         Notification.Type.NOUVELLE_SESSION,
         'Nouvelle session',
-        f"La session {instance.titre} a ete creee.",
+        f"La session {instance.titre} a été créée.",
         echantillon=None,
         section=Notification.Section.SESSIONS,
     )

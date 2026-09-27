@@ -1,4 +1,6 @@
 from django.contrib.auth import get_user_model
+from datetime import datetime
+from django.utils import timezone
 from rest_framework import serializers
 from .models import SessionDegustation
 
@@ -24,6 +26,9 @@ class SessionDegustationSerializer(serializers.ModelSerializer):
         read_only=True,
     )
     confirmed_participant_noms = serializers.SerializerMethodField()
+    can_modifier = serializers.SerializerMethodField()
+    can_supprimer = serializers.SerializerMethodField()
+    can_confirmer_presence = serializers.SerializerMethodField()
     echantillon_ids = serializers.PrimaryKeyRelatedField(
         many=True,
         source='echantillons',
@@ -48,6 +53,9 @@ class SessionDegustationSerializer(serializers.ModelSerializer):
             'participant_noms',
             'confirmed_participant_ids',
             'confirmed_participant_noms',
+            'can_modifier',
+            'can_supprimer',
+            'can_confirmer_presence',
             'echantillon_ids',
         ]
         read_only_fields = [
@@ -58,6 +66,9 @@ class SessionDegustationSerializer(serializers.ModelSerializer):
             'participant_noms',
             'confirmed_participant_ids',
             'confirmed_participant_noms',
+            'can_modifier',
+            'can_supprimer',
+            'can_confirmer_presence',
             'echantillon_ids',
         ]
         extra_kwargs = {
@@ -77,7 +88,25 @@ class SessionDegustationSerializer(serializers.ModelSerializer):
                     raise serializers.ValidationError(
                         {field: ['Ce champ est obligatoire.']}
                     )
+        date = attrs.get('date', getattr(self.instance, 'date', None))
+        heure = attrs.get('heure', getattr(self.instance, 'heure', None))
+        if date and heure and _session_datetime(date, heure) <= timezone.localtime():
+            raise serializers.ValidationError({
+                'detail': "La date et l'heure doivent être dans le futur."
+            })
         return attrs
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        if (
+            instance.statut in (
+                SessionDegustation.Statut.PLANIFIEE,
+                SessionDegustation.Statut.EN_COURS,
+            )
+            and _session_datetime(instance.date, instance.heure) < timezone.localtime()
+        ):
+            data['statut'] = SessionDegustation.Statut.TERMINEE
+        return data
 
     def get_created_by_nom(self, obj):
         user = obj.cree_par
@@ -96,3 +125,34 @@ class SessionDegustationSerializer(serializers.ModelSerializer):
             f'{participant.prenom} {participant.nom}'.strip()
             for participant in obj.presences_confirmees.all()
         ]
+
+    def get_can_modifier(self, obj):
+        request = self.context.get('request')
+        user = getattr(request, 'user', None)
+        return bool(user and user.is_authenticated and obj.cree_par_id == user.id)
+
+    def get_can_supprimer(self, obj):
+        return self.get_can_modifier(obj)
+
+    def get_can_confirmer_presence(self, obj):
+        request = self.context.get('request')
+        user = getattr(request, 'user', None)
+        if not user or not user.is_authenticated:
+            return False
+        if obj.statut not in (
+            SessionDegustation.Statut.PLANIFIEE,
+            SessionDegustation.Statut.EN_COURS,
+        ):
+            return False
+        if _session_datetime(obj.date, obj.heure) < timezone.localtime():
+            return False
+        if obj.participants.exists() and not obj.participants.filter(pk=user.pk).exists():
+            return False
+        return True
+
+
+def _session_datetime(date, heure):
+    return timezone.make_aware(
+        datetime.combine(date, heure),
+        timezone.get_current_timezone(),
+    )

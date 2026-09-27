@@ -493,7 +493,7 @@ extension ModePlanificationX on ModePlanification {
 }
 
 // ── Session status ────────────────────────────────────────────────────────────
-enum StatutSession { enAttenteValidation, planifiee, enCours, terminee }
+enum StatutSession { enAttenteValidation, planifiee, enCours, terminee, refusee }
 
 extension StatutSessionX on StatutSession {
   String get toJson {
@@ -506,6 +506,8 @@ extension StatutSessionX on StatutSession {
         return 'en_cours';
       case StatutSession.terminee:
         return 'terminee';
+      case StatutSession.refusee:
+        return 'refusee';
     }
   }
 
@@ -519,6 +521,8 @@ extension StatutSessionX on StatutSession {
         return 'En cours';
       case StatutSession.terminee:
         return 'Terminée';
+      case StatutSession.refusee:
+        return 'Refusée';
     }
   }
 
@@ -532,6 +536,8 @@ extension StatutSessionX on StatutSession {
         return StatutSession.enCours;
       case 'terminee':
         return StatutSession.terminee;
+      case 'refusee':
+        return StatutSession.refusee;
       default:
         return StatutSession.planifiee;
     }

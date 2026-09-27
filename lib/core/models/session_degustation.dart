@@ -82,6 +82,10 @@ class SessionDegustation {
   /// Denormalized display field — confirmed participant names (API annotation, not stored).
   final List<String>? confirmedParticipantNoms;
 
+  final bool canModifier;
+  final bool canSupprimer;
+  final bool canConfirmerPresence;
+
   SessionDegustation({
     required this.id,
     required this.titre,
@@ -99,11 +103,29 @@ class SessionDegustation {
     this.participantNoms,
     this.confirmedParticipantIds = const [],
     this.confirmedParticipantNoms,
+    this.canModifier = true,
+    this.canSupprimer = true,
+    this.canConfirmerPresence = true,
   });
 
   int get nbEchantillons => echantillonIds.length;
+  int? get nbEchantillonsAffiche => nombreEchantillonsPrevus;
   int get nbParticipants => participantIds.length;
   String get dateHeureAffichage => _dateHeureAffichage(date, heure);
+  bool get estPassee {
+    final parts = date.split('/');
+    final timeParts = heure.split(':');
+    if (parts.length != 3 || timeParts.length < 2) return false;
+    final day = int.tryParse(parts[0]);
+    final month = int.tryParse(parts[1]);
+    final year = int.tryParse(parts[2]);
+    final hour = int.tryParse(timeParts[0]);
+    final minute = int.tryParse(timeParts[1]);
+    if ([day, month, year, hour, minute].any((value) => value == null)) {
+      return false;
+    }
+    return DateTime(year!, month!, day!, hour!, minute!).isBefore(DateTime.now());
+  }
 
   factory SessionDegustation.fromJson(Map<String, dynamic> json) =>
       SessionDegustation(
@@ -131,6 +153,9 @@ class SessionDegustation {
         confirmedParticipantNoms: json['confirmed_participant_noms'] == null
             ? null
             : _stringList(json['confirmed_participant_noms']),
+        canModifier: json['can_modifier'] as bool? ?? true,
+        canSupprimer: json['can_supprimer'] as bool? ?? true,
+        canConfirmerPresence: json['can_confirmer_presence'] as bool? ?? true,
       );
 
   /// For paginated Django list responses: { "count": N, "results": [...] }
@@ -153,6 +178,9 @@ class SessionDegustation {
     'echantillon_ids': echantillonIds,
     'participant_ids': participantIds,
     'confirmed_participant_ids': confirmedParticipantIds,
+    'can_modifier': canModifier,
+    'can_supprimer': canSupprimer,
+    'can_confirmer_presence': canConfirmerPresence,
     // participant_noms and confirmed_participant_noms are read-only API annotations — not sent on POST/PUT.
   };
 }

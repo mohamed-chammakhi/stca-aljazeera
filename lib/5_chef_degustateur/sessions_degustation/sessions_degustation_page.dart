@@ -4,6 +4,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:project3/core/api_client.dart';
 import 'package:project3/core/widgets/messagerie/conversations_page.dart';
 
 import 'package:project3/core/models/session_degustation.dart';
@@ -161,8 +162,8 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage>
       if (!mounted) return;
       setState(() => _sessions.add(saved));
       _showSuccess('Session créée et planifiée');
-    } catch (_) {
-      if (mounted) _showError();
+    } catch (erreur) {
+      if (mounted) _showError(_messageErreur(erreur));
     }
   }
 
@@ -175,8 +176,8 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage>
         if (index != -1) _sessions[index] = saved;
       });
       _showSuccess('Session modifiée avec succès');
-    } catch (_) {
-      if (mounted) _showError();
+    } catch (erreur) {
+      if (mounted) _showError(_messageErreur(erreur));
     }
   }
 
@@ -186,8 +187,8 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage>
       if (!mounted) return;
       setState(() => _sessions.remove(s));
       _showSuccess('Session "${s.titre}" supprimée');
-    } catch (_) {
-      if (mounted) _showError();
+    } catch (erreur) {
+      if (mounted) _showError(_messageErreur(erreur));
     }
   }
 
@@ -197,8 +198,8 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage>
       if (!mounted) return;
       setState(() => s.statut = StatutSession.planifiee);
       _showSuccess('Session "${s.titre}" approuvée');
-    } catch (_) {
-      if (mounted) _showError();
+    } catch (erreur) {
+      if (mounted) _showError(_messageErreur(erreur));
     }
   }
 
@@ -208,8 +209,8 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage>
       if (!mounted) return;
       setState(() => _sessions.remove(s));
       _showSuccess('Session "${s.titre}" refusée et supprimée');
-    } catch (_) {
-      if (mounted) _showError();
+    } catch (erreur) {
+      if (mounted) _showError(_messageErreur(erreur));
     }
   }
 
@@ -221,8 +222,8 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage>
         final index = _sessions.indexWhere((item) => item.id == s.id);
         if (index != -1) _sessions[index] = updated;
       });
-    } catch (_) {
-      if (mounted) _showError();
+    } catch (erreur) {
+      if (mounted) _showError(_messageErreur(erreur));
       rethrow;
     }
   }
@@ -265,9 +266,16 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage>
     );
   }
 
-  void _showError() {
+  String _messageErreur(Object erreur) {
+    if (erreur is ApiException && erreur.message.isNotEmpty) {
+      return erreur.message;
+    }
+    return 'L’action n’a pas pu être enregistrée.';
+  }
+
+  void _showError([String message = 'L’action n’a pas pu être enregistrée.']) {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('L’action n’a pas pu être enregistrée.')),
+      SnackBar(content: Text(message)),
     );
   }
 
@@ -541,15 +549,19 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage>
                           final s = items[i];
                           final isPending =
                               s.statut == StatutSession.enAttenteValidation;
-                          final isTerminee = s.statut == StatutSession.terminee;
+                          final isTerminee =
+                              s.statut == StatutSession.terminee || s.estPassee;
                           return SessionCard(
                             session: s,
-                            onConfirmerPresence: () => _onConfirmerPresence(s),
+                            onConfirmerPresence:
+                                s.canConfirmerPresence && !isTerminee
+                                ? () => _onConfirmerPresence(s)
+                                : null,
                             onApprouver: isPending
                                 ? () => _onApprouver(s)
                                 : null,
                             onRefuser: isPending ? () => _onRefuser(s) : null,
-                            onModifier: (!isPending && !isTerminee)
+                            onModifier: s.canModifier && !isTerminee
                                 ? () => showFormulaireSessionDialog(
                                     context,
                                     session: s,
@@ -557,7 +569,7 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage>
                                     onSave: _onModifier,
                                   )
                                 : null,
-                            onSupprimer: (!isPending && !isTerminee)
+                            onSupprimer: s.canSupprimer && !isTerminee
                                 ? () => showSuppressionSessionDialog(
                                     context,
                                     session: s,

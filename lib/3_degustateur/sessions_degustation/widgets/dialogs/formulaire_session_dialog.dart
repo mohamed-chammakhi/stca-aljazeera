@@ -287,6 +287,28 @@ String _fmtTime(TimeOfDay t) {
 String _fmtTimeStorage(TimeOfDay t) =>
     '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
 
+DateTime _todayOnly() {
+  final now = DateTime.now();
+  return DateTime(now.year, now.month, now.day);
+}
+
+DateTime _initialPickerDate(DateTime? pickedDate) {
+  final today = _todayOnly();
+  if (pickedDate == null || pickedDate.isBefore(today)) return today;
+  return pickedDate;
+}
+
+bool _isInPast(DateTime date, TimeOfDay time) {
+  final candidate = DateTime(
+    date.year,
+    date.month,
+    date.day,
+    time.hour,
+    time.minute,
+  );
+  return candidate.isBefore(DateTime.now());
+}
+
 // ═════════════════════════════════════════════════════════════════════════════
 // PUBLIC ENTRY POINT
 // ═════════════════════════════════════════════════════════════════════════════
@@ -362,8 +384,8 @@ Future<void> showFormulaireSessionDialog(
         Future<void> pickDate() async {
           final date = await showDatePicker(
             context: ctx,
-            initialDate: pickedDate ?? DateTime.now(),
-            firstDate: DateTime(2020),
+            initialDate: _initialPickerDate(pickedDate),
+            firstDate: _todayOnly(),
             lastDate: DateTime(2130),
             initialEntryMode: DatePickerEntryMode.calendarOnly,
             builder: (c, child) => Theme(
@@ -565,6 +587,23 @@ Future<void> showFormulaireSessionDialog(
               SnackBar(
                 content: const Text(
                   'Veuillez remplir tous les champs obligatoires',
+                ),
+                backgroundColor: Colors.red.shade400,
+                behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                margin: const EdgeInsets.all(20),
+              ),
+            );
+            return;
+          }
+
+          if (_isInPast(pickedDate!, pickedTime!)) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: const Text(
+                  "La date et l'heure doivent être dans le futur",
                 ),
                 backgroundColor: Colors.red.shade400,
                 behavior: SnackBarBehavior.floating,
