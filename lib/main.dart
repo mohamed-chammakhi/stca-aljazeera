@@ -229,10 +229,12 @@ class _LoginPageState extends State<LoginPage> {
           'email_not_found' => "Aucun compte n'est associé à cet email.",
           'password_incorrect' => 'Mot de passe incorrect.',
           'account_inactive' => 'Ce compte est désactivé.',
-          _ =>
-            e.statusCode == 401
-                ? 'Email ou mot de passe incorrect.'
-                : 'Erreur serveur (${e.statusCode}). Réessayez.',
+          // Never show raw HTTP codes to the user.
+          _ when e.statusCode == 429 =>
+            'Trop de tentatives. Patientez une minute puis réessayez.',
+          _ when e.statusCode >= 500 =>
+            'Le service est momentanément indisponible. Réessayez dans un instant.',
+          _ => 'Email ou mot de passe incorrect.',
         };
       });
     } catch (_) {
