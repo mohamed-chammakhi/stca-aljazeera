@@ -218,7 +218,12 @@ class ApiClient {
           ? (premier(body['detail']) ?? body.toString())
           : body.toString();
       final code = body is Map ? premier(body['code'])?.toString() : null;
-      throw ApiException(response.statusCode, detail.toString(), code: code);
+      throw ApiException(
+        response.statusCode,
+        detail.toString(),
+        code: code,
+        champs: body is Map<String, dynamic> ? body : null,
+      );
     }
   }
 
@@ -476,7 +481,8 @@ class ApiException implements Exception {
   final int statusCode; // the HTTP status code (e.g. 404, 500)
   final String message; // human-readable error message from the server
   final String? code; // optional machine-readable error code from Django
-  ApiException(this.statusCode, this.message, {this.code});
+  final Map<String, dynamic>? champs; // field errors, e.g. {"echantillon": ["..."]}
+  ApiException(this.statusCode, this.message, {this.code, this.champs});
 
   @override
   String toString() => 'ApiException($statusCode, $code): $message';

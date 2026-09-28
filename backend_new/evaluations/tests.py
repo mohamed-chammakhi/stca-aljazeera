@@ -90,6 +90,13 @@ class EvaluationOrganoleptiqueApiTests(APITestCase):
         )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.json()['echantillon'],
+            [
+                "Cet échantillon n'est pas encore arrivé à la société. Cochez d'abord "
+                "« Réception physique » sur sa fiche, puis soumettez l'évaluation."
+            ],
+        )
 
     def test_degustateur_lists_only_own_evaluations(self):
         own = EvaluationOrganoleptique.objects.create(

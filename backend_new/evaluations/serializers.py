@@ -36,7 +36,8 @@ class EvaluationSerializer(serializers.ModelSerializer):
     def validate_echantillon(self, value):
         if not value.recu_physiquement:
             raise serializers.ValidationError(
-                'L echantillon doit etre recu physiquement avant evaluation.'
+                "Cet échantillon n'est pas encore arrivé à la société. Cochez d'abord "
+                "« Réception physique » sur sa fiche, puis soumettez l'évaluation."
             )
         return value
 

@@ -106,7 +106,13 @@ class EvaluationService {
   }
 
   String messageFor(Object error) {
-    if (error is ApiException) return error.message;
+    if (error is ApiException) {
+      final erreurEchantillon = error.champs?['echantillon'];
+      if (erreurEchantillon is List && erreurEchantillon.isNotEmpty) {
+        return erreurEchantillon.first.toString();
+      }
+      return error.message;
+    }
     return 'Impossible de joindre le serveur. Les donnees de demonstration restent affichees.';
   }
 
