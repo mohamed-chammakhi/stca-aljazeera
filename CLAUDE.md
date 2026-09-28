@@ -1,6 +1,7 @@
 # CLAUDE.md
 
 ## Always Do First
+- **Lis `files/taches/POINT-ETAT.md`** : état du projet, règles de travail (deux PC, Codex, pas de ML Kit) et reste à faire.
 - **Invoke the `frontend-design` skill** before writing any frontend code, every session, no exceptions.
 
 ---
