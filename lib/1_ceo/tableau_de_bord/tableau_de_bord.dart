@@ -27,7 +27,6 @@ import 'widgets/sales_evolution_card.dart';
 import 'widgets/classification_card.dart';
 import 'widgets/supplier_frequency_card.dart';
 import 'widgets/stock_donut_card.dart';
-import 'widgets/map_cta_card.dart';
 
 // ── Design tokens ─────────────────────────────────────────────────────────────
 const Color _pageBg = Color(0xFFF2F4F2);
@@ -479,8 +478,6 @@ class _HomePageCeoState extends State<HomePageCeo>
                             receivedLots: _dashboard.stockReceived,
                           ),
                         ),
-                        const SizedBox(height: 12),
-                        _fs(8, const MapCtaCard()),
                       ],
                     ),
                   ),
