@@ -138,18 +138,21 @@ restauration fonctionne.
 
 ## 7. Activer la lecture automatique des étiquettes (Azure)
 
-La lecture automatique des étiquettes utilise **Azure AI Vision** avec la fonction Read.
-Elle reste désactivée tant que les clés Azure ne sont pas renseignées.
+La lecture automatique des étiquettes utilise **Azure AI Document Intelligence** avec le
+modèle `prebuilt-read`. Toute la lecture se fait sur le serveur : rien n'est installé sur
+les téléphones. Elle reste désactivée tant que les clés Azure ne sont pas renseignées.
 
 Pour l'activer :
 
-1. Créer une ressource **Azure AI Vision** dans le compte Azure de la société.
-2. Copier l'endpoint et une clé d'accès depuis le portail Azure.
+1. Créer une ressource **Azure AI Document Intelligence** dans le compte Azure de la
+   société. La formule gratuite **F0** suffit pour démarrer (volume mensuel limité).
+2. Copier l'endpoint et une clé d'accès depuis le portail Azure
+   (rubrique « Clés et point de terminaison »).
 3. Les inscrire dans `backend_new/.env` :
 
 ```
-AZURE_VISION_ENDPOINT=https://adresse-de-la-ressource.cognitiveservices.azure.com
-AZURE_VISION_KEY=cle-fournie-par-azure
+AZURE_DOCINTEL_ENDPOINT=https://adresse-de-la-ressource.cognitiveservices.azure.com
+AZURE_DOCINTEL_KEY=cle-fournie-par-azure
 ```
 
 4. Redémarrer le serveur Django.
