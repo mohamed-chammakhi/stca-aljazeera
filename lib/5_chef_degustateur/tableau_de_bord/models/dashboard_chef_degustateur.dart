@@ -170,6 +170,12 @@ class SessionEnAttente {
     required this.proposePar,
   });
 
+  bool get estPassee {
+    final heureValide = heure.isEmpty ? '00:00' : heure;
+    final dateHeure = DateTime.tryParse('${date}T$heureValide');
+    return dateHeure != null && dateHeure.isBefore(DateTime.now());
+  }
+
   factory SessionEnAttente.fromJson(Map<String, dynamic> json) => SessionEnAttente(
     id: json['id'] as String,
     titre: json['titre'] as String,

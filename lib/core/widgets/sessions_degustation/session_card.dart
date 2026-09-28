@@ -278,7 +278,9 @@ class _SessionCardState extends State<SessionCard> {
           ),
 
           // ── Approve / Refuse row (pending sessions only, always visible) ──
-          if (s.statut == StatutSession.enAttenteValidation &&
+          if (s.statut == StatutSession.enAttenteValidation && s.estPassee)
+            const _DatePasseeRow()
+          else if (s.statut == StatutSession.enAttenteValidation &&
               (widget.onApprouver != null || widget.onRefuser != null))
             _PendingActionRow(
               onApprouver: widget.onApprouver,
@@ -352,6 +354,25 @@ class _StatusBadge extends StatelessWidget {
           fontSize: 10.5,
           fontWeight: FontWeight.w700,
         ),
+      ),
+    );
+  }
+}
+
+class _DatePasseeRow extends StatelessWidget {
+  const _DatePasseeRow();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(13, 8, 13, 9),
+      decoration: BoxDecoration(
+        border: Border(top: BorderSide(color: Colors.grey.shade100)),
+      ),
+      child: Text(
+        'Date passée',
+        style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
       ),
     );
   }
