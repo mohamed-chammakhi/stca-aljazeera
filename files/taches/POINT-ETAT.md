@@ -15,6 +15,30 @@ les règles de travail et ce qu'il reste à faire. Lis-le avant toute modificati
   3. En cas de conflit : s'arrêter et expliquer à l'utilisatrice, ne pas choisir seul.
 - L'ancien dépôt `flutter-echantillons-app` est **périmé** (140 commits de retard) : ne plus l'utiliser.
 
+### Routine obligatoire (les deux PC, et Claude)
+
+**Au début, avant de toucher au code :**
+1. `git remote -v` → `origin` doit être `https://github.com/mohamed-chammakhi/stca-aljazeera.git`.
+   Sinon : `git remote set-url origin https://github.com/mohamed-chammakhi/stca-aljazeera.git`.
+2. `git pull --rebase origin main`.
+3. `git status` → doit dire « Your branch is up to date with 'origin/main' ».
+
+**Après chaque commit (pas seulement en fin de journée) :**
+4. `git pull --rebase origin main` puis `git push origin main`.
+5. Vérifier : `git status` → « up to date with 'origin/main' » et **rien** « ahead ».
+   Un commit non envoyé n'existe **que sur ce PC** : l'autre PC ne le verra jamais.
+
+**Avant d'éteindre ou de changer de PC :**
+6. `git status` doit être propre et à jour. S'il reste des changements pas finis :
+   les commiter dans une branche (`git checkout -b travail-en-cours`) et
+   `git push -u origin travail-en-cours`, puis noter la branche dans ce fichier.
+
+**Jamais :** `git push --force`, travailler dans un vieux dossier copié à la main, ou dans
+l'ancien dépôt `flutter-echantillons-app`.
+
+**Claude :** après chaque commit, faire les étapes 4 et 5 sans attendre qu'on le demande, et
+dire à l'utilisatrice « envoyé sur GitHub » seulement si l'étape 5 est vérifiée.
+
 ## 2. Règles de travail (demandées par l'utilisatrice)
 
 - Réponses **en français simple et court**. Ne dire « fait » qu'après vérification réelle.
