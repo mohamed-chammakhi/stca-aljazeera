@@ -68,6 +68,7 @@ class Echantillon {
 
   // ── Shared notes ──────────────────────────────────────────────────────────────
   String? remarques;
+  final String? remarqueCollecteur; // collector's purchase remark — read-only here
 
   // ── Timestamps ────────────────────────────────────────────────────────────────
   final String dateAjout; // ISO 8601 — set by the server on creation
@@ -105,6 +106,7 @@ class Echantillon {
     this.dateLivraisonStock,
     this.classification,
     this.remarques,
+    this.remarqueCollecteur,
     required this.dateAjout,
     this.updatedAt,
   });
@@ -168,6 +170,7 @@ class Echantillon {
         ? ClassificationHuileX.fromJson(json['classification'] as String)
         : null,
     remarques: json['remarques'] as String?,
+    remarqueCollecteur: json['remarque_collecteur'] as String?,
     dateAjout: json['date_ajout'] as String,
     updatedAt: json['updated_at'] as String?,
   );
@@ -205,6 +208,7 @@ class Echantillon {
     'date_livraison_stock': dateLivraisonStock,
     'classification': classification?.toJson,
     'remarques': remarques,
+    'remarque_collecteur': remarqueCollecteur,
     'date_ajout': dateAjout,
     'updated_at': updatedAt,
     // Note: fournisseurTexte, fournisseurNom, collecteurNom are read-only
