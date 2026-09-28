@@ -212,10 +212,12 @@ class ApiClient {
       // Try to extract the human-readable error message from the response body.
       // Django REST Framework usually sends: { "detail": "Not found." }
       final body = response.body.isNotEmpty ? jsonDecode(response.body) : {};
+      // Serializer errors wrap values in lists: {"code": ["password_incorrect"]}.
+      dynamic premier(dynamic v) => v is List && v.isNotEmpty ? v.first : v;
       final detail = body is Map
-          ? (body['detail'] ?? body.toString())
+          ? (premier(body['detail']) ?? body.toString())
           : body.toString();
-      final code = body is Map ? body['code']?.toString() : null;
+      final code = body is Map ? premier(body['code'])?.toString() : null;
       throw ApiException(response.statusCode, detail.toString(), code: code);
     }
   }
