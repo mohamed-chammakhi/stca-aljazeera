@@ -66,6 +66,10 @@ python manage.py makemigrations --check --dry-run
 
 ## 4. Ce qu'il reste à faire
 
+0. **Tâche 51 (PC secondaire)** — fiche `files/taches/51-lot-pc-secondaire.md`, branche
+   `pc2-lot-51` (jamais `main`). Le PC secondaire code et pousse ; le PC principal récupère la
+   branche, lance `flutter analyze`, `flutter test`, les tests Django, essaie sur le téléphone,
+   corrige puis fusionne dans `main`. Le point 1 ci-dessous (50b) fait partie de ce lot.
 1. **Tâche 50b** — branche `tache-50b-en-cours`, fiche
    `files/taches/50b-ocr-document-intelligence-et-mlkit.md` (section « REPRISE » à la fin) :
    le service serveur passe déjà par Azure Document Intelligence ; reste à mettre à jour les
