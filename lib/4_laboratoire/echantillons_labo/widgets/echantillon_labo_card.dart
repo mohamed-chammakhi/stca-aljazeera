@@ -319,6 +319,7 @@ class _DetailPanel extends StatelessWidget {
                     'Date arrivée',
                     DegDateUtils.formaterAffichage(e.dateArrivee),
                   ),
+                  DetailItem('Enregistré le', _dateOuTiret(e.dateAjout)),
                   if (e.variete != null && e.variete!.isNotEmpty)
                     DetailItem('Variété', e.variete!),
                   if (e.numeroLot != null) DetailItem('N° lot', e.numeroLot!),
@@ -336,6 +337,11 @@ class _DetailPanel extends StatelessWidget {
       ],
     );
   }
+}
+
+String _dateOuTiret(String? iso) {
+  final texte = DegDateUtils.formaterDateHeure(iso);
+  return texte.isEmpty ? '—' : texte;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

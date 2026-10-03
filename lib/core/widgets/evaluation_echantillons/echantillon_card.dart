@@ -276,6 +276,7 @@ class _DetailPanel extends StatelessWidget {
                 ),
               if (e.quantite != null && e.quantite!.isNotEmpty)
                 DetailItem('Quantité', '${e.quantite} T'),
+              DetailItem('Enregistré le', _dateOuTiret(e.dateAjout)),
               DetailItem(
                 'Date arrivée',
                 DegDateUtils.formaterAffichage(e.dateArriveeEchantillon).isEmpty
@@ -336,6 +337,11 @@ class _DetailPanel extends StatelessWidget {
       ],
     );
   }
+}
+
+String _dateOuTiret(String? iso) {
+  final texte = DegDateUtils.formaterDateHeure(iso);
+  return texte.isEmpty ? '—' : texte;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

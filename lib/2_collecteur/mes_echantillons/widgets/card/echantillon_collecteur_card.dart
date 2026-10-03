@@ -23,6 +23,7 @@ import '../../models/echantillon_collecteur.dart';
 import '../../../widgets/col_colors.dart';
 import '../../../../core/widgets/grille_details.dart';
 import '../../../../core/utils/montant_achat.dart';
+import '../../../../core/utils/date_utils.dart';
 
 String? _dateStockStr(EchantillonCollecteur e) {
   final d = e.dateStockSouhaiteeDebut;
@@ -449,6 +450,7 @@ class _DetailPanel extends StatelessWidget {
                   ),
                   if (e.numCiterne != null && e.numCiterne!.isNotEmpty)
                     DetailItem('N° citerne', e.numCiterne!),
+                  DetailItem('Enregistré le', _dateOuTiret(e.dateAjout)),
                 ],
               ),
 
@@ -498,6 +500,11 @@ class _DetailPanel extends StatelessWidget {
       ],
     );
   }
+}
+
+String _dateOuTiret(DateTime? date) {
+  final texte = DegDateUtils.formaterDateHeure(date?.toIso8601String());
+  return texte.isEmpty ? '—' : texte;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

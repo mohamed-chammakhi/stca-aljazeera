@@ -604,8 +604,10 @@ class _ValidationAchatsCeoPageState extends State<ValidationAchatsCeoPage>
                                   if (e.collecteurNom != null)
                                     DetailItem('Collecteur', e.collecteurNom!),
                                   DetailItem(
-                                    'Date enregistrement',
-                                    e.dateAjout,
+                                    'Enregistré le',
+                                    DegDateUtils.formaterDateHeureOuTiret(
+                                      e.dateAjout,
+                                    ),
                                   ),
                                 ],
                                 bottomSection: PropositionSection(

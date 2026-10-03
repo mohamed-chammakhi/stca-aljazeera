@@ -5,6 +5,7 @@
 // ═════════════════════════════════════════════════════════════════════════════
 
 import 'package:flutter/material.dart';
+import 'package:project3/core/utils/date_utils.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../core/models/enums.dart';
@@ -326,7 +327,7 @@ class _VueEnsembleEvaluationsPageState extends State<VueEnsembleEvaluationsPage>
           '',
       gouvernorat: json['gouvernorat'] as String? ?? '',
       variete: json['variete'] as String? ?? '',
-      dateAjout: _formatDate(json['date_ajout']),
+      dateAjout: json['date_ajout']?.toString() ?? '',
       recuPhysiquement: json['recu_physiquement'] as bool? ?? false,
       dateReceptionEchantillon: _formatDate(json['date_reception_echantillon']),
       evaluations: ((json['evaluations'] as List<dynamic>?) ?? const [])
@@ -738,7 +739,12 @@ class _VueEnsembleEvaluationsPageState extends State<VueEnsembleEvaluationsPage>
                                   ),
                                   DetailItem('Gouvernorat', g.gouvernorat),
                                   DetailItem('Variété', g.variete),
-                                  DetailItem('Date ajout', g.dateAjout),
+                                  DetailItem(
+                                    'Enregistré le',
+                                    DegDateUtils.formaterDateHeureOuTiret(
+                                      g.dateAjout,
+                                    ),
+                                  ),
                                   DetailItem(
                                     'Évaluations',
                                     '${g.submitted} / ${g.total} soumises',

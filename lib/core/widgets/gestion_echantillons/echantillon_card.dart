@@ -19,7 +19,7 @@ const Color _olive = Color(0xFF6B8143);
 const Color _green = Color(0xFF38835A);
 
 String _dateOuTiret(String? iso) {
-  final texte = DegDateUtils.formaterAffichage(iso);
+  final texte = DegDateUtils.formaterDateHeure(iso);
   return texte.isEmpty ? '—' : texte;
 }
 
@@ -401,6 +401,7 @@ class _DetailPanel extends StatelessWidget {
                     DetailItem('Collecteur', e.collecteurNom!),
                   if (e.numCiterne != null && e.numCiterne!.isNotEmpty)
                     DetailItem('N° citerne', e.numCiterne!),
+                  DetailItem('Enregistré le', _dateOuTiret(e.dateAjout)),
                   DetailItem(
                     'Reçu physiquement',
                     e.recuPhysiquement ? 'Oui' : 'Non',

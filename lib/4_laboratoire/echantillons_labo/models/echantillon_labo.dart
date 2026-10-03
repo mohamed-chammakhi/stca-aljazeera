@@ -21,6 +21,7 @@ class EchantillonLabo {
   final String? quantiteEstimee; // estimated batch tonnage (info only)
 
   // ── Reception ─────────────────────────────────────────────────────────────
+  final String dateAjout;
   final String dateArrivee; // date the bottle arrived at the lab
   final String? numeroLot; // internal lab lot number (optional)
   final String? origineCampagne; // harvest campaign, e.g. "2025/2026"
@@ -41,6 +42,7 @@ class EchantillonLabo {
     required this.referenceBouteille,
     this.variete,
     this.quantiteEstimee,
+    this.dateAjout = '',
     required this.dateArrivee,
     this.numeroLot,
     this.origineCampagne,
@@ -67,6 +69,7 @@ class EchantillonLabo {
         referenceBouteille: _stringValue(json['reference_bouteille']),
         variete: json['variete'] as String?,
         quantiteEstimee: json['quantite_estimee']?.toString(),
+        dateAjout: _stringValue(json['date_ajout']),
         // Shown as-is on screen: JJ/MM/AAAA, never the raw ISO text.
         dateArrivee: DegDateUtils.formaterAffichage(
           json['date_arrivee_echantillon'],

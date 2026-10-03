@@ -152,7 +152,7 @@ class EchantillonCeoService {
       numCiterne: sample['num_citerne'] as String?,
       variete: sample['variete'] as String?,
       quantiteEstimee: sample['quantite_estimee']?.toString(),
-      dateAjout: _formatDate(sample['date_ajout']),
+      dateAjout: sample['date_ajout']?.toString() ?? '',
       dateArriveeEchantillon: _formatDate(sample['date_arrivee_echantillon']),
       dateReceptionEchantillon: _formatDate(
         sample['date_reception_echantillon'],

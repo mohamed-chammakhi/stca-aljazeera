@@ -4,6 +4,7 @@
 // ═════════════════════════════════════════════════════════════════════════════
 
 import 'package:flutter/material.dart';
+import '../../core/utils/date_utils.dart';
 
 import '../utilisateurs/models/echantillon_ceo_view.dart';
 import '../../core/widgets/grille_details.dart';
@@ -140,7 +141,7 @@ class _SampleDetailsState extends State<SampleDetails> {
               if (e.numCiterne != null) DetailItem('N° citerne', e.numCiterne!),
               if (e.quantiteEstimee != null)
                 DetailItem('Quantité', '${e.quantiteEstimee} T'),
-              DetailItem('Date d\'ajout', e.dateAjout),
+              DetailItem('Enregistré le', _dateOuTiret(e.dateAjout)),
               if ((e.dateArriveeEchantillon?.isNotEmpty ?? false) ||
                   e.dateLivraisonPrevue != null)
                 DetailItem(
@@ -286,6 +287,10 @@ class _SampleDetailsState extends State<SampleDetails> {
   }
 }
 
+String _dateOuTiret(String? iso) {
+  return DegDateUtils.formaterDateHeureOuTiret(iso);
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // PURCHASE DETAILS PANEL  — collapsible receipt shown under "Détails de l'achat"
 // ─────────────────────────────────────────────────────────────────────────────
@@ -426,7 +431,7 @@ class SampleRow extends StatelessWidget {
                       const SizedBox(height: 18),
                     const SizedBox(height: 2),
                     Text(
-                      e.dateAjout,
+                      DegDateUtils.formaterAffichage(e.dateAjout),
                       style: const TextStyle(
                         fontSize: 12,
                         color: Color.fromARGB(255, 111, 111, 111),

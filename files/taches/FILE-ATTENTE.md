@@ -49,4 +49,5 @@ Pendant la nuit, voir `BOUCLE-NUIT.md`.
 | 28 | Tâche 49 — sessions : ordre récent → ancien, statut écrit, filtres | fait |
 | 29 | Tâche 50 — photo d'échantillon identique (3 rôles) + OCR Azure prêt à activer | fait |
 | 30 | Tâche 50b — OCR : Azure Document Intelligence (sans ML Kit) | en cours |
-| 31 | Tâche 51 — lot de 7 corrections (OCR + photo par échantillon, carte direction, notifications, sessions passées, réception physique direction, message évaluation, bordereau PDF) — fait par le PC secondaire sur la branche `pc2-lot-51`, vérifié par le PC principal | à faire (PC secondaire) |
+| 31 | Tâche 51 — lot de 7 corrections (OCR + photo par échantillon, carte direction, notifications, sessions passées, réception physique direction, message évaluation, bordereau PDF) — fait par le PC secondaire sur la branche `pc2-lot-51`, vérifié par le PC principal | fait |
+| 32 | Tâche 52 — « Enregistré le » (date d'enregistrement dans l'application) sur toutes les cartes d'échantillon, tous les rôles — exécutant Copilot | fait |

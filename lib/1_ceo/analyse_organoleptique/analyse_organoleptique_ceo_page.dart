@@ -767,7 +767,12 @@ class _AnalyseOrganoleptiqueCeoPageState
                                       'Quantité',
                                       '${e.quantiteEstimee} T',
                                     ),
-                                  DetailItem('Date ajout', e.dateAjout),
+                                  DetailItem(
+                                    'Enregistré le',
+                                    DegDateUtils.formaterDateHeureOuTiret(
+                                      e.dateAjout,
+                                    ),
+                                  ),
                                   if (e.collecteurNom != null)
                                     DetailItem('Collecteur', e.collecteurNom!),
                                   DetailItem(
