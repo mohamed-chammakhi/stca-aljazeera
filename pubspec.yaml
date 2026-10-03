@@ -79,8 +79,8 @@ flutter:
     - assets/img/tunisie_villes.csv
     - assets/img/labo.png
     - assets/img/continents.png
-    - assets/fonts/Alegreya/static/Alegreya-Regular.ttf
-    - assets/fonts/Alegreya/static/Alegreya-Bold.ttf
+    - assets/fonts/Domine/static/Domine-Regular.ttf
+    - assets/fonts/Domine/static/Domine-Bold.ttf
 
 
   # To add assets to your application, add an assets section, like this:

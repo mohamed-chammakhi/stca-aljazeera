@@ -51,3 +51,4 @@ Pendant la nuit, voir `BOUCLE-NUIT.md`.
 | 30 | Tâche 50b — OCR : Azure Document Intelligence (sans ML Kit) | en cours |
 | 31 | Tâche 51 — lot de 7 corrections (OCR + photo par échantillon, carte direction, notifications, sessions passées, réception physique direction, message évaluation, bordereau PDF) — fait par le PC secondaire sur la branche `pc2-lot-51`, vérifié par le PC principal | fait |
 | 32 | Tâche 52 — « Enregistré le » (date d'enregistrement dans l'application) sur toutes les cartes d'échantillon, tous les rôles — exécutant Copilot | fait |
+| 33 | Tâche 53 — Bordereau : période, aperçu, partager / imprimer, mise en page proche du papier avec logo — exécutant Copilot | fait |

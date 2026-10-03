@@ -24,6 +24,8 @@ LigneBordereau _ligne({
 );
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   test('les échantillons du même fournisseur sont sur une seule ligne', () {
     final groupes = regrouperBordereau([
       _ligne(
@@ -49,7 +51,7 @@ void main() {
     expect(groupes.first.zone, 'Sfax — Sfax Sud');
     expect(groupes.first.references, ['HAMI-C1-10T', 'HAMI-C2-8T']);
     expect(groupes.first.scellages, ['C1 — 10T', 'C2 — 8T']);
-    expect(groupes.first.remarques, ['Huile trouble']);
+    expect(groupes.first.remarques, ['', 'Huile trouble']);
     expect(groupes.last.zone, 'Sfax');
     expect(groupes.last.scellages, ['C3']);
   });
@@ -63,16 +65,37 @@ void main() {
     expect(groupes, hasLength(2));
   });
 
-  test('seuls les échantillons du jour choisi sont gardés', () {
+  test('la période garde ses bornes incluses en heure locale', () {
     final lignes = [
       _ligne(fournisseur: 'Hami', reference: 'A', date: DateTime(2026, 9, 28, 8)),
-      _ligne(fournisseur: 'Hami', reference: 'B', date: DateTime(2026, 9, 27, 23)),
+      _ligne(fournisseur: 'Hami', reference: 'B', date: DateTime(2026, 9, 29, 23, 59)),
+      _ligne(fournisseur: 'Hami', reference: 'C', date: DateTime(2026, 9, 30)),
     ];
 
-    final duJour = lignesDuJour(lignes, DateTime(2026, 9, 28));
+    final periode = lignesDeLaPeriode(
+      lignes,
+      DateTime(2026, 9, 28),
+      DateTime(2026, 9, 29),
+    );
 
-    expect(duJour.map((l) => l.referenceBouteille), ['A']);
-    expect(lignesDuJour(lignes, DateTime(2026, 9, 26)), isEmpty);
+    expect(periode.map((l) => l.referenceBouteille), ['A', 'B']);
+    expect(
+      lignesDeLaPeriode(lignes, DateTime(2026, 9, 28), DateTime(2026, 9, 28))
+          .map((l) => l.referenceBouteille),
+      ['A'],
+    );
+    expect(
+      lignesDeLaPeriode(lignes, DateTime(2026, 9, 26), DateTime(2026, 9, 27)),
+      isEmpty,
+    );
+    expect(
+      messageAucunEchantillon(DateTime(2026, 9, 26), DateTime(2026, 9, 26)),
+      'Aucun échantillon enregistré dans l’application ce jour-là.',
+    );
+    expect(
+      messageAucunEchantillon(DateTime(2026, 9, 26), DateTime(2026, 9, 27)),
+      'Aucun échantillon enregistré dans l’application pendant cette période.',
+    );
   });
 
   test('les agents sont listés une seule fois', () {
@@ -89,5 +112,20 @@ void main() {
     expect(dateDepuisTexte('28/09/2026'), DateTime(2026, 9, 28));
     expect(dateDepuisTexte('2026-09-28T09:00:00')?.day, 28);
     expect(dateDepuisTexte(''), isNull);
+  });
+
+  test('genererPdf produit un document PDF pour une période de deux jours', () async {
+    final octets = await BordereauPdfService().genererPdf(
+      DateTime(2026, 9, 28),
+      DateTime(2026, 9, 29),
+      [
+        _ligne(fournisseur: 'Hami', reference: 'A', date: DateTime(2026, 9, 28)),
+        _ligne(fournisseur: 'Hami', reference: 'B', date: DateTime(2026, 9, 29)),
+        _ligne(fournisseur: 'Omar', reference: 'C', date: DateTime(2026, 9, 29)),
+      ],
+    );
+
+    expect(octets, isNotEmpty);
+    expect(String.fromCharCodes(octets.take(4)), '%PDF');
   });
 }

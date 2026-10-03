@@ -81,8 +81,28 @@ DateTime? dateDepuisTexte(String texte) {
 bool _memeJour(DateTime a, DateTime b) =>
     a.year == b.year && a.month == b.month && a.day == b.day;
 
+List<LigneBordereau> lignesDeLaPeriode(
+  List<LigneBordereau> lignes,
+  DateTime debut,
+  DateTime fin,
+) {
+  final debutLocal = DateTime(debut.year, debut.month, debut.day);
+  final finExclusive = DateTime(fin.year, fin.month, fin.day + 1);
+  return lignes.where((ligne) {
+    final dateLocale = ligne.dateAjout.toLocal();
+    return !dateLocale.isBefore(debutLocal) && dateLocale.isBefore(finExclusive);
+  }).toList();
+}
+
 List<LigneBordereau> lignesDuJour(List<LigneBordereau> lignes, DateTime jour) =>
-    lignes.where((l) => _memeJour(l.dateAjout.toLocal(), jour)).toList();
+    lignesDeLaPeriode(lignes, jour, jour);
+
+String messageAucunEchantillon(DateTime debut, DateTime fin) {
+  final estUnJour = _memeJour(debut, fin);
+  return estUnJour
+      ? 'Aucun échantillon enregistré dans l’application ce jour-là.'
+      : 'Aucun échantillon enregistré dans l’application pendant cette période.';
+}
 
 String _texte(String? valeur) => valeur?.trim() ?? '';
 
@@ -98,7 +118,7 @@ String scellageBordereau(LigneBordereau l) {
   return '$citerne — $quantite';
 }
 
-/// Groups the samples of one day by supplier, in order of first appearance.
+/// Groups the samples of one period by supplier, in order of first appearance.
 List<GroupeBordereau> regrouperBordereau(List<LigneBordereau> lignes) {
   final groupes = <String, List<LigneBordereau>>{};
   for (final ligne in lignes) {
@@ -126,13 +146,13 @@ List<GroupeBordereau> regrouperBordereau(List<LigneBordereau> lignes) {
       scellages: [for (final l in lignesFournisseur) scellageBordereau(l)],
       remarques: [
         for (final l in lignesFournisseur)
-          if (_texte(l.remarque).isNotEmpty) _texte(l.remarque),
+          _texte(l.remarque),
       ],
     );
   }).toList();
 }
 
-/// Distinct collector names of the day, in order of first appearance.
+/// Distinct collector names of the period, in order of first appearance.
 List<String> agentsBordereau(List<LigneBordereau> lignes) {
   final noms = <String>[];
   for (final l in lignes) {
@@ -147,29 +167,89 @@ String _dateLisible(DateTime d) =>
     '${d.month.toString().padLeft(2, '0')}/${d.year}';
 
 class BordereauPdfService {
-  Future<Uint8List> genererPdf(DateTime jour, List<LigneBordereau> lignes) async {
+  Future<Uint8List> genererPdf(
+    DateTime debut,
+    DateTime fin,
+    List<LigneBordereau> lignes,
+  ) async {
     final regular = pw.Font.ttf(
-      await rootBundle.load('assets/fonts/Alegreya/static/Alegreya-Regular.ttf'),
+      await rootBundle.load('assets/fonts/Domine/static/Domine-Regular.ttf'),
     );
     final bold = pw.Font.ttf(
-      await rootBundle.load('assets/fonts/Alegreya/static/Alegreya-Bold.ttf'),
+      await rootBundle.load('assets/fonts/Domine/static/Domine-Bold.ttf'),
     );
     final logo = pw.MemoryImage(
       (await rootBundle.load('assets/img/Aljazia_logo.png')).buffer.asUint8List(),
     );
     final groupes = regrouperBordereau(lignes);
     final agents = agentsBordereau(lignes);
-    final date = _dateLisible(jour);
+    final dateCreation = _dateLisible(DateTime.now());
+    final periode = _memeJour(debut, fin)
+        ? 'Jour : ${_dateLisible(debut)}'
+        : 'Période : du ${_dateLisible(debut)} au ${_dateLisible(fin)}';
 
     pw.Widget cellule(String texte, {bool entete = false}) => pw.Padding(
-      padding: const pw.EdgeInsets.all(5),
+      padding: const pw.EdgeInsets.all(4),
       child: pw.Text(
         texte,
         style: pw.TextStyle(
-          fontSize: entete ? 10 : 9,
+          fontSize: 9,
           fontWeight: entete ? pw.FontWeight.bold : pw.FontWeight.normal,
         ),
       ),
+    );
+
+    pw.Widget entetePage(pw.Context context) => pw.Column(
+      children: [
+        pw.Container(
+          decoration: pw.BoxDecoration(border: pw.Border.all(width: 0.6)),
+          child: pw.Row(
+            crossAxisAlignment: pw.CrossAxisAlignment.center,
+            children: [
+              pw.Container(
+                width: 130,
+                padding: const pw.EdgeInsets.all(8),
+                child: pw.Image(logo, height: 48),
+              ),
+              pw.Expanded(
+                child: pw.Column(
+                  children: [
+                    pw.Container(
+                      width: double.infinity,
+                      color: PdfColors.grey200,
+                      padding: const pw.EdgeInsets.all(6),
+                      child: pw.Text(
+                        "Bordereau de réception des échantillons d'information",
+                        textAlign: pw.TextAlign.center,
+                        style: pw.TextStyle(
+                          fontSize: 13,
+                          fontWeight: pw.FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    pw.Row(
+                      children: [
+                        cellule('Date : $dateCreation'),
+                        cellule('Ver : 00'),
+                        cellule('Page ${context.pageNumber}/${context.pagesCount}'),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        pw.Padding(
+          padding: const pw.EdgeInsets.only(top: 6, bottom: 8),
+          child: pw.Row(
+            mainAxisAlignment: pw.MainAxisAlignment.end,
+            children: [
+              pw.Text(periode, style: const pw.TextStyle(fontSize: 10)),
+            ],
+          ),
+        ),
+      ],
     );
 
     final document = pw.Document(
@@ -178,24 +258,9 @@ class BordereauPdfService {
     document.addPage(
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.all(28),
+        margin: const pw.EdgeInsets.fromLTRB(28, 24, 28, 28),
+        header: entetePage,
         build: (context) => [
-          pw.Row(
-            crossAxisAlignment: pw.CrossAxisAlignment.center,
-            children: [
-              pw.Image(logo, height: 48),
-              pw.SizedBox(width: 16),
-              pw.Expanded(
-                child: pw.Text(
-                  "Bordereau de réception des échantillons d'information",
-                  style: pw.TextStyle(fontSize: 15, fontWeight: pw.FontWeight.bold),
-                ),
-              ),
-            ],
-          ),
-          pw.SizedBox(height: 8),
-          pw.Text('Date : $date', style: const pw.TextStyle(fontSize: 11)),
-          pw.SizedBox(height: 14),
           pw.Table(
             border: pw.TableBorder.all(width: 0.6),
             columnWidths: const {
@@ -207,44 +272,49 @@ class BordereauPdfService {
             },
             children: [
               pw.TableRow(
+                repeat: true,
                 decoration: const pw.BoxDecoration(color: PdfColors.grey200),
                 children: [
-                  cellule('Gouvernorat / Zone', entete: true),
-                  cellule('Fournisseur', entete: true),
-                  cellule('Référence collecteur', entete: true),
-                  cellule('Scellage', entete: true),
-                  cellule('Remarques', entete: true),
+                  cellule('GOUVERNORAT / ZONE', entete: true),
+                  cellule('FOURNISSEUR', entete: true),
+                  cellule('RÉFÉRENCE COLLECTEUR', entete: true),
+                  cellule('SCELLAGE', entete: true),
+                  cellule('REMARQUES', entete: true),
                 ],
               ),
-              for (final g in groupes)
+              for (var index = 0; index < groupes.length; index++)
                 pw.TableRow(
+                  decoration: index.isOdd
+                      ? const pw.BoxDecoration(color: PdfColors.grey100)
+                      : null,
                   children: [
-                    cellule(g.zone),
-                    cellule(g.fournisseur),
-                    cellule(g.references.join('\n')),
-                    cellule(g.scellages.join('\n')),
-                    cellule(g.remarques.join('\n')),
+                    cellule(groupes[index].zone),
+                    cellule(groupes[index].fournisseur),
+                    cellule(groupes[index].references.join('\n')),
+                    cellule(groupes[index].scellages.join('\n')),
+                    cellule(groupes[index].remarques.join('\n')),
                   ],
                 ),
             ],
           ),
-          pw.SizedBox(height: 24),
-          pw.Table(
-            border: pw.TableBorder.all(width: 0.6),
+          pw.SizedBox(height: 18),
+          pw.Row(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
-              pw.TableRow(
-                children: [
-                  cellule('DATE', entete: true),
-                  cellule('AGENT', entete: true),
-                  cellule('SIGNATURE', entete: true),
-                ],
+              pw.Expanded(child: cellule('DATE : $dateCreation')),
+              pw.Expanded(
+                flex: 2,
+                child: cellule(
+                  'AGENT : ${agents.isEmpty ? '—' : agents.join(', ')}',
+                ),
               ),
-              pw.TableRow(
-                children: [
-                  cellule(date),
-                  cellule(agents.isEmpty ? '—' : agents.join('\n')),
-                  pw.SizedBox(height: 48),
-                ],
+              pw.Expanded(
+                child: pw.Column(
+                  children: [
+                    cellule('SIGNATURE'),
+                    pw.SizedBox(height: 48),
+                  ],
+                ),
               ),
             ],
           ),
@@ -254,10 +324,11 @@ class BordereauPdfService {
     return document.save();
   }
 
-  Future<void> partager(DateTime jour, List<LigneBordereau> lignes) async {
-    final octets = await genererPdf(jour, lignes);
-    final nomJour =
-        '${jour.year}-${jour.month.toString().padLeft(2, '0')}-${jour.day.toString().padLeft(2, '0')}';
-    await Printing.sharePdf(bytes: octets, filename: 'bordereau_$nomJour.pdf');
+  String nomFichier(DateTime debut, DateTime fin) {
+    String date(DateTime valeur) =>
+        '${valeur.year}-${valeur.month.toString().padLeft(2, '0')}-${valeur.day.toString().padLeft(2, '0')}';
+    return _memeJour(debut, fin)
+        ? 'bordereau_${date(debut)}.pdf'
+        : 'bordereau_${date(debut)}_${date(fin)}.pdf';
   }
 }

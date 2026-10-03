@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../services/bordereau_pdf_service.dart';
+import 'apercu_bordereau_page.dart';
 
-/// AppBar button: pick a day, then share that day's delivery slip as a PDF.
+/// AppBar button: pick a period, then open its PDF preview.
 class BoutonBordereau extends StatelessWidget {
   /// Samples already loaded by the page; filtered on the chosen day here.
   final List<LigneBordereau> Function() lignes;
@@ -29,24 +30,42 @@ class BoutonBordereau extends StatelessWidget {
 
   Future<void> _ouvrir(BuildContext context) async {
     final aujourdhui = DateTime.now();
-    final jour = await showDatePicker(
+    final periode = await showDateRangePicker(
       context: context,
-      initialDate: aujourdhui,
+      initialDateRange: DateTimeRange(start: aujourdhui, end: aujourdhui),
       firstDate: DateTime(2020),
       lastDate: aujourdhui,
-      helpText: 'Date du bordereau',
+      helpText: 'Période du bordereau',
       cancelText: 'Annuler',
       confirmText: 'Valider',
+      saveText: 'Valider',
+      fieldStartLabelText: 'Du',
+      fieldEndLabelText: 'Au',
     );
-    if (jour == null || !context.mounted) return;
+    if (periode == null || !context.mounted) return;
 
-    final duJour = lignesDuJour(lignes(), jour);
-    if (duJour.isEmpty) {
-      _message(context, 'Aucun échantillon ajouté ce jour-là.');
+    final debut = DateTime(
+      periode.start.year,
+      periode.start.month,
+      periode.start.day,
+    );
+    final fin = DateTime(periode.end.year, periode.end.month, periode.end.day);
+    final selection = lignesDeLaPeriode(lignes(), debut, fin);
+    if (selection.isEmpty) {
+      _message(context, messageAucunEchantillon(debut, fin));
       return;
     }
     try {
-      await (service ?? BordereauPdfService()).partager(jour, duJour);
+      await Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => ApercuBordereauPage(
+            debut: debut,
+            fin: fin,
+            lignes: selection,
+            service: service ?? BordereauPdfService(),
+          ),
+        ),
+      );
     } catch (_) {
       if (context.mounted) {
         _message(context, "Le bordereau n'a pas pu être créé. Réessayez.");
