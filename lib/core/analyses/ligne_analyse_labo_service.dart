@@ -37,8 +37,15 @@ class LigneAnalyseLaboService {
       if (reference.isNotEmpty) reference,
       if (gouvernorat.isNotEmpty) gouvernorat,
     ];
-    final estSoumise =
-        analyse?['statut'] == 'soumis' || json['statut_labo'] == 'soumis';
+    final statutAnalyse = switch (analyse?['statut']) {
+      'soumis' => StatutAnalyse.soumise,
+      'en_cours' => StatutAnalyse.enCours,
+      _ =>
+        json['statut_labo'] == 'soumis'
+            ? StatutAnalyse.soumise
+            : StatutAnalyse.enAttente,
+    };
+    final estSoumise = statutAnalyse == StatutAnalyse.soumise;
     final rapport = analyse == null ? null : RapportLabo.fromJson(analyse);
 
     return LigneAnalyseLabo(
@@ -49,7 +56,7 @@ class LigneAnalyseLaboService {
       echantillonNom: displayParts.isEmpty ? numero : displayParts.join(' - '),
       technicienNom:
           (analyse?['technicien_nom'] as String?) ?? 'En attente laboratoire',
-      statut: estSoumise ? StatutAnalyse.soumise : StatutAnalyse.enAttente,
+      statut: statutAnalyse,
       fournisseurNom:
           json['fournisseur_nom'] as String? ??
           json['fournisseur_nom'] as String?,
@@ -63,6 +70,7 @@ class LigneAnalyseLaboService {
       dateReceptionEchantillon: _formaterDate(
         json['date_reception_echantillon'],
       ),
+      recuPhysiquement: json['recu_physiquement'] as bool? ?? false,
       rapport: estSoumise ? rapport : null,
     );
   }

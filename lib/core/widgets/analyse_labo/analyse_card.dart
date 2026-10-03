@@ -35,7 +35,9 @@ class _AnalyseCardState extends State<AnalyseCard> {
   @override
   Widget build(BuildContext context) {
     final analyse = widget.analyse;
-    final accent = _accentColor(analyse.statut);
+    final accent = analyse.recuPhysiquement
+        ? _accentColor(analyse.statut)
+        : Colors.grey.shade500;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
@@ -102,6 +104,17 @@ class _AnalyseCardState extends State<AnalyseCard> {
                               ),
                             ],
                           ),
+                          const SizedBox(height: 5),
+                          Text(
+                            _statutLabel(analyse),
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: analyse.recuPhysiquement
+                                  ? _accentColor(analyse.statut)
+                                  : Colors.grey.shade700,
+                            ),
+                          ),
                           const SizedBox(height: 4),
                           Row(
                             children: [
@@ -118,12 +131,31 @@ class _AnalyseCardState extends State<AnalyseCard> {
                               ),
                               if (widget.onUrgentLabo != null) ...[
                                 const SizedBox(width: 8),
-                                _UrgentLaboBtn(
-                                  isUrgent: widget.isUrgentLabo,
-                                  onTap: widget.isUrgentLabo
-                                      ? null
-                                      : widget.onUrgentLabo,
-                                ),
+                                if (!analyse.recuPhysiquement)
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    children: [
+                                      _UrgentLaboBtn(
+                                        isUrgent: false,
+                                        onTap: null,
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        'Disponible après la réception physique',
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          color: Colors.grey.shade500,
+                                        ),
+                                      ),
+                                    ],
+                                  )
+                                else
+                                  _UrgentLaboBtn(
+                                    isUrgent: widget.isUrgentLabo,
+                                    onTap: widget.isUrgentLabo
+                                        ? null
+                                        : widget.onUrgentLabo,
+                                  ),
                               ],
                             ],
                           ),
@@ -151,6 +183,18 @@ class _AnalyseCardState extends State<AnalyseCard> {
         ],
       ),
     );
+  }
+}
+
+String _statutLabel(LigneAnalyseLabo analyse) {
+  if (!analyse.recuPhysiquement) return 'Pas encore reçu dans la société';
+  switch (analyse.statut) {
+    case StatutAnalyse.enAttente:
+      return 'En attente d\'analyse';
+    case StatutAnalyse.enCours:
+      return 'Analyse en cours';
+    case StatutAnalyse.soumise:
+      return 'Analyse soumise';
   }
 }
 

@@ -59,6 +59,13 @@ _Cfg _cfg(StatutAnalyse s) {
         Color(0xFFF9A825),
         'En attente',
       );
+    case StatutAnalyse.enCours:
+      return const _Cfg(
+        Color(0xFFFEF3E8),
+        Color(0xFFD07B2F),
+        Color(0xFFD07B2F),
+        'Analyse en cours',
+      );
     case StatutAnalyse.soumise:
       return const _Cfg(
         Color(0xFFE6F4ED),

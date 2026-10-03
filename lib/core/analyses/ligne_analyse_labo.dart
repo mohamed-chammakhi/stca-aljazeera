@@ -1,6 +1,6 @@
 import 'rapport_labo.dart';
 
-enum StatutAnalyse { enAttente, soumise }
+enum StatutAnalyse { enAttente, enCours, soumise }
 
 /// Une ligne de la liste « Analyse de laboratoire », commune aux deux rôles
 /// de dégustation. Elle ne contient aucun chemin d'écriture du rapport.
@@ -21,6 +21,7 @@ class LigneAnalyseLabo {
   final String? dateAjout;
   final String? dateArriveeEchantillon;
   final String? dateReceptionEchantillon;
+  final bool recuPhysiquement;
   final RapportLabo? rapport;
 
   const LigneAnalyseLabo({
@@ -40,6 +41,7 @@ class LigneAnalyseLabo {
     this.dateAjout,
     this.dateArriveeEchantillon,
     this.dateReceptionEchantillon,
+    this.recuPhysiquement = false,
     this.rapport,
   });
 
@@ -52,9 +54,11 @@ class LigneAnalyseLabo {
       referenceBouteille: (json['echantillon_ref'] ?? '').toString(),
       echantillonNom: json['echantillon_nom'] as String,
       technicienNom: json['technicien_nom'] as String,
-      statut: json['statut'] == 'soumise'
-          ? StatutAnalyse.soumise
-          : StatutAnalyse.enAttente,
+      statut: switch (json['statut']) {
+        'soumise' || 'soumis' => StatutAnalyse.soumise,
+        'en_cours' => StatutAnalyse.enCours,
+        _ => StatutAnalyse.enAttente,
+      },
       fournisseurNom: json['fournisseur_nom'] as String?,
       gouvernorat: json['gouvernorat'] as String?,
       delegation: json['delegation'] as String?,
@@ -64,6 +68,7 @@ class LigneAnalyseLabo {
       dateAjout: json['date_ajout'] as String?,
       dateArriveeEchantillon: json['date_arrivee_echantillon'] as String?,
       dateReceptionEchantillon: json['date_reception_echantillon'] as String?,
+      recuPhysiquement: json['recu_physiquement'] as bool? ?? false,
       rapport: rapportJson == null ? null : RapportLabo.fromJson(rapportJson),
     );
   }
@@ -75,7 +80,11 @@ class LigneAnalyseLabo {
     'echantillon_ref': referenceBouteille,
     'echantillon_nom': echantillonNom,
     'technicien_nom': technicienNom,
-    'statut': statut == StatutAnalyse.soumise ? 'soumise' : 'en_attente',
+    'statut': switch (statut) {
+      StatutAnalyse.soumise => 'soumise',
+      StatutAnalyse.enCours => 'en_cours',
+      StatutAnalyse.enAttente => 'en_attente',
+    },
     'fournisseur_nom': fournisseurNom,
     'gouvernorat': gouvernorat,
     'delegation': delegation,
@@ -85,6 +94,7 @@ class LigneAnalyseLabo {
     'date_ajout': dateAjout,
     'date_arrivee_echantillon': dateArriveeEchantillon,
     'date_reception_echantillon': dateReceptionEchantillon,
+    'recu_physiquement': recuPhysiquement,
     'rapport': rapport?.toJson(),
   };
 }

@@ -60,3 +60,41 @@ Voir `files/taches/PROTOCOLE.md`. Interdit : `git commit`, `git push`, migration
 vraie base, ML Kit, fausses données. Même comportement pour le dégustateur et le chef. Encodage
 UTF-8 sans BOM, garder les fins de ligne. Lancer `flutter analyze` (zéro ligne « error - »),
 `flutter test` et les tests Django (`analyses`) avant d'écrire le rapport.
+
+## RAPPORT
+
+### Fait
+
+- `backend_new/analyses/views.py` : dégustateurs et chef voient tous les échantillons ; laboratoire et direction restent limités aux reçus.
+- `backend_new/analyses/serializers.py` : réception physique et date de réception renvoyées à l'application.
+- `backend_new/analyses/tests.py` : couvertures ajoutées pour dégustateur, chef, laboratoire et direction.
+- `lib/core/analyses/ligne_analyse_labo.dart` et `lib/core/analyses/ligne_analyse_labo_service.dart` : réception et état `en_cours` conservés sans valeur `null`.
+- `lib/core/widgets/analyse_labo/analyse_card.dart` : statuts hiérarchisés, résultats masqués avant réception, bouton urgent désactivé avec son message explicatif.
+- `lib/3_degustateur/analyse_labo/analyse_laboratoire_page.dart` et `lib/5_chef_degustateur/analyse_labo/analyse_laboratoire_page.dart` : filtre « Pas encore reçu » et recherche par référence/numéro.
+- `lib/5_chef_degustateur/analyse_labo/widgets/statut_analyse_badge.dart` : affichage de l'analyse en cours.
+- `test/analyse_card_test.dart` : tests widget pour non reçu et reçu sans analyse.
+- `test/rapport_labo_test.dart` : attendu mis à jour pour l'état en cours.
+- Aucune migration créée : `Echantillon` contenait déjà les champs nécessaires.
+
+### Vérifié
+
+- Analyse Flutter ciblée : `No issues found!`.
+- Tests Flutter ciblés : `10` réussis, `0` échec.
+- `flutter analyze lib test` : `51 issues found`, diagnostics `info`/`warning`, `0` ligne `error -`.
+- `flutter test` : `191` tests réussis, `0` échec (`All tests passed!`).
+- `cd backend_new; .\\venv\\Scripts\\python.exe manage.py test analyses --keepdb` : `29` tests, `OK`.
+- `cd backend_new; .\\venv\\Scripts\\python.exe manage.py test --keepdb` : `248` tests, `OK`.
+- `cd backend_new; .\\venv\\Scripts\\python.exe manage.py makemigrations --check --dry-run` : `No changes detected`.
+- `git diff --check` : aucune erreur de diff ; avertissements LF/CRLF uniquement.
+
+### Non fait
+
+- Pas de vérification manuelle sur appareil ou serveur de production.
+- Pas de migration créée, car aucun changement de schéma n'était nécessaire.
+- Aucun commit ni push.
+
+### HORS PÉRIMÈTRE
+
+- Les modifications préexistantes de `files/taches/FILE-ATTENTE.md`, des fixtures, des fichiers générés, des sauvegardes backend et de `files/taches/56-direction-approbation-cartes-utilisateurs.md` n'ont pas été touchées.
+
+FIN RAPPORT

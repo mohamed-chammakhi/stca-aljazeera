@@ -113,6 +113,7 @@ class LabEchantillonAnalyseSerializer(serializers.ModelSerializer):
             'fournisseur_nom', 'collecteur_nom',
             'reference_bouteille', 'variete', 'quantite_estimee',
             'date_arrivee', 'date_arrivee_echantillon',
+            'recu_physiquement', 'date_reception_echantillon',
             'numero_lot', 'origine_campagne', 'priorite',
             'notes_reception', 'statut_labo', 'analyse',
         ]

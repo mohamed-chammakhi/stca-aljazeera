@@ -25,11 +25,12 @@ class LabEchantillonListView(generics.ListAPIView):
     permission_classes = [IsLaboratoire | IsDirection | IsChefDegustation | IsDegustateur]
 
     def get_queryset(self):
-        return (
-            Echantillon.objects.filter(recu_physiquement=True)
-            .select_related('fournisseur', 'collecteur', 'analyse', 'analyse__technicien')
-            .order_by('-date_arrivee_echantillon', '-date_ajout')
-        )
+        queryset = Echantillon.objects.all()
+        if self.request.user.role in ('laboratoire', 'direction'):
+            queryset = queryset.filter(recu_physiquement=True)
+        return queryset.select_related(
+            'fournisseur', 'collecteur', 'analyse', 'analyse__technicien'
+        ).order_by('-date_ajout', '-date_arrivee_echantillon')
 
 
 class AnalyseListCreateView(generics.ListCreateAPIView):

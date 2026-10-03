@@ -180,7 +180,7 @@ void main() {
       },
     });
 
-    expect(ligne.statut, StatutAnalyse.enAttente);
+    expect(ligne.statut, StatutAnalyse.enCours);
     expect(ligne.rapport, isNull);
   });
 }

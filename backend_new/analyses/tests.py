@@ -65,6 +65,13 @@ class AnalyseLaboApiTests(APITestCase):
             prenom='User',
             role=User.Role.DEGUSTATEUR,
         )
+        self.chef = User.objects.create_user(
+            email='chef@example.com',
+            password='Test@12345',
+            nom='Chef',
+            prenom='Degustation',
+            role=User.Role.CHEF_DEGUSTATION,
+        )
         self.collecteur = User.objects.create_user(
             email='collecteur@example.com',
             password='Test@12345',
@@ -104,6 +111,24 @@ class AnalyseLaboApiTests(APITestCase):
         ids = {item['id'] for item in self.results(response)}
         self.assertIn(str(self.received.id), ids)
         self.assertNotIn(str(self.not_received.id), ids)
+
+    def test_degustateur_sees_unreceived_samples(self):
+        self.authenticate(self.degustateur)
+
+        response = self.client.get('/api/analyses/echantillons/')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        ids = {item['id'] for item in self.results(response)}
+        self.assertIn(str(self.not_received.id), ids)
+
+    def test_chef_sees_unreceived_samples(self):
+        self.authenticate(self.chef)
+
+        response = self.client.get('/api/analyses/echantillons/')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        ids = {item['id'] for item in self.results(response)}
+        self.assertIn(str(self.not_received.id), ids)
 
     def test_lab_can_create_analysis_for_received_sample(self):
         self.authenticate(self.lab)
@@ -176,6 +201,8 @@ class AnalyseLaboApiTests(APITestCase):
 
         self.assertEqual(read.status_code, status.HTTP_200_OK)
         self.assertEqual(create.status_code, status.HTTP_403_FORBIDDEN)
+        ids = {item['id'] for item in self.results(read)}
+        self.assertNotIn(str(self.not_received.id), ids)
 
     def test_degustateur_can_read_but_not_create_lab_analysis(self):
         self.authenticate(self.degustateur)

@@ -110,11 +110,20 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage>
       final matchRecherche =
           _recherche.isEmpty ||
           a.echantillonNom.toLowerCase().contains(_recherche.toLowerCase()) ||
+          a.referenceBouteille.toLowerCase().contains(
+            _recherche.toLowerCase(),
+          ) ||
+          a.numero.toLowerCase().contains(_recherche.toLowerCase()) ||
           a.id.toLowerCase().contains(_recherche.toLowerCase()) ||
           a.technicienNom.toLowerCase().contains(_recherche.toLowerCase());
 
       final filtreEnum = _labelToStatut(_filtreStatutLabel);
-      final matchStatut = filtreEnum == null || a.statut == filtreEnum;
+      final matchStatut = switch (_filtreStatutLabel) {
+        'Pas encore reçu' => !a.recuPhysiquement,
+        'Analyse en attente' =>
+          a.recuPhysiquement && a.statut == StatutAnalyse.enAttente,
+        _ => filtreEnum == null || a.statut == filtreEnum,
+      };
 
       final matchDate = dateCorrespondAuFiltre(
         dateAnalyseLabo(a, _dateType),
@@ -418,6 +427,17 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage>
                           selected: _filtreStatutLabel == null,
                           onTap: () =>
                               setState(() => _filtreStatutLabel = null),
+                        ),
+                        const SizedBox(width: 7),
+                        StatutChip(
+                          label: 'Pas encore reçu',
+                          activeColor: const Color(0xFF616161),
+                          inactiveColor: const Color(0xFFF0F0F0),
+                          inactiveTextColor: const Color(0xFF616161),
+                          selected: _filtreStatutLabel == 'Pas encore reçu',
+                          onTap: () => setState(
+                            () => _filtreStatutLabel = 'Pas encore reçu',
+                          ),
                         ),
                         const SizedBox(width: 7),
                         StatutChip(
