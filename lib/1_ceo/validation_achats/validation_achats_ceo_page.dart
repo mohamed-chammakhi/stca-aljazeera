@@ -21,6 +21,7 @@ import '../echantillons/echantillons_ceo_page.dart';
 import '../analyse_organoleptique/analyse_organoleptique_ceo_page.dart';
 import '../analyse_laboratoire/analyse_laboratoire_ceo_page.dart';
 import '../achats_confirmes/achats_confirmes_ceo_page.dart';
+import '../tableau_de_bord/tableau_de_bord.dart';
 import '../utilisateurs/utilisateurs_ceo_page.dart';
 import '../profil_ceo_page.dart';
 import '../../main.dart';
@@ -347,13 +348,14 @@ class _ValidationAchatsCeoPageState extends State<ValidationAchatsCeoPage>
     return Scaffold(
       backgroundColor: kBg,
       drawer: CeoDrawer(
+        currentPage: CeoDestination.validation,
         onEchantillons: () => goToPage(const EchantillonsCeoPage()),
         onAnalyseOrganoleptique: () =>
             goToPage(const AnalyseOrganoleptiqueCeoPage()),
         onAnalyseLaboratoire: () => goToPage(const AnalyseLaboratoireCeoPage()),
         onValidationAchats: () => Navigator.pop(context),
         onAchatsConfirmes: () => goToPage(const AchatsConfirmesCeoPage()),
-        onTableauDeBord: () => Navigator.popUntil(context, (r) => r.isFirst),
+        onTableauDeBord: () => goToPage(const HomePageCeo()),
         onProfil: () => goToPage(const ProfilceoPage()),
         onutilisiateurs: () => goToPage(const UtilisateursCeoPage()),
         onMessagerie: () => goToPage(const ConversationsPage()),

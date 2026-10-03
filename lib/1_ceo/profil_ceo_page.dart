@@ -258,6 +258,7 @@ class _ProfilceoPageState extends State<ProfilceoPage> with CeoNavMixin {
     return Scaffold(
       backgroundColor: Colors.white,
       drawer: CeoDrawer(
+        currentPage: CeoDestination.profil,
         onEchantillons: () => goToPage(const EchantillonsCeoPage()),
         onAnalyseOrganoleptique: () =>
             goToPage(const AnalyseOrganoleptiqueCeoPage()),

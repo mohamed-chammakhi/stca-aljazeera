@@ -250,6 +250,7 @@ class _EchantillonsCeoPageState extends State<EchantillonsCeoPage>
     return Scaffold(
       backgroundColor: kBg,
       drawer: CeoDrawer(
+        currentPage: CeoDestination.echantillons,
         onEchantillons: () => goToPage(const EchantillonsCeoPage()),
         onAnalyseOrganoleptique: () =>
             goToPage(const AnalyseOrganoleptiqueCeoPage()),

@@ -124,3 +124,15 @@ avant d'écrire le rapport.
 - Des modifications préexistantes de l'arbre concernent d'autres fichiers générés et fixtures de tests ; elles n'ont pas été modifiées ni réinitialisées.
 
 FIN RAPPORT
+
+### Reprise
+
+- L’ancienne section `## RAPPORT` a été conservée. Cette reprise corrige et vérifie la séparation `id` UUID / `numero`, les cartes direction, les filtres Utilisateurs, les textes de recherche et le refus organoleptique persisté.
+- Fichiers modifiés pour cette reprise : `lib/1_ceo/utilisateurs/models/echantillon_ceo_view.dart`, `lib/1_ceo/echantillons/services/echantillon_ceo_service.dart`, `lib/1_ceo/analyse_organoleptique/analyse_organoleptique_ceo_page.dart`, `lib/1_ceo/analyse_organoleptique/widgets/panel_section.dart`, `lib/1_ceo/analyse_laboratoire/analyse_laboratoire_ceo_page.dart`, `lib/1_ceo/echantillons/echantillons_ceo_page.dart`, `lib/1_ceo/achats_confirmes/achats_confirmes_ceo_page.dart`, `lib/1_ceo/validation_achats/validation_achats_ceo_page.dart`, `lib/1_ceo/widgets/base_sample_card.dart`, `lib/1_ceo/widgets/sample_card_echantillon.dart`, `lib/core/utilisateurs/utilisateurs_page_body.dart` et `test/echantillon_ceo_view_test.dart`.
+- `flutter analyze lib test` : `51 issues found`, uniquement des diagnostics info/warning existants, 0 ligne `error -`.
+- `flutter test` : `00:50 +192: All tests passed!`.
+- Depuis `backend_new` : `venv\Scripts\python.exe manage.py test --keepdb` a exécuté `248` tests en `1892.756s`, résultat `OK`.
+- Le test ciblé UUID/numéro est passé ; aucun test visuel 360 px ou appareil réel n’a été exécuté. Aucun changement backend, aucune migration et aucun usage de ML Kit.
+- La messagerie direction contient déjà le chef dégustateur dans le secours Flutter, l’affiche via `roleLabel`, et le backend l’autorise ; aucun fichier de messagerie n’a donc été modifié.
+
+FIN RAPPORT

@@ -290,13 +290,18 @@ class _HomePageCeoState extends State<HomePageCeo>
     return Scaffold(
       backgroundColor: _pageBg,
       drawer: CeoDrawer(
+        currentPage: CeoDestination.accueil,
         onEchantillons: () => _goTo(const EchantillonsCeoPage()),
         onAnalyseOrganoleptique: () =>
             _goTo(const AnalyseOrganoleptiqueCeoPage()),
         onAnalyseLaboratoire: () => _goTo(const AnalyseLaboratoireCeoPage()),
         onValidationAchats: () => _goTo(const ValidationAchatsCeoPage()),
         onAchatsConfirmes: () => _goTo(const AchatsConfirmesCeoPage()),
-        onTableauDeBord: () => Navigator.pop(context),
+        onTableauDeBord: () => Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (_) => const HomePageCeo()),
+          (route) => false,
+        ),
         onProfil: () => _goTo(const ProfilceoPage()),
         onutilisiateurs: () => _goTo(const UtilisateursCeoPage()),
         onMessagerie: () => _goTo(const ConversationsPage()),

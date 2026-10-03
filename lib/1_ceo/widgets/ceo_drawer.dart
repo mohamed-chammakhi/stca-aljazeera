@@ -2,10 +2,32 @@ import 'package:flutter/material.dart';
 import 'package:project3/core/theme/app_colors.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:project3/core/widgets/messagerie/messagerie_badge.dart';
+import '../tableau_de_bord/tableau_de_bord.dart';
+import '../echantillons/echantillons_ceo_page.dart';
+import '../analyse_organoleptique/analyse_organoleptique_ceo_page.dart';
+import '../analyse_laboratoire/analyse_laboratoire_ceo_page.dart';
+import '../validation_achats/validation_achats_ceo_page.dart';
+import '../achats_confirmes/achats_confirmes_ceo_page.dart';
+import '../utilisateurs/utilisateurs_ceo_page.dart';
+import '../profil_ceo_page.dart';
+import 'package:project3/core/widgets/messagerie/conversations_page.dart';
 
 const Color _iconBg = Color(0x1A38835A);
 
+enum CeoDestination {
+  accueil,
+  echantillons,
+  organoleptique,
+  laboratoire,
+  validation,
+  achats,
+  utilisateurs,
+  messagerie,
+  profil,
+}
+
 class CeoDrawer extends StatelessWidget {
+  final CeoDestination? currentPage;
   final VoidCallback onEchantillons;
   final VoidCallback onAnalyseOrganoleptique;
   final VoidCallback onAnalyseLaboratoire;
@@ -19,6 +41,7 @@ class CeoDrawer extends StatelessWidget {
 
   const CeoDrawer({
     super.key,
+    this.currentPage,
     required this.onEchantillons,
     required this.onAnalyseOrganoleptique,
     required this.onAnalyseLaboratoire,
@@ -30,6 +53,34 @@ class CeoDrawer extends StatelessWidget {
     required this.onMessagerie,
     required this.onDeconnexion,
   });
+
+  void _navigate(BuildContext context, CeoDestination destination) {
+    Navigator.pop(context);
+    if (destination == currentPage) return;
+    final page = switch (destination) {
+      CeoDestination.accueil => const HomePageCeo(),
+      CeoDestination.echantillons => const EchantillonsCeoPage(),
+      CeoDestination.organoleptique => const AnalyseOrganoleptiqueCeoPage(),
+      CeoDestination.laboratoire => const AnalyseLaboratoireCeoPage(),
+      CeoDestination.validation => const ValidationAchatsCeoPage(),
+      CeoDestination.achats => const AchatsConfirmesCeoPage(),
+      CeoDestination.utilisateurs => const UtilisateursCeoPage(),
+      CeoDestination.messagerie => const ConversationsPage(),
+      CeoDestination.profil => const ProfilceoPage(),
+    };
+    if (destination == CeoDestination.accueil) {
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => page),
+        (route) => false,
+      );
+    } else {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => page),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -109,7 +160,7 @@ class CeoDrawer extends StatelessWidget {
                   _DrawerItem(
                     icon: Icons.dashboard_outlined,
                     label: 'Tableau de bord',
-                    onTap: onTableauDeBord,
+                    onTap: () => _navigate(context, CeoDestination.accueil),
                   ),
                   const SizedBox(height: 4),
                   Divider(color: kOlive.withValues(alpha: 0.15), height: 1),
@@ -118,7 +169,8 @@ class CeoDrawer extends StatelessWidget {
                   _DrawerItem(
                     icon: Icons.science_outlined,
                     label: 'Échantillons',
-                    onTap: onEchantillons,
+                    onTap: () =>
+                        _navigate(context, CeoDestination.echantillons),
                   ),
                   _DrawerItem(
                     customIcon: SizedBox(
@@ -127,22 +179,23 @@ class CeoDrawer extends StatelessWidget {
                       child: Image.asset('assets/img/glass.png'),
                     ),
                     label: 'Analyse organoleptique',
-                    onTap: onAnalyseOrganoleptique,
+                    onTap: () =>
+                        _navigate(context, CeoDestination.organoleptique),
                   ),
                   _DrawerItem(
                     icon: Icons.biotech_outlined,
                     label: 'Analyse laboratoire',
-                    onTap: onAnalyseLaboratoire,
+                    onTap: () => _navigate(context, CeoDestination.laboratoire),
                   ),
                   _DrawerItem(
                     icon: Icons.fact_check_outlined,
                     label: 'Validation achats',
-                    onTap: onValidationAchats,
+                    onTap: () => _navigate(context, CeoDestination.validation),
                   ),
                   _DrawerItem(
                     icon: Icons.handshake_outlined,
                     label: 'Achats confirmés',
-                    onTap: onAchatsConfirmes,
+                    onTap: () => _navigate(context, CeoDestination.achats),
                   ),
 
                   const SizedBox(height: 4),
@@ -152,18 +205,19 @@ class CeoDrawer extends StatelessWidget {
                   _DrawerItem(
                     icon: Icons.people_outline,
                     label: 'Utilisateurs',
-                    onTap: onutilisiateurs,
+                    onTap: () =>
+                        _navigate(context, CeoDestination.utilisateurs),
                   ),
                   _DrawerItem(
                     icon: Icons.chat_bubble_outline,
                     label: 'Messagerie',
                     trailing: const MessagerieBadge(),
-                    onTap: onMessagerie,
+                    onTap: () => _navigate(context, CeoDestination.messagerie),
                   ),
                   _DrawerItem(
                     icon: Icons.person_outline,
                     label: 'Profil',
-                    onTap: onProfil,
+                    onTap: () => _navigate(context, CeoDestination.profil),
                   ),
                 ],
               ),

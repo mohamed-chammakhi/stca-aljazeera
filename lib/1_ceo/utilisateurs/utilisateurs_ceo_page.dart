@@ -28,6 +28,7 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage>
     return Scaffold(
       backgroundColor: kBg,
       drawer: CeoDrawer(
+        currentPage: CeoDestination.utilisateurs,
         onEchantillons: () => goToPage(const EchantillonsCeoPage()),
         onAnalyseOrganoleptique: () =>
             goToPage(const AnalyseOrganoleptiqueCeoPage()),
