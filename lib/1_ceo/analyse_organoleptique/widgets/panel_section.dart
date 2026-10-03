@@ -65,21 +65,21 @@ class PanelSection extends StatelessWidget {
             child: Row(
               children: [
                 if (showDecisions) ...[
-                DecisionButton(
-                  label: 'Approuver',
-                  active: approved,
-                  dimmed: refused,
-                  activeColor: kGreen,
-                  onTap: onApprouver ?? () {},
-                ),
-                const SizedBox(width: 6),
-                DecisionButton(
-                  label: 'Refuser',
-                  active: refused,
-                  dimmed: approved,
-                  activeColor: Colors.red.shade500,
-                  onTap: onRefuser ?? () {},
-                ),
+                  DecisionButton(
+                    label: 'Approuver',
+                    active: approved,
+                    dimmed: false,
+                    activeColor: kGreen,
+                    onTap: onApprouver ?? () {},
+                  ),
+                  const SizedBox(width: 6),
+                  DecisionButton(
+                    label: 'Refuser',
+                    active: refused,
+                    dimmed: false,
+                    activeColor: Colors.red.shade500,
+                    onTap: onRefuser ?? () {},
+                  ),
                 ] else
                   // Sans les boutons, l'en-tête annonce ce que la section
                   // contient — sinon la ligne serait vide jusqu'au chevron.
@@ -93,55 +93,42 @@ class PanelSection extends StatelessWidget {
                   ),
                 const Spacer(),
                 if (showDecisions)
-                GestureDetector(
-                  onTap: onUrgent ?? () {},
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 5,
-                    ),
-                    decoration: BoxDecoration(
-                      color: isUrgent
-                          ? const Color(0xFFD07B2F).withValues(alpha: 0.10)
-                          : Colors.transparent,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: isUrgent
-                            ? const Color(0xFFD07B2F).withValues(alpha: 0.40)
-                            : Colors.grey.shade300,
-                        width: isUrgent ? 1.4 : 1.0,
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
+                  Tooltip(
+                    message: 'Demander en urgence',
+                    child: GestureDetector(
+                      onTap: onUrgent ?? () {},
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        width: 32,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          color: isUrgent
+                              ? const Color(0xFFD07B2F).withValues(alpha: 0.10)
+                              : Colors.transparent,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: isUrgent
+                                ? const Color(
+                                    0xFFD07B2F,
+                                  ).withValues(alpha: 0.40)
+                                : Colors.grey.shade300,
+                            width: isUrgent ? 1.4 : 1.0,
+                          ),
+                        ),
+                        child: Icon(
                           isUrgent
                               ? Icons.notification_important
                               : Icons.notification_important_outlined,
-                          size: 12,
+                          size: 16,
                           color: isUrgent
                               ? const Color(0xFFD07B2F)
                               : Colors.grey.shade400,
                         ),
-                        const SizedBox(width: 4),
-                        Text(
-                          'Urgent',
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: isUrgent
-                                ? FontWeight.w700
-                                : FontWeight.w500,
-                            color: isUrgent
-                                ? const Color(0xFFD07B2F)
-                                : Colors.grey.shade400,
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
                   ),
-                ),
+                const SizedBox(width: 4),
+                RecuPhysiqueIndicator(recuPhysiquement: e.recuPhysiquement),
                 const SizedBox(width: 8),
                 AnimatedRotation(
                   turns: isExpanded ? 0.5 : 0.0,

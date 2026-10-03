@@ -130,7 +130,7 @@ class _SampleDetailsState extends State<SampleDetails> {
           // ── Detail grid ───────────────────────────────────────────────────
           GrilleDetails(
             items: [
-              DetailItem('N° échantillon', e.id),
+              DetailItem('N° échantillon', e.numero),
               DetailItem('Ref. bouteille', e.referenceBouteille),
               DetailItem(
                 'Gouvernorat',

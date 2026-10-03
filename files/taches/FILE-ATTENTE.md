@@ -54,6 +54,6 @@ Pendant la nuit, voir `BOUCLE-NUIT.md`.
 | 33 | Tâche 53 — Bordereau : période, aperçu, partager / imprimer, mise en page proche du papier avec logo — exécutant Copilot | fait |
 | 34 | Tâche 54 — Session : seuls titre et date obligatoires, message visible dans le formulaire, vrais participants chez le chef — exécutant Copilot | fait |
 | 35 | Tâche 55 — Analyse laboratoire (dégustateur + chef) : voir tous les échantillons, même non reçus ou sans analyse — exécutant Copilot | fait |
-| 36 | Tâche 56 — Direction : approbation réparée (numéro au lieu de l'identifiant), approuver sans réception ni dégustation, carte organoleptique (Qté sur une ligne, cloche seule, ✓ en bas), Utilisateurs (sans « effacer les filtres », couleurs neutres, recherche sans rôle), textes d'aide de recherche, chef dans la messagerie — exécutant Copilot | en cours |
-| 37 | Tâche 57 — Dates lisibles partout (formulaire « Date d'arrivée » : ISO brut + mauvaise date), plus de bouton « effacer les filtres » dans toute l'application — exécutant Copilot | à faire (après 56) |
+| 36 | Tâche 56 — Direction : approbation réparée (numéro au lieu de l'identifiant), approuver sans réception ni dégustation, carte organoleptique (Qté sur une ligne, cloche seule, ✓ en bas), Utilisateurs (sans « effacer les filtres », couleurs neutres, recherche sans rôle), textes d'aide de recherche, chef dans la messagerie — exécutant Copilot | fait |
+| 37 | Tâche 57 — Dates lisibles partout (formulaire « Date d'arrivée » : ISO brut + mauvaise date), plus de bouton « effacer les filtres » dans toute l'application — exécutant Copilot | en cours |
 | 38 | Tâche 58 — Menus : chaque entrée (dont « Accueil ») ouvre la bonne page, depuis chaque page, pour les 5 rôles — exécutant Copilot | à faire (après 57) |

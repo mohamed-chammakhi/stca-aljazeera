@@ -19,6 +19,7 @@ import '../../../../core/models/evaluation_organoleptique.dart';
 // ── Sample view model ─────────────────────────────────────────────────────────
 class EchantillonCeoView {
   final String id;
+  final String numero;
   final String referenceBouteille;
   final String gouvernorat;
   final String? delegation;
@@ -60,6 +61,7 @@ class EchantillonCeoView {
 
   EchantillonCeoView({
     required this.id,
+    String? numero,
     required this.referenceBouteille,
     required this.gouvernorat,
     this.delegation,
@@ -91,7 +93,7 @@ class EchantillonCeoView {
     this.dateLivraisonStockFin,
     this.dateLivraisonPrevueFin,
     this.remarques,
-  });
+  }) : numero = numero ?? id;
 
   int get nombreEvaluations => evaluations.length;
   bool get tousEvalue => evaluations.length >= totalTasteurs;

@@ -89,3 +89,38 @@ Voir `files/taches/PROTOCOLE.md`. Interdit : `git commit`, `git push`, migration
 vraie base, ML Kit, fausses données. Encodage UTF-8 sans BOM, garder les fins de ligne.
 Lancer `flutter analyze` (zéro ligne « error - »), `flutter test` et les tests Django touchés
 avant d'écrire le rapport.
+
+## RAPPORT
+
+### Fait
+
+- `lib/1_ceo/echantillons/services/echantillon_ceo_service.dart` et `lib/1_ceo/utilisateurs/models/echantillon_ceo_view.dart` : l'UUID serveur reste utilisé pour les appels API et le numéro séquentiel est séparé pour l'affichage.
+- `lib/1_ceo/analyse_organoleptique/analyse_organoleptique_ceo_page.dart` et `lib/1_ceo/analyse_organoleptique/widgets/panel_section.dart` : approbation/refus disponibles sans condition de réception ou d'évaluation soumise ; carte réorganisée avec quantité sur une ligne, cloche seule, indicateur de réception et chevron.
+- `lib/1_ceo/achats_confirmes/achats_confirmes_ceo_page.dart`, `lib/1_ceo/analyse_laboratoire/analyse_laboratoire_ceo_page.dart`, `lib/1_ceo/echantillons/echantillons_ceo_page.dart` et `lib/1_ceo/validation_achats/validation_achats_ceo_page.dart` : recherche et affichage utilisent `numero`, tandis que les actions utilisent `id`.
+- `lib/core/utilisateurs/utilisateurs_page_body.dart` : filtres de rôle sans bouton d'effacement supplémentaire, recherche limitée au nom/email/téléphone et avatars neutres.
+- `lib/1_ceo/widgets/base_sample_card.dart` et `lib/1_ceo/widgets/sample_card_echantillon.dart` : cartes compatibles avec l'affichage séparé du numéro.
+
+### Vérifié — comparaison des points 1 à 6
+
+1. **Déjà fait** : séparation UUID/numéro dans le modèle et le service ; les appels `approuver`, `refuser`, `confirmerAchat`, `refuserAchat` et la notification urgente utilisent `id`. Le test `test/echantillon_ceo_view_test.dart` vérifie la conservation distincte des deux valeurs.
+2. **Déjà fait** : les boutons de décision sont toujours actifs côté carte ; les vues serveur `approuver` et `refuser` ne conditionnent pas l'action à la réception ou aux évaluations.
+3. **Déjà fait** : disposition demandée appliquée à la carte d'analyse organoleptique. Les autres cartes de direction n'ont pas la même combinaison décision/cloche ; aucune duplication à modifier.
+4. **Déjà fait** : page Utilisateurs conforme ; les avatars utilisent une couleur neutre commune, la recherche n'inclut pas le rôle et le filtre revient à `Tous` par son propre bouton sans bouton « effacer les filtres ».
+5. **Déjà fait** : les textes d'aide de recherche de la direction correspondent aux champs effectivement filtrés ; l'analyse laboratoire inclut aussi la classification, qui est réellement recherchée.
+6. **Déjà fait** : le service Flutter consomme `/api/messages/contacts/` sans filtrer les collecteurs, le rôle est affiché via `ContactMessagerie.roleLabel`, et le secours contient aussi un chef. Le backend autorise `direction -> chef_degustation`.
+
+### Vérifié — commandes réellement exécutées
+
+- `flutter analyze` : `51 issues found` (informations/avertissements existants), **0 ligne `error -`**.
+- `flutter test` : `00:42 +192: All tests passed!`.
+- Depuis `backend_new`, équivalent PowerShell de `DEBUG=True DB_ENGINE=sqlite ./venv/Scripts/python.exe manage.py test messages_chat` : `Ran 20 tests in 328.750s`, `OK`, `Found 20 test(s)`.
+
+### Non fait
+
+- Rien dans les six points demandés.
+
+### HORS PÉRIMÈTRE
+
+- Des modifications préexistantes de l'arbre concernent d'autres fichiers générés et fixtures de tests ; elles n'ont pas été modifiées ni réinitialisées.
+
+FIN RAPPORT

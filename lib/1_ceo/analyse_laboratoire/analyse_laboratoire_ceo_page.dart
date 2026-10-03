@@ -150,7 +150,7 @@ class _AnalyseLaboratoireCeoPageState extends State<AnalyseLaboratoireCeoPage>
           .where(
             (e) =>
                 e.referenceBouteille.toLowerCase().contains(q) ||
-                e.id.toLowerCase().contains(q) ||
+                e.numero.toLowerCase().contains(q) ||
                 e.fournisseurTexte.toLowerCase().contains(q) ||
                 (e.fournisseurNom?.toLowerCase().contains(q) ?? false) ||
                 e.gouvernorat.toLowerCase().contains(q) ||
@@ -302,7 +302,7 @@ class _AnalyseLaboratoireCeoPageState extends State<AnalyseLaboratoireCeoPage>
                       style: const TextStyle(fontSize: 14, color: kDark),
                       decoration: InputDecoration(
                         hintText:
-                            'Réf, fournisseur, gouvernorat, variété, collecteur…',
+                            'Réf, numéro, fournisseur, gouvernorat, variété, collecteur, classification…',
                         hintStyle: const TextStyle(
                           color: Color(0xFF6B8E7A),
                           fontSize: 11,
@@ -440,7 +440,7 @@ class _AnalyseLaboratoireCeoPageState extends State<AnalyseLaboratoireCeoPage>
 
                               return BaseSampleCard(
                                 referenceBouteille: e.referenceBouteille,
-                                id: e.id,
+                                numero: e.numero,
                                 tintColor: _headerTint(hasAnalyse, classif),
                                 accentColor: _teal,
                                 badge: CardBadgeRow(
@@ -453,7 +453,7 @@ class _AnalyseLaboratoireCeoPageState extends State<AnalyseLaboratoireCeoPage>
                                   ],
                                 ),
                                 detailItems: [
-                                  DetailItem('N° échantillon', e.id),
+                                  DetailItem('N° échantillon', e.numero),
                                   DetailItem(
                                     'Ref. bouteille',
                                     e.referenceBouteille,

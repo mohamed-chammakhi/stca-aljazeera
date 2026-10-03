@@ -140,7 +140,8 @@ class EchantillonCeoService {
   ) {
     final id = sample['id'] as String;
     return EchantillonCeoView(
-      id: sample['numero'] as String? ?? id,
+      id: id,
+      numero: sample['numero'] as String? ?? id,
       referenceBouteille:
           sample['reference_bouteille'] as String? ??
           sample['numero'] as String? ??

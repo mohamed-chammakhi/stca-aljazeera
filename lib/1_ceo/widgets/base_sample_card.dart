@@ -11,7 +11,7 @@ const Color _white = Color.fromARGB(255, 255, 255, 255);
 // ─────────────────────────────────────────────────────────────────────────────
 class BaseSampleCard extends StatefulWidget {
   final String referenceBouteille;
-  final String id;
+  final String numero;
   final Color tintColor;
   final Color? accentColor; // left accent bar color (collecteur-style)
   final Widget badge;
@@ -25,14 +25,15 @@ class BaseSampleCard extends StatefulWidget {
   const BaseSampleCard({
     super.key,
     required this.referenceBouteille,
-    required this.id,
+    String? numero,
+    String? id,
     required this.tintColor,
     this.accentColor,
     required this.badge,
     required this.detailItems,
     this.bottomSection,
     this.deliveryWidget,
-  });
+  }) : numero = numero ?? id ?? '';
 
   @override
   State<BaseSampleCard> createState() => _BaseSampleCardState();
@@ -101,7 +102,7 @@ class _BaseSampleCardState extends State<BaseSampleCard> {
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
-                                  widget.id,
+                                  widget.numero,
                                   style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w500,

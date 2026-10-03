@@ -190,7 +190,7 @@ class _AnalyseOrganoleptiqueCeoPageState
                 e.referenceBouteille.toLowerCase().contains(q) ||
                 e.fournisseurTexte.toLowerCase().contains(q) ||
                 (e.fournisseurNom?.toLowerCase().contains(q) ?? false) ||
-                e.id.toLowerCase().contains(q) ||
+                e.numero.toLowerCase().contains(q) ||
                 e.gouvernorat.toLowerCase().contains(q) ||
                 (e.variete?.toLowerCase().contains(q) ?? false) ||
                 (e.collecteurNom?.toLowerCase().contains(q) ?? false),
@@ -539,16 +539,31 @@ class _AnalyseOrganoleptiqueCeoPageState
       builder: (_) => RefusalDialog(
         reference: e.referenceBouteille,
         initialRaison: e.raisonRefus,
-        onRefuse: (raison) {
-          setState(() {
-            e.statut = StatutCeo.refuse;
-            e.raisonRefus = raison;
-            e.budgetNegociation = null;
-            e.noteInterne = null;
-          });
-        },
+        onRefuse: (raison) => _enregistrerRefus(e, raison),
       ),
     );
+  }
+
+  Future<void> _enregistrerRefus(EchantillonCeoView e, String? raison) async {
+    try {
+      await _service.refuser(e.id, raison ?? '');
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Refus non enregistré pour ${e.referenceBouteille}.'),
+          backgroundColor: Colors.red.shade700,
+        ),
+      );
+      return;
+    }
+    if (!mounted) return;
+    setState(() {
+      e.statut = StatutCeo.refuse;
+      e.raisonRefus = raison;
+      e.budgetNegociation = null;
+      e.noteInterne = null;
+    });
   }
 
   @override
@@ -638,7 +653,7 @@ class _AnalyseOrganoleptiqueCeoPageState
                       style: const TextStyle(fontSize: 14, color: kDark),
                       decoration: InputDecoration(
                         hintText:
-                            'Réf, fournisseur, gouvernorat, variété, collecteur…',
+                            'Réf, numéro, fournisseur, gouvernorat, variété, collecteur…',
                         hintStyle: const TextStyle(
                           color: Color(0xFF6B8E7A),
                           fontSize: 11,
@@ -731,7 +746,7 @@ class _AnalyseOrganoleptiqueCeoPageState
 
                               return BaseSampleCard(
                                 referenceBouteille: e.referenceBouteille,
-                                id: e.id,
+                                numero: e.numero,
                                 tintColor: Colors.white,
                                 accentColor: _cardAccent(e),
                                 badge: CardBadgeRow(
@@ -741,13 +756,10 @@ class _AnalyseOrganoleptiqueCeoPageState
                                         label: 'Qté : ${e.quantiteEstimee}T',
                                         color: kOlive,
                                       ),
-                                    RecuPhysiqueIndicator(
-                                      recuPhysiquement: e.recuPhysiquement,
-                                    ),
                                   ],
                                 ),
                                 detailItems: [
-                                  DetailItem('N° échantillon', e.id),
+                                  DetailItem('N° échantillon', e.numero),
                                   DetailItem(
                                     'Ref. bouteille',
                                     e.referenceBouteille,
@@ -792,7 +804,7 @@ class _AnalyseOrganoleptiqueCeoPageState
                                   onViewForm: (ev) => showEvaluationFormSheet(
                                     context,
                                     evaluation: ev,
-                                    sampleRef: e.id,
+                                    sampleRef: e.numero,
                                   ),
                                   onApprouver: () => _showApprouverDialog(e),
                                   onRefuser: () => _showRefuserDialog(e),

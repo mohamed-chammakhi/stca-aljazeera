@@ -166,7 +166,7 @@ class _EchantillonsCeoPageState extends State<EchantillonsCeoPage>
         return e.referenceBouteille.toLowerCase().contains(q) ||
             e.fournisseurTexte.toLowerCase().contains(q) ||
             (e.fournisseurNom?.toLowerCase().contains(q) ?? false) ||
-            e.id.toLowerCase().contains(q) ||
+            e.numero.toLowerCase().contains(q) ||
             e.gouvernorat.toLowerCase().contains(q) ||
             (e.variete?.toLowerCase().contains(q) ?? false) ||
             (e.collecteurNom?.toLowerCase().contains(q) ?? false);
@@ -329,7 +329,7 @@ class _EchantillonsCeoPageState extends State<EchantillonsCeoPage>
                       style: const TextStyle(fontSize: 14, color: kDark),
                       decoration: InputDecoration(
                         hintText:
-                            'Réf, fournisseur, gouvernorat, variété, collecteur…',
+                            'Réf, numéro, fournisseur, gouvernorat, variété, collecteur…',
                         hintStyle: const TextStyle(
                           color: Color(0xFF6B8E7A),
                           fontSize: 11,

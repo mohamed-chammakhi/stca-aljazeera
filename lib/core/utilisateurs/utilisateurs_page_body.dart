@@ -42,14 +42,13 @@ class UtilisateursPageBody extends StatefulWidget {
 class _UtilisateursPageBodyState extends State<UtilisateursPageBody>
     with RafraichissementPeriodique {
   late final UtilisateursService _service;
-  // ── Role accent colors ─────────────────────────────────────────────────────
-  // CEO → blue, Laboratoire → orange, Dégustateur → kGreen, Collecteur → pink
+  // ── Neutral user identity colors ───────────────────────────────────────────
   static const _roleColors = {
-    UserRole.direction: (bg: Color(0xFFE6F1FB), fg: Color(0xFF185FA5)),
-    UserRole.laboratoire: (bg: Color(0xFFFAEEDA), fg: Color(0xFF854F0B)),
-    UserRole.degustateur: (bg: Color(0xFFE1F5EE), fg: Color(0xFF0F6E56)),
-    UserRole.collecteur: (bg: Color(0xFFFBEAF0), fg: Color(0xFF993556)),
-    UserRole.chefDegustation: (bg: Color(0xFFF3EBF9), fg: Color(0xFF6A3D9A)),
+    UserRole.direction: (bg: Color(0xFFF1F3F2), fg: Color(0xFF4A5A50)),
+    UserRole.laboratoire: (bg: Color(0xFFF1F3F2), fg: Color(0xFF4A5A50)),
+    UserRole.degustateur: (bg: Color(0xFFF1F3F2), fg: Color(0xFF4A5A50)),
+    UserRole.collecteur: (bg: Color(0xFFF1F3F2), fg: Color(0xFF4A5A50)),
+    UserRole.chefDegustation: (bg: Color(0xFFF1F3F2), fg: Color(0xFF4A5A50)),
   };
 
   // ── Data ──────────────────────────────────────────────────────────────────
@@ -73,7 +72,6 @@ class _UtilisateursPageBodyState extends State<UtilisateursPageBody>
           q.isEmpty ||
           u.nomComplet.toLowerCase().contains(q) ||
           u.email.toLowerCase().contains(q) ||
-          u.role.label.toLowerCase().contains(q) ||
           (u.telephone?.contains(q) ?? false);
       return matchRole && matchSearch;
     }).toList();
@@ -160,7 +158,8 @@ class _UtilisateursPageBodyState extends State<UtilisateursPageBody>
                                 color: kDark,
                               ),
                               decoration: InputDecoration(
-                                hintText: 'Rechercher par nom, email, rôle…',
+                                hintText:
+                                    'Rechercher par nom, email ou téléphone…',
                                 hintStyle: const TextStyle(
                                   color: Color(0xFF6B8E7A),
                                   fontSize: 13,
@@ -215,28 +214,6 @@ class _UtilisateursPageBodyState extends State<UtilisateursPageBody>
                         height: 1,
                         color: Colors.black.withValues(alpha: 0.06),
                       ),
-                      if (_activeFilter != null || _searchQuery.isNotEmpty)
-                        Container(
-                          color: kBg,
-                          padding: const EdgeInsets.fromLTRB(16, 9, 16, 9),
-                          child: Row(
-                            children: [
-                              const Spacer(),
-                              TextButton.icon(
-                                onPressed: () => setState(() {
-                                  _activeFilter = null;
-                                  _searchQuery = '';
-                                  _searchController.clear();
-                                }),
-                                icon: const Icon(
-                                  Icons.filter_alt_off_outlined,
-                                  size: 16,
-                                ),
-                                label: const Text('Effacer les filtres'),
-                              ),
-                            ],
-                          ),
-                        ),
                       Expanded(
                         child: filtered.isEmpty
                             ? _buildEmpty()

@@ -148,7 +148,7 @@ class _AchatsConfirmesCeoPageState extends State<AchatsConfirmesCeoPage>
           .where(
             (e) =>
                 e.referenceBouteille.toLowerCase().contains(q) ||
-                e.id.toLowerCase().contains(q) ||
+                e.numero.toLowerCase().contains(q) ||
                 e.fournisseurTexte.toLowerCase().contains(q) ||
                 (e.fournisseurNom?.toLowerCase().contains(q) ?? false) ||
                 e.gouvernorat.toLowerCase().contains(q) ||
@@ -283,7 +283,7 @@ class _AchatsConfirmesCeoPageState extends State<AchatsConfirmesCeoPage>
                       style: const TextStyle(fontSize: 14, color: kDark),
                       decoration: InputDecoration(
                         hintText:
-                            'Réf, fournisseur, gouvernorat, variété, collecteur…',
+                            'Réf, numéro, fournisseur, gouvernorat, variété, collecteur…',
                         hintStyle: const TextStyle(
                           color: Color(0xFF6B8E7A),
                           fontSize: 11,
@@ -417,7 +417,7 @@ class _AchatsConfirmesCeoPageState extends State<AchatsConfirmesCeoPage>
 
                               return BaseSampleCard(
                                 referenceBouteille: e.referenceBouteille,
-                                id: e.id,
+                                numero: e.numero,
                                 tintColor: tintColor,
                                 accentColor: accentColor,
                                 badge: CardBadgeRow(
@@ -430,7 +430,7 @@ class _AchatsConfirmesCeoPageState extends State<AchatsConfirmesCeoPage>
                                   ],
                                 ),
                                 detailItems: [
-                                  DetailItem('N° échantillon', e.id),
+                                  DetailItem('N° échantillon', e.numero),
                                   DetailItem(
                                     'Ref. bouteille',
                                     e.referenceBouteille,
