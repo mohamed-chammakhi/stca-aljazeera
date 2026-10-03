@@ -148,8 +148,6 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
   final List<_BouteilleRow> _bouteilles = [];
 
   final ImagePicker _picker = ImagePicker();
-  Uint8List? _photoBytes;
-  String? _photoName;
   bool _saving = false;
   bool _ocrActive = false;
   bool _ocrStatusLoaded = false;
@@ -259,89 +257,6 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
     });
   }
 
-  Future<void> _importEtiquetteImage() => _pickPhoto(ImageSource.gallery);
-
-  _BouteilleRow _targetRowForPhoto() {
-    if (_isModification) return _bouteilles.first;
-    if (_bouteilles.length == 1 &&
-        _isRowEmpty(_bouteilles.first) &&
-        _bouteilles.first.photoBytes == null) {
-      return _bouteilles.first;
-    }
-    final row = _BouteilleRow.empty();
-    _bouteilles.add(row);
-    return row;
-  }
-
-  bool _isRowEmpty(_BouteilleRow b) =>
-      b.referenceCtrl.text.trim().isEmpty &&
-      b.varieteCtrl.text.trim().isEmpty &&
-      b.numCiterneCtrl.text.trim().isEmpty &&
-      b.qteCtrl.text.trim().isEmpty;
-
-  Future<void> _pickPhoto(ImageSource source) async {
-    final XFile? file = await _picker.pickImage(
-      source: source,
-      maxWidth: 2000,
-      imageQuality: 90,
-    );
-    if (file == null) return;
-    final bytes = await file.readAsBytes();
-    if (!mounted) return;
-    setState(() {
-      final row = _targetRowForPhoto();
-      row.photoBytes = bytes;
-      row.photoName = file.name;
-      _photoBytes = bytes;
-      _photoName = file.name;
-    });
-  }
-
-  void _removePhoto() => setState(() {
-    // Also drop it from the bottle it was attached to, or it would still be sent.
-    for (final row in _bouteilles) {
-      if (identical(row.photoBytes, _photoBytes)) {
-        row.photoBytes = null;
-        row.photoName = null;
-      }
-    }
-    _photoBytes = null;
-    _photoName = null;
-  });
-
-  void _choosePhotoSource() {
-    showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (_) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.photo_camera_outlined, color: _green),
-              title: const Text('Prendre une photo'),
-              onTap: () {
-                Navigator.pop(context);
-                _pickPhoto(ImageSource.camera);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.photo_library_outlined, color: _green),
-              title: const Text('Importer depuis la galerie'),
-              onTap: () {
-                Navigator.pop(context);
-                _pickPhoto(ImageSource.gallery);
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Future<void> _pickRowPhoto(ImageSource source, _BouteilleRow row) async {
     final XFile? file = await _picker.pickImage(
       source: source,
@@ -388,6 +303,11 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
                 Navigator.pop(sheetContext);
                 _pickRowPhoto(ImageSource.gallery, row);
               },
+            ),
+            ListTile(
+              leading: const Icon(Icons.close, color: _dark),
+              title: const Text('Annuler'),
+              onTap: () => Navigator.pop(sheetContext),
             ),
           ],
         ),
@@ -446,82 +366,6 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
     } finally {
       if (mounted) setState(() => _ocrLoading = false);
     }
-  }
-
-  Widget _buildPhotoZone() {
-    if (_photoBytes == null) {
-      return InkWell(
-        onTap: _importEtiquetteImage,
-        borderRadius: BorderRadius.circular(10),
-        child: Container(
-          width: double.infinity,
-          height: 64,
-          decoration: BoxDecoration(
-            color: _green.withValues(alpha: 0.05),
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: _green.withValues(alpha: 0.25)),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.photo_library_outlined,
-                color: _green.withValues(alpha: 0.55),
-                size: 22,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'Importer une étiquette',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: _green.withValues(alpha: 0.55),
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        PhotoPleinEcran.memory(bytes: _photoBytes!, height: 150),
-        const SizedBox(height: 8),
-        Row(
-          children: [
-            Expanded(
-              child: Text(
-                _photoName ?? 'photo.jpg',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(fontSize: 12, color: _inlineLabelColor),
-              ),
-            ),
-            TextButton.icon(
-              onPressed: _choosePhotoSource,
-              icon: const Icon(Icons.refresh, size: 16, color: _green),
-              label: const Text(
-                'Relancer',
-                style: TextStyle(fontSize: 12, color: _green),
-              ),
-            ),
-            TextButton.icon(
-              onPressed: _removePhoto,
-              icon: Icon(
-                Icons.delete_outline,
-                size: 16,
-                color: Colors.red.shade400,
-              ),
-              label: Text(
-                'Retirer',
-                style: TextStyle(fontSize: 12, color: Colors.red.shade400),
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
   }
 
   String? _messageValidation() {
@@ -1267,6 +1111,21 @@ class _BouteilleCard extends StatelessWidget {
                 ),
               ),
               const Spacer(),
+              IconButton(
+                key: ValueKey('photo-bouteille-$index'),
+                onPressed: onPhoto,
+                tooltip: row.photoBytes == null
+                    ? 'Ajouter une photo'
+                    : 'Remplacer la photo',
+                visualDensity: VisualDensity.compact,
+                icon: Icon(
+                  row.photoBytes == null
+                      ? Icons.add_a_photo_outlined
+                      : Icons.photo_camera_back_outlined,
+                  size: 18,
+                  color: _green,
+                ),
+              ),
               if (showRemove)
                 GestureDetector(
                   onTap: onRemove,

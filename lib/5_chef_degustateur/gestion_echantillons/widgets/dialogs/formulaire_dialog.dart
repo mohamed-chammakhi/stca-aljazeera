@@ -147,73 +147,12 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
 
   bool get _isModification => widget.echantillon != null;
 
-  // ── Photo of the bottle (optional) ─────────────────────────────────────────
+  // ── Photo of each bottle (optional) ─────────────────────────────────────────
   final ImagePicker _picker = ImagePicker();
-  Uint8List? _photoBytes;
-  String? _photoName;
   bool _ocrActive = false;
   bool _ocrStatusLoaded = false;
   bool _ocrLoading = false;
   final BottleLabelOcrService _ocrService = BottleLabelOcrService();
-
-  Future<void> _pickPhoto(ImageSource source) async {
-    final XFile? file = await _picker.pickImage(
-      source: source,
-      maxWidth: 2000,
-      imageQuality: 90,
-    );
-    if (file == null) return;
-    final bytes = await file.readAsBytes();
-    if (!mounted) return;
-    setState(() {
-      _photoBytes = bytes;
-      _photoName = file.name;
-    });
-  }
-
-  void _removePhoto() => setState(() {
-    _photoBytes = null;
-    _photoName = null;
-  });
-
-  void _choosePhotoSource() {
-    showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (sheetContext) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(
-                Icons.photo_camera_outlined,
-                color: chefGreen,
-              ),
-              title: const Text('Prendre une photo'),
-              onTap: () {
-                Navigator.pop(sheetContext);
-                _pickPhoto(ImageSource.camera);
-              },
-            ),
-            ListTile(
-              leading: const Icon(
-                Icons.photo_library_outlined,
-                color: chefGreen,
-              ),
-              title: const Text('Importer depuis la galerie'),
-              onTap: () {
-                Navigator.pop(sheetContext);
-                _pickPhoto(ImageSource.gallery);
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   Future<void> _pickRowPhoto(ImageSource source, _BouteilleRow row) async {
     final XFile? file = await _picker.pickImage(
@@ -261,6 +200,11 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
                 Navigator.pop(sheetContext);
                 _pickRowPhoto(ImageSource.gallery, row);
               },
+            ),
+            ListTile(
+              leading: const Icon(Icons.close, color: chefDark),
+              title: const Text('Annuler'),
+              onTap: () => Navigator.pop(sheetContext),
             ),
           ],
         ),
@@ -319,81 +263,6 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
     } finally {
       if (mounted) setState(() => _ocrLoading = false);
     }
-  }
-
-  Widget _buildPhotoZone() {
-    if (_photoBytes == null) {
-      return InkWell(
-        onTap: _choosePhotoSource,
-        borderRadius: BorderRadius.circular(10),
-        child: Container(
-          width: double.infinity,
-          height: 64,
-          decoration: BoxDecoration(
-            color: chefGreen.withValues(alpha: 0.05),
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: chefGreen.withValues(alpha: 0.25)),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.add_photo_alternate_outlined,
-                color: chefGreen.withValues(alpha: 0.55),
-                size: 22,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'Ajouter une photo',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: chefGreen.withValues(alpha: 0.55),
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        PhotoPleinEcran.memory(bytes: _photoBytes!, height: 150),
-        const SizedBox(height: 8),
-        Row(
-          children: [
-            Expanded(
-              child: Text(
-                _photoName ?? 'photo.jpg',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(fontSize: 12, color: _inlineLabelColor),
-              ),
-            ),
-            TextButton.icon(
-              onPressed: _choosePhotoSource,
-              icon: const Icon(Icons.refresh, size: 16, color: chefGreen),
-              label: const Text(
-                'Remplacer',
-                style: TextStyle(fontSize: 12, color: chefGreen),
-              ),
-            ),
-            TextButton.icon(
-              onPressed: _removePhoto,
-              icon: Icon(
-                Icons.delete_outline,
-                size: 16,
-                color: Colors.red.shade400,
-              ),
-              label: Text(
-                'Retirer',
-                style: TextStyle(fontSize: 12, color: Colors.red.shade400),
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
   }
 
   int get _bottleCount => _bouteilles.length;
@@ -1250,6 +1119,21 @@ class _BouteilleCard extends StatelessWidget {
                 ),
               ),
               const Spacer(),
+              IconButton(
+                key: ValueKey('photo-bouteille-$index'),
+                onPressed: onPhoto,
+                tooltip: row.photoBytes == null
+                    ? 'Ajouter une photo'
+                    : 'Remplacer la photo',
+                visualDensity: VisualDensity.compact,
+                icon: Icon(
+                  row.photoBytes == null
+                      ? Icons.add_a_photo_outlined
+                      : Icons.photo_camera_back_outlined,
+                  size: 18,
+                  color: chefGreen,
+                ),
+              ),
               if (showRemove)
                 GestureDetector(
                   onTap: onRemove,

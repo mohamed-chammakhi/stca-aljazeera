@@ -23,6 +23,8 @@ import '../widgets/chef_nav_mixin.dart';
 import '../../../core/utils/date_filter_utils.dart';
 import '../../../core/utils/rafraichissement_periodique.dart';
 import '../../../core/widgets/bandeau_demonstration.dart';
+import 'package:project3/core/services/bordereau_pdf_service.dart';
+import 'package:project3/core/widgets/bouton_bordereau.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PAGE
@@ -394,6 +396,12 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage>
         iconTheme: const IconThemeData(color: kDark),
 
         actions: [
+          BoutonBordereau(
+            lignes: () => _echantillons
+                .map(LigneBordereau.depuisEchantillon)
+                .whereType<LigneBordereau>()
+                .toList(),
+          ),
           Stack(
             alignment: Alignment.center,
             children: [

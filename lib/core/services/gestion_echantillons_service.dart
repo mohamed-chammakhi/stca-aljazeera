@@ -38,6 +38,7 @@ Map<String, dynamic> echantillonApiToGestionFlutterMap(
     'date_livraison_stock': api['date_livraison_stock'],
     'classification': api['classification'],
     'remarques': api['remarques'],
+    'remarque_collecteur': api['remarque_collecteur'],
     'date_ajout': api['date_ajout'] ?? '',
     'updated_at': api['updated_at'],
   };

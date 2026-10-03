@@ -157,4 +157,73 @@ _(vide)_
 
 ## Compte rendu (agent du PC secondaire)
 
-_(à remplir à la fin)_
+Branche `pc2-lot-51`, un commit par point. **Flutter n'a pas pu être lancé ici** : tout le
+Dart est à vérifier sur le PC principal (`flutter pub get`, `flutter analyze`, `flutter test`).
+
+| Point | Commit | Vérifié ici |
+|---|---|---|
+| 51.1 | `0b138b8` | `test echantillons` : 53 tests OK ; `makemigrations --check` : aucun changement |
+| 51.2 | `77c2e70` | rien à lancer (Dart) |
+| 51.3 | `aa82cdc` | `test notifications` : 21 tests OK |
+| 51.4 | `97adae6` | `test sessions_degustation chef` : 32 tests OK |
+| 51.5 | `1e22b60` | rien à lancer (Dart) |
+| 51.6 | `5954a43` | `test evaluations` : 38 tests OK ; `makemigrations --check` : aucun changement |
+| 51.7 | `c5f58fb` | rien à lancer (Dart) |
+
+Tests Django lancés avec `DEBUG=True`, `DB_ENGINE=sqlite` (pas de PostgreSQL sur ce PC).
+
+**51.1** — Tests `EchantillonOcrApiTests` passés à `AZURE_DOCINTEL_*` (POST + lecture de
+`Operation-Location`, `time.sleep` simulé) + 2 cas : analyse `failed` → 503, `Timeout` → 503.
+Section Azure de `docs/MISE-EN-SERVICE.md` : Document Intelligence, `prebuilt-read`, F0.
+`requests` ajouté à `backend_new/requirements.txt` (il manquait alors que l'OCR l'utilise).
+Photo : les formulaires dégustateur et chef avaient déjà une photo par bouteille (envoyée avec
+l'échantillon de sa ligne) et « Lire l'étiquette » par ligne ; il manquait l'icône appareil
+photo dans l'en-tête de chaque bouteille (ajoutée, avec « Annuler » dans le choix). L'ancien code
+« une photo pour tout le formulaire » (`_photoBytes`, `_buildPhotoZone`…) n'était plus affiché
+nulle part : supprimé.
+
+**51.2** — Carte retirée du tableau de bord ; `map_cta_card.dart` supprimé (`git grep MapCtaCard`
+ne trouvait que ce fichier et l'appel). Marge basse de la page (52) inchangée.
+
+**51.3** — `ECHANTILLON_MODIFIE` n'est plus envoyé à la direction (les deux envois).
+`_sample_ref` : référence d'abord, numéro seulement sans référence. Même ordre appliqué aux deux
+textes construits dans `notifications/views.py` (analyse urgente, évaluation urgente).
+Côté application : la carte de notification direction affiche déjà `echantillon_reference`,
+jamais le numéro. Les fausses notifications de `notification_ceo_service.dart` ne sont **jamais
+affichées** (`avecSecours` n'appelle plus le secours depuis la tâche 36) : laissées en place.
+
+**51.4** — Serveur : approuver/refuser une session en attente passée → 400 avec le message
+demandé (test ajouté). Application : page Sessions du chef et tableau de bord → plus de boutons,
+petit texte gris « Date passée » (dans la carte de session partagée `lib/core/widgets/…`).
+
+**51.5** — Le « vertical cassé » venait de `RecuPhysiqueIndicator`
+(`lib/1_ceo/analyse_organoleptique/widgets/panel_widgets.dart`) : le texte de la pastille avait
+le droit de revenir à la ligne dans un badge étroit. Il affiche maintenant, comme la carte du
+dégustateur, « Réception physique confirmée » sur une ligne (coupé par « … » si besoin), et
+seulement si l'échantillon est reçu. Les lignes indiquées dans la fiche (`base_sample_card.dart`
+~277, `sample_card_echantillon.dart` ~163) sont des phrases de livraison, pas ce défaut : non
+modifiées.
+
+**51.6** — Nouveau message serveur (test ajouté). L'application affichait `{echantillon: [...]}`
+(pas de `detail`). `ApiException` porte maintenant les erreurs de champ (`champs`) sans changer
+`message` (deux services cherchent « email » dans `message`), et `EvaluationService.messageFor`
+(partagé dégustateur + chef) affiche le texte tel quel. Test Dart :
+`test/evaluation_message_non_recu_test.dart`.
+
+**51.7** — `lib/core/services/bordereau_pdf_service.dart` (regroupement + PDF) et
+`lib/core/widgets/bouton_bordereau.dart` (icône PDF « Bordereau » dans la barre du haut des 3
+pages : choix de la date, message « Aucun échantillon ajouté ce jour-là. », partage du PDF).
+Regroupement par fournisseur **et lieu** (deux homonymes restent séparés, tâche 43).
+`pdf` et `printing` ajoutés à `pubspec.yaml` (`pubspec.lock` non touché) ; polices Alegreya
+Regular/Bold déclarées en assets pour les accents du PDF. `remarque_collecteur` ajouté (lecture
+seule) au modèle partagé `Echantillon` et à son mapping pour le dégustateur et le chef.
+Test : `test/bordereau_regroupement_test.dart`.
+
+**Non testé ici** : tout le Dart (analyse, tests, écran), la génération réelle du PDF et son
+partage sur le téléphone, la mise en page à 360 px de la nouvelle icône dans la barre du haut.
+
+**HORS PÉRIMÈTRE (non corrigé)** :
+- Tableau de bord du chef, « Sessions en attente » : les boutons Approuver / Refuser ont
+  `onPressed: () {}` — ils ne font rien (`home_sessions_section.dart`, et une copie morte dans
+  `home_body.dart` ~1218). Faux bouton à brancher ou retirer.
+- `backend_new/analyses/normes_coi.py` ligne 6 : `SyntaxWarning: invalid escape sequence '\ '`.

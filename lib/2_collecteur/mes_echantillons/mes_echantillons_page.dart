@@ -29,6 +29,8 @@ import '../../core/utils/date_filter_utils.dart';
 import '../../core/utils/rafraichissement_periodique.dart';
 import '../../core/widgets/saisie_protegee.dart';
 import '../../core/widgets/empty_state.dart';
+import 'package:project3/core/services/bordereau_pdf_service.dart';
+import 'package:project3/core/widgets/bouton_bordereau.dart';
 
 class MesEchantillonsPage extends StatefulWidget {
   const MesEchantillonsPage({
@@ -719,6 +721,24 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
         ),
         iconTheme: const IconThemeData(color: colDark),
         actions: [
+          BoutonBordereau(
+            lignes: () => [
+              for (final e in _echantillons)
+                LigneBordereau(
+                  dateAjout: e.dateAjout,
+                  fournisseur: (e.fournisseurNom?.trim().isNotEmpty ?? false)
+                      ? e.fournisseurNom!.trim()
+                      : e.fournisseurTexte,
+                  gouvernorat: e.gouvernorat,
+                  delegation: e.delegation,
+                  referenceBouteille: e.referenceBouteille,
+                  numCiterne: e.numCiterne,
+                  quantiteEstimee: e.quantiteEstimee,
+                  remarque: e.remarqueCollecteur,
+                  collecteur: e.collecteurNom,
+                ),
+            ],
+          ),
           // ── Bell icon with unread badge ──────────────────────────────────
           Stack(
             alignment: Alignment.center,

@@ -554,7 +554,8 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage>
                         itemBuilder: (context, i) {
                           final s = items[i];
                           final isPending =
-                              s.statut == StatutSession.enAttenteValidation;
+                              s.statut == StatutSession.enAttenteValidation &&
+                              !s.estPassee;
                           final isTerminee =
                               s.statut == StatutSession.terminee || s.estPassee;
                           return SessionCard(

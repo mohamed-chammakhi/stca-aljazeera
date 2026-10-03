@@ -246,7 +246,7 @@ class NotificationApiTests(APITestCase):
             self.assertEqual(notification.section, Notification.Section.EVALUATIONS)
             self.assertEqual(
                 notification.titre,
-                f'Évaluation urgente — échantillon {self.sample.numero}',
+                f'Évaluation urgente — échantillon {self.sample.reference_bouteille}',
             )
 
     def test_urgent_evaluation_request_is_idempotent_per_unread_recipient(self):
@@ -545,7 +545,8 @@ class NotificationSignalTests(APITestCase):
             destinataire=self.chef,
         )
         self.assertIn('Taster One', notification.message)
-        self.assertIn(sample.numero, notification.message)
+        self.assertIn(sample.reference_bouteille, notification.message)
+        self.assertNotIn(sample.numero, notification.message)
 
     def test_stock_delivery_date_change_notifies_all_tasters_and_chef(self):
         sample = Echantillon.objects.create(
@@ -573,7 +574,7 @@ class NotificationSignalTests(APITestCase):
             Notification.objects.filter(type=Notification.Type.ECHANTILLON_MODIFIE).exists()
         )
 
-    def test_collector_detail_change_notifies_panel_and_direction_once(self):
+    def test_collector_detail_change_notifies_panel_but_not_direction(self):
         sample = Echantillon.objects.create(
             reference_bouteille='REF-DETAIL-001',
             collecteur=self.collecteur,
@@ -594,13 +595,16 @@ class NotificationSignalTests(APITestCase):
         self.assertEqual(
             recipients,
             {
-                self.direction.email,
                 self.chef.email,
                 self.taster_one.email,
                 self.taster_two.email,
             },
         )
-        self.assertEqual(notifications.count(), 4)
+        self.assertEqual(notifications.count(), 3)
+        self.assertFalse(notifications.filter(destinataire=self.direction).exists())
+        for notification in notifications:
+            self.assertIn('REF-DETAIL-001', notification.message)
+            self.assertNotIn(sample.numero, notification.message)
 
     def test_degustateur_created_session_notifies_chef(self):
         Notification.objects.all().delete()

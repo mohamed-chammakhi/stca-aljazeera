@@ -152,6 +152,15 @@ class SessionsSection extends StatelessWidget {
                             ],
                           ),
                           const SizedBox(height: 10),
+                          if (s.estPassee)
+                            Text(
+                              'Date passée',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey.shade600,
+                              ),
+                            )
+                          else
                           Row(
                             children: [
                               Expanded(

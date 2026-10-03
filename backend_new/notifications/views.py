@@ -95,7 +95,7 @@ class UrgentAnalysisRequestView(APIView):
             )
 
         requester_name = f'{request.user.prenom} {request.user.nom}'.strip()
-        sample_label = echantillon.numero or echantillon.reference_bouteille or str(echantillon.id)
+        sample_label = echantillon.reference_bouteille or echantillon.numero or str(echantillon.id)
         title = 'Analyse laboratoire urgente'
         message = (
             f'{requester_name} demande une analyse urgente pour '
@@ -163,7 +163,7 @@ class UrgentEvaluationRequestView(APIView):
             )
 
         requester_name = f'{request.user.prenom} {request.user.nom}'.strip()
-        sample_label = echantillon.numero or echantillon.reference_bouteille or str(echantillon.id)
+        sample_label = echantillon.reference_bouteille or echantillon.numero or str(echantillon.id)
         title = f'Évaluation urgente — échantillon {sample_label}'
         message = (
             f'{requester_name} demande une évaluation urgente pour '

@@ -29,6 +29,9 @@ def _session_date_label(session):
     return f"{session.date.strftime('%d/%m/%Y')} à {session.heure.strftime('%H:%M')}"
 
 
+SESSION_PASSEE_DETAIL = 'Cette session est passée : elle ne peut plus être approuvée ni refusée.'
+
+
 def _active_panel():
     return User.objects.filter(
         role__in=(User.Role.DEGUSTATEUR, User.Role.CHEF_DEGUSTATION),
@@ -241,6 +244,11 @@ class SessionApprouverView(APIView):
                     {'detail': 'Seules les sessions en attente peuvent être approuvées.'},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
+            if _session_is_past(session):
+                return Response(
+                    {'detail': SESSION_PASSEE_DETAIL},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
             session.statut = SessionDegustation.Statut.PLANIFIEE
             session.save()
             _notify_session(
@@ -271,6 +279,11 @@ class SessionRefuserView(APIView):
             if session.statut != SessionDegustation.Statut.EN_ATTENTE_VALIDATION:
                 return Response(
                     {'detail': 'Seules les sessions en attente peuvent être refusées.'},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            if _session_is_past(session):
+                return Response(
+                    {'detail': SESSION_PASSEE_DETAIL},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
             session.statut = SessionDegustation.Statut.REFUSEE

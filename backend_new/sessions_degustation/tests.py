@@ -153,6 +153,26 @@ class SessionDegustationApiTests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
+    def test_chef_cannot_approve_or_refuse_past_pending_session(self):
+        pending = SessionDegustation.objects.create(
+            titre='Session oubliee',
+            date='2020-01-01',
+            heure='08:00',
+            lieu='Salle A',
+            cree_par=self.degustateur,
+        )
+        self.authenticate(self.chef)
+
+        approve = self.client.post(f'/api/sessions/{pending.id}/approuver/')
+        refuse = self.client.post(f'/api/sessions/{pending.id}/refuser/')
+
+        expected = 'Cette session est passée : elle ne peut plus être approuvée ni refusée.'
+        for response in (approve, refuse):
+            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+            self.assertEqual(response.json()['detail'], expected)
+        pending.refresh_from_db()
+        self.assertEqual(pending.statut, SessionDegustation.Statut.EN_ATTENTE_VALIDATION)
+
     def test_participant_can_confirm_presence(self):
         session = SessionDegustation.objects.create(
             titre='Session presence',

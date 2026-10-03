@@ -1,9 +1,11 @@
 import json
 import re
+from datetime import timedelta
 from pathlib import Path
 
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import override_settings
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APITestCase
 
@@ -94,7 +96,7 @@ class ParcoursBoutEnBoutApiTests(APITestCase):
             '/api/sessions/',
             {
                 'titre': 'Session audit cablage',
-                'date': '2026-09-26',
+                'date': (timezone.localdate() + timedelta(days=7)).isoformat(),
                 'heure': '10:30:00',
                 'lieu': 'Salle degustation',
                 'notes': 'Creee par le test parcours',

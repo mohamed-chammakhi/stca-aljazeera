@@ -1,6 +1,7 @@
 from datetime import timedelta
 from unittest.mock import patch
 
+import requests
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import override_settings
 from django.utils import timezone
@@ -60,7 +61,22 @@ class EchantillonOcrApiTests(APITestCase):
             content_type='image/jpeg',
         )
 
-    @override_settings(AZURE_VISION_ENDPOINT='', AZURE_VISION_KEY='')
+    def _mock_operation(self, mocked_post, mocked_get, payload):
+        mocked_post.return_value.raise_for_status.return_value = None
+        mocked_post.return_value.headers = {
+            'Operation-Location': 'https://docintel.example/operations/1',
+        }
+        mocked_get.return_value.raise_for_status.return_value = None
+        mocked_get.return_value.json.return_value = payload
+
+    def _post_image(self):
+        return self.client.post(
+            '/api/echantillons/ocr/',
+            {'image': self._image()},
+            format='multipart',
+        )
+
+    @override_settings(AZURE_DOCINTEL_ENDPOINT='', AZURE_DOCINTEL_KEY='')
     def test_statut_inactif_sans_configuration_azure(self):
         self.client.force_authenticate(user=self.collector)
 
@@ -69,7 +85,7 @@ class EchantillonOcrApiTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, {'actif': False})
 
-    @override_settings(AZURE_VISION_ENDPOINT='https://vision.example', AZURE_VISION_KEY='secret')
+    @override_settings(AZURE_DOCINTEL_ENDPOINT='https://docintel.example', AZURE_DOCINTEL_KEY='secret')
     def test_statut_actif_avec_configuration_azure(self):
         self.client.force_authenticate(user=self.degustateur)
 
@@ -78,7 +94,7 @@ class EchantillonOcrApiTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, {'actif': True})
 
-    @override_settings(AZURE_VISION_ENDPOINT='', AZURE_VISION_KEY='')
+    @override_settings(AZURE_DOCINTEL_ENDPOINT='', AZURE_DOCINTEL_KEY='')
     def test_ocr_renvoie_503_sans_configuration_azure(self):
         self.client.force_authenticate(user=self.chef)
 
@@ -94,35 +110,42 @@ class EchantillonOcrApiTests(APITestCase):
             "La lecture automatique n'est pas encore activée. Contactez l'administrateur.",
         )
 
-    @override_settings(AZURE_VISION_ENDPOINT='https://vision.example', AZURE_VISION_KEY='secret')
+    @override_settings(AZURE_DOCINTEL_ENDPOINT='https://docintel.example', AZURE_DOCINTEL_KEY='secret')
+    @patch('core.ocr_azure.time.sleep')
+    @patch('core.ocr_azure.requests.get')
     @patch('core.ocr_azure.requests.post')
-    def test_ocr_extrait_les_champs_depuis_azure_simule(self, mocked_post):
+    def test_ocr_extrait_les_champs_depuis_azure_simule(self, mocked_post, mocked_get, _sleep):
         Fournisseur.objects.create(nom='Domaine Hami', region='Sfax', delegation='Sfax Sud')
-        mocked_post.return_value.json.return_value = {
-            'readResult': {
-                'blocks': [
+        self._mock_operation(mocked_post, mocked_get, {
+            'status': 'succeeded',
+            'analyzeResult': {
+                'pages': [
                     {
                         'lines': [
-                            {'text': 'Fournisseur: Domaine Hami'},
-                            {'text': 'Reference: HAM-C1'},
-                            {'text': 'Citerne: C1'},
-                            {'text': 'Quantite: 12T'},
-                            {'text': 'Variete: Chemlali'},
+                            {'content': 'Fournisseur: Domaine Hami'},
+                            {'content': 'Reference: HAM-C1'},
+                            {'content': 'Citerne: C1'},
+                            {'content': 'Quantite: 12T'},
+                            {'content': 'Variete: Chemlali'},
                         ]
                     }
                 ]
-            }
-        }
-        mocked_post.return_value.raise_for_status.return_value = None
+            },
+        })
         self.client.force_authenticate(user=self.collector)
 
-        response = self.client.post(
-            '/api/echantillons/ocr/',
-            {'image': self._image()},
-            format='multipart',
-        )
+        response = self._post_image()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn(
+            '/documentintelligence/documentModels/prebuilt-read:analyze',
+            mocked_post.call_args.args[0],
+        )
+        mocked_get.assert_called_once()
+        self.assertEqual(
+            mocked_get.call_args.args[0],
+            'https://docintel.example/operations/1',
+        )
         self.assertEqual(response.data['reference_bouteille'], 'HAM-C1')
         self.assertEqual(response.data['num_citerne'], 'C1')
         self.assertEqual(response.data['quantite'], '12T')
@@ -130,7 +153,37 @@ class EchantillonOcrApiTests(APITestCase):
         self.assertEqual(response.data['fournisseur_nom'], 'Domaine Hami')
         self.assertIn('Fournisseur: Domaine Hami', response.data['raw_text'])
 
-    @override_settings(AZURE_VISION_ENDPOINT='https://vision.example', AZURE_VISION_KEY='secret')
+    @override_settings(AZURE_DOCINTEL_ENDPOINT='https://docintel.example', AZURE_DOCINTEL_KEY='secret')
+    @patch('core.ocr_azure.time.sleep')
+    @patch('core.ocr_azure.requests.get')
+    @patch('core.ocr_azure.requests.post')
+    def test_ocr_renvoie_503_si_analyse_azure_echoue(self, mocked_post, mocked_get, _sleep):
+        self._mock_operation(mocked_post, mocked_get, {'status': 'failed'})
+        self.client.force_authenticate(user=self.degustateur)
+
+        response = self._post_image()
+
+        self.assertEqual(response.status_code, status.HTTP_503_SERVICE_UNAVAILABLE)
+        self.assertEqual(
+            response.data['detail'],
+            "La lecture automatique n'a pas répondu. Réessayez dans un instant.",
+        )
+
+    @override_settings(AZURE_DOCINTEL_ENDPOINT='https://docintel.example', AZURE_DOCINTEL_KEY='secret')
+    @patch('core.ocr_azure.requests.post')
+    def test_ocr_renvoie_503_si_azure_ne_repond_pas(self, mocked_post):
+        mocked_post.side_effect = requests.exceptions.Timeout()
+        self.client.force_authenticate(user=self.chef)
+
+        response = self._post_image()
+
+        self.assertEqual(response.status_code, status.HTTP_503_SERVICE_UNAVAILABLE)
+        self.assertEqual(
+            response.data['detail'],
+            "La lecture automatique n'a pas répondu. Réessayez dans un instant.",
+        )
+
+    @override_settings(AZURE_DOCINTEL_ENDPOINT='https://docintel.example', AZURE_DOCINTEL_KEY='secret')
     def test_ocr_interdit_aux_roles_non_autorises(self):
         for user in (self.direction, self.labo):
             self.client.force_authenticate(user=user)

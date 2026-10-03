@@ -55,7 +55,7 @@ def _notify(recipients, type_, titre, message, echantillon=None, section='ECHANT
 def _sample_ref(echantillon):
     if not echantillon:
         return '-'
-    return echantillon.numero or echantillon.reference_bouteille or str(echantillon.id)[:8]
+    return echantillon.reference_bouteille or echantillon.numero or str(echantillon.id)[:8]
 
 
 def _snapshot(instance, fields):
@@ -229,7 +229,6 @@ def on_echantillon_saved(sender, instance, created, **kwargs):
         )
         if collector_detail_change:
             recipients = _get_users_by_roles(
-                User.Role.DIRECTION,
                 User.Role.CHEF_DEGUSTATION,
                 User.Role.DEGUSTATEUR,
             )
@@ -249,7 +248,7 @@ def on_echantillon_saved(sender, instance, created, **kwargs):
             LEGACY_STATUS_FIELDS,
         )
         if legacy_status_change:
-            recipients = _get_users_by_roles(User.Role.DIRECTION, User.Role.CHEF_DEGUSTATION)
+            recipients = _get_users_by_roles(User.Role.CHEF_DEGUSTATION)
             _notify(
                 recipients,
                 Notification.Type.ECHANTILLON_MODIFIE,

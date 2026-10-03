@@ -84,12 +84,12 @@ void main() {
 
       // Le texte long apparaît — et rien ne déborde, sinon le test échouerait.
       expect(
-        find.text('Échantillon présent dans la société'),
+        find.text('Réception physique confirmée'),
         findsOneWidget,
       );
     });
 
-    testWidgets('tient aussi avec le texte « non reçu », plus long encore',
+    testWidgets('non reçu : rien ne se déplie, comme chez le dégustateur',
         (tester) async {
       await _rendre(
         tester,
@@ -102,8 +102,8 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(
-        find.text('Échantillon non encore présent dans la société'),
-        findsOneWidget,
+        find.text('Réception physique confirmée'),
+        findsNothing,
       );
     });
 

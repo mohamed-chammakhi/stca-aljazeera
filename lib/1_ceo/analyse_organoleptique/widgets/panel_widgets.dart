@@ -236,7 +236,7 @@ class _RecuPhysiqueIndicatorState extends State<RecuPhysiqueIndicator> {
               child: AnimatedSize(
               duration: const Duration(milliseconds: 200),
               curve: Curves.easeInOut,
-              child: _showPill
+              child: _showPill && widget.recuPhysiquement
                   ? Container(
                       margin: const EdgeInsets.only(right: 6),
                       padding: const EdgeInsets.symmetric(
@@ -244,34 +244,24 @@ class _RecuPhysiqueIndicatorState extends State<RecuPhysiqueIndicator> {
                         vertical: 3,
                       ),
                       decoration: BoxDecoration(
-                        color: widget.recuPhysiquement
-                            ? green
-                            : Colors.grey.shade400,
+                        color: green,
                         borderRadius: BorderRadius.circular(6),
                       ),
-                      child: Row(
+                      child: const Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(
-                            widget.recuPhysiquement ? Icons.check : Icons.close,
-                            size: 10,
-                            color: Colors.white,
-                          ),
-                          const SizedBox(width: 4),
-                          // Le texte revient à la ligne dans la place qu'on lui
-                          // laisse. Sans ça la pastille dépliée poussait tout
-                          // l'en-tête hors de la carte.
+                          Icon(Icons.check, size: 10, color: Colors.white),
+                          SizedBox(width: 4),
+                          // Same one-line pill as the taster's sample card.
                           Flexible(
                             child: Text(
-                              widget.recuPhysiquement
-                                  ? 'Échantillon présent dans la société'
-                                  : 'Échantillon non encore présent dans la société',
-                              softWrap: true,
-                              style: const TextStyle(
+                              'Réception physique confirmée',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
                                 fontSize: 10,
                                 color: Colors.white,
                                 fontWeight: FontWeight.w600,
-                                height: 1.3,
                               ),
                             ),
                           ),
