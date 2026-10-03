@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:project3/core/analyses/ligne_analyse_labo.dart';
 import 'package:project3/core/analyses/widgets/tableau_rapport_labo.dart';
+import 'package:project3/core/utils/date_utils.dart';
 import 'package:project3/core/widgets/grille_details.dart';
 import 'package:project3/core/widgets/quantity_pill.dart';
 
@@ -373,6 +374,10 @@ class _InformationsEchantillon extends StatelessWidget {
               DetailItem('Collecteur', analyse.collecteurNom!),
             if (analyse.quantiteEstimee != null)
               DetailItem('Quantité estimée', '${analyse.quantiteEstimee} T'),
+            DetailItem(
+              'Enregistré le',
+              DegDateUtils.formaterDateHeureOuTiret(analyse.dateAjout),
+            ),
           ],
         ),
       ],
