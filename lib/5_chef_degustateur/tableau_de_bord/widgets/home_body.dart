@@ -1191,7 +1191,7 @@ class _HomeBodyState extends State<HomeBody> with RafraichissementPeriodique {
                                     ),
                                     const SizedBox(height: 2),
                                     Text(
-                                      '${s.date} · ${s.heure} · ${s.lieu}',
+                                      '${s.date} · ${s.heure.isEmpty ? "Heure non précisée" : s.heure} · ${s.lieu.isEmpty ? "Lieu non précisé" : s.lieu}',
                                       style: TextStyle(
                                         fontSize: 11,
                                         color: Colors.grey.shade500,

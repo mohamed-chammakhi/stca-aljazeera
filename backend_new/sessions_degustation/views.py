@@ -15,8 +15,9 @@ from users.permissions import IsChefDegustation, IsDegustateurOrChef
 
 
 def _session_datetime(session):
+    heure = session.heure or datetime.max.time().replace(microsecond=0)
     return timezone.make_aware(
-        datetime.combine(session.date, session.heure),
+        datetime.combine(session.date, heure),
         timezone.get_current_timezone(),
     )
 
@@ -26,7 +27,10 @@ def _session_is_past(session):
 
 
 def _session_date_label(session):
-    return f"{session.date.strftime('%d/%m/%Y')} à {session.heure.strftime('%H:%M')}"
+    date_label = session.date.strftime('%d/%m/%Y')
+    if session.heure is None:
+        return f'le {date_label}'
+    return f"le {date_label} à {session.heure.strftime('%H:%M')}"
 
 
 SESSION_PASSEE_DETAIL = 'Cette session est passée : elle ne peut plus être approuvée ni refusée.'

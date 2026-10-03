@@ -19,8 +19,8 @@ class SessionDegustation(models.Model):
     # Basic session info filled by the taster when creating the session
     titre = models.CharField(max_length=200)   # session title
     date = models.DateField()                  # which day
-    heure = models.TimeField()                 # what time
-    lieu = models.CharField(max_length=200)    # where (room, location)
+    heure = models.TimeField(null=True, blank=True)  # what time
+    lieu = models.CharField(max_length=200, blank=True, default='')  # where (room, location)
     notes = models.TextField(blank=True)       # optional extra notes
     nombre_echantillons_prevus = models.PositiveIntegerField(null=True, blank=True)
 

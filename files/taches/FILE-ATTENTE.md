@@ -52,3 +52,5 @@ Pendant la nuit, voir `BOUCLE-NUIT.md`.
 | 31 | Tâche 51 — lot de 7 corrections (OCR + photo par échantillon, carte direction, notifications, sessions passées, réception physique direction, message évaluation, bordereau PDF) — fait par le PC secondaire sur la branche `pc2-lot-51`, vérifié par le PC principal | fait |
 | 32 | Tâche 52 — « Enregistré le » (date d'enregistrement dans l'application) sur toutes les cartes d'échantillon, tous les rôles — exécutant Copilot | fait |
 | 33 | Tâche 53 — Bordereau : période, aperçu, partager / imprimer, mise en page proche du papier avec logo — exécutant Copilot | fait |
+| 34 | Tâche 54 — Session : seuls titre et date obligatoires, message visible dans le formulaire, vrais participants chez le chef — exécutant Copilot | fait |
+| 35 | Tâche 55 — Analyse laboratoire (dégustateur + chef) : voir tous les échantillons, même non reçus ou sans analyse — exécutant Copilot | à faire (après 54) |

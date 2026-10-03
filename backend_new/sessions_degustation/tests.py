@@ -1,3 +1,5 @@
+from datetime import date, timedelta
+
 from rest_framework import status
 from rest_framework.test import APITestCase
 
@@ -84,7 +86,7 @@ class SessionDegustationApiTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.json()['statut'], SessionDegustation.Statut.PLANIFIEE)
 
-    def test_session_creation_requires_only_title_date_and_time(self):
+    def test_session_creation_with_only_title_and_date(self):
         self.authenticate(self.degustateur)
 
         response = self.client.post(
@@ -92,25 +94,68 @@ class SessionDegustationApiTests(APITestCase):
             {
                 'titre': 'Session minimale',
                 'date': '2099-05-21',
-                'heure': '10:00',
             },
             format='json',
         )
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         data = response.json()
+        self.assertIsNone(data['heure'])
         self.assertEqual(data['lieu'], '')
         self.assertEqual(data['notes'], '')
 
-    def test_session_creation_rejects_missing_required_fields(self):
+    def test_session_creation_rejects_missing_title(self):
         self.authenticate(self.degustateur)
 
-        response = self.client.post('/api/sessions/', {'lieu': 'Salle A'}, format='json')
+        response = self.client.post(
+            '/api/sessions/', {'date': '2099-05-21'}, format='json'
+        )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn('titre', response.json())
-        self.assertIn('date', response.json())
-        self.assertIn('heure', response.json())
+        self.assertEqual(
+            response.json()['detail'], ['Le titre et la date sont obligatoires.']
+        )
+
+    def test_session_creation_rejects_missing_date(self):
+        self.authenticate(self.degustateur)
+
+        response = self.client.post(
+            '/api/sessions/', {'titre': 'Sans date'}, format='json'
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.json()['detail'], ['Le titre et la date sont obligatoires.']
+        )
+
+    def test_session_creation_accepts_today_without_time(self):
+        self.authenticate(self.degustateur)
+
+        response = self.client.post(
+            '/api/sessions/',
+            {'titre': "Aujourd'hui", 'date': date.today().isoformat()},
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def test_session_creation_rejects_yesterday_without_time(self):
+        self.authenticate(self.degustateur)
+
+        response = self.client.post(
+            '/api/sessions/',
+            {
+                'titre': 'Hier',
+                'date': (date.today() - timedelta(days=1)).isoformat(),
+            },
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.json()['detail'],
+            ["La date doit être aujourd'hui ou plus tard."],
+        )
 
     def test_chef_can_approve_and_refuse_pending_sessions(self):
         pending = SessionDegustation.objects.create(

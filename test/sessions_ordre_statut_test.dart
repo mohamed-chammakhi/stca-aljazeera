@@ -104,16 +104,57 @@ void main() {
 
     final tries = trierSessionsDegustation([...unsortedSessions, creee]);
 
-    expect(
-      tries.map((session) => session.titre),
-      [
-        'Session future',
-        'Session creee',
-        'Session meme date recente creation',
-        'Session meme date ancienne creation',
-        'Session ancienne',
-      ],
+    expect(tries.map((session) => session.titre), [
+      'Session future',
+      'Session creee',
+      'Session meme date recente creation',
+      'Session meme date ancienne creation',
+      'Session ancienne',
+    ]);
+  });
+
+  test('une session sans heure est triee a la fin de sa journee', () {
+    final sansHeure = _session(
+      id: 'sans-heure',
+      titre: 'Session sans heure',
+      date: '15/01/2099',
+      heure: '',
+      statut: StatutSession.planifiee,
     );
+    final tardive = _session(
+      id: 'tardive',
+      titre: 'Session tardive',
+      date: '15/01/2099',
+      heure: '22:00',
+      statut: StatutSession.planifiee,
+    );
+
+    expect(
+      trierSessionsDegustation([
+        sansHeure,
+        tardive,
+      ]).map((session) => session.titre),
+      ['Session sans heure', 'Session tardive'],
+    );
+    expect(sansHeure.dateHeure, DateTime(2099, 1, 15, 23, 59));
+  });
+
+  test('fromJson accepte heure et lieu absents sans afficher null', () {
+    final session = SessionDegustation.fromJson({
+      'id': 'sans-options',
+      'titre': 'Session minimale',
+      'date': '2099-01-15',
+      'heure': null,
+      'lieu': null,
+      'statut': 'planifiee',
+      'created_by': 'user-test',
+      'created_at': '2099-01-01T08:00:00Z',
+    });
+
+    expect(session.heure, isEmpty);
+    expect(session.lieu, isEmpty);
+    expect(session.toJson()['heure'], isNull);
+    expect(session.dateHeureAffichage, '15/01/2099');
   });
 
   testWidgets('degustateur - les sessions sont affichees dans le bon ordre', (
@@ -126,15 +167,12 @@ void main() {
       ),
     );
 
-    _expectVerticalOrder(
-      [
-        'Session future',
-        'Session meme date recente creation',
-        'Session meme date ancienne creation',
-        'Session ancienne',
-      ],
-      tester,
-    );
+    _expectVerticalOrder([
+      'Session future',
+      'Session meme date recente creation',
+      'Session meme date ancienne creation',
+      'Session ancienne',
+    ], tester);
   });
 
   testWidgets('chef - les sessions sont affichees dans le bon ordre', (
@@ -147,15 +185,12 @@ void main() {
       ),
     );
 
-    _expectVerticalOrder(
-      [
-        'Session future',
-        'Session meme date recente creation',
-        'Session meme date ancienne creation',
-        'Session ancienne',
-      ],
-      tester,
-    );
+    _expectVerticalOrder([
+      'Session future',
+      'Session meme date recente creation',
+      'Session meme date ancienne creation',
+      'Session ancienne',
+    ], tester);
   });
 
   testWidgets('les badges de statut sont visibles sur les cartes', (

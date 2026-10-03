@@ -485,7 +485,16 @@ class _DetailPanel extends StatelessWidget {
               GrilleDetails(
                 items: [
                   DetailItem('Date', s.dateHeureAffichage),
-                  DetailItem('Lieu', s.lieu),
+                  DetailItem(
+                    'Heure',
+                    s.heure.isEmpty ? 'Heure non précisée' : s.heure,
+                    couleurValeur: s.heure.isEmpty ? Colors.grey : null,
+                  ),
+                  DetailItem(
+                    'Lieu',
+                    s.lieu.isEmpty ? 'Lieu non précisé' : s.lieu,
+                    couleurValeur: s.lieu.isEmpty ? Colors.grey : null,
+                  ),
                   if (nbPrevus != null)
                     DetailItem(
                       'Échantillons',

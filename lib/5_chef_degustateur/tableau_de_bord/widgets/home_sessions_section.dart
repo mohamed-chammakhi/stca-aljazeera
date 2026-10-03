@@ -117,8 +117,7 @@ class SessionsSection extends StatelessWidget {
                               const SizedBox(width: 10),
                               Expanded(
                                 child: Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.start,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
                                       s.titre,
@@ -130,7 +129,7 @@ class SessionsSection extends StatelessWidget {
                                     ),
                                     const SizedBox(height: 2),
                                     Text(
-                                      '${s.date} · ${s.heure} · ${s.lieu}',
+                                      '${s.date} · ${s.heure.isEmpty ? "Heure non précisée" : s.heure} · ${s.lieu.isEmpty ? "Lieu non précisé" : s.lieu}',
                                       style: TextStyle(
                                         fontSize: 11,
                                         color: Colors.grey.shade500,
@@ -161,66 +160,66 @@ class SessionsSection extends StatelessWidget {
                               ),
                             )
                           else
-                          Row(
-                            children: [
-                              Expanded(
-                                child: OutlinedButton.icon(
-                                  onPressed: () {},
-                                  icon: Icon(
-                                    Icons.close_rounded,
-                                    size: 14,
-                                    color: Colors.red.shade400,
-                                  ),
-                                  label: Text(
-                                    'Refuser',
-                                    style: TextStyle(
-                                      fontSize: 12,
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: OutlinedButton.icon(
+                                    onPressed: () {},
+                                    icon: Icon(
+                                      Icons.close_rounded,
+                                      size: 14,
                                       color: Colors.red.shade400,
                                     ),
-                                  ),
-                                  style: OutlinedButton.styleFrom(
-                                    side: BorderSide(
-                                      color: Colors.red.shade200,
+                                    label: Text(
+                                      'Refuser',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.red.shade400,
+                                      ),
                                     ),
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 8,
-                                    ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8),
+                                    style: OutlinedButton.styleFrom(
+                                      side: BorderSide(
+                                        color: Colors.red.shade200,
+                                      ),
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 8,
+                                      ),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
                                     ),
                                   ),
                                 ),
-                              ),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: ElevatedButton.icon(
-                                  onPressed: () {},
-                                  icon: const Icon(
-                                    Icons.check_rounded,
-                                    size: 14,
-                                    color: Colors.white,
-                                  ),
-                                  label: const Text(
-                                    'Approuver',
-                                    style: TextStyle(
-                                      fontSize: 12,
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: ElevatedButton.icon(
+                                    onPressed: () {},
+                                    icon: const Icon(
+                                      Icons.check_rounded,
+                                      size: 14,
                                       color: Colors.white,
                                     ),
-                                  ),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: chefGreen,
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 8,
+                                    label: const Text(
+                                      'Approuver',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.white,
+                                      ),
                                     ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: chefGreen,
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 8,
+                                      ),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      elevation: 0,
                                     ),
-                                    elevation: 0,
                                   ),
                                 ),
-                              ),
-                            ],
-                          ),
+                              ],
+                            ),
                         ],
                       ),
                     ),

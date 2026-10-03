@@ -53,6 +53,7 @@ int? _intValue(dynamic value) {
 }
 
 DateTime? _dateTimeFromDateAndTime(String date, String heure) {
+  if (heure.trim().isEmpty) heure = '23:59';
   final timeParts = heure.split(':');
   final hour = timeParts.isNotEmpty ? int.tryParse(timeParts[0]) : 0;
   final minute = timeParts.length > 1 ? int.tryParse(timeParts[1]) : 0;
@@ -85,12 +86,11 @@ int _compareDateDesc(DateTime? a, DateTime? b) {
 List<SessionDegustation> trierSessionsDegustation(
   Iterable<SessionDegustation> sessions,
 ) {
-  return List<SessionDegustation>.from(sessions)
-    ..sort((a, b) {
-      final dateCompare = _compareDateDesc(a.dateHeure, b.dateHeure);
-      if (dateCompare != 0) return dateCompare;
-      return _compareDateDesc(a.createdAtDateTime, b.createdAtDateTime);
-    });
+  return List<SessionDegustation>.from(sessions)..sort((a, b) {
+    final dateCompare = _compareDateDesc(a.dateHeure, b.dateHeure);
+    if (dateCompare != 0) return dateCompare;
+    return _compareDateDesc(a.createdAtDateTime, b.createdAtDateTime);
+  });
 }
 
 class SessionDegustation {
@@ -233,7 +233,7 @@ class SessionDegustation {
     'id': id,
     'titre': titre,
     'date': _dateToJson(date),
-    'heure': heure,
+    'heure': heure.isEmpty ? null : heure,
     'lieu': lieu,
     'statut': statut.toJson,
     'notes': notes,

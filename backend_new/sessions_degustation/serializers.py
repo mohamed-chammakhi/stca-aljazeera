@@ -72,9 +72,9 @@ class SessionDegustationSerializer(serializers.ModelSerializer):
             'echantillon_ids',
         ]
         extra_kwargs = {
-            'titre': {'required': True, 'allow_blank': False},
-            'date': {'required': True},
-            'heure': {'required': True},
+            'titre': {'required': False, 'allow_blank': True},
+            'date': {'required': False, 'allow_null': True},
+            'heure': {'required': False, 'allow_null': True},
             'lieu': {'required': False, 'allow_blank': True},
             'notes': {'required': False, 'allow_blank': True},
             'statut': {'required': False},
@@ -83,16 +83,24 @@ class SessionDegustationSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         if not self.instance:
-            for field in ('titre', 'date', 'heure'):
+            for field in ('titre', 'date'):
                 if field not in attrs or attrs.get(field) in (None, ''):
                     raise serializers.ValidationError(
-                        {field: ['Ce champ est obligatoire.']}
+                        {'detail': 'Le titre et la date sont obligatoires.'}
                     )
+        elif any(f in attrs and attrs.get(f) in (None, '') for f in ('titre', 'date')):
+            raise serializers.ValidationError(
+                {'detail': 'Le titre et la date sont obligatoires.'}
+            )
         date = attrs.get('date', getattr(self.instance, 'date', None))
         heure = attrs.get('heure', getattr(self.instance, 'heure', None))
-        if date and heure and _session_datetime(date, heure) <= timezone.localtime():
+        if date and _session_datetime(date, heure) <= timezone.localtime():
             raise serializers.ValidationError({
-                'detail': "La date et l'heure doivent être dans le futur."
+                'detail': (
+                    "La date et l'heure doivent être dans le futur."
+                    if heure
+                    else "La date doit être aujourd'hui ou plus tard."
+                )
             })
         return attrs
 
@@ -152,6 +160,8 @@ class SessionDegustationSerializer(serializers.ModelSerializer):
 
 
 def _session_datetime(date, heure):
+    if heure is None:
+        heure = datetime.max.time().replace(microsecond=0)
     return timezone.make_aware(
         datetime.combine(date, heure),
         timezone.get_current_timezone(),

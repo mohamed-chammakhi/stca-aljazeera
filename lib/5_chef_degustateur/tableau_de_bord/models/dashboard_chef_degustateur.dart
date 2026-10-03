@@ -11,12 +11,13 @@ class EvaluationUrgenteCeoChef {
     required this.fournisseurNom,
   });
 
-  factory EvaluationUrgenteCeoChef.fromJson(Map<String, dynamic> json) => EvaluationUrgenteCeoChef(
-    id: json['id'] as String,
-    reference: json['reference'] as String,
-    collecteurNom: json['collecteur_nom'] as String,
-    fournisseurNom: json['fournisseur_nom'] as String,
-  );
+  factory EvaluationUrgenteCeoChef.fromJson(Map<String, dynamic> json) =>
+      EvaluationUrgenteCeoChef(
+        id: json['id'] as String,
+        reference: json['reference'] as String,
+        collecteurNom: json['collecteur_nom'] as String,
+        fournisseurNom: json['fournisseur_nom'] as String,
+      );
 
   Map<String, dynamic> toJson() => {
     'id': id,
@@ -46,14 +47,15 @@ class PresenceChefData {
   int get total => present + manquee;
   double get taux => total == 0 ? 0 : present / total;
 
-  factory PresenceChefData.fromJson(Map<String, dynamic> json) => PresenceChefData(
-    present: json['present'] as int,
-    manquee: json['manquee'] as int,
-    prochaineTitre: json['prochaine_titre'] as String?,
-    prochaineDate: json['prochaine_date'] as String?,
-    prochaineLieu: json['prochaine_lieu'] as String?,
-    prochaineCountdown: json['prochaine_countdown'] as String?,
-  );
+  factory PresenceChefData.fromJson(Map<String, dynamic> json) =>
+      PresenceChefData(
+        present: json['present'] as int,
+        manquee: json['manquee'] as int,
+        prochaineTitre: json['prochaine_titre'] as String?,
+        prochaineDate: json['prochaine_date'] as String?,
+        prochaineLieu: json['prochaine_lieu'] as String?,
+        prochaineCountdown: json['prochaine_countdown'] as String?,
+      );
 
   Map<String, dynamic> toJson() => {
     'present': present,
@@ -78,12 +80,13 @@ class ActiviteItemChef {
     required this.type,
   });
 
-  factory ActiviteItemChef.fromJson(Map<String, dynamic> json) => ActiviteItemChef(
-    id: json['id'] as String,
-    action: json['action'] as String,
-    horodatage: json['horodatage'] as String,
-    type: json['type'] as String,
-  );
+  factory ActiviteItemChef.fromJson(Map<String, dynamic> json) =>
+      ActiviteItemChef(
+        id: json['id'] as String,
+        action: json['action'] as String,
+        horodatage: json['horodatage'] as String,
+        type: json['type'] as String,
+      );
 
   Map<String, dynamic> toJson() => {
     'id': id,
@@ -106,12 +109,13 @@ class PipelineChefData {
     required this.soumis,
   });
 
-  factory PipelineChefData.fromJson(Map<String, dynamic> json) => PipelineChefData(
-    receptionne: json['receptionne'] as int,
-    enAttenteEval: json['en_attente_eval'] as int,
-    enCours: json['en_cours'] as int,
-    soumis: json['soumis'] as int,
-  );
+  factory PipelineChefData.fromJson(Map<String, dynamic> json) =>
+      PipelineChefData(
+        receptionne: json['receptionne'] as int,
+        enAttenteEval: json['en_attente_eval'] as int,
+        enCours: json['en_cours'] as int,
+        soumis: json['soumis'] as int,
+      );
 
   Map<String, dynamic> toJson() => {
     'receptionne': receptionne,
@@ -136,13 +140,14 @@ class EvaluationUrgenteChef {
     required this.joursEnAttente,
   });
 
-  factory EvaluationUrgenteChef.fromJson(Map<String, dynamic> json) => EvaluationUrgenteChef(
-    id: json['id'] as String,
-    reference: json['reference'] as String,
-    collecteurNom: json['collecteur_nom'] as String,
-    fournisseurNom: json['fournisseur_nom'] as String,
-    joursEnAttente: json['jours_en_attente'] as int,
-  );
+  factory EvaluationUrgenteChef.fromJson(Map<String, dynamic> json) =>
+      EvaluationUrgenteChef(
+        id: json['id'] as String,
+        reference: json['reference'] as String,
+        collecteurNom: json['collecteur_nom'] as String,
+        fournisseurNom: json['fournisseur_nom'] as String,
+        joursEnAttente: json['jours_en_attente'] as int,
+      );
 
   Map<String, dynamic> toJson() => {
     'id': id,
@@ -171,19 +176,20 @@ class SessionEnAttente {
   });
 
   bool get estPassee {
-    final heureValide = heure.isEmpty ? '00:00' : heure;
+    final heureValide = heure.isEmpty ? '23:59' : heure;
     final dateHeure = DateTime.tryParse('${date}T$heureValide');
     return dateHeure != null && dateHeure.isBefore(DateTime.now());
   }
 
-  factory SessionEnAttente.fromJson(Map<String, dynamic> json) => SessionEnAttente(
-    id: json['id'] as String,
-    titre: json['titre'] as String,
-    date: json['date'] as String,
-    heure: json['heure'] as String? ?? '',
-    lieu: json['lieu'] as String,
-    proposePar: json['propose_par'] as String,
-  );
+  factory SessionEnAttente.fromJson(Map<String, dynamic> json) =>
+      SessionEnAttente(
+        id: json['id'] as String,
+        titre: json['titre'] as String,
+        date: json['date'] as String,
+        heure: json['heure'] as String? ?? '',
+        lieu: json['lieu'] as String? ?? '',
+        proposePar: json['propose_par'] as String,
+      );
 
   Map<String, dynamic> toJson() => {
     'id': id,
@@ -226,7 +232,9 @@ class DelaiPanelData {
   const DelaiPanelData({required this.membres, required this.panelMoyen});
 
   factory DelaiPanelData.fromJson(Map<String, dynamic> json) => DelaiPanelData(
-    membres: (json['membres'] as List).map((e) => DelaiMembre.fromJson(e)).toList(),
+    membres: (json['membres'] as List)
+        .map((e) => DelaiMembre.fromJson(e))
+        .toList(),
     panelMoyen: (json['panel_moyen'] as num).toDouble(),
   );
 
@@ -242,10 +250,11 @@ class AlignementMembre {
 
   const AlignementMembre({required this.nom, required this.divergencePct});
 
-  factory AlignementMembre.fromJson(Map<String, dynamic> json) => AlignementMembre(
-    nom: json['nom'] as String,
-    divergencePct: (json['divergence_pct'] as num).toDouble(),
-  );
+  factory AlignementMembre.fromJson(Map<String, dynamic> json) =>
+      AlignementMembre(
+        nom: json['nom'] as String,
+        divergencePct: (json['divergence_pct'] as num).toDouble(),
+      );
 
   Map<String, dynamic> toJson() => {
     'nom': nom,
@@ -258,9 +267,12 @@ class AlignementPanelData {
 
   const AlignementPanelData({required this.membres});
 
-  factory AlignementPanelData.fromJson(Map<String, dynamic> json) => AlignementPanelData(
-    membres: (json['membres'] as List).map((e) => AlignementMembre.fromJson(e)).toList(),
-  );
+  factory AlignementPanelData.fromJson(Map<String, dynamic> json) =>
+      AlignementPanelData(
+        membres: (json['membres'] as List)
+            .map((e) => AlignementMembre.fromJson(e))
+            .toList(),
+      );
 
   Map<String, dynamic> toJson() => {
     'membres': membres.map((m) => m.toJson()).toList(),
@@ -280,12 +292,13 @@ class ClassificationPoint {
     required this.lampante,
   });
 
-  factory ClassificationPoint.fromJson(Map<String, dynamic> json) => ClassificationPoint(
-    label: json['label'] as String,
-    extraVierge: json['extra_vierge'] as int,
-    vierge: json['vierge'] as int,
-    lampante: json['lampante'] as int,
-  );
+  factory ClassificationPoint.fromJson(Map<String, dynamic> json) =>
+      ClassificationPoint(
+        label: json['label'] as String,
+        extraVierge: json['extra_vierge'] as int,
+        vierge: json['vierge'] as int,
+        lampante: json['lampante'] as int,
+      );
 
   Map<String, dynamic> toJson() => {
     'label': label,

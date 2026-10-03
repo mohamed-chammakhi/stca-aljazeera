@@ -372,6 +372,8 @@ Future<void> showFormulaireSessionDialog(
   List<String> selectedParticipantIds = isEdit
       ? List.from(session.participantIds)
       : [];
+  var titreInvalide = false;
+  var dateInvalide = false;
 
   return showModalBottomSheet(
     context: context,
@@ -399,7 +401,12 @@ Future<void> showFormulaireSessionDialog(
               child: child!,
             ),
           );
-          if (date != null) setSheetState(() => pickedDate = date);
+          if (date != null) {
+            setSheetState(() {
+              pickedDate = date;
+              dateInvalide = false;
+            });
+          }
         }
 
         Future<void> pickTime() async {
@@ -579,27 +586,17 @@ Future<void> showFormulaireSessionDialog(
         }
 
         void handleSave() {
-          if (titreCtrl.text.trim().isEmpty ||
-              pickedDate == null ||
-              pickedTime == null ||
-              lieuCtrl.text.trim().isEmpty) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: const Text(
-                  'Veuillez remplir tous les champs obligatoires',
-                ),
-                backgroundColor: Colors.red.shade400,
-                behavior: SnackBarBehavior.floating,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                margin: const EdgeInsets.all(20),
-              ),
-            );
+          final titreManquant = titreCtrl.text.trim().isEmpty;
+          final dateManquante = pickedDate == null;
+          if (titreManquant || dateManquante) {
+            setSheetState(() {
+              titreInvalide = titreManquant;
+              dateInvalide = dateManquante;
+            });
             return;
           }
 
-          if (_isInPast(pickedDate!, pickedTime!)) {
+          if (pickedTime != null && _isInPast(pickedDate!, pickedTime!)) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: const Text(
@@ -617,7 +614,9 @@ Future<void> showFormulaireSessionDialog(
           }
 
           final dateStr = _fmtDate(pickedDate!);
-          final heureStr = _fmtTimeStorage(pickedTime!);
+          final heureStr = pickedTime == null
+              ? ''
+              : _fmtTimeStorage(pickedTime!);
 
           final nbEch = int.tryParse(nbEchantillonsCtrl.text.trim());
 
@@ -673,267 +672,294 @@ Future<void> showFormulaireSessionDialog(
               bottom: MediaQuery.of(ctx).viewInsets.bottom,
             ),
             child: Container(
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-            ),
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // ── Drag handle ────────────────────────────────────────
-                  Center(
-                    child: Container(
-                      width: 40,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade300,
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 18),
-
-                  // ── Sheet title ────────────────────────────────────────
-                  Row(
-                    children: [
-                      Container(
-                        width: 3,
-                        height: 22,
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+              ),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // ── Drag handle ────────────────────────────────────────
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 4,
                         decoration: BoxDecoration(
-                          color: _green,
+                          color: Colors.grey.shade300,
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
-                      const SizedBox(width: 10),
-                      Text(
-                        isEdit ? 'Modifier la session' : 'Nouvelle session',
-                        style: GoogleFonts.domine(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w700,
-                          color: _dark,
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  if (membresEnDemonstration) ...[
-                    const SizedBox(height: 12),
-                    BandeauDemonstration(
-                      onReessayer: () async {
-                        try {
-                          final resultat = await membresService.fetchMembres();
-                          if (!ctx.mounted) return;
-                          setSheetState(() {
-                            membres = resultat.donnees;
-                            membresEnDemonstration = resultat.estDemonstration;
-                          });
-                        } catch (_) {
-                          if (!ctx.mounted) return;
-                          ScaffoldMessenger.of(ctx).showSnackBar(
-                            const SnackBar(
-                              content: Text(
-                                'Le serveur reste injoignable. Réessayez plus tard.',
-                              ),
-                            ),
-                          );
-                        }
-                      },
                     ),
-                  ],
 
-                  const SizedBox(height: 22),
+                    const SizedBox(height: 18),
 
-                  // ── Titre ─────────────────────────────────────────────
-                  _FieldLabel('Titre de la session *', _sectionSession),
-                  _Field(
-                    controller: titreCtrl,
-                    hint: 'Ex : Session Chemlali - Lot A',
-                  ),
-
-                  const SizedBox(height: 18),
-
-                  // ── Date & Heure ──────────────────────────────────────
-                  Row(
-                    children: [
-                      // Date picker button
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _FieldLabel('Date *', _sectionSession),
-                            _PickerButton(
-                              icon: Icons.calendar_today_outlined,
-                              label: pickedDate != null
-                                  ? _fmtDate(pickedDate!)
-                                  : 'JJ/MM/AAAA',
-                              isEmpty: pickedDate == null,
-                              onTap: pickDate,
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      // Time picker button
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _FieldLabel('Heure *', _sectionSession),
-                            _PickerButton(
-                              icon: Icons.access_time_outlined,
-                              label: pickedTime != null
-                                  ? _fmtTime(pickedTime!)
-                                  : '--:-- --',
-                              isEmpty: pickedTime == null,
-                              onTap: pickTime,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 18),
-
-                  // ── Lieu ──────────────────────────────────────────────
-                  _FieldLabel('Salle / Emplacement *', _sectionSession),
-                  _Field(
-                    controller: lieuCtrl,
-                    hint: 'Ex : Salle de dégustation A',
-                  ),
-
-                  const SizedBox(height: 18),
-
-                  // ── Nombre d'échantillons ─────────────────────────────
-                  _FieldLabel(
-                    'Nombre d\'échantillons (optionnel)',
-                    _sectionSession,
-                  ),
-                  _Field(
-                    controller: nbEchantillonsCtrl,
-                    hint: 'Ex : 6',
-                    keyboardType: TextInputType.number,
-                  ),
-
-                  const SizedBox(height: 18),
-
-                  // ── Notes ─────────────────────────────────────────────
-                  _FieldLabel('Notes (optionnel)', _sectionSession),
-                  _Field(
-                    controller: notesCtrl,
-                    hint: 'Remarques, instructions, matériel…',
-                    maxLines: 3,
-                  ),
-
-                  const SizedBox(height: 18),
-
-                  // ── Participants ──────────────────────────────────────
-                  _FieldLabel('Participants (optionnel)', _sectionSession),
-                  _PickerButton(
-                    icon: Icons.group_outlined,
-                    label: selectedParticipantIds.isEmpty
-                        ? 'Tous les membres du panel (par défaut)'
-                        : '${selectedParticipantIds.length} participant${selectedParticipantIds.length > 1 ? "s" : ""} sélectionné${selectedParticipantIds.length > 1 ? "s" : ""}',
-                    isEmpty: selectedParticipantIds.isEmpty,
-                    onTap: pickParticipants,
-                  ),
-                  if (selectedParticipantIds.isNotEmpty) ...[
-                    const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 6,
-                      runSpacing: 6,
-                      children: selectedParticipantIds.map((id) {
-                        final nom = membres
-                            .firstWhere((m) => m.id == id)
-                            .nomComplet;
-                        return Container(
-                          padding: const EdgeInsets.fromLTRB(10, 5, 6, 5),
+                    // ── Sheet title ────────────────────────────────────────
+                    Row(
+                      children: [
+                        Container(
+                          width: 3,
+                          height: 22,
                           decoration: BoxDecoration(
-                            color: _green.withValues(alpha: 0.08),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                              color: _green.withValues(alpha: 0.22),
-                            ),
+                            color: _green,
+                            borderRadius: BorderRadius.circular(2),
                           ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                nom,
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: _dark,
+                        ),
+                        const SizedBox(width: 10),
+                        Text(
+                          isEdit ? 'Modifier la session' : 'Nouvelle session',
+                          style: GoogleFonts.domine(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w700,
+                            color: _dark,
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    if (membresEnDemonstration) ...[
+                      const SizedBox(height: 12),
+                      BandeauDemonstration(
+                        onReessayer: () async {
+                          try {
+                            final resultat = await membresService
+                                .fetchMembres();
+                            if (!ctx.mounted) return;
+                            setSheetState(() {
+                              membres = resultat.donnees;
+                              membresEnDemonstration =
+                                  resultat.estDemonstration;
+                            });
+                          } catch (_) {
+                            if (!ctx.mounted) return;
+                            ScaffoldMessenger.of(ctx).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  'Le serveur reste injoignable. Réessayez plus tard.',
                                 ),
                               ),
-                              const SizedBox(width: 4),
-                              GestureDetector(
-                                onTap: () => setSheetState(
-                                  () => selectedParticipantIds.remove(id),
-                                ),
-                                child: Icon(
-                                  Icons.close,
-                                  size: 13,
-                                  color: Colors.grey.shade500,
-                                ),
+                            );
+                          }
+                        },
+                      ),
+                    ],
+
+                    const SizedBox(height: 22),
+
+                    // ── Titre ─────────────────────────────────────────────
+                    _FieldLabel('Titre *', _sectionSession),
+                    _Field(
+                      controller: titreCtrl,
+                      hint: 'Ex : Session Chemlali - Lot A',
+                      invalid: titreInvalide,
+                      onChanged: (value) => setSheetState(
+                        () => titreInvalide = value.trim().isEmpty,
+                      ),
+                    ),
+
+                    const SizedBox(height: 18),
+
+                    // ── Date & Heure ──────────────────────────────────────
+                    Row(
+                      children: [
+                        // Date picker button
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _FieldLabel('Date *', _sectionSession),
+                              _PickerButton(
+                                icon: Icons.calendar_today_outlined,
+                                label: pickedDate != null
+                                    ? _fmtDate(pickedDate!)
+                                    : 'JJ/MM/AAAA',
+                                isEmpty: pickedDate == null,
+                                invalid: dateInvalide,
+                                onTap: pickDate,
                               ),
                             ],
                           ),
-                        );
-                      }).toList(),
+                        ),
+                        const SizedBox(width: 12),
+                        // Time picker button
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _FieldLabel(
+                                'Heure (facultatif)',
+                                _sectionSession,
+                              ),
+                              _PickerButton(
+                                icon: Icons.access_time_outlined,
+                                label: pickedTime != null
+                                    ? _fmtTime(pickedTime!)
+                                    : '--:-- --',
+                                isEmpty: pickedTime == null,
+                                onTap: pickTime,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
 
-                  const SizedBox(height: 26),
+                    const SizedBox(height: 18),
 
-                  // ── Actions ───────────────────────────────────────────
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: () => Navigator.pop(ctx),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: _green,
-                            side: const BorderSide(color: _green),
-                            padding: const EdgeInsets.symmetric(vertical: 13),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+                    // ── Lieu ──────────────────────────────────────────────
+                    _FieldLabel(
+                      'Salle / Emplacement (facultatif)',
+                      _sectionSession,
+                    ),
+                    _Field(
+                      controller: lieuCtrl,
+                      hint: 'Ex : Salle de dégustation A',
+                    ),
+
+                    const SizedBox(height: 18),
+
+                    // ── Nombre d'échantillons ─────────────────────────────
+                    _FieldLabel(
+                      'Nombre d\'échantillons (facultatif)',
+                      _sectionSession,
+                    ),
+                    _Field(
+                      controller: nbEchantillonsCtrl,
+                      hint: 'Ex : 6',
+                      keyboardType: TextInputType.number,
+                    ),
+
+                    const SizedBox(height: 18),
+
+                    // ── Notes ─────────────────────────────────────────────
+                    _FieldLabel('Notes (facultatif)', _sectionSession),
+                    _Field(
+                      controller: notesCtrl,
+                      hint: 'Remarques, instructions, matériel…',
+                      maxLines: 3,
+                    ),
+
+                    const SizedBox(height: 18),
+
+                    // ── Participants ──────────────────────────────────────
+                    _FieldLabel('Participants (facultatif)', _sectionSession),
+                    _PickerButton(
+                      icon: Icons.group_outlined,
+                      label: selectedParticipantIds.isEmpty
+                          ? 'Tous les membres du panel (par défaut)'
+                          : '${selectedParticipantIds.length} participant${selectedParticipantIds.length > 1 ? "s" : ""} sélectionné${selectedParticipantIds.length > 1 ? "s" : ""}',
+                      isEmpty: selectedParticipantIds.isEmpty,
+                      onTap: pickParticipants,
+                    ),
+                    if (selectedParticipantIds.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 6,
+                        children: selectedParticipantIds.map((id) {
+                          final nom = membres
+                              .firstWhere((m) => m.id == id)
+                              .nomComplet;
+                          return Container(
+                            padding: const EdgeInsets.fromLTRB(10, 5, 6, 5),
+                            decoration: BoxDecoration(
+                              color: _green.withValues(alpha: 0.08),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: _green.withValues(alpha: 0.22),
+                              ),
                             ),
-                          ),
-                          child: const Text(
-                            'Annuler',
-                            style: TextStyle(fontWeight: FontWeight.w600),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: handleSave,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: _green,
-                            foregroundColor: Colors.white,
-                            elevation: 0,
-                            padding: const EdgeInsets.symmetric(vertical: 13),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  nom,
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: _dark,
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                GestureDetector(
+                                  onTap: () => setSheetState(
+                                    () => selectedParticipantIds.remove(id),
+                                  ),
+                                  child: Icon(
+                                    Icons.close,
+                                    size: 13,
+                                    color: Colors.grey.shade500,
+                                  ),
+                                ),
+                              ],
                             ),
-                          ),
-                          child: Text(
-                            isEdit ? 'Enregistrer' : 'Créer la session',
-                            style: const TextStyle(fontWeight: FontWeight.w600),
-                          ),
-                        ),
+                          );
+                        }).toList(),
                       ),
                     ],
-                  ),
-                ],
+
+                    const SizedBox(height: 26),
+
+                    if (titreInvalide || dateInvalide) ...[
+                      const Text(
+                        'Le titre et la date sont obligatoires.',
+                        style: TextStyle(
+                          color: Colors.red,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                    ],
+
+                    // ── Actions ───────────────────────────────────────────
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () => Navigator.pop(ctx),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: _green,
+                              side: const BorderSide(color: _green),
+                              padding: const EdgeInsets.symmetric(vertical: 13),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: const Text(
+                              'Annuler',
+                              style: TextStyle(fontWeight: FontWeight.w600),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: handleSave,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: _green,
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              padding: const EdgeInsets.symmetric(vertical: 13),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: Text(
+                              isEdit ? 'Enregistrer' : 'Créer la session',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-            ),
             ),
           ),
         );
@@ -950,42 +976,64 @@ class _PickerButton extends StatelessWidget {
   final String label;
   final bool isEmpty;
   final VoidCallback onTap;
+  final bool invalid;
 
   const _PickerButton({
     required this.icon,
     required this.label,
     required this.isEmpty,
     required this.onTap,
+    this.invalid = false,
   });
 
   @override
-  Widget build(BuildContext context) => GestureDetector(
-    onTap: onTap,
-    child: Container(
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 14),
-      decoration: BoxDecoration(
-        color: _fieldFill,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, size: 16, color: isEmpty ? Colors.grey.shade400 : _green),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              label,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: isEmpty ? FontWeight.w400 : FontWeight.w600,
-                color: isEmpty ? Colors.grey.shade400 : _dark,
-              ),
-              overflow: TextOverflow.ellipsis,
+  Widget build(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 14),
+          decoration: BoxDecoration(
+            color: _fieldFill,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: invalid ? Colors.red : Colors.grey.shade200,
+              width: invalid ? 1.5 : 1,
             ),
           ),
-        ],
+          child: Row(
+            children: [
+              Icon(
+                icon,
+                size: 16,
+                color: isEmpty ? Colors.grey.shade400 : _green,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: isEmpty ? FontWeight.w400 : FontWeight.w600,
+                    color: isEmpty ? Colors.grey.shade400 : _dark,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
-    ),
+      if (invalid)
+        const Padding(
+          padding: EdgeInsets.only(top: 3, left: 2),
+          child: Text(
+            'Obligatoire',
+            style: TextStyle(color: Colors.red, fontSize: 10),
+          ),
+        ),
+    ],
   );
 }
 
@@ -1015,38 +1063,65 @@ class _Field extends StatelessWidget {
   final String hint;
   final TextInputType keyboardType;
   final int maxLines;
+  final bool invalid;
+  final ValueChanged<String>? onChanged;
 
   const _Field({
     required this.controller,
     required this.hint,
     this.keyboardType = TextInputType.text,
     this.maxLines = 1,
+    this.invalid = false,
+    this.onChanged,
   });
 
   @override
-  Widget build(BuildContext context) => TextField(
-    controller: controller,
-    keyboardType: keyboardType,
-    maxLines: maxLines,
-    style: const TextStyle(fontSize: 14, color: _dark),
-    decoration: InputDecoration(
-      hintText: hint,
-      hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 13),
-      filled: true,
-      fillColor: _fieldFill,
-      contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 14),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(10),
-        borderSide: BorderSide(color: Colors.grey.shade200),
+  Widget build(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      TextField(
+        controller: controller,
+        keyboardType: keyboardType,
+        maxLines: maxLines,
+        onChanged: onChanged,
+        style: const TextStyle(fontSize: 14, color: _dark),
+        decoration: InputDecoration(
+          hintText: hint,
+          hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 13),
+          filled: true,
+          fillColor: _fieldFill,
+          contentPadding: const EdgeInsets.symmetric(
+            vertical: 12,
+            horizontal: 14,
+          ),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: BorderSide(
+              color: invalid ? Colors.red : Colors.grey.shade200,
+              width: invalid ? 1.5 : 1,
+            ),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: BorderSide(
+              color: invalid ? Colors.red : Colors.grey.shade200,
+              width: invalid ? 1.5 : 1,
+            ),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(color: _green, width: 1.8),
+          ),
+        ),
       ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(10),
-        borderSide: BorderSide(color: Colors.grey.shade200),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(10),
-        borderSide: const BorderSide(color: _green, width: 1.8),
-      ),
-    ),
+      if (invalid)
+        const Padding(
+          padding: EdgeInsets.only(top: 3, left: 2),
+          child: Text(
+            'Obligatoire',
+            style: TextStyle(color: Colors.red, fontSize: 10),
+          ),
+        ),
+    ],
   );
 }
