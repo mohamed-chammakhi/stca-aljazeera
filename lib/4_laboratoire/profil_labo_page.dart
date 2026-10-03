@@ -215,14 +215,11 @@ class _ProfilLaboPageState extends State<ProfilLaboPage> with LaboNavMixin {
   /// is opened from the menu in place of the previous page, so there is
   /// often nothing behind it to go back to.
   void _retourAccueil() {
-    final navigator = Navigator.of(context);
-    if (navigator.canPop()) {
-      navigator.pop();
-    } else {
-      navigator.pushReplacement(
-        MaterialPageRoute(builder: (_) => const EchantillonsLaboPage()),
-      );
-    }
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (_) => const EchantillonsLaboPage()),
+      (_) => false,
+    );
   }
 
   @override
@@ -237,11 +234,7 @@ class _ProfilLaboPageState extends State<ProfilLaboPage> with LaboNavMixin {
   Widget _page(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      drawer: LaboDrawer(
-        onEchantillons: () => goToPage(const EchantillonsLaboPage()),
-        onProfil: () => goToPage(const ProfilLaboPage()),
-        onDeconnexion: goToLogin,
-      ),
+      drawer: LaboDrawer(currentPage: LaboDestination.profil),
       appBar: AppBar(
         backgroundColor: kHeaderBg,
         elevation: 0,

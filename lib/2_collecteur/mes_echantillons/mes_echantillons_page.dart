@@ -700,12 +700,7 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
 
     return Scaffold(
       backgroundColor: colBg,
-      drawer: CollecteurDrawer(
-        onMesEchantillons: () => Navigator.pop(context),
-        onMessagerie: () => goToPage(const ConversationsPage()),
-        onProfil: () => goToPage(const ProfileCollecteurPage()),
-        onDeconnexion: goToLogin,
-      ),
+      drawer: CollecteurDrawer(currentPage: CollecteurDestination.echantillons),
       appBar: AppBar(
         backgroundColor: colHeaderBg,
         elevation: 0,

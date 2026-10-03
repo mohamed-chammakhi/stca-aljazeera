@@ -1,21 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:project3/core/widgets/messagerie/messagerie_badge.dart';
+import 'package:project3/core/widgets/messagerie/conversations_page.dart';
+import 'package:project3/core/logout_navigation.dart';
+import '../mes_echantillons/mes_echantillons_page.dart';
+import '../profilcom.dart';
 import 'col_colors.dart';
 
-class CollecteurDrawer extends StatelessWidget {
-  final VoidCallback onMesEchantillons;
-  final VoidCallback onMessagerie;
-  final VoidCallback onProfil;
-  final VoidCallback onDeconnexion;
+enum CollecteurDestination { echantillons, messagerie, profil }
 
-  const CollecteurDrawer({
-    super.key,
-    required this.onMesEchantillons,
-    required this.onMessagerie,
-    required this.onProfil,
-    required this.onDeconnexion,
-  });
+class CollecteurDrawer extends StatelessWidget {
+  final CollecteurDestination? currentPage;
+
+  const CollecteurDrawer({super.key, this.currentPage});
+
+  void _navigate(BuildContext context, CollecteurDestination destination) {
+    Navigator.pop(context);
+    if (destination == currentPage) return;
+    final Widget page = switch (destination) {
+      CollecteurDestination.echantillons => const MesEchantillonsPage(),
+      CollecteurDestination.messagerie => const ConversationsPage(),
+      CollecteurDestination.profil => const ProfileCollecteurPage(),
+    };
+    Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => page));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -91,13 +99,17 @@ class CollecteurDrawer extends StatelessWidget {
                   _DrawerItem(
                     icon: Icons.inventory_2_outlined,
                     label: 'Mes échantillons',
-                    onTap: onMesEchantillons,
+                    active: currentPage == CollecteurDestination.echantillons,
+                    onTap: () =>
+                        _navigate(context, CollecteurDestination.echantillons),
                   ),
                   _DrawerItem(
                     icon: Icons.chat_bubble_outline,
                     label: 'Messagerie',
                     trailing: const MessagerieBadge(),
-                    onTap: onMessagerie,
+                    active: currentPage == CollecteurDestination.messagerie,
+                    onTap: () =>
+                        _navigate(context, CollecteurDestination.messagerie),
                   ),
                   const SizedBox(height: 4),
                   Divider(color: colOlive.withValues(alpha: 0.15), height: 1),
@@ -106,7 +118,9 @@ class CollecteurDrawer extends StatelessWidget {
                   _DrawerItem(
                     icon: Icons.person_outline,
                     label: 'Mon profil',
-                    onTap: onProfil,
+                    active: currentPage == CollecteurDestination.profil,
+                    onTap: () =>
+                        _navigate(context, CollecteurDestination.profil),
                   ),
                 ],
               ),
@@ -119,7 +133,10 @@ class CollecteurDrawer extends StatelessWidget {
                 width: double.infinity,
                 height: 44,
                 child: ElevatedButton.icon(
-                  onPressed: onDeconnexion,
+                  onPressed: () {
+                    Navigator.pop(context);
+                    logoutAndShowLogin(context);
+                  },
                   icon: const Icon(Icons.logout, size: 18),
                   label: const Text('Déconnexion'),
                   style: ElevatedButton.styleFrom(
@@ -164,6 +181,7 @@ class _DrawerItem extends StatelessWidget {
   final String label;
   final Widget? trailing;
   final VoidCallback onTap;
+  final bool active;
 
   const _DrawerItem({
     this.icon,
@@ -171,6 +189,7 @@ class _DrawerItem extends StatelessWidget {
     required this.label,
     this.trailing,
     required this.onTap,
+    this.active = false,
   }) : assert(icon != null || customIcon != null);
 
   @override
@@ -180,7 +199,11 @@ class _DrawerItem extends StatelessWidget {
     child: InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
-      child: Padding(
+      child: Container(
+        decoration: BoxDecoration(
+          color: active ? colHeaderBg : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
+        ),
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
         child: Row(
           children: [
@@ -201,9 +224,9 @@ class _DrawerItem extends StatelessWidget {
                 label,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
-                  fontWeight: FontWeight.w500,
+                  fontWeight: active ? FontWeight.w700 : FontWeight.w500,
                   color: colDark,
                 ),
               ),

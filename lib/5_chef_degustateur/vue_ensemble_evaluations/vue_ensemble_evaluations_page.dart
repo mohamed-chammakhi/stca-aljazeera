@@ -540,19 +540,7 @@ class _VueEnsembleEvaluationsPageState extends State<VueEnsembleEvaluationsPage>
 
     return Scaffold(
       backgroundColor: chefBg,
-      drawer: AppDrawer(
-        onaccueil: () => _goTo(const HomePage()),
-        onEvaluationEchantillons: () =>
-            _goTo(const EvaluationEchantillonsPage()),
-        onGestionEchantillons: () => _goTo(const GestionEchantillonsPage()),
-        onAnalyseLaboratoire: () => _goTo(const AnalyseLaboratoirePage()),
-        onSessionsDegustationPage: () => _goTo(const SessionsDegustationPage()),
-        onUtilisateurs: () => _goTo(const UtilisateursChefPage()),
-        onVueEnsembleEvaluations: () => Navigator.pop(context),
-        onMessagerie: () => _goTo(const ConversationsPage()),
-        onProfil: () => _goTo(const ProfilePage()),
-        onDeconnexion: _goToLogin,
-      ),
+      drawer: AppDrawer(currentPage: ChefDestination.vueEnsemble),
       appBar: AppBar(
         backgroundColor: chefHeaderBg,
         elevation: 0,

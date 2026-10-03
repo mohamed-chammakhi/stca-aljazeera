@@ -9,7 +9,7 @@ mixin LaboNavMixin<T extends StatefulWidget> on State<T> {
       return;
     }
     Navigator.pop(context);
-    Navigator.push(context, MaterialPageRoute(builder: (_) => page));
+    Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => page));
   }
 
   void goToLogin() {

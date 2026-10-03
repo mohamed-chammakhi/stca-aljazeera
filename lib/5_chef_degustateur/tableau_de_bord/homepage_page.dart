@@ -211,20 +211,7 @@ class _HomePageState extends State<HomePage> with RafraichissementPeriodique {
           onRefreshParent: _loadUnreadCount,
         ),
       ),
-      drawer: AppDrawer(
-        onaccueil: () => Navigator.pop(context),
-        onEvaluationEchantillons: () =>
-            _goTo(const EvaluationEchantillonsPage()),
-        onGestionEchantillons: () => _goTo(const GestionEchantillonsPage()),
-        onAnalyseLaboratoire: () => _goTo(const AnalyseLaboratoirePage()),
-        onSessionsDegustationPage: () => _goTo(const SessionsDegustationPage()),
-        onUtilisateurs: () => _goTo(const UtilisateursChefPage()),
-        onVueEnsembleEvaluations: () =>
-            _goTo(const VueEnsembleEvaluationsPage()),
-        onMessagerie: () => _goTo(const ConversationsPage()),
-        onProfil: () => _goTo(const ProfilePage()),
-        onDeconnexion: _goToLogin,
-      ),
+      drawer: AppDrawer(currentPage: ChefDestination.accueil),
     );
   }
 }

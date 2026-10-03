@@ -160,6 +160,7 @@ class CeoDrawer extends StatelessWidget {
                   _DrawerItem(
                     icon: Icons.dashboard_outlined,
                     label: 'Tableau de bord',
+                    active: currentPage == CeoDestination.accueil,
                     onTap: () => _navigate(context, CeoDestination.accueil),
                   ),
                   const SizedBox(height: 4),
@@ -169,6 +170,7 @@ class CeoDrawer extends StatelessWidget {
                   _DrawerItem(
                     icon: Icons.science_outlined,
                     label: 'Échantillons',
+                    active: currentPage == CeoDestination.echantillons,
                     onTap: () =>
                         _navigate(context, CeoDestination.echantillons),
                   ),
@@ -179,22 +181,26 @@ class CeoDrawer extends StatelessWidget {
                       child: Image.asset('assets/img/glass.png'),
                     ),
                     label: 'Analyse organoleptique',
+                    active: currentPage == CeoDestination.organoleptique,
                     onTap: () =>
                         _navigate(context, CeoDestination.organoleptique),
                   ),
                   _DrawerItem(
                     icon: Icons.biotech_outlined,
                     label: 'Analyse laboratoire',
+                    active: currentPage == CeoDestination.laboratoire,
                     onTap: () => _navigate(context, CeoDestination.laboratoire),
                   ),
                   _DrawerItem(
                     icon: Icons.fact_check_outlined,
                     label: 'Validation achats',
+                    active: currentPage == CeoDestination.validation,
                     onTap: () => _navigate(context, CeoDestination.validation),
                   ),
                   _DrawerItem(
                     icon: Icons.handshake_outlined,
                     label: 'Achats confirmés',
+                    active: currentPage == CeoDestination.achats,
                     onTap: () => _navigate(context, CeoDestination.achats),
                   ),
 
@@ -205,18 +211,21 @@ class CeoDrawer extends StatelessWidget {
                   _DrawerItem(
                     icon: Icons.people_outline,
                     label: 'Utilisateurs',
+                    active: currentPage == CeoDestination.utilisateurs,
                     onTap: () =>
                         _navigate(context, CeoDestination.utilisateurs),
                   ),
                   _DrawerItem(
                     icon: Icons.chat_bubble_outline,
                     label: 'Messagerie',
+                    active: currentPage == CeoDestination.messagerie,
                     trailing: const MessagerieBadge(),
                     onTap: () => _navigate(context, CeoDestination.messagerie),
                   ),
                   _DrawerItem(
                     icon: Icons.person_outline,
                     label: 'Profil',
+                    active: currentPage == CeoDestination.profil,
                     onTap: () => _navigate(context, CeoDestination.profil),
                   ),
                 ],
@@ -279,6 +288,7 @@ class _DrawerItem extends StatelessWidget {
   final String label;
   final Widget? trailing;
   final VoidCallback onTap;
+  final bool active;
 
   const _DrawerItem({
     this.icon,
@@ -286,12 +296,13 @@ class _DrawerItem extends StatelessWidget {
     required this.label,
     this.trailing,
     required this.onTap,
+    this.active = false,
   }) : assert(icon != null || customIcon != null);
 
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: Colors.transparent,
+      color: active ? kHeaderBg : Colors.transparent,
       borderRadius: BorderRadius.circular(12),
       child: InkWell(
         onTap: onTap,
@@ -304,7 +315,7 @@ class _DrawerItem extends StatelessWidget {
                 width: 36,
                 height: 36,
                 decoration: BoxDecoration(
-                  color: _iconBg,
+                  color: active ? kHeaderBg : _iconBg,
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Center(
@@ -317,9 +328,9 @@ class _DrawerItem extends StatelessWidget {
                   label,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
-                    fontWeight: FontWeight.w500,
+                    fontWeight: active ? FontWeight.w700 : FontWeight.w500,
                     color: kDark,
                   ),
                 ),

@@ -7,36 +7,68 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:project3/core/widgets/messagerie/messagerie_badge.dart';
+import '../homepage_page.dart';
+import '../../../core/logout_navigation.dart';
+import '../../analyse_labo/analyse_laboratoire_page.dart';
+import '../../evaluation_echantillons/evaluation_echantillons_page.dart';
+import '../../gestion_echantillons/gestion_echantillons_page.dart';
+import '../../membres_panel/membres_panel_page.dart';
+import '../../profil.dart';
+import '../../sessions_degustation/sessions_degustation_page.dart';
+import '../../utilisateurs/utilisateurs_chef_page.dart';
+import '../../vue_ensemble_evaluations/vue_ensemble_evaluations_page.dart';
+import 'package:project3/core/widgets/messagerie/conversations_page.dart';
 import '../../widgets/chef_colors.dart';
 
 const Color _olive = Color(0xFF6B8143);
 const Color _iconBg = Color(0x1A38835A); // green at 10% opacity
 
-class AppDrawer extends StatelessWidget {
-  final VoidCallback onaccueil;
-  final VoidCallback onEvaluationEchantillons;
-  final VoidCallback onGestionEchantillons;
-  final VoidCallback onAnalyseLaboratoire;
-  final VoidCallback onSessionsDegustationPage;
-  final VoidCallback onUtilisateurs;
-  final VoidCallback onVueEnsembleEvaluations;
-  final VoidCallback onMessagerie;
-  final VoidCallback onProfil;
-  final VoidCallback onDeconnexion;
+enum ChefDestination {
+  accueil,
+  evaluation,
+  gestion,
+  laboratoire,
+  sessions,
+  panel,
+  utilisateurs,
+  vueEnsemble,
+  messagerie,
+  profil,
+}
 
-  const AppDrawer({
-    super.key,
-    required this.onaccueil,
-    required this.onEvaluationEchantillons,
-    required this.onGestionEchantillons,
-    required this.onAnalyseLaboratoire,
-    required this.onSessionsDegustationPage,
-    required this.onUtilisateurs,
-    required this.onVueEnsembleEvaluations,
-    required this.onMessagerie,
-    required this.onProfil,
-    required this.onDeconnexion,
-  });
+class AppDrawer extends StatelessWidget {
+  final ChefDestination? currentPage;
+
+  const AppDrawer({super.key, this.currentPage});
+
+  void _navigate(BuildContext context, ChefDestination destination) {
+    Navigator.pop(context);
+    if (destination == currentPage) return;
+    final Widget page = switch (destination) {
+      ChefDestination.accueil => const HomePage(),
+      ChefDestination.evaluation => const EvaluationEchantillonsPage(),
+      ChefDestination.gestion => const GestionEchantillonsPage(),
+      ChefDestination.laboratoire => const AnalyseLaboratoirePage(),
+      ChefDestination.sessions => const SessionsDegustationPage(),
+      ChefDestination.panel => const MembresPanelPage(),
+      ChefDestination.utilisateurs => const UtilisateursChefPage(),
+      ChefDestination.vueEnsemble => const VueEnsembleEvaluationsPage(),
+      ChefDestination.messagerie => const ConversationsPage(),
+      ChefDestination.profil => const ProfilePage(),
+    };
+    if (destination == ChefDestination.accueil) {
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => page),
+        (_) => false,
+      );
+    } else {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => page),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -77,24 +109,28 @@ class AppDrawer extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 14),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Chef de Dégustation',
-                        style: GoogleFonts.domine(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                          color: chefDark,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          'Chef de Dégustation',
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.domine(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                            color: chefDark,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 2),
-                      const Text(
-                        'STCA Aljazira',
-                        style: TextStyle(fontSize: 12, color: chefDark),
-                      ),
-                    ],
+                        const SizedBox(height: 2),
+                        const Text(
+                          'STCA Aljazira',
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(fontSize: 12, color: chefDark),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -112,7 +148,8 @@ class AppDrawer extends StatelessWidget {
                   _DrawerItem(
                     icon: Icons.dashboard_outlined,
                     label: 'Accueil',
-                    onTap: onaccueil,
+                    active: currentPage == ChefDestination.accueil,
+                    onTap: () => _navigate(context, ChefDestination.accueil),
                   ),
 
                   const SizedBox(height: 4),
@@ -123,7 +160,8 @@ class AppDrawer extends StatelessWidget {
                   _DrawerItem(
                     icon: Icons.folder_outlined,
                     label: 'Gestion des échantillons',
-                    onTap: onGestionEchantillons,
+                    active: currentPage == ChefDestination.gestion,
+                    onTap: () => _navigate(context, ChefDestination.gestion),
                   ),
                   _DrawerItem(
                     customIcon: SizedBox(
@@ -132,12 +170,15 @@ class AppDrawer extends StatelessWidget {
                       child: Image.asset('assets/img/glass.png'),
                     ),
                     label: 'Évaluations des échantillons',
-                    onTap: onEvaluationEchantillons,
+                    active: currentPage == ChefDestination.evaluation,
+                    onTap: () => _navigate(context, ChefDestination.evaluation),
                   ),
                   _DrawerItem(
                     icon: Icons.science_outlined,
                     label: 'Analyse de laboratoire',
-                    onTap: onAnalyseLaboratoire,
+                    active: currentPage == ChefDestination.laboratoire,
+                    onTap: () =>
+                        _navigate(context, ChefDestination.laboratoire),
                   ),
 
                   const SizedBox(height: 4),
@@ -148,12 +189,21 @@ class AppDrawer extends StatelessWidget {
                   _DrawerItem(
                     icon: Icons.event_note_outlined,
                     label: 'Sessions de dégustation',
-                    onTap: onSessionsDegustationPage,
+                    active: currentPage == ChefDestination.sessions,
+                    onTap: () => _navigate(context, ChefDestination.sessions),
                   ),
                   _DrawerItem(
                     icon: Icons.assessment_outlined,
                     label: 'Vue d\'ensemble évaluations',
-                    onTap: onVueEnsembleEvaluations,
+                    active: currentPage == ChefDestination.vueEnsemble,
+                    onTap: () =>
+                        _navigate(context, ChefDestination.vueEnsemble),
+                  ),
+                  _DrawerItem(
+                    icon: Icons.people_outline,
+                    label: 'Membres du panel',
+                    active: currentPage == ChefDestination.panel,
+                    onTap: () => _navigate(context, ChefDestination.panel),
                   ),
 
                   const SizedBox(height: 4),
@@ -167,18 +217,22 @@ class AppDrawer extends StatelessWidget {
                   _DrawerItem(
                     icon: Icons.manage_accounts_outlined,
                     label: 'Utilisateurs',
-                    onTap: onUtilisateurs,
+                    active: currentPage == ChefDestination.utilisateurs,
+                    onTap: () =>
+                        _navigate(context, ChefDestination.utilisateurs),
                   ),
                   _DrawerItem(
                     icon: Icons.chat_bubble_outline,
                     label: 'Messagerie',
                     trailing: const MessagerieBadge(),
-                    onTap: onMessagerie,
+                    active: currentPage == ChefDestination.messagerie,
+                    onTap: () => _navigate(context, ChefDestination.messagerie),
                   ),
                   _DrawerItem(
                     icon: Icons.person_outline,
                     label: 'Votre profil',
-                    onTap: onProfil,
+                    active: currentPage == ChefDestination.profil,
+                    onTap: () => _navigate(context, ChefDestination.profil),
                   ),
                 ],
               ),
@@ -191,7 +245,10 @@ class AppDrawer extends StatelessWidget {
                 width: double.infinity,
                 height: 44,
                 child: ElevatedButton.icon(
-                  onPressed: onDeconnexion,
+                  onPressed: () {
+                    Navigator.pop(context);
+                    logoutAndShowLogin(context);
+                  },
                   icon: const Icon(Icons.logout, size: 18),
                   label: const Text('Déconnexion'),
                   style: ElevatedButton.styleFrom(
@@ -242,6 +299,7 @@ class _DrawerItem extends StatelessWidget {
   final String label;
   final Widget? trailing;
   final VoidCallback onTap;
+  final bool active;
 
   const _DrawerItem({
     this.icon,
@@ -249,6 +307,7 @@ class _DrawerItem extends StatelessWidget {
     required this.label,
     this.trailing,
     required this.onTap,
+    this.active = false,
   }) : assert(icon != null || customIcon != null);
 
   @override
@@ -258,16 +317,19 @@ class _DrawerItem extends StatelessWidget {
     child: InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
-      child: Padding(
+      child: Container(
+        decoration: BoxDecoration(
+          color: active ? chefHeaderBg : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
+        ),
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
         child: Row(
           children: [
-            // Icon container
             Container(
               width: 36,
               height: 36,
               decoration: BoxDecoration(
-                color: _iconBg,
+                color: chefGreen.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Center(
@@ -280,9 +342,9 @@ class _DrawerItem extends StatelessWidget {
                 label,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
-                  fontWeight: FontWeight.w500,
+                  fontWeight: active ? FontWeight.w700 : FontWeight.w500,
                   color: chefDark,
                 ),
               ),

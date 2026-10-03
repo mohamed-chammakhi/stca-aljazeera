@@ -222,14 +222,11 @@ class _ProfilePageState extends State<ProfilePage> with DegustateurNavMixin {
   /// is opened from the menu in place of the previous page, so there is
   /// often nothing behind it to go back to.
   void _retourAccueil() {
-    final navigator = Navigator.of(context);
-    if (navigator.canPop()) {
-      navigator.pop();
-    } else {
-      navigator.pushReplacement(
-        MaterialPageRoute(builder: (_) => const HomePage()),
-      );
-    }
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (_) => const HomePage()),
+      (_) => false,
+    );
   }
 
   @override
@@ -244,18 +241,7 @@ class _ProfilePageState extends State<ProfilePage> with DegustateurNavMixin {
   Widget _page(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      drawer: AppDrawer(
-        onaccueil: () => goToPage(const HomePage()),
-        onEvaluationEchantillons: () =>
-            goToPage(const EvaluationEchantillonsPage()),
-        onGestionEchantillons: () => goToPage(const GestionEchantillonsPage()),
-        onAnalyseLaboratoire: () => goToPage(const AnalyseLaboratoirePage()),
-        onSessionsDegustationPage: () =>
-            goToPage(const SessionsDegustationPage()),
-        onMembredupanel: () => goToPage(const MembresPanelPage()),
-        onProfil: () => goToPage(const ProfilePage()),
-        onDeconnexion: goToLogin,
-      ),
+      drawer: AppDrawer(currentPage: DegustateurDestination.profil),
       appBar: AppBar(
         backgroundColor: kHeaderBg,
         elevation: 0,

@@ -230,14 +230,11 @@ class _ProfilePageState extends State<ProfilePage> with ChefNavMixin {
   /// is opened from the menu in place of the previous page, so there is
   /// often nothing behind it to go back to.
   void _retourAccueil() {
-    final navigator = Navigator.of(context);
-    if (navigator.canPop()) {
-      navigator.pop();
-    } else {
-      navigator.pushReplacement(
-        MaterialPageRoute(builder: (_) => const HomePage()),
-      );
-    }
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (_) => const HomePage()),
+      (_) => false,
+    );
   }
 
   @override
@@ -252,35 +249,7 @@ class _ProfilePageState extends State<ProfilePage> with ChefNavMixin {
   Widget _page(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      drawer: AppDrawer(
-        onaccueil: () => goToPage(const HomePage()),
-
-        // OLD : EvaluationEchantillonsPage from EvaluationEchantillonsPage.dart
-        // NEW : will be EvaluationEchantillonsPage from
-        //       evaluation_echantillons/evaluation_echantillons_page.dart
-        // TODO : replace with goToPage(const EvaluationEchantillonsPage())
-        onEvaluationEchantillons: () =>
-            goToPage(const EvaluationEchantillonsPage()),
-
-        // OLD : GestionEchantillonsPage from GestionEchantillon.dart
-        // NEW : GestionEchantillonsPage from
-        //       gestion_echantillons/gestion_echantillons_page.dart ✅ done
-        onGestionEchantillons: () => goToPage(const GestionEchantillonsPage()),
-
-        onAnalyseLaboratoire: () => goToPage(const AnalyseLaboratoirePage()),
-        onSessionsDegustationPage: () =>
-            goToPage(const SessionsDegustationPage()),
-
-        // OLD : ProfilePage from profil.dart (same level)
-        // NEW : ProfilePage from ../profil.dart (one level up) ✅ done
-        onUtilisateurs: () => goToPage(const UtilisateursChefPage()),
-        onVueEnsembleEvaluations: () =>
-            goToPage(const VueEnsembleEvaluationsPage()),
-        onMessagerie: () => goToPage(const ConversationsPage()),
-        onProfil: () => goToPage(const ProfilePage()),
-
-        onDeconnexion: goToLogin,
-      ),
+      drawer: AppDrawer(currentPage: ChefDestination.profil),
       appBar: AppBar(
         backgroundColor: chefHeaderBg,
         elevation: 0,

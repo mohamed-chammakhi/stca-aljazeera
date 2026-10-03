@@ -286,18 +286,7 @@ class _EvaluationEchantillonsPageState extends State<EvaluationEchantillonsPage>
     return Scaffold(
       backgroundColor: kBg,
 
-      drawer: AppDrawer(
-        onaccueil: () => goToPage(const HomePage()),
-        onEvaluationEchantillons: () =>
-            goToPage(const EvaluationEchantillonsPage()),
-        onGestionEchantillons: () => goToPage(const GestionEchantillonsPage()),
-        onAnalyseLaboratoire: () => goToPage(const AnalyseLaboratoirePage()),
-        onSessionsDegustationPage: () =>
-            goToPage(const SessionsDegustationPage()),
-        onMembredupanel: () => goToPage(const MembresPanelPage()),
-        onProfil: () => goToPage(const ProfilePage()),
-        onDeconnexion: goToLogin,
-      ),
+      drawer: AppDrawer(currentPage: DegustateurDestination.evaluation),
 
       appBar: AppBar(
         backgroundColor: kHeaderBg,

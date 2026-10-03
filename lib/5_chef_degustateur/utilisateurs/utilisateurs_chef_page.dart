@@ -27,21 +27,7 @@ class _UtilisateursChefPageState extends State<UtilisateursChefPage>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: chefBg,
-      drawer: AppDrawer(
-        onaccueil: () => goToPage(const HomePage()),
-        onEvaluationEchantillons: () =>
-            goToPage(const EvaluationEchantillonsPage()),
-        onGestionEchantillons: () => goToPage(const GestionEchantillonsPage()),
-        onAnalyseLaboratoire: () => goToPage(const AnalyseLaboratoirePage()),
-        onSessionsDegustationPage: () =>
-            goToPage(const SessionsDegustationPage()),
-        onUtilisateurs: () => Navigator.pop(context),
-        onVueEnsembleEvaluations: () =>
-            goToPage(const VueEnsembleEvaluationsPage()),
-        onMessagerie: () => goToPage(const ConversationsPage()),
-        onProfil: () => goToPage(const ProfilePage()),
-        onDeconnexion: goToLogin,
-      ),
+      drawer: AppDrawer(currentPage: ChefDestination.utilisateurs),
       appBar: AppBar(
         backgroundColor: chefHeaderBg,
         elevation: 0,

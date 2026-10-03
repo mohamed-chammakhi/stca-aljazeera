@@ -5,6 +5,7 @@ import 'models/notification_labo.dart';
 import 'services/notification_labo_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/bandeau_demonstration.dart';
+import '../labo_drawer.dart';
 
 class NotificationsLaboPage extends StatefulWidget {
   const NotificationsLaboPage({super.key});
@@ -104,6 +105,7 @@ class _NotificationsLaboPageState extends State<NotificationsLaboPage>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: kBg,
+      drawer: const LaboDrawer(currentPage: LaboDestination.notifications),
       appBar: AppBar(
         backgroundColor: kHeaderBg,
         elevation: 0,

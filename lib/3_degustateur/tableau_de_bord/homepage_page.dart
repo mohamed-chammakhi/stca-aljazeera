@@ -103,9 +103,7 @@ class _HomePageState extends State<HomePage>
           MaterialPageRoute(
             builder: (_) => n.echantillonId == null
                 ? const EvaluationEchantillonsPage()
-                : EvaluationEchantillonsPage(
-                    echantillonCible: n.echantillonId,
-                  ),
+                : EvaluationEchantillonsPage(echantillonCible: n.echantillonId),
           ),
         );
         break;
@@ -194,18 +192,7 @@ class _HomePageState extends State<HomePage>
         couleurRafraichissement: kGreen,
         child: HomeBody(onRefreshParent: _loadUnreadCount),
       ),
-      drawer: AppDrawer(
-        onaccueil: () => Navigator.pop(context),
-        onEvaluationEchantillons: () =>
-            goToPage(const EvaluationEchantillonsPage()),
-        onGestionEchantillons: () => goToPage(const GestionEchantillonsPage()),
-        onAnalyseLaboratoire: () => goToPage(const AnalyseLaboratoirePage()),
-        onSessionsDegustationPage: () =>
-            goToPage(const SessionsDegustationPage()),
-        onMembredupanel: () => goToPage(const MembresPanelPage()),
-        onProfil: () => goToPage(const ProfilePage()),
-        onDeconnexion: goToLogin,
-      ),
+      drawer: AppDrawer(currentPage: DegustateurDestination.accueil),
     );
   }
 }

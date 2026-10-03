@@ -267,11 +267,7 @@ class _EchantillonsLaboPageState extends State<EchantillonsLaboPage>
 
     return Scaffold(
       backgroundColor: kBg,
-      drawer: LaboDrawer(
-        onEchantillons: () => goToPage(const EchantillonsLaboPage()),
-        onProfil: () => goToPage(const ProfilLaboPage()),
-        onDeconnexion: () => goToPage(LoginPage()),
-      ),
+      drawer: LaboDrawer(currentPage: LaboDestination.echantillons),
       appBar: AppBar(
         backgroundColor: kHeaderBg,
         elevation: 0,

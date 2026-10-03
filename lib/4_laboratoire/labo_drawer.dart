@@ -1,22 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../core/theme/app_colors.dart';
+import '../core/logout_navigation.dart';
+import 'echantillons_labo/echantillons_labo_page.dart';
+import 'notifications/notifications_labo_page.dart';
+import 'profil_labo_page.dart';
 
 // Drawer header/button uses a muted olive variant distinct from kGreen.
 const Color _drawerAccent = Color(0xFF55755E);
 const Color _iconBg = Color(0x1A38835A);
 
-class LaboDrawer extends StatelessWidget {
-  final VoidCallback onEchantillons;
-  final VoidCallback onProfil;
-  final VoidCallback onDeconnexion;
+enum LaboDestination { echantillons, notifications, profil }
 
-  const LaboDrawer({
-    super.key,
-    required this.onEchantillons,
-    required this.onProfil,
-    required this.onDeconnexion,
-  });
+class LaboDrawer extends StatelessWidget {
+  final LaboDestination? currentPage;
+
+  const LaboDrawer({super.key, this.currentPage});
+
+  void _navigate(BuildContext context, LaboDestination destination) {
+    Navigator.pop(context);
+    if (destination == currentPage) return;
+    final Widget page = switch (destination) {
+      LaboDestination.echantillons => const EchantillonsLaboPage(),
+      LaboDestination.notifications => const NotificationsLaboPage(),
+      LaboDestination.profil => const ProfilLaboPage(),
+    };
+    Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => page));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -87,7 +97,16 @@ class LaboDrawer extends StatelessWidget {
                   _DrawerItem(
                     icon: Icons.science_outlined,
                     label: 'Échantillons à analyser',
-                    onTap: onEchantillons,
+                    active: currentPage == LaboDestination.echantillons,
+                    onTap: () =>
+                        _navigate(context, LaboDestination.echantillons),
+                  ),
+                  _DrawerItem(
+                    icon: Icons.notifications_outlined,
+                    label: 'Notifications',
+                    active: currentPage == LaboDestination.notifications,
+                    onTap: () =>
+                        _navigate(context, LaboDestination.notifications),
                   ),
                   const SizedBox(height: 4),
                   Divider(color: kOlive.withOpacity(0.15), height: 1),
@@ -96,7 +115,8 @@ class LaboDrawer extends StatelessWidget {
                   _DrawerItem(
                     icon: Icons.person_outline,
                     label: 'Mon Profil',
-                    onTap: onProfil,
+                    active: currentPage == LaboDestination.profil,
+                    onTap: () => _navigate(context, LaboDestination.profil),
                   ),
                 ],
               ),
@@ -109,7 +129,10 @@ class LaboDrawer extends StatelessWidget {
                 width: double.infinity,
                 height: 44,
                 child: ElevatedButton.icon(
-                  onPressed: onDeconnexion,
+                  onPressed: () {
+                    Navigator.pop(context);
+                    logoutAndShowLogin(context);
+                  },
                   icon: const Icon(Icons.logout, size: 18),
                   label: const Text('Déconnexion'),
                   style: ElevatedButton.styleFrom(
@@ -153,12 +176,14 @@ class _DrawerItem extends StatelessWidget {
   final Widget? customIcon;
   final String label;
   final VoidCallback onTap;
+  final bool active;
 
   const _DrawerItem({
     this.icon,
     this.customIcon,
     required this.label,
     required this.onTap,
+    this.active = false,
   }) : assert(icon != null || customIcon != null);
 
   @override
@@ -168,7 +193,11 @@ class _DrawerItem extends StatelessWidget {
     child: InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
-      child: Padding(
+      child: Container(
+        decoration: BoxDecoration(
+          color: active ? kHeaderBg : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
+        ),
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
         child: Row(
           children: [
@@ -176,7 +205,7 @@ class _DrawerItem extends StatelessWidget {
               width: 36,
               height: 36,
               decoration: BoxDecoration(
-                color: _iconBg,
+                color: kGreen.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Center(
@@ -184,12 +213,16 @@ class _DrawerItem extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 14),
-            Text(
-              label,
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: kDark,
+            Expanded(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: active ? FontWeight.w700 : FontWeight.w500,
+                  color: kDark,
+                ),
               ),
             ),
           ],

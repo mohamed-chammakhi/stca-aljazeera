@@ -6,6 +6,14 @@
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../homepage_page.dart';
+import '../../analyse_labo/analyse_laboratoire_page.dart';
+import '../../evaluation_echantillons/evaluation_echantillons_page.dart';
+import '../../gestion_echantillons/gestion_echantillons_page.dart';
+import '../../membres_panel/membres_panel_page.dart';
+import '../../profil/profil_page.dart';
+import '../../sessions_degustation/sessions_degustation_page.dart';
+import '../../../core/logout_navigation.dart';
 
 const Color _headerBg = Color.fromARGB(255, 220, 233, 226);
 const Color _green = Color(0xFF38835A);
@@ -13,27 +21,46 @@ const Color _dark = Color(0xFF1A2E1F);
 const Color _olive = Color(0xFF6B8143);
 const Color _iconBg = Color(0x1A38835A); // green at 10% opacity
 
-class AppDrawer extends StatelessWidget {
-  final VoidCallback onaccueil;
-  final VoidCallback onEvaluationEchantillons;
-  final VoidCallback onGestionEchantillons;
-  final VoidCallback onAnalyseLaboratoire;
-  final VoidCallback onSessionsDegustationPage;
-  final VoidCallback onMembredupanel;
-  final VoidCallback onProfil;
-  final VoidCallback onDeconnexion;
+enum DegustateurDestination {
+  accueil,
+  evaluation,
+  gestion,
+  laboratoire,
+  sessions,
+  panel,
+  profil,
+}
 
-  const AppDrawer({
-    super.key,
-    required this.onaccueil,
-    required this.onEvaluationEchantillons,
-    required this.onGestionEchantillons,
-    required this.onAnalyseLaboratoire,
-    required this.onSessionsDegustationPage,
-    required this.onMembredupanel,
-    required this.onProfil,
-    required this.onDeconnexion,
-  });
+class AppDrawer extends StatelessWidget {
+  final DegustateurDestination? currentPage;
+
+  const AppDrawer({super.key, this.currentPage});
+
+  void _navigate(BuildContext context, DegustateurDestination destination) {
+    Navigator.pop(context);
+    if (destination == currentPage) return;
+    final Widget page = switch (destination) {
+      DegustateurDestination.accueil => const HomePage(),
+      DegustateurDestination.evaluation => const EvaluationEchantillonsPage(),
+      DegustateurDestination.gestion => const GestionEchantillonsPage(),
+      DegustateurDestination.laboratoire => const AnalyseLaboratoirePage(),
+      DegustateurDestination.sessions => const SessionsDegustationPage(),
+      DegustateurDestination.panel => const MembresPanelPage(),
+      DegustateurDestination.profil => const ProfilePage(),
+    };
+    if (destination == DegustateurDestination.accueil) {
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => page),
+        (_) => false,
+      );
+    } else {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => page),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -109,7 +136,9 @@ class AppDrawer extends StatelessWidget {
                   _DrawerItem(
                     icon: Icons.dashboard_outlined,
                     label: 'Accueil',
-                    onTap: onaccueil,
+                    active: currentPage == DegustateurDestination.accueil,
+                    onTap: () =>
+                        _navigate(context, DegustateurDestination.accueil),
                   ),
 
                   const SizedBox(height: 4),
@@ -120,7 +149,9 @@ class AppDrawer extends StatelessWidget {
                   _DrawerItem(
                     icon: Icons.folder_outlined,
                     label: 'Gestion des échantillons',
-                    onTap: onGestionEchantillons,
+                    active: currentPage == DegustateurDestination.gestion,
+                    onTap: () =>
+                        _navigate(context, DegustateurDestination.gestion),
                   ),
                   _DrawerItem(
                     customIcon: SizedBox(
@@ -129,12 +160,16 @@ class AppDrawer extends StatelessWidget {
                       child: Image.asset('assets/img/glass.png'),
                     ),
                     label: 'Évaluations des échantillons',
-                    onTap: onEvaluationEchantillons,
+                    active: currentPage == DegustateurDestination.evaluation,
+                    onTap: () =>
+                        _navigate(context, DegustateurDestination.evaluation),
                   ),
                   _DrawerItem(
                     icon: Icons.science_outlined,
                     label: 'Analyse de laboratoire',
-                    onTap: onAnalyseLaboratoire,
+                    active: currentPage == DegustateurDestination.laboratoire,
+                    onTap: () =>
+                        _navigate(context, DegustateurDestination.laboratoire),
                   ),
 
                   const SizedBox(height: 4),
@@ -145,12 +180,16 @@ class AppDrawer extends StatelessWidget {
                   _DrawerItem(
                     icon: Icons.event_note_outlined,
                     label: 'Sessions de dégustation',
-                    onTap: onSessionsDegustationPage,
+                    active: currentPage == DegustateurDestination.sessions,
+                    onTap: () =>
+                        _navigate(context, DegustateurDestination.sessions),
                   ),
                   _DrawerItem(
                     icon: Icons.people_outline,
                     label: 'Membres du panel',
-                    onTap: onMembredupanel,
+                    active: currentPage == DegustateurDestination.panel,
+                    onTap: () =>
+                        _navigate(context, DegustateurDestination.panel),
                   ),
 
                   const SizedBox(height: 4),
@@ -161,7 +200,9 @@ class AppDrawer extends StatelessWidget {
                   _DrawerItem(
                     icon: Icons.person_outline,
                     label: 'Votre profil',
-                    onTap: onProfil,
+                    active: currentPage == DegustateurDestination.profil,
+                    onTap: () =>
+                        _navigate(context, DegustateurDestination.profil),
                   ),
                 ],
               ),
@@ -174,7 +215,10 @@ class AppDrawer extends StatelessWidget {
                 width: double.infinity,
                 height: 44,
                 child: ElevatedButton.icon(
-                  onPressed: onDeconnexion,
+                  onPressed: () {
+                    Navigator.pop(context);
+                    logoutAndShowLogin(context);
+                  },
                   icon: const Icon(Icons.logout, size: 18),
                   label: const Text('Déconnexion'),
                   style: ElevatedButton.styleFrom(
@@ -224,12 +268,14 @@ class _DrawerItem extends StatelessWidget {
   final Widget? customIcon;
   final String label;
   final VoidCallback onTap;
+  final bool active;
 
   const _DrawerItem({
     this.icon,
     this.customIcon,
     required this.label,
     required this.onTap,
+    this.active = false,
   }) : assert(icon != null || customIcon != null);
 
   @override
@@ -239,16 +285,19 @@ class _DrawerItem extends StatelessWidget {
     child: InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
-      child: Padding(
+      child: Container(
+        decoration: BoxDecoration(
+          color: active ? _headerBg : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
+        ),
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
         child: Row(
           children: [
-            // Icon container
             Container(
               width: 36,
               height: 36,
               decoration: BoxDecoration(
-                color: _iconBg,
+                color: _green.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Center(
@@ -256,12 +305,16 @@ class _DrawerItem extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 14),
-            Text(
-              label,
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: _dark,
+            Expanded(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: active ? FontWeight.w700 : FontWeight.w500,
+                  color: _dark,
+                ),
               ),
             ),
           ],

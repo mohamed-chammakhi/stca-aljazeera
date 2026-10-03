@@ -291,21 +291,7 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage>
       backgroundColor: kBg,
 
       // ── DRAWER ────────────────────────────────────────────────────────────────
-      drawer: AppDrawer(
-        onaccueil: () => Navigator.pop(context),
-        onEvaluationEchantillons: () =>
-            goToPage(const EvaluationEchantillonsPage()),
-        onGestionEchantillons: () => goToPage(const GestionEchantillonsPage()),
-        onAnalyseLaboratoire: () => goToPage(const AnalyseLaboratoirePage()),
-        onSessionsDegustationPage: () =>
-            goToPage(const SessionsDegustationPage()),
-        onUtilisateurs: () => goToPage(const UtilisateursChefPage()),
-        onVueEnsembleEvaluations: () =>
-            goToPage(const VueEnsembleEvaluationsPage()),
-        onMessagerie: () => goToPage(const ConversationsPage()),
-        onProfil: () => goToPage(const ProfilePage()),
-        onDeconnexion: goToLogin,
-      ),
+      drawer: AppDrawer(currentPage: ChefDestination.laboratoire),
 
       // ── APPBAR ────────────────────────────────────────────────────────────────
       appBar: AppBar(

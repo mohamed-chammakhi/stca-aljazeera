@@ -349,18 +349,7 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage>
       backgroundColor: kBg,
 
       // ── DRAWER ─────────────────────────────────────────────────────────────
-      drawer: AppDrawer(
-        onaccueil: () => goToPage(const HomePage()),
-        onEvaluationEchantillons: () =>
-            goToPage(const EvaluationEchantillonsPage()),
-        onGestionEchantillons: () => goToPage(const GestionEchantillonsPage()),
-        onAnalyseLaboratoire: () => goToPage(const AnalyseLaboratoirePage()),
-        onSessionsDegustationPage: () =>
-            goToPage(const SessionsDegustationPage()),
-        onMembredupanel: () => goToPage(const MembresPanelPage()),
-        onProfil: () => goToPage(const ProfilePage()),
-        onDeconnexion: goToLogin,
-      ),
+      drawer: AppDrawer(currentPage: DegustateurDestination.gestion),
 
       // ── APPBAR ─────────────────────────────────────────────────────────────
       appBar: AppBar(

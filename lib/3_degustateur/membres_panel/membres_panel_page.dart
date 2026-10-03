@@ -181,22 +181,22 @@ class _MembresPanelPageState extends State<MembresPanelPage>
                             height: MediaQuery.of(context).size.height * 0.5,
                             child: Center(
                               child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.search_off,
-                              size: 48,
-                              color: Colors.grey.shade300,
-                            ),
-                            const SizedBox(height: 12),
-                            Text(
-                              'Aucun membre trouvé',
-                              style: TextStyle(
-                                color: Colors.grey.shade400,
-                                fontSize: 14,
-                              ),
-                            ),
-                          ],
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.search_off,
+                                    size: 48,
+                                    color: Colors.grey.shade300,
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    'Aucun membre trouvé',
+                                    style: TextStyle(
+                                      color: Colors.grey.shade400,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ),
@@ -225,20 +225,7 @@ class _MembresPanelPageState extends State<MembresPanelPage>
           ),
         ),
       ),
-      drawer: AppDrawer(
-        onaccueil: () => goToPage(const HomePage()),
-
-        onEvaluationEchantillons: () =>
-            goToPage(const EvaluationEchantillonsPage()),
-        onGestionEchantillons: () => goToPage(const GestionEchantillonsPage()),
-        onAnalyseLaboratoire: () => goToPage(const AnalyseLaboratoirePage()),
-        onSessionsDegustationPage: () =>
-            goToPage(const SessionsDegustationPage()),
-        onMembredupanel: () => goToPage(const MembresPanelPage()),
-        onProfil: () => goToPage(const ProfilePage()),
-
-        onDeconnexion: goToLogin,
-      ),
+      drawer: AppDrawer(currentPage: DegustateurDestination.panel),
     );
   }
 }
