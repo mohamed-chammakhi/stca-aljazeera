@@ -42,8 +42,11 @@ dire à l'utilisatrice « envoyé sur GitHub » seulement si l'étape 5 est vér
 ## 2. Règles de travail (demandées par l'utilisatrice)
 
 - Réponses **en français simple et court**. Ne dire « fait » qu'après vérification réelle.
-- **Codex code, Claude vérifie** : Claude écrit une fiche de tâche dans `files/taches/NN-….md`,
-  lance Codex (`bash files/taches/lancer_codex.sh NN fichier.md`), puis relit, teste et commite.
+- **Copilot (ou Codex) code, Claude vérifie** : Claude écrit une fiche de tâche dans `files/taches/NN-….md`,
+  lance **GitHub Copilot CLI** (abonnement étudiant, modèle auto) :
+  `bash files/taches/lancer_copilot.sh NN fichier.md` (journal `files/taches/copilot_NN.log`),
+  puis relit, teste et commite. Copilot n'a pas le droit de commiter ni de pousser.
+  Codex (`lancer_codex.sh`) reste possible s'il remarche.
   Claude ne code lui-même que les petites corrections (≤ 20 lignes) — sauf si l'utilisatrice
   dit « fais-le toi-même ».
 - Les nouvelles demandes vont **en bas** de `files/taches/FILE-ATTENTE.md` et se font dans l'ordre.
