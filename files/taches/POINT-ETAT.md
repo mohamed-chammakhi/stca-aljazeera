@@ -46,6 +46,8 @@ dire à l'utilisatrice « envoyé sur GitHub » seulement si l'étape 5 est vér
   lance **GitHub Copilot CLI** (abonnement étudiant, modèle auto) :
   `bash files/taches/lancer_copilot.sh NN fichier.md` (journal `files/taches/copilot_NN.log`),
   puis relit, teste et commite. Copilot n'a pas le droit de commiter ni de pousser.
+  Variante visible dans la fenêtre VS Code (panneau Copilot Chat, mode agent) :
+  `bash files/taches/lancer_copilot_vscode.sh NN fichier.md` — attend « FIN RAPPORT » dans la fiche.
   Codex (`lancer_codex.sh`) reste possible s'il remarche.
   Claude ne code lui-même que les petites corrections (≤ 20 lignes) — sauf si l'utilisatrice
   dit « fais-le toi-même ».
