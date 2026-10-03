@@ -23,11 +23,37 @@ class DegDateUtils {
     if (valeur == null) return '';
     final texte = valeur.toString();
     if (texte.isEmpty) return '';
-    final parsed = DateTime.tryParse(texte);
+    final parsed = DateTime.tryParse(texte)?.toLocal();
     if (parsed == null) return texte;
     final jour = parsed.day.toString().padLeft(2, '0');
     final mois = parsed.month.toString().padLeft(2, '0');
     return '$jour/$mois/${parsed.year}';
+  }
+
+  static String formaterSaisie(dynamic valeur) {
+    final texte = formaterAffichage(valeur);
+    return texte;
+  }
+
+  static String? dateSaisieVersIso(String valeur) {
+    final texte = valeur.trim();
+    if (texte.isEmpty) return null;
+    final dejaIso = DateTime.tryParse(texte);
+    if (dejaIso != null && texte.contains('-')) {
+      return dejaIso.toIso8601String();
+    }
+    final morceaux = texte.split('/');
+    if (morceaux.length != 3) return null;
+    final jour = int.tryParse(morceaux[0]);
+    final mois = int.tryParse(morceaux[1]);
+    final annee = int.tryParse(morceaux[2]);
+    if (jour == null || mois == null || annee == null) return null;
+    return DateTime(annee, mois, jour).toIso8601String();
+  }
+
+  static String? dateSaisieVersDateIso(String valeur) {
+    final iso = dateSaisieVersIso(valeur);
+    return iso == null ? null : iso.substring(0, 10);
   }
 
   static String formaterDateHeure(dynamic valeur) {

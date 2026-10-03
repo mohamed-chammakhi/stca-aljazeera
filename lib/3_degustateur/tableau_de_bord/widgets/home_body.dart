@@ -76,7 +76,6 @@ class _HomeBodyState extends State<HomeBody> with RafraichissementPeriodique {
   DateTime _delaiDateFin = DateTime.now();
   DateTime? _actDateDebut;
   DateTime? _actDateFin;
-  bool _showClearConfirm = false;
 
   @override
   void initState() {
@@ -597,7 +596,6 @@ class _HomeBodyState extends State<HomeBody> with RafraichissementPeriodique {
               _buildActivite(),
             ],
           ),
-          if (_showClearConfirm) _buildClearConfirmDialog(),
         ],
       ),
     );
@@ -1675,28 +1673,6 @@ class _HomeBodyState extends State<HomeBody> with RafraichissementPeriodique {
                         color: _green,
                       ),
                     ),
-                    const Spacer(),
-                    GestureDetector(
-                      onTap: () => setState(() => _showClearConfirm = true),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 7,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.05),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: const Text(
-                          '✕ Effacer',
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w600,
-                            color: Color(0xFFAAAAAA),
-                          ),
-                        ),
-                      ),
-                    ),
                   ],
                 ),
               ),
@@ -1844,37 +1820,6 @@ class _HomeBodyState extends State<HomeBody> with RafraichissementPeriodique {
       ),
     );
   }
-
-  Widget _buildClearConfirmDialog() => Container(
-    color: Colors.black.withValues(alpha: 0.4),
-    child: Center(
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 40),
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.2),
-              blurRadius: 40,
-            ),
-          ],
-        ),
-        child: HomeActiviteClearConfirmDialog(
-          onCancel: () => setState(() => _showClearConfirm = false),
-          onConfirm: () {
-            setState(() {
-              _actDateDebut = null;
-              _actDateFin = null;
-              _showClearConfirm = false;
-            });
-            _reloadActivite();
-          },
-        ),
-      ),
-    ),
-  );
 }
 
 class _DonutPainter extends CustomPainter {

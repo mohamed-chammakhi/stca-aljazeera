@@ -294,7 +294,10 @@ class _DetailPanel extends StatelessWidget {
                           ),
                         ),
                         if (rapport.dateAnalyse != null)
-                          TextSpan(text: ' le ${rapport.dateAnalyse}'),
+                          TextSpan(
+                            text:
+                                ' le ${DegDateUtils.formaterDateHeureOuTiret(rapport.dateAnalyse)}',
+                          ),
                       ],
                     ),
                   ),
@@ -326,7 +329,7 @@ class _DetailPanel extends StatelessWidget {
                 const Spacer(),
                 if (rapport?.dateAnalyse != null)
                   Text(
-                    'Soumis le ${rapport!.dateAnalyse}',
+                    'Soumis le ${DegDateUtils.formaterDateHeureOuTiret(rapport!.dateAnalyse)}',
                     style: TextStyle(fontSize: 11, color: Colors.grey.shade400),
                   ),
                 const SizedBox(width: 6),

@@ -10,6 +10,7 @@
 // ═════════════════════════════════════════════════════════════════════════════
 
 import 'package:flutter/material.dart';
+import 'package:project3/core/utils/date_utils.dart';
 import 'package:flutter/services.dart';
 import '../../../analyse_labo.dart';
 import '../../../../core/analyses/normes_coi.dart';
@@ -114,9 +115,15 @@ class _FormulaireSheetState extends State<_FormulaireSheet> {
 
     _certificatCtrl = TextEditingController(text: a?.numeroCertificat ?? '');
     _lotCtrl = TextEditingController(text: a?.numeroLot ?? '');
-    _quantiteCtrl = TextEditingController(text: a?.quantiteMl?.toString() ?? '');
-    _debutCtrl = TextEditingController(text: a?.dateDebutAnalyse ?? '');
-    _finCtrl = TextEditingController(text: a?.dateFinAnalyse ?? '');
+    _quantiteCtrl = TextEditingController(
+      text: a?.quantiteMl?.toString() ?? '',
+    );
+    _debutCtrl = TextEditingController(
+      text: DegDateUtils.formaterAffichage(a?.dateDebutAnalyse),
+    );
+    _finCtrl = TextEditingController(
+      text: DegDateUtils.formaterAffichage(a?.dateFinAnalyse),
+    );
     _notesCtrl = TextEditingController(text: a?.notes ?? '');
 
     if (!widget.readOnly) {
@@ -184,8 +191,8 @@ class _FormulaireSheetState extends State<_FormulaireSheet> {
       valeurs: valeurs,
       numeroCertificat: _texteOuNull(_certificatCtrl),
       numeroLot: _texteOuNull(_lotCtrl),
-      dateDebutAnalyse: _texteOuNull(_debutCtrl),
-      dateFinAnalyse: _texteOuNull(_finCtrl),
+      dateDebutAnalyse: DegDateUtils.dateSaisieVersDateIso(_debutCtrl.text),
+      dateFinAnalyse: DegDateUtils.dateSaisieVersDateIso(_finCtrl.text),
       quantiteMl: int.tryParse(_quantiteCtrl.text.trim()),
       statut: statut,
       dateAnalyse: widget.analyse?.dateAnalyse ?? _todayLabel(),
@@ -292,7 +299,7 @@ class _FormulaireSheetState extends State<_FormulaireSheet> {
                       if (widget.readOnly &&
                           widget.analyse?.dateAnalyse != null)
                         Text(
-                          'Soumis le ${widget.analyse!.dateAnalyse}',
+                          'Soumis le ${DegDateUtils.formaterDateHeureOuTiret(widget.analyse!.dateAnalyse)}',
                           style: TextStyle(
                             fontSize: 11,
                             color: Colors.grey.shade400,
@@ -496,7 +503,9 @@ class _FormulaireSheetState extends State<_FormulaireSheet> {
                               ),
                               style: OutlinedButton.styleFrom(
                                 foregroundColor: const Color(0xFFD07B2F),
-                                side: const BorderSide(color: Color(0xFFD07B2F)),
+                                side: const BorderSide(
+                                  color: Color(0xFFD07B2F),
+                                ),
                                 backgroundColor: const Color(
                                   0xFFD07B2F,
                                 ).withValues(alpha: 0.05),

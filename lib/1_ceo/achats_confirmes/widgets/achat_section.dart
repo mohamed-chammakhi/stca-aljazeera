@@ -8,6 +8,7 @@ import 'package:project3/core/theme/app_colors.dart';
 import '../../utilisateurs/models/echantillon_ceo_view.dart';
 import '../../widgets/sample_card_echantillon.dart';
 import '../../../core/widgets/grille_details.dart';
+import '../../../core/utils/date_utils.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ACHAT SECTION
@@ -86,7 +87,11 @@ class AchatSection extends StatelessWidget {
 class AchatDetails extends StatelessWidget {
   final EchantillonCeoView echantillon;
   final Color accentColor;
-  const AchatDetails({super.key, required this.echantillon, required this.accentColor});
+  const AchatDetails({
+    super.key,
+    required this.echantillon,
+    required this.accentColor,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -143,8 +148,8 @@ class AchatDetails extends StatelessWidget {
                 Expanded(
                   child: Text(
                     e.stockArrive
-                        ? 'Stock arrivé en entrepôt${e.dateLivraisonStock != null ? " — ${e.dateLivraisonStock}" : ""}'
-                        : 'En transit${e.dateLivraisonStock != null ? " — Livraison prévue : ${e.dateLivraisonStock}" : ""}',
+                        ? 'Stock arrivé en entrepôt${e.dateLivraisonStock != null ? " — ${DegDateUtils.formaterDateHeureOuTiret(e.dateLivraisonStock)}" : ""}'
+                        : 'En transit${e.dateLivraisonStock != null ? " — Livraison prévue : ${DegDateUtils.formaterDateHeureOuTiret(e.dateLivraisonStock)}" : ""}',
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,

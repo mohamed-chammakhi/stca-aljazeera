@@ -403,59 +403,52 @@ class _DateFilterSheetState extends State<DateFilterSheet> {
             ),
           ],
           const SizedBox(height: 20),
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton(
+          // Only way to drop an active date filter: shown only when one is set.
+          if (widget.dateDebut != null) ...
+            [
+              SizedBox(
+                width: double.infinity,
+                child: TextButton(
                   onPressed: () {
                     widget.onClear();
                     Navigator.pop(context);
                   },
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.grey.shade600,
-                    side: BorderSide(color: Colors.grey.shade300),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                  child: const Text('Effacer'),
+                  child: const Text('Toutes les dates'),
                 ),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                flex: 2,
-                child: ElevatedButton(
-                  onPressed: _debut == null
-                      ? null
-                      : () {
-                          if (widget.onApplyTyped != null) {
-                            widget.onApplyTyped!(
-                              _debut!,
-                              _isRange ? _fin : null,
-                              _selectedType,
-                            );
-                          } else {
-                            widget.onApply(_debut!, _isRange ? _fin : null);
-                          }
-                          Navigator.pop(context);
-                        },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: _green,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                  child: const Text(
-                    'Appliquer',
-                    style: TextStyle(fontWeight: FontWeight.w700),
-                  ),
-                ),
-              ),
+              const SizedBox(height: 8),
             ],
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: _debut == null
+                  ? null
+                  : () {
+                      if (widget.onApplyTyped != null) {
+                        widget.onApplyTyped!(
+                          _debut!,
+                          _isRange ? _fin : null,
+                          _selectedType,
+                        );
+                      } else {
+                        widget.onApply(_debut!, _isRange ? _fin : null);
+                      }
+                      Navigator.pop(context);
+                    },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _green,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              child: const Text(
+                'Appliquer',
+                style: TextStyle(fontWeight: FontWeight.w700),
+              ),
+            ),
           ),
         ],
       ),

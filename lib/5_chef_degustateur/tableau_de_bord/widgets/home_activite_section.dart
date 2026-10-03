@@ -12,7 +12,6 @@ class ActiviteSection extends StatelessWidget {
   final DateTime? dateFin;
   final VoidCallback onDateTap;
   final VoidCallback onLoadMore;
-  final VoidCallback onClearFilterTap;
 
   const ActiviteSection({
     super.key,
@@ -23,7 +22,6 @@ class ActiviteSection extends StatelessWidget {
     required this.dateFin,
     required this.onDateTap,
     required this.onLoadMore,
-    required this.onClearFilterTap,
   });
 
   String _fmtDate(DateTime d) =>
@@ -104,28 +102,6 @@ class ActiviteSection extends StatelessWidget {
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
                         color: chefGreen,
-                      ),
-                    ),
-                    const Spacer(),
-                    GestureDetector(
-                      onTap: onClearFilterTap,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 7,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.05),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: const Text(
-                          '✕ Effacer',
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w600,
-                            color: Color(0xFFAAAAAA),
-                          ),
-                        ),
                       ),
                     ),
                   ],

@@ -71,3 +71,42 @@ Voir `files/taches/PROTOCOLE.md`. Interdit : `git commit`, `git push`, migration
 vraie base, ML Kit, fausses données. Même correction pour tous les rôles qui partagent un écran.
 Encodage UTF-8 sans BOM, garder les fins de ligne. Lancer `flutter analyze` (zéro ligne
 « error - »), `flutter test` (et les tests Django si un fichier serveur change) avant le rapport.
+
+## RAPPORT
+
+### Fait
+
+- `lib/core/utils/date_utils.dart` : ajout des conversions centralisées entre ISO serveur, affichage `JJ/MM/AAAA` et saisie de formulaire ; les dates ISO sont converties en heure locale.
+- `lib/3_degustateur/gestion_echantillons/widgets/dialogs/formulaire_dialog.dart` : « Date d'arrivée » est préremplie depuis `dateArriveeEchantillon` en `JJ/MM/AAAA`; la modification renvoie cette valeur en ISO et ne renvoie plus `date_ajout`.
+- `lib/5_chef_degustateur/gestion_echantillons/widgets/dialogs/formulaire_dialog.dart` : même correction pour le chef dégustateur.
+- `lib/4_laboratoire/echantillons_labo/widgets/dialogs/formulaire_analyse_labo_dialog.dart` : dates début/fin d'analyse lisibles en modification et reconverties en `AAAA-MM-JJ` pour le serveur ; date de soumission formatée.
+- `lib/1_ceo/widgets/sample_card_echantillon.dart` : dates d'enregistrement, réception, livraison d'échantillon et livraison de stock formatées au lieu d'être affichées en ISO.
+- `lib/1_ceo/widgets/base_sample_card.dart` : dates de livraison et de réception formatées dans les sections de détail.
+- `lib/1_ceo/achats_confirmes/widgets/achat_section.dart` : date de stock arrivé ou prévu formatée.
+- `lib/1_ceo/validation_achats/widgets/proposition_section.dart` : plage de livraison du stock affichée en dates lisibles.
+- `lib/1_ceo/analyse_laboratoire/widgets/rapport_section.dart`, `lib/core/widgets/analyse_labo_sheet_adapter.dart`, `lib/core/widgets/analyse_labo/analyse_card.dart` : dates de soumission des rapports labo formatées.
+- `lib/5_chef_degustateur/tableau_de_bord/widgets/home_sessions_section.dart` et `lib/5_chef_degustateur/tableau_de_bord/widgets/home_body.dart` : dates des séances du tableau de bord formatées.
+- `lib/core/widgets/search_date_filter_bar.dart` : suppression du bouton « Effacer » de la feuille de filtre ; le bouton « Appliquer » occupe désormais toute la largeur.
+- `lib/5_chef_degustateur/sessions_degustation/sessions_degustation_page.dart` : suppression de « Effacer les filtres » et de son espace.
+- `lib/3_degustateur/tableau_de_bord/widgets/home_activite_section.dart`, `lib/3_degustateur/tableau_de_bord/widgets/home_body.dart` : suppression du bouton et de la confirmation d'effacement du filtre d'activité.
+- `lib/5_chef_degustateur/tableau_de_bord/widgets/home_activite_section.dart`, `lib/5_chef_degustateur/tableau_de_bord/widgets/home_body.dart` : suppression du bouton et de la confirmation d'effacement du filtre d'activité.
+- `test/date_utils_parse_iso_test.dart` : ajout du test de préremplissage lisible `25/09/2026` et de reconversion ISO.
+
+### Vérifié
+
+- `dart format ...` sur les 19 fichiers Dart modifiés : `Formatted 19 files (9 changed)`.
+- `flutter analyze lib test` : `52 issues found`, **0 ligne `error -`** ; les diagnostics restants sont des informations/avertissements préexistants.
+- `flutter test test/date_utils_parse_iso_test.dart` : `00:00 +2: All tests passed!`.
+- `flutter test` : `00:58 +193: All tests passed!`.
+- `rg "Effacer|Réinitialiser|clear_all|filter_alt_off" lib` : aucune occurrence de bouton/libellé restante.
+- `rg "\$\{[^}]*date[A-Za-z]*\}|\$[a-zA-Z]*Date[A-Za-z]*" lib` : aucune interpolation directe de date d'affichage restante ; seule la construction interne `${date}T$heureValide` du parseur de séances est conservée.
+- Aucun fichier serveur n'a été modifié ; aucune migration n'a été créée ni appliquée et aucun test Django n'était requis.
+
+### Non fait
+
+- Aucun test widget spécifique des deux dialogues n'a été ajouté : leur préremplissage est couvert par la fonction utilitaire testée, qui reçoit exactement l'ISO fourni dans la consigne.
+
+### HORS PÉRIMÈTRE
+
+- Les diagnostics Flutter préexistants (52 informations/avertissements, notamment `withOpacity`, constructeurs sans `key` et exports `show`) n'ont pas été corrigés.
+- Les fichiers non suivis préexistants `backend_new/backup_propre.json`, `backend_new/media/` et `backend_new/sauvegarde_avant_nettoyage_2026-09-25.json` n'ont pas été touchés.

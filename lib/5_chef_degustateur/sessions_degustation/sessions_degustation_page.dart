@@ -270,9 +270,9 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage>
   }
 
   void _showError([String message = 'L’action n’a pas pu être enregistrée.']) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -490,30 +490,7 @@ class _SessionsDegustationPageState extends State<SessionsDegustationPage>
             Container(
               color: kBg,
               padding: const EdgeInsets.fromLTRB(16, 9, 16, 6),
-              child: Row(
-                children: [
-                  if (_anyFilter) ...[
-                    const Spacer(),
-                    GestureDetector(
-                      onTap: () => setState(() {
-                        _filtreStatutLabel = null;
-                        _dateDebut = null;
-                        _dateFin = null;
-                        _recherche = '';
-                        _searchController.clear();
-                      }),
-                      child: const Text(
-                        'Effacer les filtres',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: kGreen,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ],
-                ],
-              ),
+              child: const SizedBox.shrink(),
             ),
             Expanded(
               child: items.isEmpty

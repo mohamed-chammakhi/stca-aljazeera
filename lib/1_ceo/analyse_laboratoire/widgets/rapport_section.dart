@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:project3/core/analyses/widgets/tableau_rapport_labo.dart';
+import 'package:project3/core/utils/date_utils.dart';
 
 import '../../utilisateurs/models/echantillon_ceo_view.dart';
 
@@ -97,7 +98,7 @@ class RapportSection extends StatelessWidget {
                 const Spacer(),
                 if (hasAnalyse && e.analyse!.dateAnalyse != null)
                   Text(
-                    'Soumis le ${e.analyse!.dateAnalyse!}',
+                    'Soumis le ${DegDateUtils.formaterDateHeureOuTiret(e.analyse!.dateAnalyse)}',
                     style: TextStyle(fontSize: 12, color: Colors.grey.shade400),
                   ),
                 const SizedBox(width: 6),

@@ -24,6 +24,7 @@ import '../../../../core/services/collecteur_suggestion_service.dart';
 import '../../../../core/services/fournisseur_service.dart';
 import '../../../../core/services/variete_service.dart';
 import '../../../../core/utils/reference_bouteille.dart';
+import '../../../../core/utils/date_utils.dart';
 import '../../../../core/utils/validation_echantillon_formulaire.dart';
 import '../../../../core/widgets/champ_autocomplete.dart';
 import '../../../../core/widgets/date_input_field.dart';
@@ -166,7 +167,9 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
       text: e?.fournisseurNom ?? e?.fournisseurTexte ?? '',
     );
     _collecteurCtrl = TextEditingController(text: e?.collecteurNom ?? '');
-    _dateAjoutCtrl = TextEditingController(text: e?.dateAjout ?? _todayStr());
+    _dateAjoutCtrl = TextEditingController(
+      text: DegDateUtils.formaterSaisie(e?.dateArriveeEchantillon),
+    );
     _citeCtrl = TextEditingController(text: e?.cite ?? '');
     _remarquesCtrl = TextEditingController(text: e?.remarques ?? '');
 
@@ -347,7 +350,9 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
       );
       if (!mounted) return;
       if (!result.hasAnyValue) {
-        _showErrorMessage('Aucun champ lisible. Saisissez les informations manuellement.');
+        _showErrorMessage(
+          'Aucun champ lisible. Saisissez les informations manuellement.',
+        );
         return;
       }
       setState(() {
@@ -358,7 +363,11 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
         _prefillIfEmpty(row.numCiterneCtrl, result.numCiterne);
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Étiquette lue. Vérifiez les champs avant d\'enregistrer.')),
+        const SnackBar(
+          content: Text(
+            'Étiquette lue. Vérifiez les champs avant d\'enregistrer.',
+          ),
+        ),
       );
     } catch (error) {
       final message = error is ApiException ? error.message : error.toString();
@@ -454,6 +463,9 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
         e.remarques = _remarquesCtrl.text.trim().isEmpty
             ? null
             : _remarquesCtrl.text.trim();
+        e.dateArriveeEchantillon = DegDateUtils.dateSaisieVersIso(
+          _dateAjoutCtrl.text,
+        );
         // A newly picked photo is sent with the edit; otherwise the old one stays.
         e.photoAEnvoyer = b.photoBytes;
         e.photoNomFichier = b.photoName;
@@ -488,7 +500,10 @@ class _FormulaireDialogState extends State<_FormulaireDialog> {
               quantiteEstimee: b.qteCtrl.text.trim().isEmpty
                   ? null
                   : b.qteCtrl.text.trim(),
-              dateAjout: _dateAjoutCtrl.text,
+              dateAjout: now.toIso8601String(),
+              dateArriveeEchantillon: DegDateUtils.dateSaisieVersIso(
+                _dateAjoutCtrl.text,
+              ),
               statutCollecteur: StatutCollecteur.receptionne,
               statutDegustateur: StatutDegustateur.nonEvaluee,
               recuPhysiquement: true,

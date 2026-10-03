@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'sample_card_echantillon.dart'; // DetailItem lives here
+import '../../core/utils/date_utils.dart';
 import '../utilisateurs/models/echantillon_ceo_view.dart';
 import '../../core/widgets/grille_details.dart';
 
@@ -265,21 +266,21 @@ class SampleDeliveryIndicator extends StatelessWidget {
       // ① Stock physically arrived
       return Text(
         e.dateLivraisonStock != null
-            ? '— Stock réceptionné le ${e.dateLivraisonStock} —'
+            ? '— Stock réceptionné le ${DegDateUtils.formaterDateHeureOuTiret(e.dateLivraisonStock)} —'
             : '— Stock réceptionné —',
         style: _greyStyle,
       );
     } else if (e.dateLivraisonStock != null) {
       // ② Stock delivery date set but not yet received
       return Text(
-        '— Livraison du stock prévue le ${e.dateLivraisonStock} —',
+        '— Livraison du stock prévue le ${DegDateUtils.formaterDateHeureOuTiret(e.dateLivraisonStock)} —',
         style: _greyStyle,
       );
     } else if (e.recuPhysiquement) {
       // ③ Sample physically received
       return Text(
         e.dateReceptionEchantillon != null
-            ? '— Échantillon réceptionné le ${e.dateReceptionEchantillon} —'
+            ? '— Échantillon réceptionné le ${DegDateUtils.formaterDateHeureOuTiret(e.dateReceptionEchantillon)} —'
             : '— Échantillon réceptionné —',
         style: _greyStyle,
       );
@@ -289,7 +290,10 @@ class SampleDeliveryIndicator extends StatelessWidget {
       final dateAnnoncee = (e.dateArriveeEchantillon?.isNotEmpty ?? false)
           ? e.dateArriveeEchantillon
           : e.dateLivraisonPrevue;
-      return Text('— Arrivée prévue le $dateAnnoncee —', style: _greyStyle);
+      return Text(
+        '— Arrivée prévue le ${DegDateUtils.formaterDateHeureOuTiret(dateAnnoncee)} —',
+        style: _greyStyle,
+      );
     } else if (e.statut == StatutCeo.enNegociation ||
         e.statut == StatutCeo.achatConfirme) {
       // ⑤ Purchase confirmed but no stock delivery date yet

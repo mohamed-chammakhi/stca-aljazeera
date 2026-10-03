@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../analyses/rapport_labo.dart';
 import '../analyses/widgets/tableau_rapport_labo.dart';
 import '../theme/app_colors.dart';
+import '../utils/date_utils.dart';
 
 void showAnalyseLaboSheet(
   BuildContext context, {
@@ -131,7 +132,7 @@ class _AnalyseLaboSheet extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.only(left: 2),
                 child: Text(
-                  'Soumis le ${analyse.dateAnalyse}',
+                  'Soumis le ${DegDateUtils.formaterDateHeureOuTiret(analyse.dateAnalyse)}',
                   style: TextStyle(fontSize: 11, color: Colors.grey.shade400),
                 ),
               ),

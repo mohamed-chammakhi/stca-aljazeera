@@ -4,6 +4,7 @@ import 'package:project3/core/utils/montant_achat.dart';
 import '../../utilisateurs/models/echantillon_ceo_view.dart';
 import '../../widgets/sample_card_echantillon.dart';
 import '../../../core/widgets/grille_details.dart';
+import '../../../core/utils/date_utils.dart';
 
 class PropositionSection extends StatelessWidget {
   final EchantillonCeoView echantillon;
@@ -161,8 +162,8 @@ class _PropositionDetails extends StatelessWidget {
                 DetailItem(
                   'Livraison stock',
                   e.dateLivraisonStockFin != null
-                      ? '${e.dateLivraisonStock} → ${e.dateLivraisonStockFin}'
-                      : e.dateLivraisonStock!,
+                      ? '${DegDateUtils.formaterAffichage(e.dateLivraisonStock)} → ${DegDateUtils.formaterAffichage(e.dateLivraisonStockFin)}'
+                      : DegDateUtils.formaterAffichage(e.dateLivraisonStock),
                 ),
               if (e.collecteurNom != null)
                 DetailItem('Soumise par', e.collecteurNom!),

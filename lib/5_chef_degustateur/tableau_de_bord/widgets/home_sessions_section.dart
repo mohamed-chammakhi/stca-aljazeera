@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../models/dashboard_chef_degustateur.dart';
 import 'home_shared.dart';
 import '../../widgets/chef_colors.dart';
+import '../../../core/utils/date_utils.dart';
 
 class SessionsSection extends StatelessWidget {
   final List<SessionEnAttente> sessions;
@@ -129,7 +130,7 @@ class SessionsSection extends StatelessWidget {
                                     ),
                                     const SizedBox(height: 2),
                                     Text(
-                                      '${s.date} · ${s.heure.isEmpty ? "Heure non précisée" : s.heure} · ${s.lieu.isEmpty ? "Lieu non précisé" : s.lieu}',
+                                      '${DegDateUtils.formaterAffichage(s.date)} · ${s.heure.isEmpty ? "Heure non précisée" : s.heure} · ${s.lieu.isEmpty ? "Lieu non précisé" : s.lieu}',
                                       style: TextStyle(
                                         fontSize: 11,
                                         color: Colors.grey.shade500,

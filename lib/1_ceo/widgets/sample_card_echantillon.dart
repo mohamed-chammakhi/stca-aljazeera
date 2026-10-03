@@ -147,8 +147,12 @@ class _SampleDetailsState extends State<SampleDetails> {
                 DetailItem(
                   'Livraison prévue',
                   (e.dateArriveeEchantillon?.isNotEmpty ?? false)
-                      ? e.dateArriveeEchantillon!
-                      : e.dateLivraisonPrevue!,
+                      ? DegDateUtils.formaterDateHeureOuTiret(
+                          e.dateArriveeEchantillon,
+                        )
+                      : DegDateUtils.formaterDateHeureOuTiret(
+                          e.dateLivraisonPrevue,
+                        ),
                 ),
             ],
           ),
@@ -164,47 +168,49 @@ class _SampleDetailsState extends State<SampleDetails> {
             if (e.recuPhysiquement)
               _dLine(
                 e.dateReceptionEchantillon != null
-                    ? 'Échantillon réceptionné le ${e.dateReceptionEchantillon}'
+                    ? 'Échantillon réceptionné le ${DegDateUtils.formaterDateHeureOuTiret(e.dateReceptionEchantillon)}'
                     : 'Échantillon réceptionné',
               )
             else if (e.dateLivraisonPrevue != null &&
                 e.dateLivraisonPrevueFin != null)
               _dLine(
-                'Échantillon attendu entre le ${e.dateLivraisonPrevue} et le ${e.dateLivraisonPrevueFin}',
+                'Échantillon attendu entre le ${DegDateUtils.formaterAffichage(e.dateLivraisonPrevue)} et le ${DegDateUtils.formaterAffichage(e.dateLivraisonPrevueFin)}',
               )
             else if ((e.dateArriveeEchantillon?.isNotEmpty ?? false) ||
                 e.dateLivraisonPrevue != null)
               _dLine(
-                'Échantillon attendu le ${(e.dateArriveeEchantillon?.isNotEmpty ?? false) ? e.dateArriveeEchantillon : e.dateLivraisonPrevue}',
+                'Échantillon attendu le ${DegDateUtils.formaterAffichage((e.dateArriveeEchantillon?.isNotEmpty ?? false) ? e.dateArriveeEchantillon : e.dateLivraisonPrevue)}',
               )
             else
               _dLine('Livraison de l\'échantillon non planifiée'),
           ] else if (e.statut == StatutCeo.enNegociation) ...[
             _dLine(
               e.dateReceptionEchantillon != null
-                  ? 'Échantillon réceptionné le ${e.dateReceptionEchantillon}'
+                  ? 'Échantillon réceptionné le ${DegDateUtils.formaterDateHeureOuTiret(e.dateReceptionEchantillon)}'
                   : 'Échantillon réceptionné',
             ),
           ] else if (e.statut == StatutCeo.achatConfirme) ...[
             _dLine(
               e.dateReceptionEchantillon != null
-                  ? 'Échantillon réceptionné le ${e.dateReceptionEchantillon}'
+                  ? 'Échantillon réceptionné le ${DegDateUtils.formaterDateHeureOuTiret(e.dateReceptionEchantillon)}'
                   : 'Échantillon réceptionné',
             ),
             const SizedBox(height: 4),
             if (e.stockArrive)
               _dLine(
                 e.dateLivraisonStock != null
-                    ? 'Stock réceptionné le ${e.dateLivraisonStock}'
+                    ? 'Stock réceptionné le ${DegDateUtils.formaterDateHeureOuTiret(e.dateLivraisonStock)}'
                     : 'Stock réceptionné',
               )
             else if (e.dateLivraisonStock != null &&
                 e.dateLivraisonStockFin != null)
               _dLine(
-                'Stock attendu entre le ${e.dateLivraisonStock} et le ${e.dateLivraisonStockFin}',
+                'Stock attendu entre le ${DegDateUtils.formaterAffichage(e.dateLivraisonStock)} et le ${DegDateUtils.formaterAffichage(e.dateLivraisonStockFin)}',
               )
             else if (e.dateLivraisonStock != null)
-              _dLine('Stock attendu pour le ${e.dateLivraisonStock}')
+              _dLine(
+                'Stock attendu pour le ${DegDateUtils.formaterAffichage(e.dateLivraisonStock)}',
+              )
             else
               _dLine('Livraison du stock non encore planifiée'),
           ],

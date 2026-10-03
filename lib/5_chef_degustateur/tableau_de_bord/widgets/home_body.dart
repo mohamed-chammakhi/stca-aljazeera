@@ -18,6 +18,7 @@ import 'home_presence_section.dart';
 import 'home_sessions_section.dart';
 import 'home_urgentes_section.dart';
 import 'home_shared.dart';
+import '../../../core/utils/date_utils.dart';
 import '../../widgets/chef_colors.dart';
 
 const Color _green = chefGreen;
@@ -80,7 +81,6 @@ class _HomeBodyState extends State<HomeBody> with RafraichissementPeriodique {
   DateTime? _classDateFin;
   DateTime? _actDateDebut;
   DateTime? _actDateFin;
-  bool _showClearConfirm = false;
 
   // ── Lifecycle ─────────────────────────────────────────────────────────────
   @override
@@ -686,12 +686,9 @@ class _HomeBodyState extends State<HomeBody> with RafraichissementPeriodique {
                   },
                 ),
                 onLoadMore: _loadMoreActivite,
-                onClearFilterTap: () =>
-                    setState(() => _showClearConfirm = true),
               ),
             ],
           ),
-          if (_showClearConfirm) _buildClearConfirmDialog(),
         ],
       ),
     );
@@ -1191,7 +1188,7 @@ class _HomeBodyState extends State<HomeBody> with RafraichissementPeriodique {
                                     ),
                                     const SizedBox(height: 2),
                                     Text(
-                                      '${s.date} · ${s.heure.isEmpty ? "Heure non précisée" : s.heure} · ${s.lieu.isEmpty ? "Lieu non précisé" : s.lieu}',
+                                      '${DegDateUtils.formaterAffichage(s.date)} · ${s.heure.isEmpty ? "Heure non précisée" : s.heure} · ${s.lieu.isEmpty ? "Lieu non précisé" : s.lieu}',
                                       style: TextStyle(
                                         fontSize: 11,
                                         color: Colors.grey.shade500,
@@ -1919,28 +1916,6 @@ class _HomeBodyState extends State<HomeBody> with RafraichissementPeriodique {
                         color: _green,
                       ),
                     ),
-                    const Spacer(),
-                    GestureDetector(
-                      onTap: () => setState(() => _showClearConfirm = true),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 7,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.05),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: const Text(
-                          '✕ Effacer',
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w600,
-                            color: Color(0xFFAAAAAA),
-                          ),
-                        ),
-                      ),
-                    ),
                   ],
                 ),
               ),
@@ -2080,105 +2055,6 @@ class _HomeBodyState extends State<HomeBody> with RafraichissementPeriodique {
       ),
     );
   }
-
-  Widget _buildClearConfirmDialog() => Container(
-    color: Colors.black.withValues(alpha: 0.4),
-    child: Center(
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 40),
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.2),
-              blurRadius: 40,
-            ),
-          ],
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-              'Effacer le filtre ?',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-                color: chefDark,
-              ),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              "Le filtre de date sera supprimé et toute l'activité sera visible.",
-              style: TextStyle(
-                fontSize: 12,
-                color: Color(0xFF666666),
-                height: 1.5,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () => setState(() => _showClearConfirm = false),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF0F2F1),
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: const Color(0xFFE8EAE8)),
-                      ),
-                      child: const Text(
-                        'Annuler',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: chefDark,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _actDateDebut = null;
-                        _actDateFin = null;
-                        _showClearConfirm = false;
-                      });
-                      _reloadActivite();
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      decoration: BoxDecoration(
-                        color: chefRed,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: const Text(
-                        'Effacer',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    ),
-  );
 }
 
 class _DonutPainter extends CustomPainter {
